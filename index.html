@@ -5732,6 +5732,35 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
     }
   }
 
+  /* ── Backfill Dia de Sorte / Timemania: completa mes/timeCoracao ausentes ──
+     Exatamente o mesmo padrão do backfill de trevos acima. */
+  if(key==='diasorte'||key==='timemania'){
+    const alvoExtra=[];
+    for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--){
+      const v=savedMap.get(c);
+      if(v&&v.mes==null&&v.timeCoracao==null) alvoExtra.push(c);
+    }
+    if(alvoExtra.length){
+      setDot('loading',`Completando ${key==='diasorte'?'mês':'time'}: ${alvoExtra.length} concursos...`);
+      const BATCH=10;
+      for(let i=0;i<alvoExtra.length;i+=BATCH){
+        await Promise.all(alvoExtra.slice(i,i+BATCH).map(async num=>{
+          try{
+            const raw=await fetchConcurso(d.apiKey,num);
+            const mes=raw.mesSorte||null;
+            const timeCoracao=raw.timeCoracao||null;
+            const v=savedMap.get(num);
+            const reg={loteria:key,concurso:num,dezenas:v.dezenas,data:v.data||raw.data||'',
+              trevos:v.trevos||null,dezenas2:v.dezenas2||null,mes,timeCoracao};
+            await dbPut('historico',reg);
+            savedMap.set(num,{...v,mes,timeCoracao});
+          }catch(e){}
+        }));
+      }
+      setDot('ok',`${key==='diasorte'?'Mês':'Time'} atualizado`);
+    }
+  }
+
   // Migração local: para Dia de Sorte e Timemania, atualiza registros
   // que ainda não têm mes/timeCoracao como campo próprio mas têm
   // o blob "dados" com a resposta completa da API — sem chamadas de rede.
