@@ -4653,7 +4653,8 @@ function renderLaHist(d,key){
   const MAX_LINHAS={lotofacil:3,lotomania:3,duplasena:3}[key] ?? 4;
   const rows=candidatos.slice(0,Math.min(MAX_LINHAS,candidatos.length||1));
   wrap.innerHTML=rows.map(r=>{
-    const balls=r.nums.map(n=>`<div class="la-hb" style="background:${d.cor}">${d.superSete?n:laPad(n)}</div>`).join('');
+    const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
+    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('');
     // Bola extra (Powerball/Mega Ball) — cor ciano, igual ao card de resultado completo
     const extraBall=(d.americano&&d.bolaExtra&&r.extra)?`<div class="la-hb" style="background:#00BCD4;margin-left:3px">${laPad(r.extra)}</div>`:'';
     // Trevos da +Milionária — cor própria, distintos das dezenas principais
