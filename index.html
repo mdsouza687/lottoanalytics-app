@@ -4034,11 +4034,11 @@ async function atualizarTodas(silencioso=false){
       // no valor que estava em cache (ex.: concurso de ontem) mesmo depois
       // da busca em segundo plano já ter trazido o concurso novo, porque
       // só o card do dashboard era atualizado, nunca a tela de detalhe aberta.
-      if(typeof currentKey!=='undefined'&&currentKey===key) renderCard(p,d);
+      try{ if(typeof currentKey!=='undefined'&&currentKey===key) renderCard(p,d); }catch(e){}
       const novidade=concursosAntes[key]!==p.concurso;
       // Rótulo do sorteio especial: só durante o período ativo (concurso atual ou próximo é o especial)
       const especialAtivo=isEspecial(key,parseInt(p.concurso))||isEspecial(key,parseInt(p.proximoConcursoNum));
-      relatorio.push({key,nome:d.nome,emoji:d.emoji,ok:true,concurso:p.concurso,data:p.data,acumulou:p.acumulou,ganhadores:p.ganhadores[0]?.q||'0',special:especialAtivo?d.specialLabel:null,novidade});
+      relatorio.push({key,nome:d.nome,emoji:d.emoji,ok:true,concurso:p.concurso,data:p.data,acumulou:p.acumulou,ganhadores:(p.ganhadores&&p.ganhadores[0]?.q)||'0',special:especialAtivo?d.specialLabel:null,novidade});
     }else{
       relatorio.push({key,nome:d.nome,emoji:d.emoji,ok:false,erro:res.reason?.message||'erro desconhecido',novidade:false});
       console.warn(key,res.reason?.message);
@@ -5263,9 +5263,10 @@ async function showLottery(key){
       res=await atualizarLoteria(key);
     }
     if(res)resultados[key]=res;
-    const age=Date.now()-((res?.updatedAt)||0);
-    const MAX_AGE=2*60*60*1000; // 2 horas — após isso força refresh em background
-    if(age>MAX_AGE) atualizarLoteria(key).then(n=>{if(n&&currentKey===key)renderCard(n,d);});
+    // Sempre busca dado fresco do Supabase em segundo plano ao abrir o card,
+    // independente da idade do cache — garante que o concurso mais recente
+    // aparece mesmo que atualizarTodas() tenha crashado por algum motivo.
+    atualizarLoteria(key).then(n=>{if(n&&currentKey===key)renderCard(n,d);}).catch(()=>{});
   }
   if(res)renderCard(res,d);
 }
