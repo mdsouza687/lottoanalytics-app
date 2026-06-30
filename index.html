@@ -3870,13 +3870,34 @@ async function fetchCaixaOficial(apiKey, ms=8000){
     premiacoes: (raw.listaRateioPremio||[]).map(p=>({descricao:p.descricaoFaixa,ganhadores:p.numeroDeGanhadores,valorPremio:p.valorPremio})),
   };
 }
+async function fetchSupabaseResultado(apiKey){
+  if(!supabaseAtivo()) return null;
+  try{
+    const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/resultados?loteria=eq.${apiKey}&select=dados`,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
+    if(!r.ok) return null;
+    const arr=await r.json();
+    if(!arr||!arr.length||!arr[0].dados) return null;
+    return arr[0].dados;
+  }catch(e){ return null; }
+}
 async function fetchResultado(apiKey, forcarFresh=false){
   if(apiKey==='powerball'||apiKey==='megamillions'){
     const res=await fetchUSLatest(apiKey);
     if(res)return{_us:true,_data:res._data};
+    // fallback Supabase para loterias US não implementado
     throw new Error('Sem dados US para '+apiKey);
   }
-  const data=await fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh);
+  let data=null;
+  try{ data=await fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh); }catch(e){ data=null; }
+  if(!data){ data=await fetchSupabaseResultado(apiKey); }
+  if(!data) throw new Error('Sem dados para '+apiKey);
+  // Verifica se o Supabase tem concurso mais recente que a API intermediária
+  if(data){
+    try{
+      const sbData=await fetchSupabaseResultado(apiKey);
+      if(sbData&&parseInt(sbData.concurso)>parseInt(data.concurso||data.numero||0)) data=sbData;
+    }catch(e){}
+  }
   // Concursos especiais (Quina de São João, Mega da Virada etc.) costumam
   // ter o prêmio reajustado várias vezes nos dias antes do sorteio. Quando
   // há um concurso especial CONHECIDO logo à frente do concurso retornado
