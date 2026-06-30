@@ -3881,23 +3881,25 @@ async function fetchSupabaseResultado(apiKey){
   }catch(e){ return null; }
 }
 async function fetchResultado(apiKey, forcarFresh=false){
+  // Loterias americanas — tenta Supabase primeiro (evita CORS), depois fonte externa
   if(apiKey==='powerball'||apiKey==='megamillions'){
+    const sbData=await fetchSupabaseResultado(apiKey);
+    if(sbData){ return{_us:true,_data:{...sbData,_fromSupabase:true}}; }
     const res=await fetchUSLatest(apiKey);
     if(res)return{_us:true,_data:res._data};
-    // fallback Supabase para loterias US não implementado
     throw new Error('Sem dados US para '+apiKey);
   }
-  let data=null;
-  try{ data=await fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh); }catch(e){ data=null; }
-  if(!data){ data=await fetchSupabaseResultado(apiKey); }
-  if(!data) throw new Error('Sem dados para '+apiKey);
-  // Verifica se o Supabase tem concurso mais recente que a API intermediária
-  if(data){
-    try{
-      const sbData=await fetchSupabaseResultado(apiKey);
-      if(sbData&&parseInt(sbData.concurso)>parseInt(data.concurso||data.numero||0)) data=sbData;
-    }catch(e){}
+  // Loterias Caixa — Supabase primeiro (fonte confiável, sem CORS), depois APIs externas
+  let data=await fetchSupabaseResultado(apiKey);
+  let dataExterna=null;
+  try{ dataExterna=await fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh); }catch(e){}
+  // Usa o concurso mais recente entre Supabase e API externa
+  if(dataExterna){
+    const numSb=parseInt(data?.concurso||0);
+    const numExt=parseInt(dataExterna?.concurso||dataExterna?.numero||0);
+    if(numExt>numSb) data=dataExterna;
   }
+  if(!data) throw new Error('Sem dados para '+apiKey);
   // Concursos especiais (Quina de São João, Mega da Virada etc.) costumam
   // ter o prêmio reajustado várias vezes nos dias antes do sorteio. Quando
   // há um concurso especial CONHECIDO logo à frente do concurso retornado
