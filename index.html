@@ -4611,8 +4611,8 @@ function renderLaHist(d,key){
     candidatos=(_laHistCache[key]||[])
       .slice(0,8)
       .map(r=>({label:r.data,nums:r.dezenas,extra:r.bolaExtra,trevos:r.trevos,nums2:r.dezenas2,
-        mes:r.dados?.mesSorte||r.mes||null,
-        time:r.dados?.timeCoracao||r.time||null}));
+        mes:r.mes||r.dados?.mesSorte||null,
+        time:r.timeCoracao||r.dados?.timeCoracao||null}));
   }catch(e){}
   // Garante que o sorteio mais recente em memória (resultados[key]) apareça em 1º,
   // mesmo que o cache de histórico ainda não tenha sido atualizado.
@@ -5660,8 +5660,10 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
             const reg={loteria:key,concurso:num,dezenas,data:raw.data||''};
             if(trevos.length) reg.trevos=trevos;
             if(dezenas2&&dezenas2.length) reg.dezenas2=dezenas2;
+            if(raw.mesSorte) reg.mes=raw.mesSorte;
+            if(raw.timeCoracao) reg.timeCoracao=raw.timeCoracao;
             await dbPut('historico',reg);
-            savedMap.set(num,{dezenas,data:raw.data||'',trevos:reg.trevos||null,dezenas2:reg.dezenas2||null});
+            savedMap.set(num,{dezenas,data:raw.data||'',trevos:reg.trevos||null,dezenas2:reg.dezenas2||null,mes:reg.mes||null,timeCoracao:reg.timeCoracao||null});
             window._diagHist[key].obtidos++;
           } else {
             window._diagHist[key].erros.push(`#${num}: resposta sem dezenas`);
@@ -5699,11 +5701,27 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
     }
   }
 
+  // Migração local: para Dia de Sorte e Timemania, atualiza registros
+  // que ainda não têm mes/timeCoracao como campo próprio mas têm
+  // o blob "dados" com a resposta completa da API — sem chamadas de rede.
+  if(key==='diasorte'||key==='timemania'){
+    const comDados=salvos.filter(r=>r.dados&&(r.mes==null&&r.timeCoracao==null));
+    for(const r of comDados){
+      const mes=r.dados.mesSorte||null;
+      const timeCoracao=r.dados.timeCoracao||null;
+      if(mes||timeCoracao){
+        try{ await dbPut('historico',{...r,mes,timeCoracao}); }catch(e){}
+        const v=savedMap.get(parseInt(r.concurso));
+        if(v){ v.mes=mes; v.timeCoracao=timeCoracao; }
+      }
+    }
+  }
+
   const regular=[],especial=[];
   for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--){
     const entry=savedMap.get(c);
     if(!entry) continue;
-    const obj={concurso:c,dezenas:entry.dezenas,data:entry.data,trevos:entry.trevos||null,dezenas2:entry.dezenas2||null};
+    const obj={concurso:c,dezenas:entry.dezenas,data:entry.data,trevos:entry.trevos||null,dezenas2:entry.dezenas2||null,mes:entry.mes||null,timeCoracao:entry.timeCoracao||null};
     if(isEspecial(key,c)) especial.push(obj); else regular.push(obj);
   }
   return soEspecial ? especial : regular;
