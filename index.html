@@ -4157,6 +4157,7 @@ async function conferirJogosSalvos(){
       const concursoResultado=parseInt(res.concurso);
       if(concursoSalvo && concursoResultado && concursoSalvo>concursoResultado) continue;
       const sorteadas = new Set(res.dezenas.map(n=>parseInt(n)));
+      const _mNConf=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       let melhorAcertos = 0, melhorValor = 0, melhorFaixa = null, qtdPremiados = 0;
       item.jogos.forEach(jogo=>{
         const acertos = jogo.filter(n=>sorteadas.has(n)).length;
@@ -4164,11 +4165,29 @@ async function conferirJogosSalvos(){
         // substring final de "20 acertos" (Lotomania premia ambas faixas,
         // mas são faixas DIFERENTES com valores diferentes).
         const faixa = (res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
-        const valor = faixa?.valorPremio||0;
-        if(acertos > melhorAcertos){ melhorAcertos = acertos; melhorFaixa = faixa?.descricao||null; melhorValor = valor; }
+        let valor = faixa?.valorPremio||0;
+        // Mês da Sorte (Dia de Sorte) — premia independente das dezenas
+        if(jogo._mes!=null && res.mes){
+          const nomeMes=_mNConf[jogo._mes-1]||'';
+          if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
+            const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
+            if(fMes?.valorPremio){ valor=Math.max(valor,fMes.valorPremio); if(!melhorFaixa) melhorFaixa=fMes.descricao; }
+          }
+        }
+        // Time do Coração (Timemania) — premia independente das dezenas
+        if(jogo._time!=null && res.timeCoracao){
+          const nomeTime=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
+          if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
+            const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
+            if(fTime?.valorPremio){ valor=Math.max(valor,fTime.valorPremio); if(!melhorFaixa) melhorFaixa=fTime.descricao; }
+          }
+        }
+        if(acertos > melhorAcertos){ melhorAcertos = acertos; if(faixa) melhorFaixa = faixa.descricao||null; melhorValor = valor; }
+        else if(valor > melhorValor){ melhorValor = valor; }
         if(valor>0) qtdPremiados++;
       });
-      const minPremiavel = { megasena:4, lotofacil:11, quina:2, lotomania:0, timemania:5, duplasena:4, diasorte:5, supersete:4, maismilionaria:4, powerball:3, megamillions:3 }[key]??d.min;
+      // diasorte/timemania: prêmio de mês/time tem minPremiavel=0 (funciona com qualquer qtd de acertos)
+      const minPremiavel = { megasena:4, lotofacil:11, quina:2, lotomania:0, timemania:0, duplasena:4, diasorte:0, supersete:4, maismilionaria:4, powerball:3, megamillions:3 }[key]??d.min;
       if(melhorAcertos >= minPremiavel && melhorValor > 0){
         // Lê o registro de "já avisado" NESTE momento (não uma única vez no
         // início da função) — assim, se outra aba/janela já gravou um aviso
@@ -5405,9 +5424,31 @@ async function verificarPremiacaoCard(key){
     const concursoEfetivo=await resolverConcursoDoItem(item);
     const concursoSalvo=parseInt(concursoEfetivo);
     if(concursoSalvo && concursoResultado && concursoSalvo>concursoResultado) continue;
-    (item.jogos||[]).forEach(jogo=>{ const acertos=jogo.filter(n=>sorteadas.has(n)).length; const faixa=(res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao)); const valor=faixa?.valorPremio||0; if(acertos>melhorAcertos){melhorAcertos=acertos;melhorValor=valor;} if(valor>0) qtdPremiados++; });
+    const _mNCard=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    (item.jogos||[]).forEach(jogo=>{
+      const acertos=jogo.filter(n=>sorteadas.has(n)).length;
+      const faixa=(res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
+      let valor=faixa?.valorPremio||0;
+      if(jogo._mes!=null && res.mes){
+        const nomeMes=_mNCard[jogo._mes-1]||'';
+        if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
+          const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
+          if(fMes?.valorPremio) valor=Math.max(valor,fMes.valorPremio);
+        }
+      }
+      if(jogo._time!=null && res.timeCoracao){
+        const nomeTime=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
+        if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
+          const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
+          if(fTime?.valorPremio) valor=Math.max(valor,fTime.valorPremio);
+        }
+      }
+      if(acertos>melhorAcertos){melhorAcertos=acertos;melhorValor=valor;}
+      else if(valor>melhorValor){melhorValor=valor;}
+      if(valor>0) qtdPremiados++;
+    });
   }
-  const minPremiavel={megasena:4,lotofacil:11,quina:2,lotomania:0,timemania:5,duplasena:4,diasorte:5,supersete:4,maismilionaria:4,powerball:3,megamillions:3}[key]??d.min;
+  const minPremiavel={megasena:4,lotofacil:11,quina:2,lotomania:0,timemania:0,duplasena:4,diasorte:0,supersete:4,maismilionaria:4,powerball:3,megamillions:3}[key]??d.min;
   if(melhorAcertos<minPremiavel||melhorValor<=0) return;
   const brl=v=>fmtPremio(v,key);
   const label=`${melhorAcertos} acerto${melhorAcertos!==1?'s':''}`;
@@ -7940,10 +7981,26 @@ function imprimirConferir(){
   const filtroSel=document.querySelector('input[name="conferir-print-filtro"]:checked');
   const soPremiados=filtroSel?filtroSel.value==='premiados':false;
 
+  const _mNPrint=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const todos=jogosGerados.map((jogo,i)=>{
     const acertos=jogo.filter(n=>sorteadas.has(n)).length;
     const faixa=(res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
-    return{jogo,acertos,valor:faixa?.valorPremio||0,idx:i};
+    let valor=faixa?.valorPremio||0;
+    if(jogo._mes!=null && res.mes){
+      const nomeMes=_mNPrint[jogo._mes-1]||'';
+      if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
+        const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
+        if(fMes?.valorPremio) valor=Math.max(valor,fMes.valorPremio);
+      }
+    }
+    if(jogo._time!=null && res.timeCoracao){
+      const nomeTime=LA_TIMEMANIA_TIMES?.[jogo._time]||'';
+      if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
+        const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
+        if(fTime?.valorPremio) valor=Math.max(valor,fTime.valorPremio);
+      }
+    }
+    return{jogo,acertos,valor,idx:i};
   }).sort((a,b)=>b.valor-a.valor||b.acertos-a.acertos);
 
   const premiados=todos.filter(r=>r.valor>0);
@@ -7960,9 +8017,11 @@ function imprimirConferir(){
   const numSorteados=res.dezenas.map(n=>`<span class="ball" style="background:${d.cor}">${pad(parseInt(n))}</span>`).join('');
   const bolaExtra=res.bolaExtra?`<span class="ball-sep">${d.bolaExtraNome}</span><span class="ball" style="background:${bxc}">${pad(res.bolaExtra)}</span>`:'';
   const dezenas2=res.dezenas2?.length?`<span class="ball-sep">2º sorteio</span>${res.dezenas2.map(n=>`<span class="ball" style="background:${d.corD}">${pad(parseInt(n))}</span>`).join('')}`:'';
+  const mesPrint=res.mes?`<span class="ball-sep">Mês</span><span class="ball" style="background:${d.cor};width:auto;padding:0 6px">${res.mes}</span>`:'';
+  const timePrint=res.timeCoracao?`<span class="ball-sep">Time</span><span class="ball" style="background:${d.cor};width:auto;padding:0 6px">${res.timeCoracao}</span>`:'';
 
   let html=buildPrintHeader(titulo, subtitulo, d);
-  html+=`<div class="resultado-box"><div class="section-label">🎯 Resultado oficial</div><div class="jogo-balls">${numSorteados}${bolaExtra}${dezenas2}</div></div>`;
+  html+=`<div class="resultado-box"><div class="section-label">🎯 Resultado oficial</div><div class="jogo-balls">${numSorteados}${bolaExtra}${dezenas2}${mesPrint}${timePrint}</div></div>`;
   html+=`<div class="resumo-grid">
     <div class="resumo-card"><div class="resumo-val" style="color:${corMarca(d)}">${fmtPremio(somaTotal)}</div><div class="resumo-lbl">Total ganho</div></div>
     <div class="resumo-card"><div class="resumo-val" style="color:#c9a800">${premiados.length}</div><div class="resumo-lbl">Premiados</div></div>
@@ -8410,6 +8469,8 @@ async function salvarJogos(){
     fixos:getFixos('jogo'),
     extras:jogosFinais.map(j=>j._extra||null),
     trevos:jogosFinais.map(j=>Array.isArray(j._trevos)?[...j._trevos]:null),
+    mes:jogosFinais.map(j=>j._mes!=null?j._mes:null),
+    times:jogosFinais.map(j=>j._time!=null?j._time:null),
     espelhoFlags:jogosFinais.map(j=>j._isEspelho?1:0),
     temEspelho:temEspelho,
     teimosinhaConcursos:teimosinhaAtiva?jogosFinais[0]._teimosinhaConcursos.slice():null,
@@ -8428,6 +8489,8 @@ function hidratarJogosSalvos(item){
     // Restaura a partir dos campos auxiliares (conjuntos salvos com a versão nova)
     if(j._extra===undefined&&item.extras&&item.extras[i]) j._extra=item.extras[i];
     if(j._trevos===undefined&&item.trevos&&Array.isArray(item.trevos[i])&&item.trevos[i].length) j._trevos=item.trevos[i];
+    if(j._mes===undefined&&item.mes&&item.mes[i]!=null) j._mes=item.mes[i];
+    if(j._time===undefined&&item.times&&item.times[i]!=null) j._time=item.times[i];
     if(j._isEspelho===undefined&&item.espelhoFlags&&item.espelhoFlags[i]) j._isEspelho=true;
     if(j._ssCols===undefined&&item.ssCols&&Array.isArray(item.ssCols[i])&&item.ssCols[i].length) j._ssCols=item.ssCols[i];
     // Teimosinha: a lista de concursos é a mesma para todos os jogos do
@@ -14395,6 +14458,8 @@ async function imprimirBolao(soPremiados){
           var jc=Array.isArray(j)?j.slice():j;
           if(j._extra!=null) jc._extra=j._extra;
           if(j._trevos) jc._trevos=j._trevos.slice();
+          if(j._mes!=null) jc._mes=j._mes;
+          if(j._time!=null) jc._time=j._time;
           if(j._isEspelho) jc._isEspelho=true;
           if(j._ssCols) jc._ssCols=j._ssCols;
           jc._loteriaOrigem=cc.loteria||gImp.loteria;
@@ -14676,6 +14741,9 @@ async function imprimirBolao(soPremiados){
           var extra=jogo._extra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+extraCor+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jogo._extra)+'</span>':'';
           var trevoCor=dJogo.trevoCor||'#00BCD4';
           var trevos=jogo._trevos?' <span style="font-size:8px;color:#888">T:</span>'+jogo._trevos.map(function(t){return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+trevoCor+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';}).join(''):'';
+          var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+          var mesHtmlB=jogo._mes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jogo._mes-1]||'')+'</span>':'';
+          var timeHtmlB=jogo._time!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'')+'</span>':'';
           var tag=ehEsp?'<span style="font-size:8px;color:'+corEsp+';font-weight:800">🪞 </span>':'';
           // Status individual deste jogo específico. Três casos possíveis:
           // 1) Jogo PREMIADO: já sorteado e bateu a faixa mínima premiável
@@ -14725,7 +14793,7 @@ async function imprimirBolao(soPremiados){
                 :'<span style="margin-left:6px;white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;vertical-align:middle"></span> <span style="font-size:9px;color:#16a34a;font-weight:400">VIGENTE</span></span>';
             }
           }
-          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px">'+(i+1)+'.</b>'+tag+nums+extra+trevos+statusJogoHtml+'</div>';
+          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px">'+(i+1)+'.</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
         }).join('')+'</div>';
     });
     // Se o filtro "Só premiados" eliminou todos os blocos (nenhum jogo
@@ -15426,6 +15494,8 @@ function _clonarJogosComExtras(jogos){
     var a=Array.isArray(j)?j.slice():j;
     if(j&&j._trevos) a._trevos=j._trevos.slice();
     if(j&&j._extra!=null) a._extra=j._extra;
+    if(j&&j._mes!=null) a._mes=j._mes;
+    if(j&&j._time!=null) a._time=j._time;
     if(j&&j._isEspelho) a._isEspelho=true;
     if(j&&j._ssCols) a._ssCols=j._ssCols;
     return a;
@@ -15600,6 +15670,8 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
         vinculadoBolao: true,
         extras: jogos.map(function(j){return j._extra||null;}),
         trevos: jogos.map(function(j){return Array.isArray(j._trevos)?j._trevos.slice():null;}),
+        mes: jogos.map(function(j){return j._mes!=null?j._mes:null;}),
+        times: jogos.map(function(j){return j._time!=null?j._time:null;}),
         espelhoFlags: jogos.map(function(j){return j._isEspelho?1:0;})
       };
       await dbPut('jogos_salvos', itemBolao);
