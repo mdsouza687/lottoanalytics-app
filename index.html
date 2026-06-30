@@ -4610,13 +4610,15 @@ function renderLaHist(d,key){
   try{
     candidatos=(_laHistCache[key]||[])
       .slice(0,8)
-      .map(r=>({label:r.data,nums:r.dezenas,extra:r.bolaExtra,trevos:r.trevos,nums2:r.dezenas2}));
+      .map(r=>({label:r.data,nums:r.dezenas,extra:r.bolaExtra,trevos:r.trevos,nums2:r.dezenas2,
+        mes:r.dados?.mesSorte||r.mes||null,
+        time:r.dados?.timeCoracao||r.time||null}));
   }catch(e){}
   // Garante que o sorteio mais recente em memória (resultados[key]) apareça em 1º,
   // mesmo que o cache de histórico ainda não tenha sido atualizado.
   const real=(typeof resultados!=='undefined')?resultados[key]:null;
   if(real&&real.dezenas&&real.dezenas.length&&(!candidatos.length||String(candidatos[0].label)!==String(real.data))){
-    candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,trevos:real.trevos,nums2:real.dezenas2});
+    candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null});
     candidatos=candidatos.slice(0,8);
   }
   // Completa com seed de sorteios reais embutido no código (BR_RESULT_SEED
@@ -4631,7 +4633,7 @@ function renderLaHist(d,key){
     for(const s of seedDaLoteria){
       if(candidatos.length>=8) break;
       if(!concursosJaTem.has(String(s.data))){
-        candidatos.push({label:s.data,nums:s.dezenas,extra:s.bolaExtra,trevos:s.trevos,nums2:s.dezenas2});
+        candidatos.push({label:s.data,nums:s.dezenas,extra:s.bolaExtra,trevos:s.trevos,nums2:s.dezenas2,mes:s.mes||null,time:s.time||null});
         concursosJaTem.add(String(s.data));
       }
     }
@@ -4658,9 +4660,12 @@ function renderLaHist(d,key){
     const trevoBalls=(r.trevos&&r.trevos.length)?`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'};margin-left:3px">${laPad(r.trevos[0])}</div><div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(r.trevos[1])}</div>`:'';
     // 2º sorteio da Dupla Sena — quebra de linha forçada + cor secundária (corD)
     const balls2=(d.dupla&&r.nums2&&r.nums2.length)?`<div style="flex-basis:100%;height:0"></div>`+r.nums2.map(n=>`<div class="la-hb" style="background:${d.corD||d.cor}">${laPad(n)}</div>`).join(''):'';
+    // Mês da Sorte (Dia de Sorte) e Time do Coração (Timemania)
+    const mesBall=r.mes?`<div class="la-hb" style="background:${d.cor};width:auto;padding:0 5px;border-radius:8px;margin-left:3px;font-size:8px;letter-spacing:.3px">${r.mes}</div>`:'';
+    const timeBall=r.time?`<div class="la-hb" style="background:${d.cor};color:${d.corTexto||'#000'};width:auto;padding:0 5px;border-radius:8px;margin-left:3px;font-size:7px;letter-spacing:.2px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.time}</div>`:'';
     const lbl=laFmtHistLabel(r.label);
     const lblHtml=lbl.dia?`<span class="la-hd-data">${lbl.data}</span><span class="la-hd-dia">${lbl.dia}</span>`:`<span class="la-hd">${lbl.data}</span>`;
-    return `<div class="la-hist-row"><div class="la-hd-col">${lblHtml}</div><div class="la-hist-balls">${balls}${extraBall}${trevoBalls}${balls2}</div></div>`;
+    return `<div class="la-hist-row"><div class="la-hd-col">${lblHtml}</div><div class="la-hist-balls">${balls}${extraBall}${trevoBalls}${balls2}${mesBall}${timeBall}</div></div>`;
   }).join('');
   // ── DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do
   // problema "só aparece 1 sorteio". Mostra, em texto simples, o resultado
