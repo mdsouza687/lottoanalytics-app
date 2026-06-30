@@ -2669,6 +2669,37 @@ async function _supabaseSyncPullAll(store){
     return rows.filter(r=>r.dados).map(r=>({...r.dados,id:r.id}));
   }catch(e){ return []; }
 }
+// Sincroniza o histórico completo do Supabase para o IndexedDB local.
+// Incremental: para cada loteria, descobre o maior concurso já salvo
+// localmente e baixa só os registros mais novos que ainda faltam.
+// Isso garante que as estatísticas usam dados completos mesmo após
+// trocar de domínio ou limpar o navegador.
+async function _syncHistoricoDoSupabase(){
+  if(!supabaseAtivo()) return;
+  const LOTERIAS_KEYS=['megasena','lotofacil','quina','lotomania','timemania','duplasena','diasorte','supersete','maismilionaria'];
+  for(const key of LOTERIAS_KEYS){
+    try{
+      // Maior concurso já no IndexedDB local para esta loteria
+      const locais=await dbOp('historico','readonly',st=>{
+        const idx=st.index('loteria');
+        return idx.getAll(key);
+      }).catch(()=>[]);
+      const maxLocal=locais.reduce((m,r)=>Math.max(m,parseInt(r.concurso)||0),0);
+      // Busca do Supabase só o que é maior que o máximo local
+      const url=`${SUPABASE_CONFIG.url}/rest/v1/historico?loteria=eq.${key}&concurso=gt.${maxLocal}&select=*&order=concurso.asc&limit=500`;
+      const r=await fetch(url,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
+      if(!r.ok) continue;
+      const rows=await r.json();
+      for(const row of rows){
+        try{ await dbOp('historico','readwrite',st=>st.put({
+          loteria:row.loteria, concurso:row.concurso,
+          dezenas:row.dezenas||[], trevos:row.trevos||null,
+          data:row.data||null, dados:row.dados||null
+        })); }catch(e){}
+      }
+    }catch(e){}
+  }
+}
 // Sincronização bidirecional usada na inicialização do app: primeiro sobe
 // tudo que existe localmente (protege dados já salvos neste navegador),
 // depois baixa tudo que está no Supabase e mescla no IndexedDB local
@@ -10931,6 +10962,9 @@ async function salvarJogosManuais(){
   if(supabaseAtivo()){
     try{ await _supabaseSyncBidirectional('boloes_v2'); }catch(e){}
     try{ await _supabaseSyncBidirectional('jogos_salvos'); }catch(e){}
+    // Sincroniza histórico completo do Supabase para o IndexedDB local —
+    // baixa apenas concursos que ainda não existem localmente (incremental).
+    try{ await _syncHistoricoDoSupabase(); }catch(e){}
   }
   // Carrega seed das loterias americanas no IndexedDB (garante dados mesmo sem internet)
   for(const usKey of ['powerball','megamillions']){
