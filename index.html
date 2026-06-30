@@ -4029,6 +4029,12 @@ async function atualizarTodas(silencioso=false){
       const {p}=res.value;
       resultados[key]=p;
       atualizarBtnDash(key,p);
+      // Se a loteria atualizada é a que está aberta na tela neste momento,
+      // re-renderiza o card imediatamente — sem isso, a tela ficava presa
+      // no valor que estava em cache (ex.: concurso de ontem) mesmo depois
+      // da busca em segundo plano já ter trazido o concurso novo, porque
+      // só o card do dashboard era atualizado, nunca a tela de detalhe aberta.
+      if(typeof currentKey!=='undefined'&&currentKey===key) renderCard(p,d);
       const novidade=concursosAntes[key]!==p.concurso;
       // Rótulo do sorteio especial: só durante o período ativo (concurso atual ou próximo é o especial)
       const especialAtivo=isEspecial(key,parseInt(p.concurso))||isEspecial(key,parseInt(p.proximoConcursoNum));
