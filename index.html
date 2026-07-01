@@ -381,7 +381,7 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
 .fc2.hm{background:var(--dt-hit-main,#3b6fd1);color:#fff;font-weight:800;opacity:1;border-radius:4px;}
 .fc2.he{background:var(--dt-hit-extra,#d18a00);color:#fff;font-weight:800;opacity:1;border-radius:4px;}
 
-.dt-info{display:flex;flex-direction:column;gap:3px;padding:5px 8px;min-width:160px;}
+.dt-info{display:flex;flex-direction:column;gap:3px;padding:5px 8px;min-width:160px;}.dt-numdate{display:flex;align-items:baseline;gap:6px;}
 .dt-num{font-size:11px;font-weight:800;color:var(--text);}
 .dt-date{font-size:10px;color:var(--text-dim);}
 .dt-balls{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-top:2px;}
@@ -11572,7 +11572,7 @@ function renderResultados(body,d,hist,freq){
     const numHtml=`<span class="dt-num">${h.concurso}</span>`;
     const dateHtml=`<span class="dt-date">${h.data||''}</span>`;
     const ballsHtml=`<div class="dt-balls">${dzSorted.map(n=>`<div class="b m">${n}</div>`).join('')}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
-    if(view.info===0) infoHtml=numHtml+dateHtml+ballsHtml;
+    if(view.info===0) infoHtml=`<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
     else if(view.info===1) infoHtml=numHtml;
     else if(view.info===2) infoHtml=dateHtml;
     else infoHtml=ballsHtml;
