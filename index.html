@@ -5697,7 +5697,8 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
   // Baixa concursos faltantes em lotes
   const necessarios=[];
   for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--){
-    if(!savedMap.has(c)) necessarios.push(c);
+    const _e=savedMap.get(c);
+    if(!_e||!(_e.dezenas&&_e.dezenas.length)) necessarios.push(c);
   }
   window._diagHist=window._diagHist||{};
   window._diagHist[key]={necessarios:necessarios.length,obtidos:0,erros:[]};
