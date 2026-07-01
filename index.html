@@ -11114,15 +11114,7 @@ async function salvarJogosManuais(){
     try{ await _supabaseSyncBidirectional('jogos_salvos'); }catch(e){}
     // Sincroniza histórico completo do Supabase para o IndexedDB local —
     // baixa apenas concursos que ainda não existem localmente (incremental).
-    try{
-      await _syncHistoricoDoSupabase();
-      // Re-carrega cache e re-renderiza após sync do Supabase para que
-      // mes/timeCoracao recém chegados apareçam no card de histórico.
-      await laCarregarHistCache();
-      if(typeof renderLaHist==='function'&&typeof LA_ORDER!=='undefined'&&CFG[LA_ORDER[laCur]]){
-        renderLaHist(CFG[LA_ORDER[laCur]],LA_ORDER[laCur]);
-      }
-    }catch(e){}
+    try{ await _syncHistoricoDoSupabase(); }catch(e){}
   }
   // Carrega seed das loterias americanas no IndexedDB (garante dados mesmo sem internet)
   for(const usKey of ['powerball','megamillions']){
