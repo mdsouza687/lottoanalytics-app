@@ -7249,6 +7249,10 @@ async function gerarJogos(tipo,modo){
     const _espChkId = tipo==='bolao'?'bolao-espelho':tipo==='fech'?'fech-espelho':'jogo-espelho';
     const espelhoOn = !_urna && (tipo==='jogo'||tipo==='bolao') && document.getElementById(_espChkId)?.checked && ESPELHO_CFG[currentKey];
     const espCfg = espelhoOn ? ESPELHO_CFG[currentKey] : null;
+    // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
+    // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
+    // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não N pares.
+    if(espelhoOn) qty=Math.max(1,Math.round(qty/2));
 
     const fixos=getFixos(tipo);
     if(!d.superSete && fixos.length>=numDez){toast(`Fixos (${fixos.length}) ≥ dezenas (${numDez}).`);return;}
@@ -7596,6 +7600,11 @@ async function gerarJogos(tipo,modo){
           principal._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
         }
         else if(d.hasTrevo){ const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2; principal._trevos=gerarTrevosPadrao(Math.min(tq,tu),tu); principal._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu); }
+        // O jogo espelho é uma aposta própria e precisa do seu próprio Mês
+        // da Sorte / Time do Coração — mesmo padrão de _espExtra/_espTrevos.
+        else if(d.apiKey==='diadesorte'){ principal._mes=_fixoMesJ!=null?_fixoMesJ:(1+Math.floor(Math.random()*12)); principal._espMes=_fixoMesJ!=null?_fixoMesJ:(1+Math.floor(Math.random()*12)); }
+        else if(d.apiKey==='timemania'){ principal._time=_fixoTimeJ!=null?_fixoTimeJ:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length); principal._espTime=_fixoTimeJ!=null?_fixoTimeJ:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length); }
+        _rgBackupPar(principal); // habilita seleção individualizada (principal/espelho)
         jogos.push(principal);
       }
     }
@@ -7648,7 +7657,8 @@ async function gerarJogos(tipo,modo){
         const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
         const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome}</span><div class="result-ball" style="background:${d.bolaExtraCor};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
         const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
-        return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}</div></div></div></div></div>`;
+        const espMesTimeJ=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
+        return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeJ}</div></div></div></div></div>`;
       }
       return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
     }).join('');
@@ -7676,6 +7686,54 @@ async function gerarJogos(tipo,modo){
   }
 }
 function toggleMarcado(i,checked){const rg=document.getElementById(`rg-${i}`);if(rg)rg.classList.toggle('marcado',!checked);atualizarContagemSel();}
+// Aposta Espelho: seleção INDIVIDUALIZADA do PRINCIPAL e do ESPELHO dentro
+// do mesmo par, além da checkbox única de "incluir a linha" já existente
+// (rg-check/toggleMarcado, que decide se o PAR entra na seleção geral).
+// Ao desmarcar só um dos dois lados, jogosGerados[i] é substituído em
+// memória pelo lado ainda marcado (ou zerado se nenhum estiver) — assim
+// TODO o pipeline existente (Salvar, Imprimir, Vincular ao Bolão, cálculo
+// de custo) continua funcionando sem alteração nenhuma, pois sempre lê
+// jogosGerados[i] como se fosse um jogo comum, sem precisar saber que
+// existe uma seleção parcial por trás.
+function rgSyncEspelho(i){
+  const g=jogosGerados[i];
+  if(!g||!g._pBackup) return;
+  const chkP=document.getElementById(`rg-chk-${i}-p`);
+  const chkE=document.getElementById(`rg-chk-${i}-e`);
+  const pOn=chkP?chkP.checked:true;
+  const eOn=chkE?chkE.checked:false;
+  const aplicar=(src,isEsp)=>{
+    g.length=0; g.push(...src.nums);
+    if(src.extra!=null) g._extra=src.extra; else delete g._extra;
+    if(src.trevos) g._trevos=src.trevos.slice(); else delete g._trevos;
+    if(src.mes!=null) g._mes=src.mes; else delete g._mes;
+    if(src.time!=null) g._time=src.time; else delete g._time;
+    g._isEspelho=isEsp;
+  };
+  if(pOn&&eOn){
+    aplicar(g._pBackup,false);
+    g._espelho=g._eBackup.nums.slice();
+    g._espExtra=g._eBackup.extra;
+    g._espTrevos=g._eBackup.trevos?g._eBackup.trevos.slice():null;
+    g._espMes=g._eBackup.mes; g._espTime=g._eBackup.time;
+  } else if(pOn){
+    aplicar(g._pBackup,false);
+    delete g._espelho; delete g._espExtra; delete g._espTrevos; delete g._espMes; delete g._espTime;
+  } else if(eOn){
+    aplicar(g._eBackup,true);
+    delete g._espelho; delete g._espExtra; delete g._espTrevos; delete g._espMes; delete g._espTime;
+  } else {
+    g.length=0; delete g._extra; delete g._trevos; delete g._mes; delete g._time;
+    delete g._espelho; delete g._espExtra; delete g._espTrevos; delete g._espMes; delete g._espTime;
+  }
+  if(typeof atualizarCustoPainel==='function') atualizarCustoPainel();
+}
+// Constrói os backups {nums,extra,trevos,mes,time} usados por rgSyncEspelho,
+// a partir de um jogo recém-gerado com par de espelho já embutido.
+function _rgBackupPar(jogo){
+  jogo._pBackup={nums:jogo.slice(),extra:jogo._extra,trevos:jogo._trevos?jogo._trevos.slice():null,mes:jogo._mes,time:jogo._time};
+  jogo._eBackup={nums:jogo._espelho.slice(),extra:jogo._espExtra,trevos:jogo._espTrevos?jogo._espTrevos.slice():null,mes:jogo._espMes,time:jogo._espTime};
+}
 function toggleMarcarTodos(checked){ document.querySelectorAll('.rg-check').forEach((c,i)=>{c.checked=checked;const rg=document.getElementById(`rg-${i}`);if(rg)rg.classList.toggle('marcado',!checked);}); atualizarContagemSel(); }
 function getJogosSelecionados(){
   // Retorna os índices dos jogos marcados (selecionados). Se não houver barra de seleção, todos.
@@ -9349,6 +9407,7 @@ async function calcularScoreEPreview(){
     window._fchScoreGrupoA=grupoA; window._fchScoreGrupoB=grupoB;
     window._fchScoreTopDezA=grupoA; window._fchScoreTopDezB=grupoB; // usar TODOS do grupo
     window._fchScoreTopDez=grupoA; window._fchScoreFiltros=filtros; window._fchScoreEspelho=true;
+    window._fchScoreLoteria=currentKey;
     if(preview&&balls){
       preview.style.display='';
       const corA=pct=>`rgb(${Math.round(50*(1-pct/100))},${Math.round(160*(pct/100)+60)},80)`;
@@ -9364,6 +9423,7 @@ async function calcularScoreEPreview(){
     const topDez=ranking.slice(0,Math.min(topN,candidatos.length));
     window._fchScoreTopDez=topDez; window._fchScoreFiltros=filtros;
     window._fchScoreGrupoA=null; window._fchScoreGrupoB=null; window._fchScoreEspelho=false;
+    window._fchScoreLoteria=currentKey;
     if(preview&&balls){
       preview.style.display='';
       const corU=pct=>`rgb(${Math.round(255*(1-pct/100))},${Math.round(180*(pct/100)+40)},40)`;
@@ -9375,7 +9435,11 @@ async function calcularScoreEPreview(){
 }
 async function gerarFechamentoPorScore(){
   const d=CFG[currentKey]; if(!d){toast('Selecione uma loteria.');return;}
-  if(!window._fchScoreFiltros){await calcularScoreEPreview();}
+  // Recalcula se nunca foi calculado OU se o cache é de OUTRA loteria — sem
+  // essa 2ª checagem, trocar de loteria sem clicar em "Ver Ranking" de novo
+  // gerava jogos com dezenas da loteria ANTERIOR (ex.: números até 60 da
+  // Mega-Sena aparecendo num fechamento de Dia de Sorte, que só vai até 31).
+  if(!window._fchScoreFiltros || window._fchScoreLoteria!==currentKey){await calcularScoreEPreview();}
   const filtros=window._fchScoreFiltros||{};
   const qtyInput=parseInt(document.getElementById('fch2-qty')?.value)||0;
   const maxJogos=qtyInput>0?Math.min(qtyInput,5000):5000;
@@ -9518,10 +9582,13 @@ async function gerarFechamentoPorScore(){
   if(!jogos.length && espelhoOn){
     const grupoA=window._fchScoreGrupoA; const grupoB=window._fchScoreGrupoB;
     if(grupoA.length<numDez||grupoB.length<numDez){toast(`Grupo insuficiente para ${numDez} dezenas/jogo.`);return;}
-    const combosA=topCombos(grupoA, maxJogos); // top qty do grupo A
-    const combosB=topCombos(grupoB, maxJogos); // top qty do grupo B
+    // Com espelho, "N jogos" pedido conta PRINCIPAL+ESPELHO juntos (pedir 2
+    // = 1 par = 1 principal + 1 espelho), não N pares (2N jogos no total).
+    const maxPares=Math.max(1,Math.round(maxJogos/2));
+    const combosA=topCombos(grupoA, maxPares); // top pares do grupo A
+    const combosB=topCombos(grupoB, maxPares); // top pares do grupo B
     if(!combosA.length||!combosB.length){toast('Sem combinações possíveis nos grupos.');return;}
-    const n=Math.min(combosA.length, combosB.length, maxJogos);
+    const n=Math.min(combosA.length, combosB.length, maxPares);
     for(let i=0;i<n;i++){
       const jogo=combosA[i];
       jogo._espelho=combosB[i]; // parear melhor com melhor
@@ -9536,6 +9603,37 @@ async function gerarFechamentoPorScore(){
   }
 
   if(!jogos.length){toast('Nenhuma combinação possível com os parâmetros escolhidos.');return;}
+
+  // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
+  // (Dia de Sorte) e Time do Coração (Timemania) — este fechamento por
+  // score gerava só os números principais, sem nenhum desses campos
+  // extras, mesmo para loterias que exigem essa informação para a aposta
+  // ficar completa. Mesmo padrão já usado em gerarFechamento()/gerarComIA().
+  const _fixoExtraFch2=d.americano?(getFixosExtra('fch2')[0]||null):null;
+  const _exclExtraFch2=d.americano?new Set(getExcluidosExtra('fch2')):null;
+  const _poolExtraFch2=d.americano?Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!_exclExtraFch2.has(n)):null;
+  const _fixoMesFch2=d.apiKey==='diadesorte'?(getFixosMes('fch2')[0]||null):null;
+  const _fixoTimeFch2=d.apiKey==='timemania'?(getFixosTime('fch2')[0]??null):null;
+  jogos.forEach(jogo=>{
+    if(d.americano){
+      if(_fixoExtraFch2!=null && !_exclExtraFch2.has(_fixoExtraFch2)){ jogo._extra=_fixoExtraFch2; }
+      else if(_poolExtraFch2&&_poolExtraFch2.length){ jogo._extra=_poolExtraFch2[Math.floor(Math.random()*_poolExtraFch2.length)]; }
+      else { jogo._extra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1; }
+      if(jogo._espelho) jogo._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
+    } else if(d.hasTrevo){
+      const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2;
+      jogo._trevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
+      if(jogo._espelho) jogo._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
+    } else if(d.apiKey==='diadesorte'){
+      jogo._mes=_fixoMesFch2!=null?_fixoMesFch2:(1+Math.floor(Math.random()*12));
+      if(jogo._espelho) jogo._espMes=_fixoMesFch2!=null?_fixoMesFch2:(1+Math.floor(Math.random()*12));
+    } else if(d.apiKey==='timemania'){
+      jogo._time=_fixoTimeFch2!=null?_fixoTimeFch2:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+      if(jogo._espelho) jogo._espTime=_fixoTimeFch2!=null?_fixoTimeFch2:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+    }
+    if(jogo._espelho) _rgBackupPar(jogo); // habilita seleção individualizada (principal/espelho)
+  });
+
   jogosGerados=jogos;
 
   const ESP_COR='#7c3aed';
@@ -9556,16 +9654,23 @@ async function gerarFechamentoPorScore(){
     </div>`;
   }
 
+  const bxcFch2=d.bolaExtraCor||'#00BCD4';
   document.getElementById('result-body').innerHTML=espelhoHdr+jogos.map((jogo,i)=>{
     const sc=Math.round(scoreCombo(jogo));
     const mainBalls=jogo.map(n=>{const fx=_fixSetFch2.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
     const badge=`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${sc}</span>`;
+    const extraHtmlFch2=jogo._extra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`:'';
+    const trevosHtmlFch2=jogo._trevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
+    const mesTimeHtmlFch2=mesTimeHtml(jogo,d);
     if(jogo._espelho){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:${ESP_COR};color:#fff">${pad(n)}</div>`).join('');
       const scE=Math.round(scoreCombo(jogo._espelho));
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}</div>${badge}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${ESP_COR};min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}</div><span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR};font-weight:700">⭐${scE}</span></div></div></div></div>`;
+      const espExtraFch2=jogo._espExtra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
+      const espTrevFch2=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
+      const espMesTimeFch2=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
+      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${ESP_COR};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR};min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtraFch2}${espTrevFch2}${espMesTimeFch2}</div><span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR};font-weight:700">⭐${scE}</span></div></div></div></div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}</div>${badge}</div>`;
+    return `<div class="result-game marcado" id="rg-${i}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div>`;
   }).join('');
 
   document.getElementById('chk-all').checked=false;
@@ -9585,6 +9690,12 @@ async function gerarFechamento(){
   let qty=parseInt(qtyEl.value);
   if(!qty||qty<1){toast('Informe a quantidade de jogos do fechamento.');return;}
   if(qty>5000){qty=5000;qtyEl.value=5000;}
+  // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
+  // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
+  // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não gerar N pares
+  // (N principais + N espelhos = 2N jogos no total, o dobro do pedido).
+  const _fechEspOnEarly=document.getElementById('fech-espelho')?.checked && ESPELHO_CFG[currentKey];
+  if(_fechEspOnEarly) qty=Math.max(1,Math.round(qty/2));
   const wrapId='fech-dez-wrap';
   let numDez=getDezWrap(wrapId,d.min);
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
@@ -9683,6 +9794,7 @@ async function gerarFechamento(){
         // registrar/apostar no Dia de Sorte ou na Timemania.
         else if(d.apiKey==='diadesorte') jogo._espMes=_fixoMesF!=null?_fixoMesF:(1+Math.floor(Math.random()*12));
         else if(d.apiKey==='timemania') jogo._espTime=_fixoTimeF!=null?_fixoTimeF:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+        _rgBackupPar(jogo); // habilita seleção individualizada (principal/espelho) via rgSyncEspelho
       }
     });
   }
@@ -9707,7 +9819,7 @@ async function gerarFechamento(){
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div></div></div></div></div>`;
+      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div></div></div></div></div>`;
     }
     return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div>`;
   }).join('');
@@ -10356,6 +10468,14 @@ async function gerarComIA(tipo){
       }
       return melhorJogo || [...fixos,...livres.sort(()=>Math.random()-.5).slice(0,needed)].sort((a,b)=>a-b);
     }
+
+    // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
+    // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
+    // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não N pares (2N
+    // jogos no total, o dobro do pedido). O checkbox já reflete o estado
+    // final desejado neste ponto (sincronizado antes deste bloco rodar).
+    const _espOnIAQty=document.getElementById('ia-modal-espelho')?.checked && ESPELHO_CFG[currentKey] && !d.superSete;
+    if(_espOnIAQty) qty=Math.max(1,Math.round(qty/2));
 
     document.getElementById('ia-modal-status').textContent='🤖 Gerando '+qty+' jogos otimizados...';
 
