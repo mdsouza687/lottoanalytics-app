@@ -5436,8 +5436,8 @@ function renderCard(res,d){
     res.dezenas2.forEach(n=>{h+=`<div class="ball" style="background:${d.corD}">${pad(n)}</div>`;});
     h+=`</div>`;
   }
-  if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}">${res.timeCoracao}</span></div>`;
-  if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}">${res.mes}</span></div>`;
+  if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.timeCoracao}</span></div>`;
+  if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
   if(res.acumulou){h+=`<div class="status-txt">ACUMULOU!</div>`;}
   else{const n=parseInt((res.ganhadores[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?'GANHADOR':'GANHADORES'}</div>`;}
