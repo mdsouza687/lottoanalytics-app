@@ -2677,54 +2677,24 @@ async function _supabaseSyncPullAll(store){
 async function _syncHistoricoDoSupabase(){
   if(!supabaseAtivo()) return;
   const LOTERIAS_KEYS=['megasena','lotofacil','quina','lotomania','timemania','duplasena','diasorte','supersete','maismilionaria'];
-  // Loterias que precisam de campo extra (mes/timeCoracao) nos registros locais
-  const LOTERIAS_EXTRA=new Set(['diasorte','timemania']);
   for(const key of LOTERIAS_KEYS){
     try{
+      // Maior concurso já no IndexedDB local para esta loteria
       const locais=await dbOp('historico','readonly',st=>{
         const idx=st.index('loteria');
         return idx.getAll(key);
       }).catch(()=>[]);
       const maxLocal=locais.reduce((m,r)=>Math.max(m,parseInt(r.concurso)||0),0);
-      // Para Dia de Sorte e Timemania: também re-sincroniza os últimos 50
-      // registros do Supabase para atualizar mes/timeCoracao em registros
-      // locais que foram salvos sem esses campos (migração sem chamada à API).
-      if(LOTERIAS_EXTRA.has(key)){
-        const semExtra=locais.filter(r=>r.mes==null&&r.timeCoracao==null&&!r.dados);
-        if(semExtra.length){
-          const minSemExtra=semExtra.reduce((m,r)=>Math.min(m,parseInt(r.concurso)||99999),99999);
-          const urlExtra=`${SUPABASE_CONFIG.url}/rest/v1/historico?loteria=eq.${key}&concurso=gte.${minSemExtra}&select=*&order=concurso.asc&limit=200`;
-          const rExtra=await fetch(urlExtra,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
-          if(rExtra.ok){
-            const rowsExtra=await rExtra.json();
-            for(const row of rowsExtra){
-              const mes=row.dados?.mesSorte||null;
-              const timeCoracao=row.dados?.timeCoracao||null;
-              if(mes||timeCoracao){
-                try{ await dbOp('historico','readwrite',st=>st.put({
-                  loteria:row.loteria, concurso:row.concurso,
-                  dezenas:row.dezenas||[], trevos:row.trevos||null,
-                  data:row.data||null, dados:row.dados||null,
-                  mes, timeCoracao
-                })); }catch(e){}
-              }
-            }
-          }
-        }
-      }
-      // Busca do Supabase só o que é maior que o máximo local (novos concursos)
+      // Busca do Supabase só o que é maior que o máximo local
       const url=`${SUPABASE_CONFIG.url}/rest/v1/historico?loteria=eq.${key}&concurso=gt.${maxLocal}&select=*&order=concurso.asc&limit=500`;
       const r=await fetch(url,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
       if(!r.ok) continue;
       const rows=await r.json();
       for(const row of rows){
-        const mes=row.dados?.mesSorte||null;
-        const timeCoracao=row.dados?.timeCoracao||null;
         try{ await dbOp('historico','readwrite',st=>st.put({
           loteria:row.loteria, concurso:row.concurso,
           dezenas:row.dezenas||[], trevos:row.trevos||null,
-          data:row.data||null, dados:row.dados||null,
-          mes, timeCoracao
+          data:row.data||null, dados:row.dados||null
         })); }catch(e){}
       }
     }catch(e){}
