@@ -13394,7 +13394,7 @@ function renderFormBolao(){
               '<span>'+nJogosM+' jogo'+(nJogosM!==1?'s':'')+'</span>'+
               '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
               (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-              (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
+              (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
               '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmtM+'</span>'+
             '</div>';
           }).join('')
@@ -13557,7 +13557,7 @@ function renderFormBolao(){
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-            (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
+            (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
             '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
           '</div>';
         }).join('')
@@ -13674,7 +13674,7 @@ function renderFormBolao(){
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-            (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
+            (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
             '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
           '</div>';
         }).join('')
@@ -14756,7 +14756,7 @@ async function imprimirBolao(soPremiados){
     // completa de concursos consecutivos, e o status (ver
     // _concursosComStatusHtml) mostra UM símbolo por concurso da lista,
     // tratando "num" só como o primeiro/identificador da aposta.
-    porLoteriaImp[lk].concursos.push({num:cc.num,teimosinhaTodos:cc.teimosinhaTodos||null});
+    porLoteriaImp[lk].concursos.push({num:cc.num,data:cc.data||'',teimosinhaTodos:cc.teimosinhaTodos||null});
     // Anexa o concurso de ORIGEM a cada jogo individual (propriedade extra
     // no próprio array do jogo, mesmo padrão já usado para _extra/_trevos/
     // _ssCols) — necessário porque o status (✓ finalizado / ● vigente)
@@ -14894,13 +14894,20 @@ async function imprimirBolao(soPremiados){
     var partes=[];
     itens.forEach(function(item){
       var lista=(item&&item.teimosinhaTodos&&item.teimosinhaTodos.length)?item.teimosinhaTodos:[item&&item.num!=null?item.num:item];
-      lista.forEach(function(c){
+      // Data do sorteio: só temos a data do primeiro/único concurso de cada
+      // item (item.data) — numa sequência de Teimosinha, os concursos
+      // seguintes são consecutivos ao primeiro, mas suas datas individuais
+      // não ficam guardadas à parte, então a data é anexada uma vez por
+      // item, não repetida em cada número da lista.
+      var dataItem=(item&&item.data)?item.data:'';
+      lista.forEach(function(c,ci){
         c=String(c);
         var realizado=_concursoJaRealizado(loteriaKey,c);
         var simbolo=realizado
           ?'<span title="Concurso '+_esc(c)+' já foi sorteado (finalizado)" style="display:inline-block;color:#dc2626;font-weight:900;font-size:15px;line-height:1;transform:scaleX(1.35);vertical-align:middle">✓</span>'
           :'<span title="Concurso '+_esc(c)+' ainda não foi sorteado (vigente)" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#16a34a;vertical-align:middle"></span>';
-        partes.push(_esc(c)+'&nbsp;'+simbolo);
+        var dataHtml=(dataItem&&ci===0)?' <span style="font-size:9px;color:#888">('+_esc(dataItem)+')</span>':'';
+        partes.push(_esc(c)+'&nbsp;'+simbolo+dataHtml);
       });
     });
     return partes.join(', ');
@@ -15083,17 +15090,23 @@ async function imprimirBolao(soPremiados){
   var historicoRodadasHtml='';
   if(concImp.length){
     historicoRodadasHtml='<h2 style="color:'+cor+';margin:18px 0 8px;font-size:15px">📋 Histórico de Rodadas</h2>'+
-      '<table><thead><tr><th>Loteria</th><th>Concurso</th><th>Jogos</th><th>Custo</th><th>Data</th></tr></thead><tbody>'+
+      '<table><thead><tr><th>Loteria</th><th>Concurso</th><th>Jogos</th><th>Custo</th><th>Vinculado em</th><th>Data do Sorteio</th></tr></thead><tbody>'+
       concImp.map(function(cc){
         var dCc=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
         var nomeLot=dCc?dCc.nome:(cc.loteria||'—');
-        var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'—');
+        // "Vinculado em" = quando o jogo foi de fato registrado no sistema
+        // (savedAt); "Data do Sorteio" = data real do concurso (cc.data),
+        // vinda da API — as duas podem ser bem diferentes (ex.: jogo
+        // vinculado dias antes do sorteio acontecer).
+        var vinculadoFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):'—';
+        var dataSorteioFmt=cc.data||'—';
         var nJogos=(cc.jogos||[]).length;
         return '<tr><td style="color:'+(dCc?dCc.cor:'#333')+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCc?iconLoteria(dCc,12):'')+'</span>'+_esc(nomeLot)+'</td>'+
           '<td style="text-align:center">'+_esc(String(cc.num||'—'))+'</td>'+
           '<td style="text-align:center">'+nJogos+'</td>'+
           '<td style="text-align:right;color:#fb923c;font-weight:700">'+_bMoney(cc.custo||0)+'</td>'+
-          '<td style="text-align:center">'+dataFmt+'</td></tr>';
+          '<td style="text-align:center">'+vinculadoFmt+'</td>'+
+          '<td style="text-align:center">'+_esc(dataSorteioFmt)+'</td></tr>';
       }).join('')+
       '</tbody></table>';
   }
@@ -15158,6 +15171,7 @@ async function imprimirBolao(soPremiados){
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>'+_esc(s.nome)+'</h1>'+
     '<div class="sub">Sorteio: '+_sorteioNome(s.sorteio)+' · Modalidade: '+_modNome(s.modalidade)+' · Valor da cota: '+_bMoney(valorCota)+'</div>'+
+    '<div class="sub" style="font-size:10px;color:#888">Relatório gerado em '+new Date().toLocaleString('pt-BR')+'</div>'+
     (loteriasImp.length
       ?'<div style="font-size:10px;color:#666;margin:2px 0 8px;display:flex;align-items:center;gap:14px">'+
         '<span><span style="color:#dc2626">✓</span> <b>Concurso já sorteado (finalizado)</b></span>'+
