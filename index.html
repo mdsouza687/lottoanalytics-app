@@ -1276,6 +1276,17 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   </div>
 </div>
 
+<!-- ══ MODAL PAINEL ADMIN (criar usuários de teste, marcar permanentes) ══ -->
+<div class="modal-overlay" id="modal-admin">
+  <div class="modal" style="max-width:820px;max-height:85vh">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#3b3f6b,#1e2140)">
+      <span class="modal-title">🛠️ Painel de Administração</span>
+      <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
+    </div>
+    <div class="modal-body" id="body-admin" style="overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL ALERTA PREMIAÇÃO ══ -->
 <div class="modal-overlay" id="modal-premiacao">
   <div class="modal" style="max-width:500px;">
@@ -1498,6 +1509,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <button class="theme-btn"        id="theme-colorful" onclick="setTheme('colorful')" title="Tema colorido"><span class="emoji-ico">🌈</span></button>
     </div>
     <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
+    <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
     <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
@@ -2814,7 +2826,7 @@ async function _agAposLogin(user){
   const sb=_getSbClient();
   let perfil=null;
   try{
-    const {data}=await sb.from('perfis').select('trial_inicio,nome_completo').eq('id',user.id).maybeSingle();
+    const {data}=await sb.from('perfis').select('trial_inicio,nome_completo,permanente,is_admin').eq('id',user.id).maybeSingle();
     perfil=data;
   }catch(e){}
   // Perfil pode ainda não existir por um instante (trigger assíncrono em
@@ -2822,12 +2834,15 @@ async function _agAposLogin(user){
   // sem bloquear o usuário por um detalhe de sincronismo do banco.
   const trialInicio=perfil&&perfil.trial_inicio?new Date(perfil.trial_inicio):new Date();
   const diasPassados=(Date.now()-trialInicio.getTime())/(1000*60*60*24);
-  if(diasPassados>AG_TRIAL_DIAS){
+  const permanente=!!(perfil&&(perfil.permanente||perfil.is_admin));
+  if(!permanente && diasPassados>AG_TRIAL_DIAS){
     _agMostrarTrialExpirado();
     return;
   }
-  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio};
+  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin)};
   document.getElementById('auth-gate').classList.add('hidden');
+  const btnAdmin=document.getElementById('btn-admin');
+  if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
   _bootApp();
 }
 
@@ -2856,6 +2871,89 @@ async function _iniciarAuthGate(){
     }
   }catch(e){}
   gate.classList.remove('hidden');
+}
+
+/* ════ PAINEL ADMIN — criar usuários de teste e marcar contas permanentes ════
+   Só visível/utilizável por quem tem perfis.is_admin=true (checado no
+   backend via RLS e na Edge Function admin-criar-usuario — os botões aqui
+   são só conveniência de UI, a segurança de verdade está no banco). */
+async function abrirPainelAdmin(){
+  if(!window._usuarioAtual||!window._usuarioAtual.isAdmin){ toast('Acesso restrito ao administrador.'); return; }
+  await renderPainelAdmin();
+  openModal('modal-admin');
+}
+
+async function renderPainelAdmin(msg,msgTipo){
+  const sb=_getSbClient();
+  const body=document.getElementById('body-admin');
+  const {data:perfis,error}=await sb.from('perfis').select('id,nome_completo,email,permanente,is_admin,trial_inicio,created_at').order('created_at',{ascending:false});
+  const linhas=(perfis||[]).map(p=>{
+    const trialFim=new Date(new Date(p.trial_inicio).getTime()+AG_TRIAL_DIAS*24*60*60*1000);
+    const trialAtivo=Date.now()<=trialFim.getTime();
+    const statusHtml=p.permanente
+      ?'<span style="color:#4ade80;font-weight:700">Permanente</span>'
+      :(trialAtivo?`<span style="color:#facc15;font-weight:700">Trial até ${trialFim.toLocaleDateString('pt-BR')}</span>`:'<span style="color:#f87171;font-weight:700">Trial expirado</span>');
+    return `<tr style="border-bottom:1px solid var(--glass-border)">
+      <td style="padding:8px 10px">${_esc(p.nome_completo||'—')}${p.is_admin?' <span title="Administrador" style="font-size:11px">🛠️</span>':''}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--text-muted)">${_esc(p.email)}</td>
+      <td style="padding:8px 10px;font-size:12px">${statusHtml}</td>
+      <td style="padding:8px 10px;text-align:right">${p.permanente
+        ?`<button class="btn-sm" onclick="adminTogglePermanente('${p.id}',false)">Remover permanente</button>`
+        :`<button class="btn-sm" onclick="adminTogglePermanente('${p.id}',true)">Tornar permanente</button>`}</td>
+    </tr>`;
+  }).join('');
+  body.innerHTML=`
+    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ Criar usuário de teste (já confirmado, sem precisar clicar em link de e-mail)</div>
+      ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+        <input id="adm-nome" placeholder="Nome completo" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-email" type="email" placeholder="E-mail" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-senha" type="text" placeholder="Senha (mín. 6 caracteres)" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="adm-permanente"/> Marcar como permanente (sem limite de 10 dias)</label>
+      </div>
+      <button class="ag-btn" style="margin-top:4px" onclick="adminCriarUsuarioTeste()">Criar usuário de teste</button>
+    </div>
+    <div style="font-weight:800;font-size:13px;margin-bottom:8px">👥 Usuários cadastrados (${(perfis||[]).length})</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
+          <th style="padding:8px 10px">Nome</th><th style="padding:8px 10px">E-mail</th><th style="padding:8px 10px">Status</th><th></th>
+        </tr></thead>
+        <tbody>${linhas||'<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text-muted)">Nenhum usuário encontrado.</td></tr>'}</tbody>
+      </table>
+    </div>
+    ${error?`<div style="margin-top:10px;font-size:12px;color:#f87171">Erro ao carregar usuários: ${_esc(error.message)}</div>`:''}
+  `;
+}
+
+async function adminTogglePermanente(id,valor){
+  const sb=_getSbClient();
+  const {error}=await sb.from('perfis').update({permanente:valor}).eq('id',id);
+  if(error){ toast('Erro: '+error.message); return; }
+  toast(valor?'✓ Marcado como permanente':'✓ Permanente removido');
+  await renderPainelAdmin();
+}
+
+async function adminCriarUsuarioTeste(){
+  const sb=_getSbClient();
+  const nome=(document.getElementById('adm-nome').value||'').trim();
+  const email=(document.getElementById('adm-email').value||'').trim();
+  const senha=document.getElementById('adm-senha').value||'';
+  const permanente=document.getElementById('adm-permanente').checked;
+  if(!nome||!email||!senha||senha.length<6){ await renderPainelAdmin('Preencha nome, e-mail e senha (mín. 6 caracteres).','err'); return; }
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ await renderPainelAdmin('Sessão expirada — faça login novamente.','err'); return; }
+    const r=await fetch(`${SUPABASE_CONFIG.url}/functions/v1/admin-criar-usuario`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':SUPABASE_CONFIG.key},
+      body:JSON.stringify({email,senha,nome_completo:nome,permanente})
+    });
+    const out=await r.json();
+    if(!r.ok){ await renderPainelAdmin(out.error||'Falha ao criar usuário.','err'); return; }
+    await renderPainelAdmin(`✓ Usuário ${email} criado e já confirmado.`,'ok');
+  }catch(e){ await renderPainelAdmin('Erro de conexão: '+e.message,'err'); }
 }
 
 const DASH_ORDER=[{key:'megasena'},{key:'lotofacil'},{key:'quina'},{key:'lotomania'},{key:'timemania'},{key:'duplasena'},{key:'diasorte'},{key:'supersete'},{key:'maismilionaria'},{key:'powerball'},{key:'megamillions'}];
