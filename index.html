@@ -5667,7 +5667,7 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
 
   const salvos=await dbByIdx('historico','loteria',key);
   // Normaliza chaves como inteiros
-  const savedMap=new Map(salvos.map(s=>[parseInt(s.concurso),{dezenas:s.dezenas,data:s.data||'',trevos:s.trevos!==undefined?s.trevos:null,dezenas2:s.dezenas2||null}]));
+  const savedMap=new Map(salvos.map(s=>[parseInt(s.concurso),{dezenas:s.dezenas,data:s.data||'',trevos:s.trevos!==undefined?s.trevos:null,dezenas2:s.dezenas2||null,mes:s.mes||null,timeCoracao:s.timeCoracao||null}]));
 
   // Baixa concursos faltantes em lotes
   const necessarios=[];
