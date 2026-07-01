@@ -4647,9 +4647,11 @@ function renderLaHist(d,key){
   }catch(e){}
 
   // Resultado em memória: garante 1ª linha sempre atual, mesmo sem cache
+  // Compara por timestamp para tratar formatos mistos (BR "27/06/2026" vs ISO "2026-06-27")
   const real=resultados[key];
+  const _sameDate=(a,b)=>{const da=laParseDataBR(a),db=laParseDataBR(b);return da&&db&&da.getTime()===db.getTime();};
   if(real&&real.dezenas&&real.dezenas.length&&
-     (!candidatos.length||String(candidatos[0].label)!==String(real.data))){
+     (!candidatos.length||!_sameDate(candidatos[0].label,real.data))){
     candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,
       trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null});
     candidatos=candidatos.slice(0,8);
@@ -4736,6 +4738,13 @@ async function laCarregarHistCache(){
     });
     Object.keys(porLoteria).forEach(k=>{
       porLoteria[k].sort((a,b)=>(parseInt(b.concurso)||0)-(parseInt(a.concurso)||0));
+      // Elimina duplicatas por número de concurso (IndexedDB pode ter integer e string como chave)
+      const seen=new Set();
+      porLoteria[k]=porLoteria[k].filter(r=>{
+        const c=String(parseInt(r.concurso)||0);
+        if(seen.has(c)) return false;
+        seen.add(c); return true;
+      });
     });
     _laHistCache=porLoteria;
   }catch(e){}
