@@ -4688,8 +4688,8 @@ function renderLaHist(d,key){
   const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
   const _pilulaCor=d.corTexto||'#222';
 
-  // Coluna extra: apenas mes/time — trevos e americano vão inline nas bolas
-  const temColExtra=key==='diasorte'||key==='timemania';
+  // Sem coluna extra — mes/time/trevos/americano todos inline nas bolas
+  const temColExtra=false;
 
   // ── 3. Monta cada linha como <tr> da tabela ─────────────────────────────
   const tbody=linhas.map(r=>{
@@ -4707,25 +4707,18 @@ function renderLaHist(d,key){
     const trevosInline=(d.hasTrevo&&r.trevos&&r.trevos.length)
       ?`<span class="la-xsep">TREVO</span>`+r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('')
       :'';
-    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline+trevosInline;
+    const mesInline=r.mes?`<span class="la-xsep">MÊS</span><div class="la-chip">${r.mes}</div>`:'';
+    const timeInline=r.time?`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip">${r.time}</div>`:'';
+    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline+trevosInline+mesInline+timeInline;
 
     // 2º sorteio da Dupla Sena — linha separada dentro da mesma célula
     const balls2=(d.dupla&&r.nums2&&r.nums2.length)
       ?`<div class="la-hist-row2">${r.nums2.map(n=>`<div class="la-hb" style="background:${d.corD||d.cor}">${laPad(n)}</div>`).join('')}</div>`
       :'';
 
-    // Célula extra — conteúdo exclusivo por tipo de loteria
-    let extraHtml='';
-    if(key==='diasorte'&&r.mes){
-      extraHtml=`<span class="la-hist-pill" style="background:${d.cor};color:${_pilulaCor}">${r.mes}</span>`;
-    } else if(key==='timemania'&&r.time){
-      extraHtml=`<span class="la-hist-pill la-hist-pill-time" style="background:${d.cor};color:${_pilulaCor}">${r.time}</span>`;
-    }
-
     return `<tr class="la-hist-tr">
       <td class="la-hist-td-date">${dateHtml}</td>
       <td class="la-hist-td-nums"><div class="la-hist-balls">${balls}</div>${balls2}</td>
-      ${temColExtra?`<td class="la-hist-td-extra">${extraHtml}</td>`:''}
     </tr>`;
   }).join('');
 
