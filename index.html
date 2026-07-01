@@ -7717,6 +7717,18 @@ async function gerarJogos(tipo,modo){
     const seen=new Set();
     const jogos=[];
     const MAX=Math.max(qty*1000,5000);
+    // Limiares de "relaxamento" dos filtros estatísticos (quando parar de
+    // exigir jogo válido pelos 10+ critérios e aceitar qualquer candidato
+    // único/inédito) — em NÚMERO ABSOLUTO de tentativas, não proporcional a
+    // MAX. Antes eram frações de MAX (MAX*0.5/0.7/0.8): para qty grande
+    // (ex.: 5000), MAX vira 5 milhões, e o algoritmo insistia nos filtros
+    // rígidos por MILHÕES de tentativas de baixíssimo aproveitamento antes
+    // de relaxar — em loterias de universo pequeno (Dia de Sorte, 31
+    // números) isso podia levar minutos para gerar até 1 jogo a mais além
+    // do primeiro, dando a impressão de estar travado em "1 jogo".
+    const _relax1=Math.min(MAX*0.5,30000);  // a partir daqui: aceita mesmo se inválido pelos filtros
+    const _relax2=Math.min(MAX*0.7,40000);  // a partir daqui: para de tentar filtro estatístico, gera aleatório puro
+    const _relax3=Math.min(MAX*0.8,35000);  // a partir daqui: para de exigir diversidade mínima entre jogos
     let tries=0;
 
     // Diversidade mínima entre jogos: cada novo jogo deve diferir de TODOS os já
@@ -7767,7 +7779,7 @@ async function gerarJogos(tipo,modo){
         const baseCol=Array.from({length:7},(_,c)=>{ const fx=new Set(fixCol[c]); return [0,1,2,3,4,5,6,7,8,9].filter(dg=>!exGlobal.has(dg)&&!fx.has(dg)); });
         const bags=Array.from({length:7},()=>[]);
         for(let g=0; g<qty; g++){
-          if(g%300===0) await new Promise(r=>setTimeout(r,0));
+          if(g%300===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
           const cols=[];
           for(let c=0;c<7;c++){
             const escolhidos=[...new Set(fixCol[c])].slice(0,porColuna);
@@ -7795,7 +7807,7 @@ async function gerarJogos(tipo,modo){
         let bag=[];
         const refill=()=>{ bag=_shuffle(bagSource.slice()); };
         for(let g=0; g<qty; g++){
-          if(g%200===0) await new Promise(r=>setTimeout(r,0));
+          if(g%200===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
           const cur=new Set(fixos);
           const drawn=[];
           const holdBack=[];
@@ -7817,7 +7829,10 @@ async function gerarJogos(tipo,modo){
       tries++;
       // Libera a UI periodicamente em lotes grandes (mesmo padrão de yield cooperativo
       // já usado no Motor de IA) — evita travar a aba ao gerar até 5000 jogos de uma vez.
-      if(tries%200===0){ await new Promise(r=>setTimeout(r,0)); }
+      // Também mostra progresso: sem isso, gerar quantidades grandes com filtros
+      // estatísticos (mais lento por avaliar cada candidato) parecia travado —
+      // o usuário via a tela parada por até ~20s sem nenhum feedback visível.
+      if(tries%200===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
       let jogo=null;
       let valido=true;
 
@@ -7872,14 +7887,14 @@ async function gerarJogos(tipo,modo){
         jogo=cols.flat();
         jogo._ssCols=cols;
         // Validação leve (apenas aposta simples de 7)
-        if(sseed&&porColuna===1&&tries<=MAX*0.75){
+        if(sseed&&porColuna===1&&tries<=_relax2){
           const somaD=jogo.reduce((a,v)=>a+v%10,0);
           if(somaD<sseed.somaLow||somaD>sseed.somaHigh) valido=false;
         }
       } else if(d.americano){
         jogo=gerarJogoSimples(universe,numDez,fixos);
-      } else if(filtros&&tries<=MAX*0.7){
-        // Com filtros estatísticos (primeiros 70% das tentativas)
+      } else if(filtros&&tries<=_relax2){
+        // Com filtros estatísticos (até o limiar de relaxamento)
         try{
           const r=gerarJogoEstat(universe,numDez,fixos,filtros,d);
           jogo=r.jogo;
@@ -7903,11 +7918,11 @@ async function gerarJogos(tipo,modo){
       // INÉDITO: rejeita combinações que já foram sorteadas em qualquer concurso
       if(_sorteadosSet.has(k))continue;
 
-      if(valido||tries>MAX*0.5){
-        // Aceita: jogo válido, OU já passamos da metade das tentativas (modo relaxado)
-        // Diversidade: nas primeiras 80% das tentativas, exige diferença mínima entre jogos.
+      if(valido||tries>_relax1){
+        // Aceita: jogo válido, OU já passamos do limiar de relaxamento (modo relaxado)
+        // Diversidade: até o limiar de relaxamento, exige diferença mínima entre jogos.
         // Após isso, relaxa a exigência para garantir que a quantidade pedida seja atingida.
-        if(minDiff && tries<=MAX*0.8 && !_difereSuficiente(jogo)) continue;
+        if(minDiff && tries<=_relax3 && !_difereSuficiente(jogo)) continue;
         _registrarIndice(jogo, jogos.length);
         jogos.push(jogo);
       }
@@ -7922,6 +7937,7 @@ async function gerarJogos(tipo,modo){
       const GMAX=qty*2000+10000;
       while(jogos.length<qty && guard<GMAX){
         guard++;
+        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
         const jogo=gerarJogoSimples(universe,numDez,fixos);
         if(!jogo||jogo.length<numDez) continue;
         const k=jogo.slice(0,numDez).join(',');
@@ -7974,6 +7990,7 @@ async function gerarJogos(tipo,modo){
       let guard=0;
       while(jogos.length<qty && guard<qty*400+4000){
         guard++;
+        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
         const principal=gerarJogoSimples(grupoA, numDez, fixos.filter(f=>grupoA.includes(f)));
         let poolB = espCfg.disjunto ? grupoB.filter(n=>!principal.includes(n)) : grupoB;
         const espelho=gerarJogoSimples(poolB, numDez, []);
