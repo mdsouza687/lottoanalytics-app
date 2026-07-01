@@ -12737,19 +12737,28 @@ function novoBolao(){
 
 
 // ── Helpers de semana para Bolão Semanal / Mensal ──
+// Gera as semanas (dom-sáb) que cobrem o MÊS INTEIRO. Um mês civil quase
+// nunca cabe em exatamente 4 semanas dom-sáb — pode precisar de 5 ou até 6
+// (ex.: julho/2026 vai de 28/06 a 01/08, abrangendo 5 semanas). Usar um
+// número fixo de 4 deixava os últimos dias do mês fora de qualquer semana
+// calculada, e jogos vinculados nesses dias sumiam do Histórico de
+// Rodadas/Gastos Diários do bolão mensal (não tinham semana correspondente).
 function _calcSemanasDoMes(mesRef){
   var partes=(mesRef||new Date().toISOString().slice(0,7)).split('-');
   var ano=parseInt(partes[0]); var mes=parseInt(partes[1])-1;
   var primeiroDia=new Date(ano,mes,1);
+  var ultimoDia=new Date(ano,mes+1,0);
   var dow=primeiroDia.getDay(); // 0=Dom
   var primeiroDom=new Date(ano,mes,1-dow);
   var fmt=function(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
   var semanas=[];
-  for(var i=0;i<4;i++){
+  var i=0;
+  do{
     var dom=new Date(primeiroDom.getFullYear(),primeiroDom.getMonth(),primeiroDom.getDate()+i*7);
     var sab=new Date(dom.getFullYear(),dom.getMonth(),dom.getDate()+6);
     semanas.push({inicio:fmt(dom),fim:fmt(sab),valorJogos:0});
-  }
+    i++;
+  }while(semanas[semanas.length-1] && new Date(semanas[semanas.length-1].fim.split('/').reverse().join('-'))<ultimoDia);
   return semanas;
 }
 function _calcSemanasDeducoes(semanas){
@@ -12799,8 +12808,35 @@ function _semanaLabel(ini,fim){ return ini&&fim?'Semana '+ini+' a '+fim:'—'; }
 // (não há motivo para reabrir o passado); o concurso MAIS RECENTE (igual
 // ao último resultado) só é considerado finalizado quando a data atual já
 // passou do dia do sorteio (comparação por data civil, ignorando hora).
+// Bolões Multi-Loteria semanais/mensais podem reunir várias loterias e
+// concursos ao mesmo tempo — não faz sentido finalizar o bolão inteiro
+// com base em UM concurso de UMA loteria (isso finalizava o bolão
+// prematuramente assim que qualquer resultado vinculado saía, mesmo com
+// o período do bolão ainda em andamento). A finalização passa a
+// depender do FIM DO PERÍODO do próprio bolão (fim da semana ou fim da
+// última semana do mês). Modalidade "unico" não tem período fixo, então
+// mantém a regra antiga baseada no concurso vinculado.
 function _bolaoConcursoJaRealizado(s){
-  if(!s||!s.concurso) return false;
+  if(!s) return false;
+  if(s.modalidade==='semanal'||s.modalidade==='mensal'){
+    var fimPeriodo=null;
+    if(s.modalidade==='mensal'){
+      // Fim do período mensal = último dia do MÊS CALENDÁRIO (ex.: 31/07),
+      // não o sábado da 4ª semana do bloco semanal — esse sábado pode cair
+      // antes ou depois do fim real do mês, então usá-lo finalizaria o
+      // bolão mensal cedo ou tarde demais.
+      var mesRef=(s.mesReferencia||new Date().toISOString().slice(0,7)).split('-');
+      var ano=parseInt(mesRef[0]),mesIdx=parseInt(mesRef[1])-1;
+      fimPeriodo=(ano&&!isNaN(mesIdx))?new Date(ano,mesIdx+1,0):null; // dia 0 do mês seguinte = último dia do mês atual
+    } else {
+      fimPeriodo=_parseDataBR(s.semanaFim);
+    }
+    if(!fimPeriodo) return false;
+    fimPeriodo.setHours(0,0,0,0);
+    var hojePeriodo=new Date(); hojePeriodo.setHours(0,0,0,0);
+    return hojePeriodo>fimPeriodo;
+  }
+  if(!s.concurso) return false;
   var key=_sorteioParaLoteria(s.sorteio,s);
   var res=(typeof resultados!=='undefined')?resultados[key]:null;
   if(!res||!res.concurso) return false;
@@ -13244,7 +13280,7 @@ function renderFormBolao(){
     ?'<div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);border-radius:12px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'+
       '<span style="font-size:18px">✅</span>'+
       '<div><div style="font-size:12px;font-weight:800;color:#4ade80">Bolão finalizado</div>'+
-      '<div style="font-size:10px;color:var(--text-muted)">O concurso #'+_esc(s.concurso)+' já foi realizado. Os dados ficam bloqueados para preservar o histórico.</div></div>'+
+      '<div style="font-size:10px;color:var(--text-muted)">'+(s.modalidade==='mensal'?'O mês do bolão':(s.modalidade==='semanal'?'A semana do bolão':'O concurso #'+_esc(s.concurso)))+(s.modalidade==='unico'?' já foi realizado.':' já foi encerrado(a).')+' Os dados ficam bloqueados para preservar o histórico.</div></div>'+
     '</div>'
     :'';
   var inp = 'width:100%;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);box-sizing:border-box';
@@ -13258,8 +13294,8 @@ function renderFormBolao(){
   // ── Bloco Semanas Mensais ──
   var _blocoMensal='';
   if(s.modalidade==='mensal'){
-    var _sems=s.semanas&&s.semanas.length===4?s.semanas:_calcSemanasDoMes(s.mesReferencia||new Date().toISOString().slice(0,7));
-    var _ordinals=['1ª','2ª','3ª','4ª'];
+    var _sems=(s.semanas&&s.semanas.length)?s.semanas:_calcSemanasDoMes(s.mesReferencia||new Date().toISOString().slice(0,7));
+    var _ordinals=_sems.map(function(_,i){return (i+1)+'ª';});
     // Gasto por semana: calculado DIRETAMENTE a partir de s.concursos[] (a
     // mesma fonte única de verdade já usada em Histórico de Rodadas/Gastos
     // Diários/Gasto por Loteria), em vez de ler sem.valorJogos. O campo
@@ -13275,7 +13311,7 @@ function renderFormBolao(){
       for(var wi=0;wi<_sems.length;wi++){ if(_sems[wi].inicio===dia.inicio) return wi; }
       return -1;
     };
-    var _gastoPorSemanaReal=[0,0,0,0];
+    var _gastoPorSemanaReal=_sems.map(function(){return 0;});
     (s.concursos||[]).forEach(function(cc){
       if(!cc.custo||!cc.savedAt) return;
       var wi=_semanaIdxDeData(cc.savedAt);
@@ -13317,7 +13353,7 @@ function renderFormBolao(){
     concComSemana.forEach(function(cc){
       var dCcM=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
       if(!_gastoPorLoteriaSemana[cc.loteria]){
-        _gastoPorLoteriaSemana[cc.loteria]={nome:dCcM?dCcM.nome:cc.loteria,emoji:dCcM?dCcM.emoji:'',cor:dCcM?dCcM.cor:'#888',porSemana:[0,0,0,0],total:0};
+        _gastoPorLoteriaSemana[cc.loteria]={nome:dCcM?dCcM.nome:cc.loteria,emoji:dCcM?dCcM.emoji:'',cor:dCcM?dCcM.cor:'#888',porSemana:_sems.map(function(){return 0;}),total:0};
       }
       _gastoPorLoteriaSemana[cc.loteria].porSemana[cc._semanaIdx]+=cc.custo;
       _gastoPorLoteriaSemana[cc.loteria].total+=cc.custo;
@@ -14636,7 +14672,13 @@ async function editarBolao(id){
     jogosVinculados:_todosJogos, concursos:_concursos,
     semanaInicio:g.semanaInicio||semDef.inicio, semanaFim:g.semanaFim||semDef.fim,
     arrecadacaoTotal:g.arrecadacaoTotal||0, rodadas:g.rodadas||[],
-    mesReferencia:_mesRef, semanas:g.semanas||_calcSemanasDoMes(_mesRef), dataSorteio:g.dataSorteio||'' };
+    // Recalcula sempre as semanas do mês ao carregar (em vez de confiar no
+    // g.semanas salvo): bolões mensais salvos antes da correção de
+    // cobertura do mês (ver _calcSemanasDoMes) podem ter só 4 semanas fixas,
+    // que deixavam os últimos dias do mês sem semana correspondente. O
+    // campo valorJogos dentro de cada semana não é mais usado (gasto é
+    // derivado de s.concursos), então recalcular aqui não perde dados.
+    mesReferencia:_mesRef, semanas:_calcSemanasDoMes(_mesRef), dataSorteio:g.dataSorteio||'' };
   _ordenarParticipantes();
   renderFormBolao();
 }
@@ -15821,7 +15863,7 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
     g.arrecadacaoTotal=g.arrecadacaoTotal||_boloesState.arrecadacaoTotal||0;
     // Registrar em semana do bolão MENSAL
     if(g.modalidade==='mensal'){
-      if(!g.semanas||g.semanas.length!==4)
+      if(!g.semanas||!g.semanas.length)
         g.semanas=_calcSemanasDoMes(g.mesReferencia||new Date().toISOString().slice(0,7));
       // Calcular custo — tenta loteria do bolão, depois currentKey, depois cotas × jogos
       var _tryLoteria=function(key){ return (typeof CFG!=='undefined'&&CFG[key]&&CFG[key].precoBase)?CFG[key]:null; };
@@ -15840,7 +15882,7 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
       };
       var hoje=new Date(); hoje.setHours(0,0,0,0);
       var semanaIdx=-1;
-      for(var wi=0;wi<4;wi++){
+      for(var wi=0;wi<g.semanas.length;wi++){
         var dIni=_parseBR(g.semanas[wi].inicio);
         var dFim=_parseBR(g.semanas[wi].fim);
         if(dIni&&dFim&&hoje>=dIni&&hoje<=dFim){semanaIdx=wi;break;}
@@ -15849,7 +15891,7 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
       if(semanaIdx<0 && (g.semanaInicio||_boloesState.semanaInicio)){
         var iniDef=_parseBR(g.semanaInicio||_boloesState.semanaInicio);
         if(iniDef){
-          for(var wj=0;wj<4;wj++){
+          for(var wj=0;wj<g.semanas.length;wj++){
             var sIni=_parseBR(g.semanas[wj].inicio);
             if(sIni&&sIni.getTime()===iniDef.getTime()){semanaIdx=wj;break;}
           }
@@ -15857,7 +15899,7 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
       }
       // Fallback 2: se ainda não achou, usa a 1ª semana que contém o dia de hoje por proximidade
       if(semanaIdx<0){
-        for(var wk=0;wk<4;wk++){
+        for(var wk=0;wk<g.semanas.length;wk++){
           var pIni=_parseBR(g.semanas[wk].inicio);
           var pFim=_parseBR(g.semanas[wk].fim);
           if(pIni&&pFim&&hoje>=pIni){ semanaIdx=wk; }
