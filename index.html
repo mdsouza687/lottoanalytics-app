@@ -4560,8 +4560,9 @@ function renderLaFore(d,key){
     destaques.push({num,mult});
   }
   destaques.sort((a,b)=>b.mult-a.mult);
+  const _ct=d.corTexto?`;color:${d.corTexto}`:'';
   const topHtml=`<div class="la-fore-top">${destaques.map(r=>
-    `<div class="la-fore-pill"><div class="la-fore-glow" style="background:${d.cor}">${fmtNum(r.num)}</div><span>${r.mult}x</span></div>`
+    `<div class="la-fore-pill"><div class="la-fore-glow" style="background:${d.cor}${_ct}">${fmtNum(r.num)}</div><span>${r.mult}x</span></div>`
   ).join('')}</div>`;
   // Tabela: 6 linhas (últimos concursos, mais recente primeiro) × 6 colunas
   // (uma por bola-destaque) — cada célula mostra o atraso/variação daquela
@@ -4600,7 +4601,7 @@ function renderLaFore(d,key){
     });
     rowsHtml+=`<div class="la-mrow"><span class="la-mnum">${numConc||'—'}</span><span class="la-mdata">${data||'—'}</span><div class="la-mcells">${cells}</div></div>`;
   }
-  const headHtml=`<div class="la-mrow la-mhead"><span class="la-mnum">#</span><span class="la-mdata">Data</span><div class="la-mcells">${destaques.map(r=>`<div class="la-mcel la-mh">${fmtNum(r.num)}</div>`).join('')}</div></div>`;
+  const headHtml=`<div class="la-mrow la-mhead"><span class="la-mnum">#</span><span class="la-mdata">Data</span><div class="la-mcells">${destaques.map(r=>`<div class="la-mcel la-mh" style="${_ct?'color:'+d.corTexto:''}">${fmtNum(r.num)}</div>`).join('')}</div></div>`;
   wrap.innerHTML=topHtml+`<div class="la-fore-matrix">${headHtml}${rowsHtml}</div>`;
 }
 /* Histórico — mostra o sorteio real mais recente (se em cache) + complemento ilustrativo */
