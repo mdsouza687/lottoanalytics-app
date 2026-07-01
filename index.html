@@ -4636,6 +4636,12 @@ function laFmtHistLabel(dataStr){
 function renderLaHist(d,key){
   const wrap=document.getElementById('laHistBody'); if(!wrap) return;
 
+  // Se o cache tem concurso mais recente que resultados[key], atualiza em background
+  const _cacheTop=(_laHistCache[key]||[])[0];
+  if(_cacheTop&&resultados[key]&&parseInt(_cacheTop.concurso||0)>parseInt(resultados[key].concurso||0)){
+    atualizarLoteria(key).then(r=>{if(r&&CFG[key])renderLaHist(CFG[key],key);}).catch(()=>{});
+  }
+
   // ── 1. Coleta candidatos de três fontes em ordem de prioridade ──────────
   let candidatos=[];
   try{
@@ -4783,19 +4789,6 @@ async function laAtualizarHistoricoTodas(){
       try{ await garantirHistorico(key,8); }catch(e){}
       _laHistPronto[key]=true;
       await laCarregarHistCache();
-      // Para Dia de Sorte e Timemania: se o concurso mais recente no cache é mais novo
-      // que resultados[key] e está sem mes/timeCoracao, busca o endpoint LATEST para pegar mesSorte
-      if((key==='diasorte'||key==='timemania')&&_laHistCache[key]&&_laHistCache[key].length){
-        const top=_laHistCache[key][0];
-        const resNum=parseInt(resultados[key]?.concurso||0);
-        const topNum=parseInt(top.concurso||0);
-        if(topNum>resNum&&!top.mes&&!top.timeCoracao){
-          try{
-            const fresh=await atualizarLoteria(key);
-            if(fresh) await laCarregarHistCache();
-          }catch(e){}
-        }
-      }
       if(typeof LA_ORDER!=='undefined'&&typeof renderLaHist==='function'&&LA_ORDER[laCur]===key&&CFG[key]){
         renderLaHist(CFG[key],key);
         if(typeof renderLaFore==='function') renderLaFore(CFG[key],key);
