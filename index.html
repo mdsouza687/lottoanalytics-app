@@ -13357,7 +13357,8 @@ function renderFormBolao(){
               '<span style="color:'+(dCcM?dCcM.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCcM?iconLoteria(dCcM,14):'')+'</span>'+_esc(dCcM?dCcM.nome:cc.loteria)+'</span>'+
               '<span>'+nJogosM+' jogo'+(nJogosM!==1?'s':'')+'</span>'+
               '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
-              (cc.num?'<span style="color:var(--text-muted)">&nbsp;#'+_esc(String(cc.num))+'</span>':'')+
+              (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
+              (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
               '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmtM+'</span>'+
             '</div>';
           }).join('')
@@ -13480,16 +13481,107 @@ function renderFormBolao(){
         '<input id="bol-premio" type="text" style="'+inp+';padding-left:30px;opacity:.75;cursor:not-allowed" value="'+(s.premio?s.premio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0,00" readonly title="Vinculado ao concurso vigente — não editável"/></div></div>'+
     '</div>'+
 
-    // Linha 4: Número do concurso | Data do sorteio
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-      '<div><label style="'+lbl+'">Número do concurso <span style="font-size:9px;color:var(--text-muted)">(automático · API Caixa)</span></label>'+
-        '<input id="bol-concurso" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.concurso||'')+'" placeholder="—" readonly title="Concurso vigente obtido da API — não editável"/></div>'+
-      '<div><label style="'+lbl+'">Data do sorteio <span style="font-size:9px;color:var(--text-muted)">(automático · API Caixa)</span></label>'+
-        '<input id="bol-data-sorteio" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.dataSorteio||'')+'" placeholder="DD/MM/AAAA" readonly title="Vinculada ao concurso vigente — não editável"/></div>'+
-    '</div>'+
   '</div>'+
 
   _blocoMensal+
+    (s.modalidade==='unico'?(function(){
+    var arrec=_calcArrecadacaoPorContribuicoes(s);
+    s.arrecadacaoTotal=arrec;
+    var custRod=_calcCustoTotalBolao(s);
+    var saldo=arrec-custRod;
+    var corSaldo=saldo>=0?'#4ade80':'#f87171';
+    var bgSaldo=saldo>=0?'rgba(74,222,128,.10)':'rgba(248,113,113,.10)';
+    var brSaldo=saldo>=0?'rgba(74,222,128,.25)':'rgba(248,113,113,.25)';
+    // Por loteria
+    var saldoPorLot=_calcSaldoPorLoteria(s);
+    var porLoteriaHtml=saldoPorLot.length>1
+      ?'<div style="margin-bottom:12px">'+
+        '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Gasto e Saldo por Loteria</div>'+
+        saldoPorLot.map(function(g){
+          var corG=g.saldo>=0?'#4ade80':'#f87171';
+          return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);margin-bottom:4px;font-size:11px">'+
+            '<span style="color:'+corMarca(g)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[g.loteria]||g,14)+'</span>'+_esc(g.nome)+'</span>'+
+            '<span style="color:#fb923c">Gasto: <b>'+_bMoney(g.gasto)+'</b></span>'+
+            '<span style="color:'+corG+'">'+(g.saldo>=0?'Saldo':'Déficit')+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
+          '</div>';
+        }).join('')+
+      '</div>'
+      :'';
+    // Histórico de Rodadas
+    var conc=(s.concursos||[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+    var rodHtml=conc.length
+      ?conc.map(function(cc){
+          var dCc=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
+          var nomeLot=dCc?dCc.nome:(cc.loteria||'');
+          var emojiLot=dCc?iconLoteria(dCc,14):'';
+          var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
+          var nJogos=(cc.jogos||[]).length;
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
+            '<span style="color:'+(dCc?dCc.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
+            '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
+            '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
+            (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
+            (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
+            '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
+          '</div>';
+        }).join('')
+      :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">Nenhuma rodada registrada ainda.</span>';
+    // Gastos Diários
+    var gastosPorDia={},ordemDias=[];
+    (s.concursos||[]).forEach(function(cc){
+      if(!cc.custo||!cc.savedAt) return;
+      var dia=new Date(cc.savedAt).toLocaleDateString('pt-BR');
+      if(!(dia in gastosPorDia)){ gastosPorDia[dia]=0; ordemDias.push(dia); }
+      gastosPorDia[dia]+=cc.custo;
+    });
+    var _diaChave=function(d){ var p=d.split('/'); return p.length===3?(p[2]+p[1]+p[0]):d; };
+    ordemDias.sort(function(a,b){ return _diaChave(b).localeCompare(_diaChave(a)); });
+    var gastosDiariosHtml=ordemDias.length
+      ?ordemDias.map(function(dia){
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
+            '<span style="color:var(--text)">📅 '+dia+'</span>'+
+            '<span style="color:#fb923c;font-weight:700;margin-left:auto">'+_bMoney(gastosPorDia[dia])+'</span>'+
+          '</div>';
+        }).join('')
+      :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">Nenhum gasto registrado ainda.</span>';
+    // Gastos Semanais (dom-sáb)
+    var gastosPorSem={},ordemSems=[];
+    (s.concursos||[]).forEach(function(cc){
+      if(!cc.custo||!cc.savedAt) return;
+      var d=new Date(cc.savedAt);
+      var dom=new Date(d); dom.setDate(d.getDate()-d.getDay());
+      var sab=new Date(dom); sab.setDate(dom.getDate()+6);
+      var fmtD=function(dt){ return dt.toLocaleDateString('pt-BR'); };
+      var chave=fmtD(dom)+'|'+fmtD(sab);
+      if(!(chave in gastosPorSem)){ gastosPorSem[chave]=0; ordemSems.push(chave); }
+      gastosPorSem[chave]+=cc.custo;
+    });
+    var gastosSemanaisHtml=ordemSems.length
+      ?ordemSems.map(function(ch){
+          var parts=ch.split('|');
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
+            '<span style="color:var(--text)">🗓 '+parts[0]+' a '+parts[1]+'</span>'+
+            '<span style="color:#fb923c;font-weight:700;margin-left:auto">'+_bMoney(gastosPorSem[ch])+'</span>'+
+          '</div>';
+        }).join('')
+      :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">Nenhum gasto registrado ainda.</span>';
+    return '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
+      '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#93c5fd;margin-bottom:10px">Controle de Gastos</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
+        '<div><label style="'+lbl+'">Custo das apostas (todas as loterias)</label>'+
+          '<div style="padding:9px 12px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:8px;font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(custRod)+'</div></div>'+
+        '<div><label style="'+lbl+'">'+(saldo>=0?'Saldo disponível':'Déficit')+' (geral)</label>'+
+          '<div style="padding:9px 12px;background:'+bgSaldo+';border:1px solid '+brSaldo+';border-radius:8px;font-size:15px;font-weight:800;color:'+corSaldo+'">'+_bMoney(Math.abs(saldo))+'</div></div>'+
+      '</div>'+
+      porLoteriaHtml+
+      '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Histórico de Rodadas</div>'+
+      rodHtml+
+      '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-top:14px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Gastos Diários</div>'+
+      gastosDiariosHtml+
+      '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-top:14px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Gastos Semanais</div>'+
+      gastosSemanaisHtml+
+    '</div>';
+  })():'') +
     (s.modalidade==='semanal'?(function(){
     var dBolao=CFG[s.loteria||currentKey]||null;
     // Arrecadação Total agora é DERIVADA — soma das Contribuições dos
@@ -13545,7 +13637,8 @@ function renderFormBolao(){
             '<span style="color:'+(dCc?dCc.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
-            (cc.num?'<span style="color:var(--text-muted)">&nbsp;#'+_esc(String(cc.num))+'</span>':'')+
+            (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
+            (cc.dataSorteio?'<span style="color:var(--text-muted)">&nbsp;'+_esc(String(cc.dataSorteio))+'</span>':'')+
             '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
           '</div>';
         }).join('')
