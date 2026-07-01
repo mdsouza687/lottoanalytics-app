@@ -5407,9 +5407,11 @@ function renderCard(res,d){
   if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
   res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}">${pad(n)}</div>`;});
+  // Bola extra americana (PowerBall / Mega Ball) — inline após as dezenas
+  if(d.bolaExtra&&res.bolaExtra){ h+=`<span class="la-xsep" style="font-size:10px">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'};border:3px solid rgba(255,255,255,.35)">${pad(res.bolaExtra)}</div>`; }
+  // Trevos — +Milionária — inline após as dezenas
+  if(res.trevos&&res.trevos.length){ h+=`<span class="la-xsep" style="font-size:10px">TREVO</span>`; res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#00BCD4'};box-shadow:0 3px 10px rgba(0,0,0,.3)">${pad(t)}</div>`;}); }
   h+=`</div>`;
-  // Bola extra americana (PowerBall / Mega Ball)
-  if(d.bolaExtra&&res.bolaExtra){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 16px 10px"><div style="font-size:10px;font-weight:700;color:#00BCD4;letter-spacing:.5px;text-transform:uppercase;opacity:.9">${d.bolaExtraNome}</div><div class="ball" style="background:#00BCD4;border:3px solid rgba(255,255,255,.35)">${pad(res.bolaExtra)}</div></div>`; }
   // 2º Sorteio — Dupla Sena
   if(res.dezenas2&&res.dezenas2.length){
     h+=`<div style="height:1px;background:rgba(255,255,255,.08);margin:0 16px"></div>`;
@@ -5418,8 +5420,6 @@ function renderCard(res,d){
     res.dezenas2.forEach(n=>{h+=`<div class="ball" style="background:${d.corD}">${pad(n)}</div>`;});
     h+=`</div>`;
   }
-  // Trevos — +Milionária
-  if(res.trevos&&res.trevos.length){h+=`<div class="trevos-lbl">Trevos da Sorte</div><div class="trevos-row">`;res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#00BCD4'};box-shadow:0 3px 10px rgba(200,168,0,.4)">${pad(t)}</div>`;});h+=`</div>`;}
   if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}">${res.timeCoracao}</span></div>`;
   if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
