@@ -4682,6 +4682,16 @@ function renderLaHist(d,key){
     });
   }
 
+  // Dupla Sena: quando dezenas2 está ausente mas dezenas tem 12 números, divide em dois sorteios de 6
+  if(d.dupla){
+    candidatos=candidatos.map(c=>{
+      if(c.nums&&c.nums.length>6&&(!c.nums2||!c.nums2.length)){
+        return {...c,nums:c.nums.slice(0,6),nums2:c.nums.slice(6)};
+      }
+      return c;
+    });
+  }
+
   if(!candidatos.length){
     wrap.innerHTML='<div class="la-hist-row"><div class="la-hd-col"><span class="la-hd-data">—</span></div><div class="la-hist-balls">Sem dados — clique em Atualizar</div></div>';
     return;
