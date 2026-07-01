@@ -4647,14 +4647,19 @@ function renderLaHist(d,key){
     }));
   }catch(e){}
 
-  // Resultado em memória: garante 1ª linha sempre atual, mesmo sem cache
+  // Resultado em memória: injeta na posição correta por data
   // Compara por timestamp para tratar formatos mistos (BR "27/06/2026" vs ISO "2026-06-27")
   const real=resultados[key];
   const _sameDate=(a,b)=>{const da=laParseDataBR(a),db=laParseDataBR(b);return da&&db&&da.getTime()===db.getTime();};
-  if(real&&real.dezenas&&real.dezenas.length&&
-     (!candidatos.length||!_sameDate(candidatos[0].label,real.data))){
-    candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,
-      trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null});
+  if(real&&real.dezenas&&real.dezenas.length){
+    // Remove qualquer entrada do cache com a mesma data do resultado em memória
+    candidatos=candidatos.filter(c=>!_sameDate(c.label,real.data));
+    const realItem={label:real.data,nums:real.dezenas,extra:real.bolaExtra,
+      trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null};
+    // Insere na posição cronológica correta (não necessariamente no topo)
+    const realDt=laParseDataBR(real.data);
+    const idx=candidatos.findIndex(c=>{const dt=laParseDataBR(c.label);return dt&&realDt&&dt.getTime()<realDt.getTime();});
+    if(idx===-1) candidatos.push(realItem); else candidatos.splice(idx,0,realItem);
     candidatos=candidatos.slice(0,8);
   }
 
