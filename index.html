@@ -1051,10 +1051,19 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
 @keyframes laDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,5vh) scale(1.08)}}
 body.theme-light .la-home #laAurora b{opacity:.16}
 
-.la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
-.la-nav::-webkit-scrollbar{height:4px}
-.la-nav::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-.la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0}
+/* A barra inteira NÃO rola mais como bloco único (isso arrastava o logo e os
+   botões de login/admin pra fora da tela junto com as pílulas de loteria,
+   forçando rolagem horizontal da página inteira, logado ou não). Agora só
+   as pílulas de loteria (.la-pills, no meio) rolam por dentro de si mesmas
+   — logo e botões ficam sempre visíveis nas pontas, sem exceder a largura
+   da tela em nenhum cenário. */
+.la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap}
+/* Só .la-pills pode encolher/rolar — logo, seletor de tema e botões
+   (Atualizar/Admin/Sair/Login) mantêm sempre o tamanho e ficam visíveis. */
+.la-nav>*:not(.la-pills){flex-shrink:0}
+.la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.la-pills::-webkit-scrollbar{height:4px}
+.la-pills::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
 .la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
 .la-pill:hover{transform:translateY(-1px);filter:brightness(1.15)}
