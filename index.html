@@ -4688,8 +4688,8 @@ function renderLaHist(d,key){
   const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
   const _pilulaCor=d.corTexto||'#222';
 
-  // Coluna extra: apenas mes/time e trevos — americano vai inline nas bolas
-  const temColExtra=key==='diasorte'||key==='timemania'||d.hasTrevo;
+  // Coluna extra: apenas mes/time — trevos e americano vão inline nas bolas
+  const temColExtra=key==='diasorte'||key==='timemania';
 
   // ── 3. Monta cada linha como <tr> da tabela ─────────────────────────────
   const tbody=linhas.map(r=>{
@@ -4704,7 +4704,10 @@ function renderLaHist(d,key){
     const extraInline=(d.americano&&d.bolaExtra&&r.extra)
       ?`<span class="la-xsep">${_extraNome}</span><div class="la-hb" style="background:${_extraCor}">${laPad(r.extra)}</div>`
       :'';
-    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline;
+    const trevosInline=(d.hasTrevo&&r.trevos&&r.trevos.length)
+      ?`<span class="la-xsep">TREVO</span>`+r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('')
+      :'';
+    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline+trevosInline;
 
     // 2º sorteio da Dupla Sena — linha separada dentro da mesma célula
     const balls2=(d.dupla&&r.nums2&&r.nums2.length)
@@ -4717,8 +4720,6 @@ function renderLaHist(d,key){
       extraHtml=`<span class="la-hist-pill" style="background:${d.cor};color:${_pilulaCor}">${r.mes}</span>`;
     } else if(key==='timemania'&&r.time){
       extraHtml=`<span class="la-hist-pill la-hist-pill-time" style="background:${d.cor};color:${_pilulaCor}">${r.time}</span>`;
-    } else if(d.hasTrevo&&r.trevos&&r.trevos.length){
-      extraHtml=r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('');
     }
 
     return `<tr class="la-hist-tr">
