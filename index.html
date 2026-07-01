@@ -11587,16 +11587,18 @@ function renderResultados(body,d,hist,freq){
     let infoHtml='';
     const numHtml=`<span class="dt-num">${h.concurso}</span>`;
     const dateHtml=`<span class="dt-date">${h.data||''}</span>`;
-    const ballsHtml=`<div class="dt-balls">${dzSorted.map(n=>`<div class="b m">${n}</div>`).join('')}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
+    const _bct=d.corTexto?`color:${d.corTexto}`:'';
+    const ballsHtml=`<div class="dt-balls">${dzSorted.map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('')}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
     if(view.info===0) infoHtml=`<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
     else if(view.info===1) infoHtml=numHtml;
     else if(view.info===2) infoHtml=dateHtml;
     else infoHtml=ballsHtml;
 
+    const _ct=d.corTexto?`;color:${d.corTexto}`:'';
     let mainTds=mainCols.map(n=>{
       const hit=dz.includes(n);
       const val=view.mode==='posicoes'?(hit?posMap[n]:''):n;
-      return `<td><div class="fc2${hit?' hm':''}"${hit?` style="background:${hitColorMain(n)}"`:''}>${hit?val:n}</div></td>`;
+      return `<td><div class="fc2${hit?' hm':''}"${hit?` style="background:${hitColorMain(n)}${_ct}"`:''}>${hit?val:n}</div></td>`;
     }).join('');
 
     let extraTds='';
