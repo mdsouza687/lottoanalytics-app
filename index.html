@@ -1216,7 +1216,10 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
    outros modais do app: usa .modal-overlay/.open, herda as cores do tema
    ativo via variáveis CSS, então se adapta automaticamente aos temas
    escuro/claro/colorido) ══ */
-.ag-card{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:28px 26px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.ag-card{width:100%;max-width:420px;max-height:88vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:28px 26px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.ag-pix-row{display:flex;gap:8px}
+.ag-pix-row select{flex:0 0 128px;background:var(--glass-hover);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 8px;color:var(--text);font-size:12px;font-family:var(--font-body)}
+.ag-pix-row input{flex:1;min-width:0}
 .ag-logo{text-align:center;font-family:var(--font-head);font-weight:900;font-size:22px;color:var(--text);margin-bottom:4px}
 .ag-sub{text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:20px}
 .ag-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--glass-hover);border-radius:var(--radius-md);padding:4px}
@@ -1275,7 +1278,18 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <div class="ag-field"><label>Confirmar senha <span class="ag-req">*</span></label><input type="password" id="ag-cad-senha2" autocomplete="new-password"/></div>
       <div class="ag-opcionais">Opcionais</div>
       <div class="ag-field"><label>CPF</label><input type="text" id="ag-cad-cpf" inputmode="numeric" placeholder="000.000.000-00"/></div>
-      <div class="ag-field"><label>PIX</label><input type="text" id="ag-cad-pix" placeholder="Chave PIX"/></div>
+      <div class="ag-field"><label>PIX</label>
+        <div class="ag-pix-row">
+          <select id="ag-cad-pix-tipo" onchange="agAtualizarMascaraPix()">
+            <option value="cpf">CPF</option>
+            <option value="cnpj">CNPJ</option>
+            <option value="celular">Celular</option>
+            <option value="email">E-mail</option>
+            <option value="aleatoria">Aleatória</option>
+          </select>
+          <input type="text" id="ag-cad-pix" oninput="agFormatarPix()" placeholder="000.000.000-00" inputmode="numeric" maxlength="14"/>
+        </div>
+      </div>
       <div class="ag-field"><label>Telefone</label><input type="text" id="ag-cad-telefone" inputmode="tel" placeholder="(00) 0000-0000"/></div>
       <div class="ag-field"><label>WhatsApp</label><input type="text" id="ag-cad-whatsapp" inputmode="tel" placeholder="(00) 00000-0000"/></div>
       <div class="ag-field"><label>Endereço</label><input type="text" id="ag-cad-endereco" autocomplete="street-address"/></div>
@@ -2772,6 +2786,38 @@ async function agFazerLogin(){
   finally{ btn.disabled=false; btn.textContent='Entrar'; }
 }
 
+// Máscara do campo PIX conforme o tipo de chave selecionado — CPF/CNPJ/
+// Celular ganham formatação automática enquanto digita; E-mail/Aleatória
+// ficam livres (não têm um formato fixo de dígitos para mascarar).
+function agAtualizarMascaraPix(){
+  const tipo=document.getElementById('ag-cad-pix-tipo').value;
+  const el=document.getElementById('ag-cad-pix');
+  const cfg={
+    cpf:{placeholder:'000.000.000-00',inputmode:'numeric',type:'text',maxlength:14},
+    cnpj:{placeholder:'00.000.000/0000-00',inputmode:'numeric',type:'text',maxlength:18},
+    celular:{placeholder:'(00) 00000-0000',inputmode:'tel',type:'text',maxlength:15},
+    email:{placeholder:'seu@email.com',inputmode:'email',type:'email',maxlength:254},
+    aleatoria:{placeholder:'Chave aleatória',inputmode:'text',type:'text',maxlength:100}
+  }[tipo]||{placeholder:'Chave PIX',inputmode:'text',type:'text',maxlength:100};
+  el.placeholder=cfg.placeholder;
+  el.setAttribute('inputmode',cfg.inputmode);
+  el.type=cfg.type;
+  el.maxLength=cfg.maxlength;
+  el.value='';
+}
+function agFormatarPix(){
+  const tipo=document.getElementById('ag-cad-pix-tipo').value;
+  const el=document.getElementById('ag-cad-pix');
+  if(tipo==='email'||tipo==='aleatoria') return; // sem máscara — formato livre
+  const digitos=el.value.replace(/\D/g,'');
+  if(tipo==='cpf'){
+    el.value=digitos.slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  } else if(tipo==='cnpj'){
+    el.value=digitos.slice(0,14).replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1/$2').replace(/(\d{4})(\d{1,2})$/,'$1-$2');
+  } else if(tipo==='celular'){
+    el.value=digitos.slice(0,11).replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d{1,4})$/,'$1-$2');
+  }
+}
 async function agFazerCadastro(){
   const sb=_getSbClient(); if(!sb){ agMsg('Serviço indisponível no momento.'); return; }
   const nome=(document.getElementById('ag-cad-nome').value||'').trim();
