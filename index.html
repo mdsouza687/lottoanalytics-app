@@ -7521,48 +7521,10 @@ async function gerarJogos(tipo,modo){
     }
     if(jogos.length<qty) toast(`Gerados ${jogos.length} de ${qty}${filtros?' (com filtros)':''}.`);
 
-    // Bola extra e trevos
-    // Bola extra: respeita fixo (getFixosExtra) e exclusão (getExcluidosExtra) do usuário
-    // — antes, era sempre sorteada aleatoriamente, ignorando qualquer seleção no volante.
-    const _fixoExtraJ=d.americano?(getFixosExtra(tipo)[0]||null):null;
-    const _exclExtraJ=d.americano?new Set(getExcluidosExtra(tipo)):null;
-    const _poolExtraJ=d.americano?Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!_exclExtraJ.has(n)):null;
-    // Mês da sorte (Dia de Sorte) e Time do Coração (Timemania): mesmo padrão
-    // — se o usuário fixou um valor no Volante, esse valor é usado em TODOS
-    // os jogos da rodada; se não fixou, cada jogo sorteia o seu, de forma
-    // independente (replicando exatamente o comportamento já existente para
-    // a bola extra das loterias americanas).
-    const _fixoMesJ=d.apiKey==='diadesorte'?(getFixosMes(tipo)[0]||null):null;
-    const _fixoTimeJ=d.apiKey==='timemania'?(getFixosTime(tipo)[0]??null):null;
-    jogos.forEach(jogo=>{
-      if(d.americano){
-        if(_fixoExtraJ!=null && !_exclExtraJ.has(_fixoExtraJ)){
-          jogo._extra=_fixoExtraJ;
-        } else if(_poolExtraJ && _poolExtraJ.length){
-          jogo._extra=_poolExtraJ[Math.floor(Math.random()*_poolExtraJ.length)];
-        } else {
-          jogo._extra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1; // fallback se exclusão cobriu tudo
-        }
-      } else if(d.hasTrevo){
-        const trevUni=d.trevosUniverse||6;
-        const trevQty=parseInt(document.getElementById('jogo-trevos')?.value)||2;
-        const pool=Array.from({length:trevUni},(_,k)=>k+1);
-        jogo._trevos=gerarTrevosPadrao(Math.min(trevQty,trevUni),trevUni);
-      } else if(d.apiKey==='diadesorte'){
-        jogo._mes=_fixoMesJ!=null?_fixoMesJ:(1+Math.floor(Math.random()*12));
-      } else if(d.apiKey==='timemania'){
-        jogo._time=_fixoTimeJ!=null?_fixoTimeJ:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
-      }
-    });
-
-    // Score 0-100 (mesma fórmula de 10 fatores usada pelo Motor de IA) — dá ao usuário
-    // visibilidade de qualidade estatística mesmo no gerador clássico, sem alterar a
-    // lógica de geração nem o tempo de execução (cálculo O(N) por jogo, já feito).
-    if(!d.superSete && filtros){
-      jogos.forEach(jogo=>{ jogo._scoreJogo=calcScoreJogo(jogo,filtros,d); });
-    }
-
     // ── Aposta Espelho: divide o universo em 2 grupos FIXOS; principal sai do grupo A, espelho do grupo B ──
+    // Só os NÚMEROS são decididos aqui — bola extra/trevos/mês/time de
+    // ambos os lados, e o Score Global, são aplicados depois num único
+    // passo cobrindo o array final (com ou sem espelho).
     window._espelhoGrupos=null;
     if(espelhoOn){
       let uniFull=[];
@@ -7598,22 +7560,26 @@ async function gerarJogos(tipo,modo){
         const k=principal.slice().sort((a,b)=>a-b).join(',');
         if(typeof seen!=='undefined'){ if(seen.has(k)) continue; seen.add(k); }
         principal._espelho=espelho.slice().sort((a,b)=>a-b);
-        if(d.americano){
-          // Jogo principal respeita fixo/exclusão (mesma regra do gerador normal);
-          // o espelho (_espExtra) é sempre sorteado livre, por ser um par complementar.
-          if(_fixoExtraJ!=null && _exclExtraJ && !_exclExtraJ.has(_fixoExtraJ)) principal._extra=_fixoExtraJ;
-          else if(_poolExtraJ && _poolExtraJ.length) principal._extra=_poolExtraJ[Math.floor(Math.random()*_poolExtraJ.length)];
-          else principal._extra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
-          principal._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
-        }
-        else if(d.hasTrevo){ const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2; principal._trevos=gerarTrevosPadrao(Math.min(tq,tu),tu); principal._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu); }
-        // O jogo espelho é uma aposta própria e precisa do seu próprio Mês
-        // da Sorte / Time do Coração — mesmo padrão de _espExtra/_espTrevos.
-        else if(d.apiKey==='diadesorte'){ principal._mes=_fixoMesJ!=null?_fixoMesJ:(1+Math.floor(Math.random()*12)); principal._espMes=_fixoMesJ!=null?_fixoMesJ:(1+Math.floor(Math.random()*12)); }
-        else if(d.apiKey==='timemania'){ principal._time=_fixoTimeJ!=null?_fixoTimeJ:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length); principal._espTime=_fixoTimeJ!=null?_fixoTimeJ:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length); }
-        _rgBackupPar(principal); // habilita seleção individualizada (principal/espelho)
         jogos.push(principal);
       }
+    }
+
+    // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
+    // (Dia de Sorte) e Time do Coração (Timemania) — para principal E
+    // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
+    jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,tipo));
+
+    // Score 0-100 (mesma fórmula de 11 fatores usada pelo Motor de IA) — dá ao
+    // usuário visibilidade de qualidade estatística mesmo no gerador clássico,
+    // sem alterar a lógica de geração. Roda DEPOIS da Aposta Espelho (que
+    // substitui o array `jogos` inteiro) — antes da extração desta função,
+    // rodar antes fazia o score se perder sempre que Aposta Espelho estava
+    // ligada, já que o array era reconstruído do zero em seguida.
+    if(!d.superSete && filtros){
+      jogos.forEach(jogo=>{
+        jogo._scoreJogo=calcScoreJogo(jogo,filtros,d);
+        if(jogo._espelho) jogo._espScoreJogo=calcScoreJogo(jogo._espelho,filtros,d);
+      });
     }
 
     jogosGerados=jogos;
@@ -7665,7 +7631,9 @@ async function gerarJogos(tipo,modo){
         const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome}</span><div class="result-ball" style="background:${d.bolaExtraCor};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
         const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
         const espMesTimeJ=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
-        return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeJ}</div></div></div></div></div>`;
+        const scoreBadgePJ=jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:'';
+        const scoreBadgeEJ=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
+        return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${scoreBadgePJ}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeJ}</div>${scoreBadgeEJ}</div></div></div></div>`;
       }
       return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
     }).join('');
@@ -7740,6 +7708,50 @@ function rgSyncEspelho(i){
 function _rgBackupPar(jogo){
   jogo._pBackup={nums:jogo.slice(),extra:jogo._extra,trevos:jogo._trevos?jogo._trevos.slice():null,mes:jogo._mes,time:jogo._time};
   jogo._eBackup={nums:jogo._espelho.slice(),extra:jogo._espExtra,trevos:jogo._espTrevos?jogo._espTrevos.slice():null,mes:jogo._espMes,time:jogo._espTime};
+}
+// Atribui bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da
+// Sorte (Dia de Sorte) ou Time do Coração (Timemania) a um jogo — e, se
+// `jogo._espelho` já estiver definido (array de números), atribui também
+// ao lado espelho, como uma aposta própria e independente.
+//
+// Extraído em 01/07/2026 (item 2 do relatório comparativo de métodos de
+// geração) para substituir a mesma lógica que estava duplicada de forma
+// quase idêntica em gerarJogos(), gerarFechamento(), gerarFechamentoPorScore()
+// e gerarComIA() — a origem real dos bugs de "Mês da Sorte ausente no
+// espelho" e "extras nunca atribuídos" corrigidos nesta sessão: cada cópia
+// podia ficar levemente desatualizada em relação às outras. Agora só existe
+// UM lugar para corrigir/estender essa regra.
+//
+// `wrapId` é a chave usada por getFixos*/getExcluidos* para ler os
+// fixos/exclusões configurados pelo usuário naquele painel específico
+// ('jogo', 'fech', 'fch2' etc.) — cada aba tem seu próprio volante.
+function _aplicarExtrasEspelho(jogo, d, wrapId){
+  if(d.americano){
+    const fixoExtra=getFixosExtra(wrapId)[0]||null;
+    const exclExtra=new Set(getExcluidosExtra(wrapId));
+    if(fixoExtra!=null && !exclExtra.has(fixoExtra)){
+      jogo._extra=fixoExtra;
+    } else {
+      const poolExtra=Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!exclExtra.has(n));
+      jogo._extra=poolExtra.length?poolExtra[Math.floor(Math.random()*poolExtra.length)]:(Math.floor(Math.random()*(d.bolaExtraMax||26))+1);
+    }
+    // O lado espelho é sempre sorteado livre (mesmo padrão anterior à
+    // extração), por ser um par complementar independente do principal.
+    if(jogo._espelho) jogo._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
+  } else if(d.hasTrevo){
+    const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2;
+    jogo._trevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
+    if(jogo._espelho) jogo._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
+  } else if(d.apiKey==='diadesorte'){
+    const fixoMes=getFixosMes(wrapId)[0]||null;
+    jogo._mes=fixoMes!=null?fixoMes:(1+Math.floor(Math.random()*12));
+    if(jogo._espelho) jogo._espMes=fixoMes!=null?fixoMes:(1+Math.floor(Math.random()*12));
+  } else if(d.apiKey==='timemania'){
+    const fixoTime=getFixosTime(wrapId)[0]??null;
+    jogo._time=fixoTime!=null?fixoTime:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+    if(jogo._espelho) jogo._espTime=fixoTime!=null?fixoTime:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+  }
+  if(jogo._espelho) _rgBackupPar(jogo);
 }
 function toggleMarcarTodos(checked){ document.querySelectorAll('.rg-check').forEach((c,i)=>{c.checked=checked;const rg=document.getElementById(`rg-${i}`);if(rg)rg.classList.toggle('marcado',!checked);}); atualizarContagemSel(); }
 function getJogosSelecionados(){
@@ -9612,34 +9624,9 @@ async function gerarFechamentoPorScore(){
   if(!jogos.length){toast('Nenhuma combinação possível com os parâmetros escolhidos.');return;}
 
   // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
-  // (Dia de Sorte) e Time do Coração (Timemania) — este fechamento por
-  // score gerava só os números principais, sem nenhum desses campos
-  // extras, mesmo para loterias que exigem essa informação para a aposta
-  // ficar completa. Mesmo padrão já usado em gerarFechamento()/gerarComIA().
-  const _fixoExtraFch2=d.americano?(getFixosExtra('fch2')[0]||null):null;
-  const _exclExtraFch2=d.americano?new Set(getExcluidosExtra('fch2')):null;
-  const _poolExtraFch2=d.americano?Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!_exclExtraFch2.has(n)):null;
-  const _fixoMesFch2=d.apiKey==='diadesorte'?(getFixosMes('fch2')[0]||null):null;
-  const _fixoTimeFch2=d.apiKey==='timemania'?(getFixosTime('fch2')[0]??null):null;
-  jogos.forEach(jogo=>{
-    if(d.americano){
-      if(_fixoExtraFch2!=null && !_exclExtraFch2.has(_fixoExtraFch2)){ jogo._extra=_fixoExtraFch2; }
-      else if(_poolExtraFch2&&_poolExtraFch2.length){ jogo._extra=_poolExtraFch2[Math.floor(Math.random()*_poolExtraFch2.length)]; }
-      else { jogo._extra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1; }
-      if(jogo._espelho) jogo._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
-    } else if(d.hasTrevo){
-      const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2;
-      jogo._trevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
-      if(jogo._espelho) jogo._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu);
-    } else if(d.apiKey==='diadesorte'){
-      jogo._mes=_fixoMesFch2!=null?_fixoMesFch2:(1+Math.floor(Math.random()*12));
-      if(jogo._espelho) jogo._espMes=_fixoMesFch2!=null?_fixoMesFch2:(1+Math.floor(Math.random()*12));
-    } else if(d.apiKey==='timemania'){
-      jogo._time=_fixoTimeFch2!=null?_fixoTimeFch2:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
-      if(jogo._espelho) jogo._espTime=_fixoTimeFch2!=null?_fixoTimeFch2:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
-    }
-    if(jogo._espelho) _rgBackupPar(jogo); // habilita seleção individualizada (principal/espelho)
-  });
+  // (Dia de Sorte) e Time do Coração (Timemania) — para principal E
+  // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
+  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'fch2'));
 
   jogosGerados=jogos;
 
@@ -9759,37 +9746,11 @@ async function gerarFechamento(){
   }
   if(jogos.length<qty)toast(`Gerados ${jogos.length} de ${qty} únicos.`);
 
-  // Bola extra (Powerball/Mega Ball) e trevos (+Milionária)
   const TURQUESA='#00BCD4';
-  // Bola extra: respeita fixo (getFixosExtra) e exclusão (getExcluidosExtra) do usuário.
-  // Antes, era sempre sorteada aleatoriamente, ignorando qualquer seleção feita no volante.
-  const _fixoExtra=d.americano?(getFixosExtra('fech')[0]||null):null;
-  const _exclExtra=d.americano?new Set(getExcluidosExtra('fech')):null;
-  const _poolExtra=d.americano?Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!_exclExtra.has(n)):null;
-  const _fixoMesF=d.apiKey==='diadesorte'?(getFixosMes('fech')[0]||null):null;
-  const _fixoTimeF=d.apiKey==='timemania'?(getFixosTime('fech')[0]??null):null;
-  jogos.forEach(jogo=>{
-    if(d.americano){
-      if(_fixoExtra!=null && !_exclExtra.has(_fixoExtra)){
-        jogo._extra=_fixoExtra;
-      } else if(_poolExtra && _poolExtra.length){
-        jogo._extra=_poolExtra[Math.floor(Math.random()*_poolExtra.length)];
-      } else {
-        jogo._extra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1; // fallback se exclusão cobriu tudo
-      }
-    } else if(d.hasTrevo){
-      const trevUni=d.trevosUniverse||6;
-      const trevQty=parseInt(document.getElementById('jogo-trevos')?.value)||2;
-      const pool=Array.from({length:trevUni},(_,k)=>k+1);
-      jogo._trevos=gerarTrevosPadrao(Math.min(trevQty,trevUni),trevUni);
-    } else if(d.apiKey==='diadesorte'){
-      jogo._mes=_fixoMesF!=null?_fixoMesF:(1+Math.floor(Math.random()*12));
-    } else if(d.apiKey==='timemania'){
-      jogo._time=_fixoTimeF!=null?_fixoTimeF:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
-    }
-  });
 
-  // ── Aposta Espelho no Fechamento: cada jogo ganha um espelho do grupo complementar ──
+  // ── Aposta Espelho no Fechamento: cada jogo ganha um espelho do grupo
+  // complementar (só os NÚMEROS aqui — bola extra/trevos/mês/time de
+  // ambos os lados são atribuídos juntos logo abaixo, num único passo). ──
   const _fechEspOn = document.getElementById('fech-espelho')?.checked && ESPELHO_CFG[currentKey];
   if(_fechEspOn){
     let uniFull=[];
@@ -9801,18 +9762,14 @@ async function gerarFechamento(){
       const espelho=gerarJogoSimples(grupoB, numDez, []);
       if(espelho&&espelho.length>=numDez){
         jogo._espelho=espelho.slice().sort((a,b)=>a-b);
-        if(d.americano) jogo._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
-        else if(d.hasTrevo){ const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2; jogo._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu); }
-        // O jogo espelho é uma aposta própria e precisa do seu próprio Mês
-        // da Sorte / Time do Coração — mesmo padrão de _espExtra/_espTrevos
-        // acima, sem o qual a aposta espelho ficava incompleta para
-        // registrar/apostar no Dia de Sorte ou na Timemania.
-        else if(d.apiKey==='diadesorte') jogo._espMes=_fixoMesF!=null?_fixoMesF:(1+Math.floor(Math.random()*12));
-        else if(d.apiKey==='timemania') jogo._espTime=_fixoTimeF!=null?_fixoTimeF:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
-        _rgBackupPar(jogo); // habilita seleção individualizada (principal/espelho) via rgSyncEspelho
       }
     });
   }
+
+  // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
+  // (Dia de Sorte) e Time do Coração (Timemania) — para principal E
+  // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
+  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'fech'));
 
   // Score Global (mesma fórmula de 11 fatores do Motor de IA/Gerador Manual)
   // — aplicado como pós-processamento, sem alterar como os jogos foram
