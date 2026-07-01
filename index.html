@@ -9637,11 +9637,11 @@ async function gerarFechamento(){
   const TURQUESA='#00BCD4';
   // Bola extra: respeita fixo (getFixosExtra) e exclusão (getExcluidosExtra) do usuário.
   // Antes, era sempre sorteada aleatoriamente, ignorando qualquer seleção feita no volante.
-  const _fixoExtra=d.americano?(getFixosExtra(tipo)[0]||null):null;
-  const _exclExtra=d.americano?new Set(getExcluidosExtra(tipo)):null;
+  const _fixoExtra=d.americano?(getFixosExtra('fech')[0]||null):null;
+  const _exclExtra=d.americano?new Set(getExcluidosExtra('fech')):null;
   const _poolExtra=d.americano?Array.from({length:d.bolaExtraMax||26},(_,k)=>k+1).filter(n=>!_exclExtra.has(n)):null;
-  const _fixoMesF=d.apiKey==='diadesorte'?(getFixosMes(tipo)[0]||null):null;
-  const _fixoTimeF=d.apiKey==='timemania'?(getFixosTime(tipo)[0]??null):null;
+  const _fixoMesF=d.apiKey==='diadesorte'?(getFixosMes('fech')[0]||null):null;
+  const _fixoTimeF=d.apiKey==='timemania'?(getFixosTime('fech')[0]??null):null;
   jogos.forEach(jogo=>{
     if(d.americano){
       if(_fixoExtra!=null && !_exclExtra.has(_fixoExtra)){
@@ -9677,6 +9677,12 @@ async function gerarFechamento(){
         jogo._espelho=espelho.slice().sort((a,b)=>a-b);
         if(d.americano) jogo._espExtra=Math.floor(Math.random()*(d.bolaExtraMax||26))+1;
         else if(d.hasTrevo){ const tu=d.trevosUniverse||6, tq=parseInt(document.getElementById('jogo-trevos')?.value)||2; jogo._espTrevos=gerarTrevosPadrao(Math.min(tq,tu),tu); }
+        // O jogo espelho é uma aposta própria e precisa do seu próprio Mês
+        // da Sorte / Time do Coração — mesmo padrão de _espExtra/_espTrevos
+        // acima, sem o qual a aposta espelho ficava incompleta para
+        // registrar/apostar no Dia de Sorte ou na Timemania.
+        else if(d.apiKey==='diadesorte') jogo._espMes=_fixoMesF!=null?_fixoMesF:(1+Math.floor(Math.random()*12));
+        else if(d.apiKey==='timemania') jogo._espTime=_fixoTimeF!=null?_fixoTimeF:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
       }
     });
   }
@@ -9695,13 +9701,15 @@ async function gerarFechamento(){
     const trevosHtml=jogo._trevos
       ?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`
       :'';
+    const mesTimeHtmlP=mesTimeHtml(jogo,d);
     if(jogo._espelho){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}</div></div></div></div></div>`;
+      const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
+      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div></div></div></div></div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}</div></div>`;
+    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div>`;
   }).join('');
   document.getElementById('chk-all').checked=false;if(typeof atualizarContagemSel==='function')atualizarContagemSel();
   const box=document.getElementById('result-box');box.style.display='block';
@@ -10524,12 +10532,18 @@ async function gerarComIA(tipo){
       const _fixoMesIA=getFixosMes(tipo)[0]||null;
       jogosIA.forEach(({jogo})=>{
         jogo._mes=_fixoMesIA!=null?_fixoMesIA:(1+Math.floor(Math.random()*12));
+        // Aposta Espelho: o jogo espelho é uma aposta própria (mesmo padrão
+        // já usado para bola extra/trevos do espelho) e precisa do seu
+        // próprio Mês da Sorte — sem isso, a aposta espelho ficava sem
+        // mês, incompleta para registrar/apostar no Dia de Sorte.
+        if(jogo._espelho) jogo._espMes=_fixoMesIA!=null?_fixoMesIA:(1+Math.floor(Math.random()*12));
       });
     }
     else if(d.apiKey==='timemania'){
       const _fixoTimeIA=getFixosTime(tipo)[0]??null;
       jogosIA.forEach(({jogo})=>{
         jogo._time=_fixoTimeIA!=null?_fixoTimeIA:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+        if(jogo._espelho) jogo._espTime=_fixoTimeIA!=null?_fixoTimeIA:Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
       });
     }
 
@@ -10599,7 +10613,7 @@ async function gerarComIA(tipo){
         const trevos=jogo._trevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
         // Bolas do espelho
         // Bolas do espelho — render individual com checkbox próprio
-        const mkEspRow=()=>jogo._espelho?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 0 0;border-top:1px solid rgba(124,58,237,.2)"><input type="checkbox" class="ia-chk ia-chk-e" id="ia-chk-${i}-e" title="Selecionar ESPELHO" onchange="iaToggleUm(${i},'e',this.checked)" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ESPELHO</span>${jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('')}${jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:''}${jogo._espTrevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._espTrevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:''}</div>`:'';
+        const mkEspRow=()=>jogo._espelho?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 0 0;border-top:1px solid rgba(124,58,237,.2)"><input type="checkbox" class="ia-chk ia-chk-e" id="ia-chk-${i}-e" title="Selecionar ESPELHO" onchange="iaToggleUm(${i},'e',this.checked)" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ESPELHO</span>${jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('')}${jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:''}${jogo._espTrevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._espTrevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:''}${(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},{cor:ESP_COR_IA},34):''}</div>`:'';
         const hasEsp=!!jogo._espelho;
         return hasEsp
           ?`<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;opacity:.4;filter:grayscale(.6)"><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono);padding-top:10px">${i+1}.</span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" class="ia-chk ia-chk-p" id="ia-chk-${i}-p" title="Selecionar PRINCIPAL" onchange="iaToggleUm(${i},'p',this.checked)" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:54px">PRINCIPAL</span>${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.12);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:''}</div>${mkEspRow()}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0;margin-top:6px">${modeLabels[mode]||mode}</span></div>`
