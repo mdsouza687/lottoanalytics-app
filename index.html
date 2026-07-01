@@ -2040,9 +2040,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
           <p class="gb-desc">Gere jogos com análise estatística, IA ou sorteio aleatório com cobertura total.</p>
         </div>
         <div class="gb-tabs">
-          <button class="gb-tab-btn active" id="gb-tab-aleatorias" onclick="gbSwitchTab('aleatorias')"><span class="ico">🎲</span><span class="ttl">Apostas Aleatórias</span></button>
-          <button class="gb-tab-btn" id="gb-tab-fechamento" onclick="gbSwitchTab('fechamento')"><span class="ico">🔒</span><span class="ttl">Fechamento Prático</span></button>
-          <button class="gb-tab-btn" id="gb-tab-score" onclick="gbSwitchTab('score')"><span class="ico">⭐</span><span class="ttl">Fechamento por Score</span></button>
+          <button class="gb-tab-btn active" id="gb-tab-aleatorias" onclick="gbSwitchTab('aleatorias')" title="Geração individual: aleatório puro (urna/PRNG) ou com filtros estatísticos básicos — 1 jogo por vez, sem cobertura combinatória"><span class="ico">🎲</span><span class="ttl">Apostas Aleatórias</span></button>
+          <button class="gb-tab-btn" id="gb-tab-fechamento" onclick="gbSwitchTab('fechamento')" title="Fechamento aleatório dentro do universo disponível (após fixos/exclusões), sem nenhuma ponderação estatística — prioriza volume e velocidade (até 5.000 jogos)"><span class="ico">🔒</span><span class="ttl">Fechamento Prático</span></button>
+          <button class="gb-tab-btn" id="gb-tab-score" onclick="gbSwitchTab('score')" title="Fechamento priorizando as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos — ideal quando você quer usar a análise estatística do app no fechamento"><span class="ico">⭐</span><span class="ttl">Fechamento por Score</span></button>
           <button class="btn-especial-modulo" id="btn-especial-jogo" onclick="abrirEspecialIndependente(currentKey)" style="display:none">⭐ Especial</button>
         </div>
       </div>
@@ -2234,7 +2234,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
               </div>
             </div>
             <div class="gen-actions-row">
-              <button class="btn-gerar btn-fechamento" id="fech-gerar-btn" onclick="gerarFechamento()" style="flex:1 1 100%">🔒 Gerar Fechamento</button>
+              <button class="btn-gerar btn-fechamento" id="fech-gerar-btn" onclick="gerarFechamento()" style="flex:1 1 100%" title="Sorteio aleatório dentro do universo disponível (após fixos/exclusões) — sem ponderação por frequência/atraso; use 'Fechamento por Score' se quiser priorizar as dezenas com melhor histórico">🔒 Gerar Fechamento</button>
             </div>
             <div class="gen-actions-row">
               <div class="ia-btn-combo" style="flex:1;min-width:150px">
@@ -2342,7 +2342,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
               <span class="gen-sec-title">Gerar</span>
             </div>
             <div class="gen-actions-row">
-              <button onclick="gerarFechamentoPorScore()" data-lotbtn class="btn-gerar">🎯 Gerar Fechamento por Score</button>
+              <button onclick="gerarFechamentoPorScore()" data-lotbtn class="btn-gerar" title="Combina as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos — clique em 'Ver Ranking' antes se trocou de loteria">🎯 Gerar Fechamento por Score</button>
               <button onclick="gerarComIA('fch2')" data-lotbtn class="btn-gerar">🤖 Gerar com IA</button>
             </div>
             <div class="gen-actions-row">
@@ -7264,9 +7264,16 @@ async function gerarJogos(tipo,modo){
     setDot('loading','Gerando jogos...');
     // Geração NUNCA bloqueia esperando a rede: usa apenas o histórico já em cache local.
     // Se não houver dados em cache, gera sem filtros estatísticos (geração aleatória).
+    // Melhoria sugerida no relatório comparativo dos métodos de geração
+    // (01/07/2026): o histórico/filtros agora é carregado mesmo no modo
+    // Urna/PRNG — SÓ para calcular o Score Global de exibição depois que
+    // os jogos já foram sorteados. O sorteio em si (bloco "_urna" abaixo)
+    // continua 100% aleatório e não lê `filtros` em nenhum momento; isso
+    // apenas dá ao usuário um critério de qualidade comparável ao dos
+    // demais métodos, sem influenciar a aleatoriedade do resultado.
     let historico=[];
-    if(!_urna){ try{ historico=await garantirHistoricoLocal(currentKey,qtdHist,isEsp); }catch(e){ console.warn('[GERAR] hist local falhou:',e.message); historico=[]; } }
-    const filtros=(!_urna && historico.length>=5)?calcFiltrosEstat(historico,d,numDez):null;
+    try{ historico=await garantirHistoricoLocal(currentKey,qtdHist,isEsp); }catch(e){ console.warn('[GERAR] hist local falhou:',e.message); historico=[]; }
+    const filtros=(historico.length>=5)?calcFiltrosEstat(historico,d,numDez):null;
     setDot('ok','');
 
     // Universo de números
@@ -9699,6 +9706,14 @@ async function gerarFechamento(){
   const wrapId='fech-dez-wrap';
   let numDez=getDezWrap(wrapId,d.min);
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
+  // Melhoria sugerida no relatório comparativo dos métodos de geração
+  // (01/07/2026): o Fechamento Prático não calculava nenhum Score Global
+  // — carrega o histórico/filtros aqui SÓ para exibir a pontuação de
+  // qualidade depois, sem influenciar a geração aleatória em si (que
+  // continua igual, mais abaixo).
+  let _histFech=[];
+  try{ _histFech=await garantirHistoricoLocal(currentKey,3000,false); }catch(e){ console.warn('[FECHAMENTO] hist local falhou:',e.message); }
+  const _filtrosFech=(_histFech.length>=5)?calcFiltrosEstat(_histFech,d,numDez):null;
   const exclusoes=getExcluidos('fech');
   let universe=[];
   if(d.universe===100){for(let i=0;i<100;i++)universe.push(i);} else if(d.superSete){for(let i=0;i<10;i++)universe.push(i);} else{for(let i=d.start;i<=d.start+d.universe-1;i++)universe.push(i);}
@@ -9799,6 +9814,16 @@ async function gerarFechamento(){
     });
   }
 
+  // Score Global (mesma fórmula de 11 fatores do Motor de IA/Gerador Manual)
+  // — aplicado como pós-processamento, sem alterar como os jogos foram
+  // sorteados acima. Pontua também o lado espelho, quando houver.
+  if(!d.superSete && _filtrosFech){
+    jogos.forEach(jogo=>{
+      jogo._scoreJogo=calcScoreJogo(jogo,_filtrosFech,d);
+      if(jogo._espelho) jogo._espScoreJogo=calcScoreJogo(jogo._espelho,_filtrosFech,d);
+    });
+  }
+
   jogosGerados=jogos;
   const pad=n=>String(n).padStart(2,'0');
   const bxc=d.bolaExtraCor||TURQUESA;
@@ -9814,14 +9839,16 @@ async function gerarFechamento(){
       ?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`
       :'';
     const mesTimeHtmlP=mesTimeHtml(jogo,d);
+    const scoreBadgeP=jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:'';
     if(jogo._espelho){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div></div></div></div></div>`;
+      const scoreBadgeE=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
+      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div>${scoreBadgeE}</div></div></div></div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div></div>`;
+    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div>`;
   }).join('');
   document.getElementById('chk-all').checked=false;if(typeof atualizarContagemSel==='function')atualizarContagemSel();
   const box=document.getElementById('result-box');box.style.display='block';
