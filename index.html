@@ -4442,22 +4442,19 @@ function laRenderBalls(d,v,force2lines){
   const stg = (v.nums && v.nums.length>20) ? 14 : 55;
   // Loterias de "jogo grande" (Lotomania): bolas compactas (14px) que com
   // flex-wrap formam ~3 linhas na largura da coluna estreita de Previsão.
-  const ballStyle = force2lines ? 'flex:0 0 auto;width:14px;height:14px;font-size:6px;border-radius:4px;' : '';
+  const _ct=d.corTexto?`color:${d.corTexto};`:'';
+  const ballStyle = force2lines ? `flex:0 0 auto;width:14px;height:14px;font-size:6px;border-radius:4px;${_ct}` : (_ct||'');
   if(v.cols){
     return v.nums.map((dg,i)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
       <span style="font-size:8px;font-weight:800;color:${corMarca(d)};font-family:var(--font-mono)">${i+1}</span>
-      <div class="la-ball" style="animation-delay:${i*stg}ms">${dg}</div></div>`).join('');
+      <div class="la-ball" style="${_ct}animation-delay:${i*stg}ms">${dg}</div></div>`).join('');
   }
   let h=v.nums.map((n,i)=>`<div class="la-ball" style="${ballStyle}animation-delay:${i*stg}ms">${laPad(n)}</div>`).join('');
   const base=v.nums.length;
-  if(v.trevos) h+=`<span class="la-xsep">TREVO</span>`+v.trevos.map((t,i)=>`<div class="la-ball trevo" style="animation-delay:${(base+i)*stg}ms">${t}</div>`).join('');
-  if(v.extra!=null) h+=`<span class="la-xsep">${d.bolaExtraNome||'EXTRA'}</span><div class="la-ball extra" style="--la-xc:${d.bolaExtraCor||'#00BCD4'};animation-delay:${base*stg}ms">${laPad(v.extra)}</div>`;
-  if(v.mes) h+=`<span class="la-xsep">MÊS</span><div class="la-chip" style="animation-delay:${base*stg}ms">${v.mes}</div>`;
-  // Time do coração (Timemania): sempre em segunda linha — as 7 dezenas do
-  // sorteio real já ocupam a largura da coluna estreita de Previsão, então
-  // junto do "TIME" ficaria espremido/cortado. Quebra forçada via
-  // flex-basis:100% (técnica padrão para forçar nova linha num flex-wrap).
-  if(v.time) h+=`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip" style="animation-delay:${base*stg}ms">${v.time}</div>`;
+  if(v.trevos) h+=`<span class="la-xsep">TREVO</span>`+v.trevos.map((t,i)=>`<div class="la-ball trevo" style="${_ct}animation-delay:${(base+i)*stg}ms">${t}</div>`).join('');
+  if(v.extra!=null) h+=`<span class="la-xsep">${d.bolaExtraNome||'EXTRA'}</span><div class="la-ball extra" style="--la-xc:${d.bolaExtraCor||'#00BCD4'};${_ct}animation-delay:${base*stg}ms">${laPad(v.extra)}</div>`;
+  if(v.mes) h+=`<span class="la-xsep">MÊS</span><div class="la-chip" style="${_ct}animation-delay:${base*stg}ms">${v.mes}</div>`;
+  if(v.time) h+=`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip" style="${_ct}animation-delay:${base*stg}ms">${v.time}</div>`;
   return h;
 }
 function renderLaPred(){
@@ -4728,8 +4725,9 @@ function renderLaHist(d,key){
     const trevosInline=(d.hasTrevo&&r.trevos&&r.trevos.length)
       ?`<span class="la-xsep">TREVO</span>`+r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('')
       :'';
-    const mesInline=r.mes?`<span class="la-xsep">MÊS</span><div class="la-chip">${r.mes}</div>`:'';
-    const timeInline=r.time?`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip">${r.time}</div>`:'';
+    const _chipCor=d.corTexto?`color:${d.corTexto}`:'';
+    const mesInline=r.mes?`<span class="la-xsep">MÊS</span><div class="la-chip" style="${_chipCor}">${r.mes}</div>`:'';
+    const timeInline=r.time?`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip" style="${_chipCor}">${r.time}</div>`:'';
     const label1=d.dupla?`<span class="la-xsep">1° SORTEIO</span>`:'';
     const balls=label1+r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline+trevosInline+mesInline+timeInline;
 
@@ -5423,7 +5421,7 @@ function renderCard(res,d){
   // 1º Sorteio (ou único para loterias simples)
   if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
-  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}">${pad(n)}</div>`;});
+  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${pad(n)}</div>`;});
   // Bola extra americana (PowerBall / Mega Ball) — inline após as dezenas
   if(d.bolaExtra&&res.bolaExtra){ h+=`<span class="la-xsep" style="font-size:10px">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'};border:3px solid rgba(255,255,255,.35)">${pad(res.bolaExtra)}</div>`; }
   // Trevos — +Milionária — inline após as dezenas
