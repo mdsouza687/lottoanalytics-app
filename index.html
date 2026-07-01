@@ -1212,27 +1212,33 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   .la-home #laAurora b{animation:none}
   .la-ball,.la-chip{animation:none;opacity:1;transform:none}
 }
-/* ══ Auth Gate (login/cadastro obrigatório) ══ */
-#auth-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%,#1a1f3a,#0a0d1a 70%);padding:20px;overflow-y:auto}
-#auth-gate.hidden{display:none}
-.ag-card{width:100%;max-width:420px;background:var(--glass-bg,#141a2e);border:1px solid var(--glass-border,#2a3352);border-radius:18px;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.ag-logo{text-align:center;font-family:var(--font-head);font-weight:900;font-size:22px;color:#fff;margin-bottom:4px}
-.ag-sub{text-align:center;font-size:12px;color:var(--text-muted,#8b93b0);margin-bottom:20px}
-.ag-tabs{display:flex;gap:6px;margin-bottom:18px;background:rgba(255,255,255,.04);border-radius:10px;padding:4px}
-.ag-tab{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:12px;font-weight:700;color:var(--text-muted,#8b93b0);cursor:pointer;user-select:none}
-.ag-tab.active{background:var(--ac,#3b9fff);color:#fff}
+/* ══ Auth Gate (login/cadastro sob demanda — mesmo padrão visual dos
+   outros modais do app: usa .modal-overlay/.open, herda as cores do tema
+   ativo via variáveis CSS, então se adapta automaticamente aos temas
+   escuro/claro/colorido) ══ */
+.ag-card{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:28px 26px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.ag-logo{text-align:center;font-family:var(--font-head);font-weight:900;font-size:22px;color:var(--text);margin-bottom:4px}
+.ag-sub{text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:20px}
+.ag-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--glass-hover);border-radius:var(--radius-md);padding:4px}
+.ag-tab{flex:1;text-align:center;padding:9px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;user-select:none}
+.ag-tab.active{background:var(--ac);color:#fff}
 .ag-field{margin-bottom:12px}
-.ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted,#8b93b0);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
-.ag-field input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--glass-border,#2a3352);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:var(--font-body)}
-.ag-field input:focus{outline:none;border-color:var(--ac,#3b9fff)}
+.ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+.ag-field input{width:100%;background:var(--glass-hover);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font-body)}
+.ag-field input:focus{outline:none;border-color:var(--ac)}
 .ag-req{color:#f87171;font-size:10px;margin-left:2px}
-.ag-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b9fff,#2563eb);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
+.ag-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-md);background:var(--ac);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
 .ag-btn:disabled{opacity:.5;cursor:not-allowed}
-.ag-btn-link{background:none;border:none;color:var(--ac,#3b9fff);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block;text-align:center;width:100%}
-.ag-msg{font-size:12px;border-radius:8px;padding:9px 11px;margin-bottom:14px;display:none}
+.ag-btn-link{background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block;text-align:center;width:100%}
+.ag-msg{font-size:12px;border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:14px;display:none}
 .ag-msg.err{display:block;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#fca5a5}
-.ag-msg.ok{display:block;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#86efac}
-.ag-opcionais{font-size:10px;font-weight:800;color:var(--text-muted,#8b93b0);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 10px;padding-top:10px;border-top:1px solid var(--glass-border,#2a3352)}
+.ag-msg.ok{display:block;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#4ade80}
+.ag-opcionais{font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 10px;padding-top:10px;border-top:1px solid var(--glass-border)}
+/* Botões da home: "Já tenho conta" (contorno) / "Experimente Grátis" (sólido) */
+.la-hero-auth-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.ag-hero-btn{padding:11px 24px;border-radius:var(--radius-lg);font-size:13px;font-weight:800;cursor:pointer;font-family:var(--btn-font)}
+.ag-hero-btn.ghost{background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text)}
+.ag-hero-btn.solid{background:var(--ac);border:1px solid var(--ac);color:#fff}
 </style>
 </head>
 <body>
@@ -1240,9 +1246,11 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 <div class="page-orb2" id="page-orb2"></div>
 <div class="toast" id="toast"></div>
 
-<!-- ══ AUTH GATE: login/cadastro obrigatórios antes de usar o app ══ -->
-<div id="auth-gate" class="hidden">
+<!-- ══ AUTH GATE: login/cadastro exigidos ao abrir uma ferramenta (Gerar
+     Jogos, Bolões, etc.) — a home fica visível sem login ══ -->
+<div id="auth-gate" class="modal-overlay">
   <div class="ag-card">
+    <button class="modal-close" id="ag-close-btn" onclick="closeModal('auth-gate')" style="float:right;margin:-6px -6px 0 0">✕</button>
     <div class="ag-logo">🍀 LOTTO ANALYTICS</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1510,7 +1518,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
     </div>
     <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
     <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
-    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta"><span class="emoji-ico">🚪</span> Sair</button>
+    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
   <!-- GRID PRINCIPAL -->
@@ -1519,6 +1527,10 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <!-- HERO -->
       <section class="la-card la-hero">
         <div class="la-hero-text">
+          <div class="la-hero-auth-btns">
+            <button class="ag-hero-btn ghost" id="btn-ja-tenho-conta" onclick="agSwitchTab('login');openModal('auth-gate')">Já tenho conta</button>
+            <button class="ag-hero-btn solid" id="btn-experimente-gratis" onclick="agSwitchTab('cadastro');openModal('auth-gate')">Experimente Grátis</button>
+          </div>
           <div class="la-eyebrow">Ferramenta de análise estatística</div>
           <h1>ANÁLISE DE <span class="la-a">LOTERIAS</span></h1>
           <p class="la-sub">Estatística completa para as 11 maiores loterias do Brasil e dos EUA: ondas, frequências, pausas, matrizes de atraso, previsões, conferência de resultados e geração inteligente de jogos — tudo em um único aplicativo.</p>
@@ -2840,16 +2852,31 @@ async function _agAposLogin(user){
     return;
   }
   window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin)};
-  document.getElementById('auth-gate').classList.add('hidden');
+  closeModal('auth-gate');
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
-  _bootApp();
+  const btnLogout=document.getElementById('btn-logout'); if(btnLogout) btnLogout.style.display='';
+  const btnConta=document.getElementById('btn-ja-tenho-conta'); if(btnConta) btnConta.style.display='none';
+  const btnGratis=document.getElementById('btn-experimente-gratis'); if(btnGratis) btnGratis.style.display='none';
+  // Se o login/cadastro foi disparado ao tentar abrir uma ferramenta
+  // (Gerar Jogos, Bolões, trocar de loteria etc.), retoma exatamente essa
+  // ação agora que o usuário está autenticado — em vez de simplesmente
+  // fechar o modal e deixar a pessoa na home, tendo que clicar de novo.
+  if(window._agPendingAction){
+    const act=window._agPendingAction; window._agPendingAction=null;
+    if(act.type==='lottery' && typeof showLottery==='function') showLottery(act.key);
+    else if(act.type==='tab' && typeof showTab==='function') showTab(act.tab);
+    else if(act.type==='lotteryTab' && typeof showLottery==='function'){
+      showLottery(act.key);
+      if(act.tab) setTimeout(()=>{ if(typeof showTab==='function') showTab(act.tab); },60);
+    }
+  }
 }
 
 function _agMostrarTrialExpirado(){
-  const gate=document.getElementById('auth-gate');
-  gate.classList.remove('hidden');
-  gate.querySelector('.ag-card').innerHTML=`
+  openModal('auth-gate');
+  document.querySelector('#auth-gate .ag-card').innerHTML=`
+    <button class="modal-close" onclick="closeModal('auth-gate')" style="float:right;margin:-6px -6px 0 0">✕</button>
     <div class="ag-logo">⏳ Período de teste encerrado</div>
     <div class="ag-sub">Seus ${AG_TRIAL_DIAS} dias de teste grátis terminaram.</div>
     <div class="ag-msg err" style="display:block">Entre em contato com o administrador para continuar usando o LottoAnalytics.</div>
@@ -2857,20 +2884,28 @@ function _agMostrarTrialExpirado(){
   `;
 }
 
-// Ponto de entrada: roda ANTES de _bootApp(). Mostra o gate de login se não
-// houver sessão válida; se já houver, checa o trial e libera o app.
+// Checagem silenciosa de sessão — roda em paralelo com o carregamento
+// normal do app (que NÃO fica bloqueado esperando por isso): a home é
+// pública, então só precisamos saber se já existe uma sessão válida para
+// pré-liberar as ferramentas sem pedir login de novo a cada visita.
 async function _iniciarAuthGate(){
   const sb=_getSbClient();
-  const gate=document.getElementById('auth-gate');
-  if(!sb){ gate.classList.add('hidden'); _bootApp(); return; } // SDK falhou ao carregar — não bloqueia o app
+  if(!sb) return;
   try{
     const {data:{session}}=await sb.auth.getSession();
-    if(session&&session.user){
-      await _agAposLogin(session.user);
-      return;
-    }
+    if(session&&session.user) await _agAposLogin(session.user);
   }catch(e){}
-  gate.classList.remove('hidden');
+}
+// Abre o modal de login/cadastro pedindo autenticação antes de liberar uma
+// ação (troca de loteria ou aba). Retorna true se BLOQUEOU (chamador deve
+// interromper), false se já está logado (chamador segue normalmente).
+function _agRequerLogin(pendingAction){
+  if(window._usuarioAtual) return false;
+  window._agPendingAction=pendingAction||null;
+  agSwitchTab('login');
+  agMsg('');
+  openModal('auth-gate');
+  return true;
 }
 
 /* ════ PAINEL ADMIN — criar usuários de teste e marcar contas permanentes ════
@@ -4863,7 +4898,16 @@ function renderLaHeroInfo(d,key,real){
     (acumulou?'<span class="la-hi-acc">🔥 ACUMULOU!</span>':'');
 }
 function laCyclePred(dir){ laCur=(laCur+dir+LA_ORDER.length)%LA_ORDER.length; renderLaPred(); laResetAuto(); }
-function abrirLoteriaAtual(aba){ const key=LA_ORDER[laCur]; showLottery(key); if(aba) setTimeout(()=>{ if(typeof showTab==='function') showTab(aba); },60); }
+function abrirLoteriaAtual(aba){
+  const key=LA_ORDER[laCur];
+  // Checa login UMA vez aqui, com a ação completa (loteria + aba) — se cada
+  // chamada abaixo (showLottery, depois showTab no setTimeout) checasse por
+  // conta própria, a segunda sobrescreveria a ação pendente da primeira e
+  // perderia qual loteria deveria abrir depois do login.
+  if(typeof _agRequerLogin==='function' && _agRequerLogin({type:'lotteryTab',key,tab:aba})) return;
+  showLottery(key);
+  if(aba) setTimeout(()=>{ if(typeof showTab==='function') showTab(aba); },60);
+}
 
 /* Desvio de frequência de pausas — para cada bola, observamos quantos sorteios
    se passaram desde a última aparição e projetamos esse atraso (estilo "matriz
@@ -5534,6 +5578,9 @@ function atualizarFadeTopbarTabs(){
 }
 window.addEventListener('resize',()=>{ if(typeof atualizarFadeTopbarTabs==='function') atualizarFadeTopbarTabs(); });
 function showTab(tab){
+  // Home fica pública; abrir qualquer ferramenta (aba) exige login — se
+  // não estiver logado, abre o modal e retoma esta mesma chamada depois.
+  if(typeof _agRequerLogin==='function' && _agRequerLogin({type:'tab',tab})) return;
   const d=CFG[currentKey];
   // Sincroniza barra inferior mobile
   if(typeof syncMobTab==='function') syncMobTab(tab);
@@ -5679,6 +5726,10 @@ function showDashboard(){
   if(typeof laSizeWave==='function')requestAnimationFrame(laSizeWave);
 }
 async function showLottery(key){
+  // Trocar de loteria já leva o usuário para dentro do app (fora da home
+  // pública) — mesma checagem de login que showTab(), com o mesmo padrão
+  // de retomar a ação depois que a pessoa autenticar.
+  if(typeof _agRequerLogin==='function' && _agRequerLogin({type:'lottery',key})) return;
   currentKey=key;const d=CFG[key];
   document.getElementById('dashboard').style.display='none';document.getElementById('card-page').style.display='block';
   // Para o ciclo automático da página inicial — sem isso, o timer continuava
@@ -11647,6 +11698,10 @@ async function _bootApp(){
   const premiosEncontrados = await conferirJogosSalvos();
   if(premiosEncontrados.length > 0){ setTimeout(()=>exibirAlertaPremiacao(premiosEncontrados), 800); }
 }
+// A home é pública — o app carrega normalmente sem esperar login. A
+// checagem de sessão (silenciosa, libera as ferramentas sem novo login se
+// já houver uma sessão válida) roda à parte, sem bloquear nada.
+_bootApp();
 _iniciarAuthGate();
 
 /* ════ ANÁLISE COMPLETA ════ */
