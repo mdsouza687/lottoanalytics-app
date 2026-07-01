@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>LOTTO ANALYTICS — Loterias Caixa + Internacionais</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
@@ -1211,12 +1212,69 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   .la-home #laAurora b{animation:none}
   .la-ball,.la-chip{animation:none;opacity:1;transform:none}
 }
+/* ══ Auth Gate (login/cadastro obrigatório) ══ */
+#auth-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%,#1a1f3a,#0a0d1a 70%);padding:20px;overflow-y:auto}
+#auth-gate.hidden{display:none}
+.ag-card{width:100%;max-width:420px;background:var(--glass-bg,#141a2e);border:1px solid var(--glass-border,#2a3352);border-radius:18px;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ag-logo{text-align:center;font-family:var(--font-head);font-weight:900;font-size:22px;color:#fff;margin-bottom:4px}
+.ag-sub{text-align:center;font-size:12px;color:var(--text-muted,#8b93b0);margin-bottom:20px}
+.ag-tabs{display:flex;gap:6px;margin-bottom:18px;background:rgba(255,255,255,.04);border-radius:10px;padding:4px}
+.ag-tab{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:12px;font-weight:700;color:var(--text-muted,#8b93b0);cursor:pointer;user-select:none}
+.ag-tab.active{background:var(--ac,#3b9fff);color:#fff}
+.ag-field{margin-bottom:12px}
+.ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted,#8b93b0);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+.ag-field input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--glass-border,#2a3352);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:var(--font-body)}
+.ag-field input:focus{outline:none;border-color:var(--ac,#3b9fff)}
+.ag-req{color:#f87171;font-size:10px;margin-left:2px}
+.ag-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b9fff,#2563eb);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
+.ag-btn:disabled{opacity:.5;cursor:not-allowed}
+.ag-btn-link{background:none;border:none;color:var(--ac,#3b9fff);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block;text-align:center;width:100%}
+.ag-msg{font-size:12px;border-radius:8px;padding:9px 11px;margin-bottom:14px;display:none}
+.ag-msg.err{display:block;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#fca5a5}
+.ag-msg.ok{display:block;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#86efac}
+.ag-opcionais{font-size:10px;font-weight:800;color:var(--text-muted,#8b93b0);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 10px;padding-top:10px;border-top:1px solid var(--glass-border,#2a3352)}
 </style>
 </head>
 <body>
 <div class="page-orb" id="page-orb"></div>
 <div class="page-orb2" id="page-orb2"></div>
 <div class="toast" id="toast"></div>
+
+<!-- ══ AUTH GATE: login/cadastro obrigatórios antes de usar o app ══ -->
+<div id="auth-gate" class="hidden">
+  <div class="ag-card">
+    <div class="ag-logo">🍀 LOTTO ANALYTICS</div>
+    <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
+    <div class="ag-tabs">
+      <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
+      <div class="ag-tab" id="ag-tab-cadastro" onclick="agSwitchTab('cadastro')">Criar Conta</div>
+    </div>
+    <div class="ag-msg" id="ag-msg"></div>
+
+    <!-- ── LOGIN ── -->
+    <div id="ag-form-login">
+      <div class="ag-field"><label>E-mail</label><input type="email" id="ag-login-email" autocomplete="email"/></div>
+      <div class="ag-field"><label>Senha</label><input type="password" id="ag-login-senha" autocomplete="current-password"/></div>
+      <button class="ag-btn" id="ag-btn-login" onclick="agFazerLogin()">Entrar</button>
+      <button class="ag-btn-link" onclick="agEsqueciSenha()">Esqueci minha senha</button>
+    </div>
+
+    <!-- ── CADASTRO ── -->
+    <div id="ag-form-cadastro" style="display:none">
+      <div class="ag-field"><label>Nome completo <span class="ag-req">*</span></label><input type="text" id="ag-cad-nome" autocomplete="name"/></div>
+      <div class="ag-field"><label>E-mail <span class="ag-req">*</span></label><input type="email" id="ag-cad-email" autocomplete="email"/></div>
+      <div class="ag-field"><label>Senha <span class="ag-req">*</span></label><input type="password" id="ag-cad-senha" autocomplete="new-password"/></div>
+      <div class="ag-field"><label>Confirmar senha <span class="ag-req">*</span></label><input type="password" id="ag-cad-senha2" autocomplete="new-password"/></div>
+      <div class="ag-opcionais">Opcionais</div>
+      <div class="ag-field"><label>CPF</label><input type="text" id="ag-cad-cpf" inputmode="numeric" placeholder="000.000.000-00"/></div>
+      <div class="ag-field"><label>PIX</label><input type="text" id="ag-cad-pix" placeholder="Chave PIX"/></div>
+      <div class="ag-field"><label>Telefone</label><input type="text" id="ag-cad-telefone" inputmode="tel" placeholder="(00) 0000-0000"/></div>
+      <div class="ag-field"><label>WhatsApp</label><input type="text" id="ag-cad-whatsapp" inputmode="tel" placeholder="(00) 00000-0000"/></div>
+      <div class="ag-field"><label>Endereço</label><input type="text" id="ag-cad-endereco" autocomplete="street-address"/></div>
+      <button class="ag-btn" id="ag-btn-cadastro" onclick="agFazerCadastro()">Criar conta (10 dias grátis)</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL ALERTA PREMIAÇÃO ══ -->
 <div class="modal-overlay" id="modal-premiacao">
@@ -1440,6 +1498,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <button class="theme-btn"        id="theme-colorful" onclick="setTheme('colorful')" title="Tema colorido"><span class="emoji-ico">🌈</span></button>
     </div>
     <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
+    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
   <!-- GRID PRINCIPAL -->
@@ -2631,6 +2690,173 @@ const SUPABASE_CONFIG = { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 
 function supabaseAtivo(){ return !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.key); }
 async function supabaseSalvar(item){ if(!supabaseAtivo()) return; try{ const temExtras=(item.extras&&item.extras.some(Boolean))||(item.trevos&&item.trevos.some(Boolean)); const jogosPayload=temExtras?{v:2,jogos:item.jogos,extras:item.extras||null,trevos:item.trevos||null}:item.jogos; await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}`, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_CONFIG.key, 'Authorization': `Bearer ${SUPABASE_CONFIG.key}`, 'Prefer':'return=minimal' }, body: JSON.stringify({ loteria: item.loteria, nome: item.nome, jogos: jogosPayload, num_dez: item.numDez, saved_at: new Date(item.savedAt).toISOString() }) }); }catch(e){console.warn(e);} }
 async function supabaseCarregar(){ if(!supabaseAtivo()) return 0; try{ const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}?select=*`, { headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`} }); if(!r.ok) return 0; const dados=await r.json(); let importados=0; for(const d of dados){ let jg=d.jogos,ex=null,tv=null; if(jg&&!Array.isArray(jg)&&Array.isArray(jg.jogos)){ex=jg.extras||null;tv=jg.trevos||null;jg=jg.jogos;} const item={loteria:d.loteria,nome:d.nome,jogos:jg,numDez:d.num_dez,savedAt:new Date(d.saved_at).getTime()}; if(ex)item.extras=ex; if(tv)item.trevos=tv; await dbPut('jogos_salvos',item); importados++; } return importados; }catch(e){return 0;} }
+
+/* ════ AUTH GATE — login/cadastro obrigatórios (Supabase Auth) ════
+   Cada usuário tem um ID único (auth.users.id, gerado pelo Supabase) e um
+   perfil em public.perfis (nome, CPF, PIX, telefone, WhatsApp, endereço —
+   preenchido automaticamente por um trigger no banco assim que o cadastro é
+   criado, ver migração "criar_perfis_usuarios"). O cadastro só é validado
+   após a confirmação do e-mail (fluxo nativo do Supabase Auth — link enviado
+   automaticamente). Após confirmar, o usuário tem 10 dias de teste grátis
+   (perfis.trial_inicio, contado a partir da criação da conta). */
+let _sbClient=null;
+function _getSbClient(){
+  if(!_sbClient && typeof supabase!=='undefined'){
+    _sbClient=supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+  }
+  return _sbClient;
+}
+const AG_TRIAL_DIAS=10;
+
+function agSwitchTab(tab){
+  document.getElementById('ag-tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('ag-tab-cadastro').classList.toggle('active', tab==='cadastro');
+  document.getElementById('ag-form-login').style.display=tab==='login'?'':'none';
+  document.getElementById('ag-form-cadastro').style.display=tab==='cadastro'?'':'none';
+  document.getElementById('ag-sub').textContent=tab==='login'?'Entre ou crie sua conta para continuar':'Preencha os dados para criar sua conta';
+  agMsg('');
+}
+function agMsg(text,tipo){
+  const el=document.getElementById('ag-msg');
+  if(!el) return;
+  el.className='ag-msg'+(text?(' '+(tipo||'err')):'');
+  el.textContent=text||'';
+}
+// Mapeia os erros mais comuns do Supabase Auth para mensagens em pt-BR
+function agErroTraduzido(msg){
+  const m=(msg||'').toLowerCase();
+  if(m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar — verifique sua caixa de entrada (e o spam).';
+  if(m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if(m.includes('user already registered')||m.includes('already registered')) return 'Este e-mail já está cadastrado. Tente entrar ou recuperar sua senha.';
+  if(m.includes('password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
+  if(m.includes('unable to validate email address')||m.includes('invalid email')) return 'E-mail inválido.';
+  return msg||'Ocorreu um erro. Tente novamente.';
+}
+
+async function agFazerLogin(){
+  const sb=_getSbClient(); if(!sb){ agMsg('Serviço indisponível no momento.'); return; }
+  const email=(document.getElementById('ag-login-email').value||'').trim();
+  const senha=document.getElementById('ag-login-senha').value||'';
+  if(!email||!senha){ agMsg('Informe e-mail e senha.'); return; }
+  const btn=document.getElementById('ag-btn-login'); btn.disabled=true; btn.textContent='Entrando...';
+  agMsg('');
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
+    if(error){ agMsg(agErroTraduzido(error.message)); return; }
+    await _agAposLogin(data.user);
+  }catch(e){ agMsg('Erro de conexão. Tente novamente.'); }
+  finally{ btn.disabled=false; btn.textContent='Entrar'; }
+}
+
+async function agFazerCadastro(){
+  const sb=_getSbClient(); if(!sb){ agMsg('Serviço indisponível no momento.'); return; }
+  const nome=(document.getElementById('ag-cad-nome').value||'').trim();
+  const email=(document.getElementById('ag-cad-email').value||'').trim();
+  const senha=document.getElementById('ag-cad-senha').value||'';
+  const senha2=document.getElementById('ag-cad-senha2').value||'';
+  const cpf=(document.getElementById('ag-cad-cpf').value||'').trim();
+  const pix=(document.getElementById('ag-cad-pix').value||'').trim();
+  const telefone=(document.getElementById('ag-cad-telefone').value||'').trim();
+  const whatsapp=(document.getElementById('ag-cad-whatsapp').value||'').trim();
+  const endereco=(document.getElementById('ag-cad-endereco').value||'').trim();
+  if(!nome){ agMsg('Informe seu nome completo.'); return; }
+  if(!email){ agMsg('Informe seu e-mail.'); return; }
+  if(!senha||senha.length<6){ agMsg('A senha deve ter pelo menos 6 caracteres.'); return; }
+  if(senha!==senha2){ agMsg('As senhas não coincidem.'); return; }
+  const btn=document.getElementById('ag-btn-cadastro'); btn.disabled=true; btn.textContent='Criando conta...';
+  agMsg('');
+  try{
+    const {data,error}=await sb.auth.signUp({
+      email, password:senha,
+      options:{
+        // Campos extras vão em user_metadata; um trigger no banco (ver
+        // migração criar_perfis_usuarios) copia isso para public.perfis
+        // assim que o registro é criado em auth.users.
+        data:{ nome_completo:nome, cpf:cpf||null, pix:pix||null, telefone:telefone||null, whatsapp:whatsapp||null, endereco:endereco||null },
+        emailRedirectTo: location.href.split('#')[0].split('?')[0]
+      }
+    });
+    if(error){ agMsg(agErroTraduzido(error.message)); return; }
+    // Se "Confirm email" estiver ligado no projeto (padrão), data.session
+    // vem null aqui — o cadastro só é validado depois do clique no link
+    // enviado por e-mail. Se por algum motivo já vier uma sessão ativa
+    // (confirmação desligada), segue direto para o app.
+    if(data.session){
+      await _agAposLogin(data.user);
+    } else {
+      agMsg(`Quase lá! Enviamos um link de confirmação para ${email}. Confirme seu e-mail para ativar os 10 dias de teste grátis.`,'ok');
+      agSwitchTab('login');
+    }
+  }catch(e){ agMsg('Erro de conexão. Tente novamente.'); }
+  finally{ btn.disabled=false; btn.textContent='Criar conta (10 dias grátis)'; }
+}
+
+async function agEsqueciSenha(){
+  const sb=_getSbClient(); if(!sb) return;
+  const email=(document.getElementById('ag-login-email').value||'').trim();
+  if(!email){ agMsg('Digite seu e-mail no campo acima primeiro.'); return; }
+  try{
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0].split('?')[0]});
+    if(error){ agMsg(agErroTraduzido(error.message)); return; }
+    agMsg('Enviamos um link de redefinição de senha para seu e-mail.','ok');
+  }catch(e){ agMsg('Erro de conexão. Tente novamente.'); }
+}
+
+async function agFazerLogout(){
+  const sb=_getSbClient(); if(!sb) return;
+  try{ await sb.auth.signOut(); }catch(e){}
+  location.reload();
+}
+
+// Roda depois de login/cadastro (com sessão já ativa): confirma que o
+// perfil existe, checa o período de teste e libera o app.
+async function _agAposLogin(user){
+  const sb=_getSbClient();
+  let perfil=null;
+  try{
+    const {data}=await sb.from('perfis').select('trial_inicio,nome_completo').eq('id',user.id).maybeSingle();
+    perfil=data;
+  }catch(e){}
+  // Perfil pode ainda não existir por um instante (trigger assíncrono em
+  // rarésimos casos de latência) — trata como início do trial agora mesmo,
+  // sem bloquear o usuário por um detalhe de sincronismo do banco.
+  const trialInicio=perfil&&perfil.trial_inicio?new Date(perfil.trial_inicio):new Date();
+  const diasPassados=(Date.now()-trialInicio.getTime())/(1000*60*60*24);
+  if(diasPassados>AG_TRIAL_DIAS){
+    _agMostrarTrialExpirado();
+    return;
+  }
+  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio};
+  document.getElementById('auth-gate').classList.add('hidden');
+  _bootApp();
+}
+
+function _agMostrarTrialExpirado(){
+  const gate=document.getElementById('auth-gate');
+  gate.classList.remove('hidden');
+  gate.querySelector('.ag-card').innerHTML=`
+    <div class="ag-logo">⏳ Período de teste encerrado</div>
+    <div class="ag-sub">Seus ${AG_TRIAL_DIAS} dias de teste grátis terminaram.</div>
+    <div class="ag-msg err" style="display:block">Entre em contato com o administrador para continuar usando o LottoAnalytics.</div>
+    <button class="ag-btn" onclick="agFazerLogout()">Sair</button>
+  `;
+}
+
+// Ponto de entrada: roda ANTES de _bootApp(). Mostra o gate de login se não
+// houver sessão válida; se já houver, checa o trial e libera o app.
+async function _iniciarAuthGate(){
+  const sb=_getSbClient();
+  const gate=document.getElementById('auth-gate');
+  if(!sb){ gate.classList.add('hidden'); _bootApp(); return; } // SDK falhou ao carregar — não bloqueia o app
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&session.user){
+      await _agAposLogin(session.user);
+      return;
+    }
+  }catch(e){}
+  gate.classList.remove('hidden');
+}
 
 const DASH_ORDER=[{key:'megasena'},{key:'lotofacil'},{key:'quina'},{key:'lotomania'},{key:'timemania'},{key:'duplasena'},{key:'diasorte'},{key:'supersete'},{key:'maismilionaria'},{key:'powerball'},{key:'megamillions'}];
 
@@ -11257,7 +11483,7 @@ async function salvarJogosManuais(){
   }
 }
 
-(async function init(){
+async function _bootApp(){
   buildDash();
   // Abre o banco ANTES de iniciar a home — garante que laCarregarHistCache()
   // encontre o IndexedDB aberto e carregue os dados reais desde o primeiro render.
@@ -11322,7 +11548,8 @@ async function salvarJogosManuais(){
   agendarVerificacaoPeriodica();
   const premiosEncontrados = await conferirJogosSalvos();
   if(premiosEncontrados.length > 0){ setTimeout(()=>exibirAlertaPremiacao(premiosEncontrados), 800); }
-})();
+}
+_iniciarAuthGate();
 
 /* ════ ANÁLISE COMPLETA ════ */
 let _analiseTab='frequencias';
