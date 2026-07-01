@@ -1173,6 +1173,20 @@ body.theme-light .la-hd-col{background:rgba(15,23,42,.06)}
 .la-hd-dia{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);line-height:1.25;text-transform:lowercase;white-space:nowrap}
 .la-hist-balls{display:flex;gap:3px;flex-wrap:wrap}
 .la-hb{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.5px;color:#fff;background:var(--ac)}
+/* ── Histórico: estrutura de tabela independente por loteria ── */
+.la-hist-table{width:100%;border-collapse:collapse}
+.la-hist-tr td{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s}
+body.theme-light .la-hist-tr td{border-bottom:1px solid rgba(15,23,42,.06)}
+.la-hist-tr:last-child td{border-bottom:none}
+.la-hist-tr:hover td{background:rgba(255,255,255,.04)}
+body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
+.la-hist-td-date{vertical-align:middle;padding-right:8px;width:60px;min-width:52px}
+.la-hist-td-date .la-hd-col{margin:0}
+.la-hist-td-nums{vertical-align:middle}
+.la-hist-td-extra{vertical-align:middle;padding-left:4px;text-align:right;white-space:nowrap;width:1%}
+.la-hist-row2{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.06)}
+.la-hist-pill{display:inline-block;padding:0 6px;height:18px;line-height:18px;border-radius:9px;font-family:var(--font-mono);font-size:8.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.la-hist-pill-time{font-size:7.5px;max-width:85px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle}
 
 .la-clickable{text-decoration:none;color:inherit;transition:transform .18s,border-color .18s;display:block}
 .la-clickable:hover{transform:translateY(-3px)}
@@ -2691,10 +2705,13 @@ async function _syncHistoricoDoSupabase(){
       if(!r.ok) continue;
       const rows=await r.json();
       for(const row of rows){
+        const mes=row.dados?.mesSorte||null;
+        const timeCoracao=row.dados?.timeCoracao||null;
         try{ await dbOp('historico','readwrite',st=>st.put({
           loteria:row.loteria, concurso:row.concurso,
           dezenas:row.dezenas||[], trevos:row.trevos||null,
-          data:row.data||null, dados:row.dados||null
+          data:row.data||null, dados:row.dados||null,
+          mes, timeCoracao
         })); }catch(e){}
       }
     }catch(e){}
@@ -4592,11 +4609,22 @@ function renderLaFore(d,key){
 const LA_DIAS_SEM=['dom.','seg.','ter.','qua.','qui.','sex.','sáb.'];
 function laParseDataBR(str){
   if(!str) return null;
-  const m=String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if(!m) return null;
-  let [,dd,mm,yy]=m; yy=yy.length===2?'20'+yy:yy;
-  const dt=new Date(+yy,+mm-1,+dd,12,0,0);
-  return isNaN(dt.getTime())?null:dt;
+  const s=String(str);
+  // Formato BR: DD/MM/YY ou DD/MM/YYYY
+  const mBR=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(mBR){
+    let [,dd,mm,yy]=mBR; yy=yy.length===2?'20'+yy:yy;
+    const dt=new Date(+yy,+mm-1,+dd,12,0,0);
+    return isNaN(dt.getTime())?null:dt;
+  }
+  // Formato ISO: YYYY-MM-DD (vindo do Supabase)
+  const mISO=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(mISO){
+    const [,yy,mm,dd]=mISO;
+    const dt=new Date(+yy,+mm-1,+dd,12,0,0);
+    return isNaN(dt.getTime())?null:dt;
+  }
+  return null;
 }
 function laFmtHistLabel(dataStr){
   const dt=laParseDataBR(dataStr);
@@ -4606,80 +4634,95 @@ function laFmtHistLabel(dataStr){
 }
 function renderLaHist(d,key){
   const wrap=document.getElementById('laHistBody'); if(!wrap) return;
+
+  // ── 1. Coleta candidatos de três fontes em ordem de prioridade ──────────
   let candidatos=[];
   try{
-    candidatos=(_laHistCache[key]||[])
-      .slice(0,8)
-      .map(r=>({label:r.data,nums:r.dezenas,extra:r.bolaExtra,trevos:r.trevos,nums2:r.dezenas2,
-        mes:r.mes||r.dados?.mesSorte||null,
-        time:r.timeCoracao||r.dados?.timeCoracao||null}));
+    candidatos=(_laHistCache[key]||[]).slice(0,8).map(r=>({
+      label:r.data, nums:r.dezenas, extra:r.bolaExtra,
+      trevos:r.trevos, nums2:r.dezenas2,
+      mes:r.mes||r.dados?.mesSorte||null,
+      time:r.timeCoracao||r.dados?.timeCoracao||null
+    }));
   }catch(e){}
-  // Garante que o sorteio mais recente em memória (resultados[key]) apareça em 1º,
-  // mesmo que o cache de histórico ainda não tenha sido atualizado.
-  const real=(typeof resultados!=='undefined')?resultados[key]:null;
-  if(real&&real.dezenas&&real.dezenas.length&&(!candidatos.length||String(candidatos[0].label)!==String(real.data))){
-    candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null});
+
+  // Resultado em memória: garante 1ª linha sempre atual, mesmo sem cache
+  const real=resultados[key];
+  if(real&&real.dezenas&&real.dezenas.length&&
+     (!candidatos.length||String(candidatos[0].label)!==String(real.data))){
+    candidatos.unshift({label:real.data,nums:real.dezenas,extra:real.bolaExtra,
+      trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null});
     candidatos=candidatos.slice(0,8);
   }
-  // Completa com seed de sorteios reais embutido no código (BR_RESULT_SEED
-  // para loterias brasileiras, US_SEED para Powerball/Mega Millions) quando
-  // o cache local tem poucos concursos — garante múltiplas linhas reais
-  // mesmo se a busca online (API + proxies) ainda não tiver completado ou
-  // estiver indisponível no momento.
+
+  // Seed embutido: completa quando o cache tem poucos registros
   const seedDaLoteria=(typeof BR_RESULT_SEED!=='undefined'&&BR_RESULT_SEED[key])
     ||(typeof US_SEED!=='undefined'&&US_SEED[key]);
-  if(candidatos.length<8 && seedDaLoteria){
-    const concursosJaTem=new Set(candidatos.map(c=>String(c.label)));
+  if(candidatos.length<8&&seedDaLoteria){
+    const jatem=new Set(candidatos.map(c=>String(c.label)));
     for(const s of seedDaLoteria){
       if(candidatos.length>=8) break;
-      if(!concursosJaTem.has(String(s.data))){
-        candidatos.push({label:s.data,nums:s.dezenas,extra:s.bolaExtra,trevos:s.trevos,nums2:s.dezenas2,mes:s.mes||null,time:s.time||null});
-        concursosJaTem.add(String(s.data));
+      if(!jatem.has(String(s.data))){
+        candidatos.push({label:s.data,nums:s.dezenas,extra:s.bolaExtra,
+          trevos:s.trevos,nums2:s.dezenas2,mes:s.mes||null,time:s.time||null});
+        jatem.add(String(s.data));
       }
     }
-    // Reordena do mais recente para o mais antigo, já que itens do seed
-    // foram só anexados ao final, sem respeitar a ordem cronológica do que
-    // já existia (cache real + resultado em memória).
     candidatos.sort((a,b)=>{
-      const da=laParseDataBR(a.label), db=laParseDataBR(b.label);
-      if(da&&db) return db.getTime()-da.getTime();
-      return 0;
+      const da=laParseDataBR(a.label),db=laParseDataBR(b.label);
+      return (da&&db)?db.getTime()-da.getTime():0;
     });
   }
-  if(!candidatos.length){ wrap.innerHTML=`<div class="la-hist-row"><div class="la-hd-col"><span class="la-hd-data">—</span></div><div class="la-hist-balls">Sem dados — clique em Atualizar</div></div>`; return; }
-  // ── Quantidade MÁXIMA de linhas, confirmada visualmente pelo usuário:
-  // 4 linhas para a maioria das loterias; Lotofácil e Lotomania (mais bolas
-  // por sorteio, ocupam mais espaço vertical) ficam em 3.
-  const MAX_LINHAS={lotofacil:3,lotomania:3,duplasena:3}[key] ?? 4;
-  const rows=candidatos.slice(0,Math.min(MAX_LINHAS,candidatos.length||1));
-  wrap.innerHTML=rows.map(r=>{
-    const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
-    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('');
-    // Bola extra (Powerball/Mega Ball) — cor ciano, igual ao card de resultado completo
-    const extraBall=(d.americano&&d.bolaExtra&&r.extra)?`<div class="la-hb" style="background:#00BCD4;margin-left:3px">${laPad(r.extra)}</div>`:'';
-    // Trevos da +Milionária — cor própria, distintos das dezenas principais
-    const trevoBalls=(r.trevos&&r.trevos.length)?`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'};margin-left:3px">${laPad(r.trevos[0])}</div><div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(r.trevos[1])}</div>`:'';
-    // 2º sorteio da Dupla Sena — quebra de linha forçada + cor secundária (corD)
-    const balls2=(d.dupla&&r.nums2&&r.nums2.length)?`<div style="flex-basis:100%;height:0"></div>`+r.nums2.map(n=>`<div class="la-hb" style="background:${d.corD||d.cor}">${laPad(n)}</div>`).join(''):'';
-    // Mês da Sorte (Dia de Sorte) e Time do Coração (Timemania)
-    // Pílulas com fundo na cor da loteria; a fonte precisa contrastar —
-    // ambas usam corTexto quando definido (Timemania=verde #00AB67),
-    // senão fallback escuro (#222) para não herdar o branco do .la-hb.
-    const _pilulaCor=d.corTexto||'#222';
-    const mesBall=r.mes?`<div class="la-hb" style="background:${d.cor};color:${_pilulaCor};width:auto;padding:0 5px;border-radius:8px;margin-left:3px;font-size:8px;letter-spacing:.3px">${r.mes}</div>`:'';
-    const timeBall=r.time?`<div class="la-hb" style="background:${d.cor};color:${_pilulaCor};width:auto;padding:0 5px;border-radius:8px;margin-left:3px;font-size:7px;letter-spacing:.2px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.time}</div>`:'';
-    const lbl=laFmtHistLabel(r.label);
-    const lblHtml=lbl.dia?`<span class="la-hd-data">${lbl.data}</span><span class="la-hd-dia">${lbl.dia}</span>`:`<span class="la-hd">${lbl.data}</span>`;
-    return `<div class="la-hist-row"><div class="la-hd-col">${lblHtml}</div><div class="la-hist-balls">${balls}${extraBall}${trevoBalls}${balls2}${mesBall}${timeBall}</div></div>`;
-  }).join('');
-  // ── DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do
-  // problema "só aparece 1 sorteio". Mostra, em texto simples, o resultado
-  // real da última tentativa de busca para esta loteria.
-  const diag=(window._diagHist||{})[key];
-  if(diag){
-    const motivo=diag.erros.length?diag.erros.slice(0,2).join(' · '):'';
-    wrap.innerHTML+=`<div style="margin-top:6px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.05);font-size:9px;color:var(--text-muted);font-family:var(--font-mono)">Diagnóstico: pediu ${diag.necessarios}, conseguiu ${diag.obtidos}.${motivo?' Motivo: '+motivo:''}</div>`;
+
+  if(!candidatos.length){
+    wrap.innerHTML='<div class="la-hist-row"><div class="la-hd-col"><span class="la-hd-data">—</span></div><div class="la-hist-balls">Sem dados — clique em Atualizar</div></div>';
+    return;
   }
+
+  // ── 2. Configuração de colunas — cada loteria decide as suas ────────────
+  const MAX_LINHAS={lotofacil:3,lotomania:3,duplasena:3}[key]??4;
+  const linhas=candidatos.slice(0,Math.min(MAX_LINHAS,candidatos.length));
+  const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
+  const _pilulaCor=d.corTexto||'#222';
+
+  // Coluna extra existe apenas para loterias que têm campo próprio
+  const temColExtra=key==='diasorte'||key==='timemania'||(d.americano&&d.bolaExtra)||d.hasTrevo;
+
+  // ── 3. Monta cada linha como <tr> da tabela ─────────────────────────────
+  const tbody=linhas.map(r=>{
+    const lbl=laFmtHistLabel(r.label);
+    const dateHtml=lbl.dia
+      ?`<div class="la-hd-col"><span class="la-hd-data">${lbl.data}</span><span class="la-hd-dia">${lbl.dia}</span></div>`
+      :`<div class="la-hd-col"><span class="la-hd-data">${lbl.data}</span></div>`;
+
+    // Bolas principais
+    const balls=r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('');
+
+    // 2º sorteio da Dupla Sena — linha separada dentro da mesma célula
+    const balls2=(d.dupla&&r.nums2&&r.nums2.length)
+      ?`<div class="la-hist-row2">${r.nums2.map(n=>`<div class="la-hb" style="background:${d.corD||d.cor}">${laPad(n)}</div>`).join('')}</div>`
+      :'';
+
+    // Célula extra — conteúdo exclusivo por tipo de loteria
+    let extraHtml='';
+    if(key==='diasorte'&&r.mes){
+      extraHtml=`<span class="la-hist-pill" style="background:${d.cor};color:${_pilulaCor}">${r.mes}</span>`;
+    } else if(key==='timemania'&&r.time){
+      extraHtml=`<span class="la-hist-pill la-hist-pill-time" style="background:${d.cor};color:${_pilulaCor}">${r.time}</span>`;
+    } else if(d.americano&&d.bolaExtra&&r.extra){
+      extraHtml=`<div class="la-hb" style="background:#00BCD4">${laPad(r.extra)}</div>`;
+    } else if(d.hasTrevo&&r.trevos&&r.trevos.length){
+      extraHtml=r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('');
+    }
+
+    return `<tr class="la-hist-tr">
+      <td class="la-hist-td-date">${dateHtml}</td>
+      <td class="la-hist-td-nums"><div class="la-hist-balls">${balls}</div>${balls2}</td>
+      ${temColExtra?`<td class="la-hist-td-extra">${extraHtml}</td>`:''}
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML=`<table class="la-hist-table"><tbody>${tbody}</tbody></table>`;
 }
 /* Cache em memória dos últimos 4 concursos por loteria (lido 1x do IndexedDB,
    nunca durante o ciclo de 5,2s da home — só leitura local, sem rede). */
@@ -11069,11 +11112,13 @@ async function salvarJogosManuais(){
 
 (async function init(){
   buildDash();
-  initLaHome();
+  // Abre o banco ANTES de iniciar a home — garante que laCarregarHistCache()
+  // encontre o IndexedDB aberto e carregue os dados reais desde o primeiro render.
   try{ await initDB(); }catch(e){ console.warn('IndexedDB indisponível:', e.message); }
   let saved=[];
   try{ saved=await dbAll('resultados'); }catch(e){}
   saved.forEach(r=>{resultados[r.loteria]=r;atualizarBtnDash(r.loteria,r);});
+  initLaHome();
   if(saved.length>0){ const u=Math.max(...saved.map(r=>r.updatedAt||0)); setDot('ok',`✓ Dados locais · última atualização: ${new Date(u).toLocaleTimeString('pt-BR')}`); }
   if(supabaseAtivo()){ const importados=await supabaseCarregar(); if(importados>0) toast(`☁ ${importados} conjunto${importados!==1?'s':''} carregado${importados!==1?'s':''} da nuvem`); }
   // Sincroniza bolões e jogos salvos com o Supabase (sobe o que existe
