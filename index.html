@@ -11704,7 +11704,16 @@ function renderResultados(body,d,hist,freq){
     // Info da coluna esquerda (cicla: Tudo/Concurso/Data/Bolas)
     let infoHtml='';
     const numHtml=`<span class="dt-num">${h.concurso}</span>`;
-    const dateHtml=`<span class="dt-date">${h.data||''}</span>`;
+    // Mês da Sorte (Dia de Sorte) / Time do Coração (Timemania): exibidos
+    // inline logo após a data, já que são parte do resultado do concurso
+    // (não um extra separado como bola extra/trevo, que têm colunas
+    // próprias na grade) e ficavam sem nenhuma exibição nesta aba.
+    const mesTimeInline=(key==='diadesorte'&&h.mes)
+      ?`<span class="dt-date" style="margin-left:6px;opacity:.85">🌟 ${h.mes}</span>`
+      :(key==='timemania'&&h.timeCoracao)
+        ?`<span class="dt-date" style="margin-left:6px;opacity:.85">⚽ ${h.timeCoracao}</span>`
+        :'';
+    const dateHtml=`<span class="dt-date">${h.data||''}</span>${mesTimeInline}`;
     const _bct=d.corTexto?`color:${d.corTexto}`:'';
     const ballsHtml=`<div class="dt-balls">${dzSorted.map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('')}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
     if(view.info===0) infoHtml=`<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
