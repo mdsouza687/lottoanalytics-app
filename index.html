@@ -11609,6 +11609,43 @@ async function salvarJogosManuais(){
   }
 }
 
+// Identifica duplicatas de jogos_salvos criadas pelo bug do antigo
+// supabaseCarregar() (chamado em todo boot, sem controle de "já importei
+// isso", recriava as mesmas entradas da tabela legada "jogos_loterias" a
+// cada sessão). Agrupa por assinatura de conteúdo (loteria+nome+savedAt+
+// numDez+jogos) — duplicatas geradas por esse bug têm savedAt IDÊNTICO
+// entre si (vem sempre do mesmo campo saved_at da linha de origem), então
+// essa assinatura não corre risco de fundir jogos genuinamente diferentes
+// que só coincidem por acaso. NÃO remove nada sozinha — só relata; a
+// remoção efetiva (_removerDuplicatasJogosSalvos) é uma ação separada,
+// disparada manualmente pelo usuário.
+async function _identificarDuplicatasJogosSalvos(){
+  let todos=[];
+  try{ todos=await dbAll('jogos_salvos'); }catch(e){ return {grupos:[],totalRemovivel:0}; }
+  const grupos=new Map();
+  for(const item of todos){
+    const assinatura=JSON.stringify([item.loteria,item.nome,item.savedAt,item.numDez,item.jogos]);
+    if(!grupos.has(assinatura)) grupos.set(assinatura,[]);
+    grupos.get(assinatura).push(item);
+  }
+  const duplicados=[...grupos.values()].filter(g=>g.length>1);
+  const totalRemovivel=duplicados.reduce((s,g)=>s+(g.length-1),0);
+  return {grupos:duplicados,totalRemovivel};
+}
+// Remove efetivamente as duplicatas identificadas acima, mantendo sempre a
+// entrada de MENOR id (mais antiga) de cada grupo. dbDel já propaga a
+// remoção ao Supabase (SUPABASE_SYNC_STORES inclui 'jogos_salvos').
+async function _removerDuplicatasJogosSalvos(){
+  const {grupos}=await _identificarDuplicatasJogosSalvos();
+  let removidos=0;
+  for(const grupo of grupos){
+    grupo.sort((a,b)=>(a.id||0)-(b.id||0));
+    for(let i=1;i<grupo.length;i++){
+      try{ await dbDel('jogos_salvos',grupo[i].id); removidos++; }catch(e){}
+    }
+  }
+  return removidos;
+}
 async function _bootApp(){
   buildDash();
   // Abre o banco ANTES de iniciar a home — garante que laCarregarHistCache()
@@ -11619,7 +11656,15 @@ async function _bootApp(){
   saved.forEach(r=>{resultados[r.loteria]=r;atualizarBtnDash(r.loteria,r);});
   initLaHome();
   if(saved.length>0){ const u=Math.max(...saved.map(r=>r.updatedAt||0)); setDot('ok',`✓ Dados locais · última atualização: ${new Date(u).toLocaleTimeString('pt-BR')}`); }
-  if(supabaseAtivo()){ const importados=await supabaseCarregar(); if(importados>0) toast(`☁ ${importados} conjunto${importados!==1?'s':''} carregado${importados!==1?'s':''} da nuvem`); }
+  // supabaseCarregar() (tabela legada "jogos_loterias") foi REMOVIDA daqui —
+  // era chamada em TODO boot do app, sem nenhum controle de "já importei
+  // isso antes": cada chamada inseria de novo cada linha da tabela como um
+  // item NOVO em jogos_salvos (dbPut sem "id" = autoIncrement sempre cria
+  // uma entrada nova), duplicando os jogos salvos a cada sessão aberta. O
+  // mecanismo abaixo (_supabaseSyncBidirectional) já cobre a mesma
+  // necessidade (jogos salvos acompanham o usuário entre domínios/
+  // navegadores) de forma correta, com id estável e upsert por
+  // "on_conflict=id" — não duplica.
   // Sincroniza bolões e jogos salvos com o Supabase (sobe o que existe
   // localmente e baixa o que estiver salvo na nuvem) — evita que esses
   // dados fiquem presos ao domínio/navegador atual.
