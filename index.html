@@ -98,7 +98,7 @@ body.theme-light .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba
 body.theme-light .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(255,255,255,.95),transparent)!important;}
 body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(20,10,34,.95),transparent)!important;}
 body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(20,10,34,.95),transparent)!important;}
-.tab-btn{border:none;background:transparent;padding:0 2px;font-family:var(--btn-font);font-weight:700;font-size:7px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
+.tab-btn{border:none;background:transparent;padding:0 5px;font-family:var(--btn-font);font-weight:700;font-size:8px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:#fff;}
 .tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--ac,#fff);border-radius:2px 2px 0 0;}
@@ -1072,10 +1072,11 @@ body.theme-light .la-home #laAurora b{opacity:.16}
    menores — escopado só a .la-nav pra não afetar .btn-sm/.theme-btn em
    nenhum outro lugar do app (modais, outras telas etc. usam essas mesmas
    classes e devem continuar no tamanho normal). */
+.la-nav .theme-switcher{margin-left:auto}
 .la-nav .theme-btn{padding:3.35px 5.36px;font-size:10.05px}
 .la-nav .btn-sm{padding:5.36px 10.72px;font-size:7.7px}
 .la-nav .la-pill{font-size:7.37px;padding:5.36px 6.7px}
-.la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0}
+.la-pills{display:flex;gap:5px;flex-wrap:nowrap;flex-shrink:0}
 .la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
 .la-pill:hover{transform:translateY(-1px);filter:brightness(1.15)}
