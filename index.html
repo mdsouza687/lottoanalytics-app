@@ -1128,22 +1128,27 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-pred-nav{display:flex;gap:6px}
 .la-pn{width:26px;height:26px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-muted);cursor:pointer;display:grid;place-items:center;font-size:12px}
 .la-pn:hover{color:var(--text)}
-.la-pred-body{padding:2px 16px 14px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+/* Tamanho único e fixo (não varia por loteria) — calibrado pelo pior caso
+   (Timemania: 4 variantes + chip "TIME" numa linha própria, que era quem
+   mais estourava a altura do card, 57px) para caber sem rolagem em todas
+   as loterias com esse mesmo padrão de fonte/bola, com a Lotomania (2
+   variantes) como referência de folga confortável. */
+.la-pred-body{padding:2px 16px 12px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .la-pred-body::-webkit-scrollbar{width:5px}
 .la-pred-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-.la-variant{display:flex;flex-direction:column;gap:5px;padding-bottom:8px;border-bottom:1px solid var(--glass-border)}
+.la-variant{display:flex;flex-direction:column;gap:4px;padding-bottom:6px;border-bottom:1px solid var(--glass-border)}
 .la-variant:last-child{border-bottom:none;padding-bottom:0}
-.la-variant .la-vh{display:flex;align-items:baseline;gap:7px}
-.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
-.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:8px;font-weight:700;color:var(--text-dim)}
-.la-balls{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.la-ball{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:10px;color:#fff;
+.la-variant .la-vh{display:flex;align-items:baseline;gap:6px}
+.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:9.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
+.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:7.5px;font-weight:700;color:var(--text-dim)}
+.la-balls{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.la-ball{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.5px;color:#fff;
   background:var(--ac);box-shadow:0 2px 6px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.3);
   opacity:0;transform:scale(.3) translateY(6px);animation:laPop .36s cubic-bezier(.2,1.4,.4,1) forwards}
 .la-ball.extra{background:var(--la-xc,#00BCD4);border:2px solid rgba(255,255,255,.3)}
 .la-ball.trevo{background:#0fae8a}
-.la-chip{font-family:var(--font-head);font-weight:800;font-size:9.5px;padding:5px 9px;border-radius:7px;color:#fff;background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
-.la-xsep{font-family:var(--font-mono);font-size:8px;font-weight:700;color:var(--text-muted);padding:0 2px;align-self:center}
+.la-chip{font-family:var(--font-head);font-weight:800;font-size:8px;padding:3px 7px;border-radius:6px;color:#fff;background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
+.la-xsep{font-family:var(--font-mono);font-size:7px;font-weight:700;color:var(--text-muted);padding:0 2px;align-self:center}
 @keyframes laPop{to{opacity:1;transform:scale(1) translateY(0)}}
 
 .la-fore-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
