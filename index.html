@@ -4232,8 +4232,15 @@ async function fetchSupabaseResultado(apiKey){
 async function fetchResultado(apiKey, forcarFresh=false){
   // Loterias americanas — tenta Supabase primeiro (evita CORS), depois fonte externa
   if(apiKey==='powerball'||apiKey==='megamillions'){
+    // Só confia no cache do Supabase se ele tiver o formato NORMALIZADO
+    // completo (com "ganhadores" — premiações por faixa). Nenhum processo
+    // ativo grava americanas nessa tabela hoje (o cron do Netlify cobre só
+    // as 9 loterias da Caixa); uma linha sem "ganhadores" é resíduo de uma
+    // gravação antiga/incompleta e travava a tela (renderCard lia
+    // res.ganhadores[0] direto, sem checar undefined). Nesse caso, ignora o
+    // cache e busca na fonte externa, que sempre monta o formato completo.
     const sbData=await fetchSupabaseResultado(apiKey);
-    if(sbData){ return{_us:true,_data:{...sbData,_fromSupabase:true}}; }
+    if(sbData&&Array.isArray(sbData.ganhadores)){ return{_us:true,_data:{...sbData,_fromSupabase:true}}; }
     const res=await fetchUSLatest(apiKey);
     if(res)return{_us:true,_data:res._data};
     throw new Error('Sem dados US para '+apiKey);
@@ -5721,7 +5728,7 @@ function renderCard(res,d){
   if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
   if(res.acumulou){h+=`<div class="status-txt">ACUMULOU!</div>`;}
-  else{const n=parseInt((res.ganhadores[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?'GANHADOR':'GANHADORES'}</div>`;}
+  else{const n=parseInt(((res.ganhadores||[])[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?'GANHADOR':'GANHADORES'}</div>`;}
   h+=`</div><div class="card-divider"></div>`;
   h+=`<div class="info-wrap">`;
   h+=`<div class="info-row"><span class="info-lbl">Realizado em</span><div class="info-val-col"><span class="info-val" style="color:${corMarca(d)};font-size:12px">${res.local||'—'}</span></div></div>`;
