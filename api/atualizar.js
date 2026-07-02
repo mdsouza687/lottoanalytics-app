@@ -22,7 +22,7 @@ async function fetchJson(url) {
     headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
     signal: AbortSignal.timeout(12000),
   });
-  if (!r.ok) return null;
+  if (!r.ok) throw new Error("HTTP " + r.status);
   return r.json();
 }
 
@@ -41,8 +41,10 @@ async function buscarResultado(apiKey, concursoAtual) {
     if (d?.numero || d?.concurso) return d;
   }
 
-  // 2. Busca latest e verifica se tem concurso mais novo
-  const latest = await fetchJson(`${CAIXA_BASE}/${apiKey}`).catch(() => null);
+  // 2. Busca latest e verifica se tem concurso mais novo — sem engolir o erro
+  // aqui: se a Caixa recusar a conexão, o chamador precisa saber a causa
+  // exata (ex.: "HTTP 403"), não só "sem resposta".
+  const latest = await fetchJson(`${CAIXA_BASE}/${apiKey}`);
   if (!latest) return null;
 
   const proxNum  = latest.numeroConcursoProximo || latest.proximoConcurso;
@@ -99,6 +101,19 @@ async function upsert(key, concurso, dados) {
 }
 
 export default async function handler(req, res) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    res.status(500).json({ erro: "SUPABASE_URL/SUPABASE_KEY não configurados no projeto Vercel" });
+    return;
+  }
+  // Protege o endpoint contra chamadas públicas aleatórias (ele só existe
+  // pra ser chamado pelo cron do Netlify, que roda a cada 3h) — segredo
+  // simples via query string, não uma autenticação forte.
+  const CRON_SECRET = process.env.CRON_SECRET;
+  if (CRON_SECRET && req.query?.secret !== CRON_SECRET) {
+    res.status(401).json({ erro: "não autorizado" });
+    return;
+  }
+
   // Aceita GET (cron do Vercel) ou POST (chamada manual)
   const relatorio = {};
 
