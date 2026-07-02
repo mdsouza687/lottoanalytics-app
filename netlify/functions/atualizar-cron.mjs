@@ -41,7 +41,7 @@ async function fetchJson(url) {
     headers: { Accept: "application/json", "User-Agent": "Mozilla/5.0" },
     signal: AbortSignal.timeout(12000),
   });
-  if (!r.ok) return null;
+  if (!r.ok) throw new Error("HTTP " + r.status);
   return r.json();
 }
 
@@ -60,8 +60,10 @@ async function buscarResultado(apiKey, concursoAtual) {
     if (d?.numero || d?.concurso) return d;
   }
 
-  // 2. Busca o mais recente e confere se já passou de fato
-  const latest = await fetchJson(`${CAIXA_BASE}/${apiKey}`).catch(() => null);
+  // 2. Busca o mais recente e confere se já passou de fato — sem engolir o
+  // erro aqui (diagnóstico): se a Caixa bloquear/recusar a conexão, o
+  // chamador precisa saber a causa exata, não só "sem resposta".
+  const latest = await fetchJson(`${CAIXA_BASE}/${apiKey}`);
   if (!latest) return null;
 
   const proxNum = latest.numeroConcursoProximo || latest.proximoConcurso;
