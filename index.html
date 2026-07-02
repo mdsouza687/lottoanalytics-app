@@ -98,7 +98,7 @@ body.theme-light .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba
 body.theme-light .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(255,255,255,.95),transparent)!important;}
 body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(20,10,34,.95),transparent)!important;}
 body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(20,10,34,.95),transparent)!important;}
-.tab-btn{border:none;background:transparent;padding:0 5px;font-family:var(--btn-font);font-weight:700;font-size:8px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
+.tab-btn{border:none;background:transparent;padding:0 6.1px;font-family:var(--btn-font);font-weight:700;font-size:10px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:#fff;}
 .tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--ac,#fff);border-radius:2px 2px 0 0;}
@@ -400,7 +400,7 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
   :root { --scale: 1.1; }
   .card-center { max-width: 1400px; margin: 0 auto; }
   .ball, .result-ball { width: 52px; height: 52px; font-size: 18px; }
-  .tab-btn { font-size: 13px; padding: 0 18px; }
+  .tab-btn { font-size: 10px; padding: 0 6.1px; }
   .lottery-card-new { width: 240px; }
   .lcn-ball { width: 110px; height: 110px; font-size: 48px; }
 }
@@ -410,7 +410,7 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
   .card-center { max-width: 1800px; margin: 0 auto; }
   .page-grid { grid-template-columns: 1fr 1.5fr; gap: 32px; }
   .ball, .result-ball { width: 64px; height: 64px; font-size: 22px; }
-  .tab-btn { font-size: 16px; padding: 0 24px; }
+  .tab-btn { font-size: 10px; padding: 0 6.1px; }
   .lottery-card-new { width: 280px; }
   .lcn-ball { width: 130px; height: 130px; font-size: 56px; }
   .lcn-name { font-size: 18px; }
@@ -427,7 +427,12 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
 @media (min-width: 2000px) {
   body { padding: 0 calc((100vw - 1800px) / 2); }
   #app { max-width: 1800px; margin: 0 auto; }
-  .dash-navbar, .page-topbar { padding-left: calc((100vw - 1800px) / 2 + 28px); padding-right: calc((100vw - 1800px) / 2 + 28px); }
+  .dash-navbar { padding-left: calc((100vw - 1800px) / 2 + 28px); padding-right: calc((100vw - 1800px) / 2 + 28px); }
+  .page-topbar { padding-left: 28px; padding-right: 28px; }
+  .la-nav .theme-btn{padding:5px 8px!important;font-size:15px!important}
+  .la-nav .btn-sm{padding:8px 16px!important;font-size:11.5px!important}
+  .la-nav .la-pill{font-size:11px!important;padding:8px 10px!important}
+  .dash-brand svg{width:260px!important;height:40px!important}
 }
 
 /* Tema claro */
@@ -1068,14 +1073,14 @@ body.theme-light .la-home #laAurora b{opacity:.16}
 .la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
 .la-nav::-webkit-scrollbar{height:4px}
 .la-nav::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-/* Logo e botões (tema/Atualizar/Admin/Sair) da barra de navegação 10%
-   menores — escopado só a .la-nav pra não afetar .btn-sm/.theme-btn em
-   nenhum outro lugar do app (modais, outras telas etc. usam essas mesmas
-   classes e devem continuar no tamanho normal). */
+/* O auto-margin que empurra o grupo de pílulas para a direita foi movido
+   de .la-pills para .theme-switcher: assim as pílulas ficam coladas à
+   logo (gap normal) e o espaço livre fica entre elas e os botões, que é
+   onde sempre existiu (estrutural do layout, não depende de tamanho). */
 .la-nav .theme-switcher{margin-left:auto}
-.la-nav .theme-btn{padding:3.35px 5.36px;font-size:10.05px}
-.la-nav .btn-sm{padding:5.36px 10.72px;font-size:7.7px}
-.la-nav .la-pill{font-size:7.45px;padding:5.4px 6.75px}
+.la-nav .theme-btn{padding:3.75px 6px;font-size:11.25px}
+.la-nav .btn-sm{padding:6px 12px;font-size:8.625px}
+.la-nav .la-pill{font-size:8.25px;padding:6px 7.5px}
 .la-pills{display:flex;gap:5px;flex-wrap:nowrap;flex-shrink:0}
 .la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
@@ -1526,7 +1531,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   <!-- NAVBAR -->
   <div class="la-nav">
     <div class="dash-brand" style="cursor:pointer" onclick="showDashboard()">
-      <svg width="174" height="27" viewBox="0 0 300 46" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex-shrink:0">
+      <svg width="195" height="30" viewBox="0 0 300 46" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex-shrink:0">
   <defs>
     <radialGradient id="ld-bg" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#2a2010"/><stop offset="100%" stop-color="#0d0a04"/></radialGradient>
     <linearGradient id="ld-gold" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fef5c0"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#8b6914"/></linearGradient>
