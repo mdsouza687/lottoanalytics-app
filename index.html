@@ -1042,7 +1042,13 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
    NOVA PÁGINA INICIAL — LOTTO ANALYTICS (substitui o dashboard antigo)
    Escopo .la-home; herda --ac/--font-head/--font-body/--text do app.
    ══════════════════════════════════════════════════════════════ */
-.la-home{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+/* height:100vh (não min-height) + overflow:hidden: garante que a home NUNCA
+   role verticalmente, em qualquer altura de janela — os cards (grid com
+   fr/minmax, ver .la-grid) já tentam se ajustar ao espaço disponível
+   sozinhos; isso aqui é a garantia final, absoluta, contra a rolagem em
+   casos extremos (janela muito baixa) onde o ajuste fino não for
+   suficiente para caber com folga. */
+.la-home{position:relative;z-index:1;height:100vh;overflow:hidden;display:flex;flex-direction:column}
 .la-home #laAurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .la-home #laAurora b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;mix-blend-mode:screen}
 .la-home #laAurora b:nth-child(1){width:42vw;height:42vw;left:-8vw;top:-8vw;background:var(--la-a1,#3A9B4E);animation:laDrift1 22s ease-in-out infinite}
@@ -1051,21 +1057,27 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
 @keyframes laDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,5vh) scale(1.08)}}
 body.theme-light .la-home #laAurora b{opacity:.16}
 
-/* A barra inteira NÃO rola mais como bloco único (isso arrastava o logo e os
-   botões de login/admin pra fora da tela junto com as pílulas de loteria,
-   forçando rolagem horizontal da página inteira, logado ou não). Agora só
-   as pílulas de loteria (.la-pills, no meio) rolam por dentro de si mesmas
-   — logo e botões ficam sempre visíveis nas pontas, sem exceder a largura
-   da tela em nenhum cenário. */
-.la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap}
-/* Só .la-pills pode encolher/rolar — logo, seletor de tema e botões
-   (Atualizar/Admin/Sair/Login) mantêm sempre o tamanho e ficam visíveis. */
-.la-nav>*:not(.la-pills){flex-shrink:0}
-.la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin}
-.la-pills::-webkit-scrollbar{height:4px}
-.la-pills::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-.la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
+/* A barra não usa rolagem em NENHUMA hipótese (nem a barra inteira, nem as
+   pílulas). Em vez disso, TUDO (logo, pílulas de loteria, seletor de tema,
+   botões Atualizar/Admin/Sair/Login) encolhe junto, proporcionalmente, via
+   uma única variável --nav-scale calculada em JS (_ajustarEscalaLaNav) —
+   mede a barra inteira depois de cada render e reduz a escala em passos
+   até tudo caber na largura disponível, com piso mínimo de legibilidade. */
+.la-nav{display:flex;align-items:center;gap:calc(12px * var(--nav-scale,1));padding:14px 24px;flex-wrap:nowrap}
+.la-nav>*{flex-shrink:0}
+.dash-brand svg{width:calc(260px * var(--nav-scale,1));height:calc(40px * var(--nav-scale,1))}
+.la-pills{display:flex;gap:calc(5px * var(--nav-scale,1));flex-wrap:nowrap;margin-left:auto}
+.la-pill{font-family:var(--font-head);font-weight:700;font-size:calc(11px * var(--nav-scale,1));white-space:nowrap;padding:calc(8px * var(--nav-scale,1)) calc(10px * var(--nav-scale,1));border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
+/* Último recurso quando mesmo no piso de escala ainda não coubesse tudo:
+   os botões (Atualizar/Admin/Sair) ficam só com o ícone, sem o texto —
+   aplicado via JS (_ajustarEscalaLaNav) adicionando a classe .compact. */
+.la-nav.compact .btn-sm-label{display:none}
+.la-nav.compact .btn-sm{padding-left:calc(10px * var(--nav-scale,1));padding-right:calc(10px * var(--nav-scale,1))}
+/* Tema e botões DENTRO da barra também encolhem com a mesma escala — fora
+   dela (ex.: topbar interna de cada loteria) mantêm o tamanho normal. */
+.la-nav .theme-btn{padding:calc(5px * var(--nav-scale,1)) calc(8px * var(--nav-scale,1));font-size:calc(15px * var(--nav-scale,1))}
+.la-nav .btn-sm{padding:calc(8px * var(--nav-scale,1)) calc(16px * var(--nav-scale,1));font-size:calc(12px * var(--nav-scale,1));gap:calc(6px * var(--nav-scale,1))}
 .la-pill:hover{transform:translateY(-1px);filter:brightness(1.15)}
 .la-pill.active{box-shadow:0 4px 16px -2px var(--la-shadow,rgba(0,0,0,.4))}
 
@@ -1220,6 +1232,19 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 @media (prefers-reduced-motion:reduce){
   .la-home #laAurora b{animation:none}
   .la-ball,.la-chip{animation:none;opacity:1;transform:none}
+}
+/* Telas largas mas baixas (notebooks com pouca altura, janela redimensionada
+   etc.): os pisos mínimos de altura dos cards da home (240px/190px) somados
+   ao padding do hero podiam passar da altura da janela, forçando rolagem
+   vertical. Aperta os pisos e o padding só quando a altura é pequena — a
+   largura já cabe (é o caso de not-narrow-mas-curto), então não precisa
+   empilhar os cards em 1 coluna como nos breakpoints de largura acima. */
+@media (max-height:760px) and (min-width:981px){
+  .la-grid{grid-template-rows:minmax(190px,1.55fr) minmax(150px,1fr);gap:clamp(8px,1vh,12px)}
+  .la-hero{padding:clamp(12px,2vh,20px) clamp(16px,2.5vw,28px)}
+}
+@media (max-height:620px) and (min-width:981px){
+  .la-grid{grid-template-rows:minmax(160px,1.55fr) minmax(120px,1fr)}
 }
 /* ══ Auth Gate (login/cadastro sob demanda — mesmo padrão visual dos
    outros modais do app: usa .modal-overlay/.open, herda as cores do tema
@@ -1539,9 +1564,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <button class="theme-btn"        id="theme-light"   onclick="setTheme('light')"   title="Tema claro"><span class="emoji-ico">☀️</span></button>
       <button class="theme-btn"        id="theme-colorful" onclick="setTheme('colorful')" title="Tema colorido"><span class="emoji-ico">🌈</span></button>
     </div>
-    <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
-    <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
-    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span> Sair</button>
+    <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span><span class="btn-sm-label"> Atualizar</span></button>
+    <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span><span class="btn-sm-label"> Admin</span></button>
+    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span><span class="btn-sm-label"> Sair</span></button>
   </div>
 
   <!-- GRID PRINCIPAL -->
@@ -2913,6 +2938,9 @@ async function _agAposLogin(user){
   const btnLogout=document.getElementById('btn-logout'); if(btnLogout) btnLogout.style.display='';
   const btnConta=document.getElementById('btn-ja-tenho-conta'); if(btnConta) btnConta.style.display='none';
   const btnGratis=document.getElementById('btn-experimente-gratis'); if(btnGratis) btnGratis.style.display='none';
+  // Admin/Sair aparecendo muda a largura necessária da barra — recalcula a
+  // escala pra continuar cabendo sem rolagem.
+  if(typeof _ajustarEscalaLaNav==='function') _ajustarEscalaLaNav();
   // Se o login/cadastro foi disparado ao tentar abrir uma ferramenta
   // (Gerar Jogos, Bolões, trocar de loteria etc.), retoma exatamente essa
   // ação agora que o usuário está autenticado — em vez de simplesmente
@@ -4850,7 +4878,55 @@ function renderLaPills(){
     const bg=i===laCur?d.cor:d.cor+'33';
     return `<a class="la-pill${i===laCur?' active':''}" style="background:${bg}" href="javascript:void(0)" onclick="showLottery('${key}')" title="Abrir ${d.nome}">${d.nome.replace('US ','US ')}</a>`;
   }).join('');
+  _ajustarEscalaLaNav();
 }
+// Em vez de rolar horizontalmente, a barra de navegação INTEIRA (logo +
+// pílulas de loteria + tema + botões) encolhe proporcionalmente — fonte,
+// padding, gap e o tamanho do logo — até caber sem NENHUMA rolagem
+// horizontal, em qualquer largura de tela e estado de login. Faz uma busca
+// simples: reduz --nav-scale em passos pequenos até o conteúdo parar de
+// estourar a largura disponível (ou até um piso mínimo de legibilidade).
+function _ajustarEscalaLaNav(){
+  const nav=document.querySelector('.la-nav'); if(!nav) return;
+  nav.classList.remove('compact');
+  nav.style.setProperty('--nav-scale','1');
+  let escala=1;
+  const PISO=0.45; // não encolhe além disso — abaixo fica ilegível/inclicável
+  while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO){
+    escala=Math.max(PISO, +(escala-0.03).toFixed(2));
+    nav.style.setProperty('--nav-scale',escala);
+  }
+  // Se mesmo no piso de escala ainda não coube (telas muito estreitas com
+  // login ativo), o próximo recurso é esconder o TEXTO dos botões
+  // (Atualizar/Admin/Sair — ficam só com o ícone), o que libera bastante
+  // espaço sem precisar encolher a fonte a ponto de ficar ilegível.
+  if(nav.scrollWidth>nav.clientWidth+1){
+    nav.classList.add('compact');
+    escala=1;
+    while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO){
+      escala=Math.max(PISO, +(escala-0.03).toFixed(2));
+      nav.style.setProperty('--nav-scale',escala);
+    }
+  }
+  // Garantia final: mesmo compacto, se 11 loterias de nome longo ainda não
+  // couberem numa tela muito estreita, continua reduzindo além do piso de
+  // legibilidade "normal" — prioriza NUNCA precisar rolar (pedido explícito)
+  // sobre manter o tamanho mínimo confortável de leitura nesse caso extremo.
+  if(nav.scrollWidth>nav.clientWidth+1){
+    const PISO_EXTREMO=0.2;
+    while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO_EXTREMO){
+      escala=Math.max(PISO_EXTREMO, +(escala-0.02).toFixed(2));
+      nav.style.setProperty('--nav-scale',escala);
+    }
+  }
+}
+// Reaplica ao redimensionar a janela (debounce simples) — o conteúdo da
+// barra não muda, mas o espaço disponível sim.
+let _laPillsResizeTO=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_laPillsResizeTO);
+  _laPillsResizeTO=setTimeout(_ajustarEscalaLaNav,150);
+});
 function laRenderBalls(d,v,force2lines){
   // Stagger menor quando há muitas dezenas (ex.: Lotomania = 50) para não demorar ~2,7s
   const stg = (v.nums && v.nums.length>20) ? 14 : 55;
