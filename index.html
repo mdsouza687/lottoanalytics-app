@@ -15919,11 +15919,14 @@ async function vincularSalvoAoBolao(itemId){
     var _teimosinhaListaS=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
     if(_teimosinhaListaS&&_teimosinhaListaS.length>1){
       _teimosinhaListaS.forEach(function(numT,idxT){
-        // jogos.slice() — cada concurso precisa de sua PRÓPRIA cópia do array,
-        // senão excluir um jogo de um concurso (excluirJogoDoBolao faz
-        // c.jogos.splice) removeria também dos demais concursos da sequência,
-        // já que arrays são passados por referência em JS.
-        g.concursos.push({num:numT,data:idxT===0?_dataSorteioS:'',jogos:jogos.slice(),custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now()+idxT,loteria:loteriaItem,teimosinhaOrigem:_teimosinhaListaS[0]});
+        // _clonarJogosComExtras() — cada concurso precisa de sua PRÓPRIA cópia
+        // PROFUNDA (array externo E cada jogo individual, com _extra/_trevos/
+        // etc.), não só jogos.slice() (que só copia o array externo — os
+        // jogos internos continuariam sendo os MESMOS objetos, então marcar
+        // jogo._concursoOrigem no relatório de um concurso sobrescreveria o
+        // dos outros concursos da sequência, e excluir um jogo removeria dos
+        // demais também).
+        g.concursos.push({num:numT,data:idxT===0?_dataSorteioS:'',jogos:_clonarJogosComExtras(jogos),custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now()+idxT,loteria:loteriaItem,teimosinhaOrigem:_teimosinhaListaS[0]});
       });
     } else {
       g.concursos.push({num:_novoNumS,data:_dataSorteioS,jogos:jogos,custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now(),loteria:loteriaItem});
@@ -16474,10 +16477,12 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
     var _teimosinhaListaG=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
     if(_teimosinhaListaG&&_teimosinhaListaG.length>1){
       _teimosinhaListaG.forEach(function(numT,idxT){
-        // jogos.slice() — cópia própria por concurso (ver comentário em
-        // vincularSalvoAoBolao); senão excluir um jogo de um concurso
-        // removeria dos demais também (mesma referência de array).
-        g.concursos.push({num:numT,data:idxT===0?_dataSorteio:'',jogos:jogos.slice(),custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now()+idxT,loteria:loteriaKey,teimosinhaOrigem:_teimosinhaListaG[0]});
+        // _clonarJogosComExtras() — cópia PROFUNDA própria por concurso (ver
+        // comentário em vincularSalvoAoBolao); senão excluir um jogo de um
+        // concurso removeria dos demais, e jogo._concursoOrigem de um
+        // concurso sobrescreveria o dos outros (mesmos objetos de jogo
+        // compartilhados entre as entradas).
+        g.concursos.push({num:numT,data:idxT===0?_dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now()+idxT,loteria:loteriaKey,teimosinhaOrigem:_teimosinhaListaG[0]});
       });
     } else {
       g.concursos.push({num:_novoNum,data:_dataSorteio,jogos:jogos,custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now(),loteria:loteriaKey});
