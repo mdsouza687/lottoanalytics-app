@@ -11273,9 +11273,14 @@ async function popularDropdownManualBolao(){
 
 /* ── Estado do cartão de inserção manual ──
    _manualSel: Set com a seleção atual (números <1000; extra/trevo = 1000+n; Super Sete = col*10+dígito)
-   _manualJogos: jogos já adicionados ([{...nums}], com _extra/_trevos quando aplicável) */
+   _manualJogos: jogos já adicionados ([{...nums}], com _extra/_trevos quando aplicável)
+   _manualMes/_manualTime: mês da sorte (Dia de Sorte) / time do coração (Timemania)
+   escolhidos para o PRÓXIMO jogo a adicionar — null = aleatório (sorteio
+   automático por jogo, mesmo comportamento já usado no Gerador de Jogos). */
 let _manualSel=new Set();
 let _manualJogos=[];
+let _manualMes=null;
+let _manualTime=null;
 
 function atualizarManualDica(){
   const sel=document.getElementById('manual-loteria-sel');
@@ -11296,6 +11301,8 @@ function atualizarManualDica(){
   if(_manualJogos.length) toast('Loteria alterada — jogos adicionados foram limpos.');
   _manualSel=new Set();
   _manualJogos=[];
+  _manualMes=null;
+  _manualTime=null;
   buildManualVolante();
   renderManualLista();
 }
@@ -11313,6 +11320,28 @@ function buildManualVolante(){
   }
   const ac=d.cor;
   let grade='';
+
+  // Dia de Sorte (mês da sorte) / Timemania (time do coração): campo extra
+  // sorteado em todo concurso, igual ao já existente no Gerador de Jogos
+  // (buildMesTimeSec) — faltava aqui na inserção manual para conferência.
+  let extraSel='';
+  if(d.apiKey==='diadesorte'){
+    extraSel=`<div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🌟</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">Mês da sorte</span></div>
+      <select id="manual-mes-sel" onchange="_manualMes=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+        <option value="">Aleatório (sorteio automático)</option>
+        ${LA_MESES_NOMES.map((m,idx)=>`<option value="${idx+1}"${_manualMes===idx+1?' selected':''}>${m}</option>`).join('')}
+      </select>
+    </div>`;
+  } else if(d.apiKey==='timemania'){
+    extraSel=`<div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">⚽</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">Time do coração</span></div>
+      <select id="manual-time-sel" onchange="_manualTime=this.value!==''?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+        <option value="">Aleatório (sorteio automático)</option>
+        ${LA_TIMEMANIA_TIMES.map((t,idx)=>`<option value="${idx}"${_manualTime===idx?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>`;
+  }
 
   if(d.superSete){
     // Super Sete no formato oficial: 7 colunas verticais (dígitos 0–9), 1 a 3 dígitos por coluna (7 a 21 números)
@@ -11395,7 +11424,7 @@ function buildManualVolante(){
     grade+='</div>';
   }
 
-  wrap.innerHTML=grade;
+  wrap.innerHTML=extraSel+grade;
   atualizarStatusManual();
 }
 
@@ -11482,9 +11511,14 @@ function adicionarJogoManual(){
   if(d.hasTrevo&&(extras.length<(d.trevosMin||2)||extras.length>(d.trevosMax||6))){toast(`Selecione de ${d.trevosMin||2} a ${d.trevosMax||6} trevos.`);return;}
   if(d.americano) jogo._extra=extras[0];
   if(d.hasTrevo) jogo._trevos=extras.sort((a,b)=>a-b);
+  // Mês da sorte / time do coração — null = aleatório (não especificado),
+  // mesmo comportamento já usado no Gerador de Jogos (selecionarMesDireto/
+  // selecionarTimeDireto): não bloqueia adicionar o jogo sem escolher.
+  if(d.apiKey==='diadesorte') jogo._mes=_manualMes;
+  if(d.apiKey==='timemania') jogo._time=_manualTime;
 
   // Evita duplicado entre os já adicionados (estrutura de colunas considerada no Super Sete)
-  const assina=j=>(j._ssCols?j._ssCols.map(c=>c.join('')).join('-'):j.join(','))+'|'+(j._extra?[j._extra]:(j._trevos||[])).join(',');
+  const assina=j=>(j._ssCols?j._ssCols.map(c=>c.join('')).join('-'):j.join(','))+'|'+(j._extra?[j._extra]:(j._trevos||[])).join(',')+'|'+(j._mes??'')+'|'+(j._time??'');
   if(_manualJogos.some(j=>assina(j)===assina(jogo))){
     toast('Este jogo já foi adicionado.');return;
   }
@@ -11546,6 +11580,8 @@ async function salvarJogosManuais(){
     extras:_manualJogos.map(j=>j._extra||null),
     trevos:_manualJogos.map(j=>Array.isArray(j._trevos)?[...j._trevos]:null),
     ssCols:_manualJogos.map(j=>Array.isArray(j._ssCols)?j._ssCols.map(c=>[...c]):null),
+    mes:_manualJogos.map(j=>j._mes??null),
+    times:_manualJogos.map(j=>j._time??null),
     manual:true
   };
   try{
