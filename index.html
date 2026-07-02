@@ -4247,15 +4247,26 @@ async function fetchResultado(apiKey, forcarFresh=false){
     if(res)return{_us:true,_data:res._data};
     throw new Error('Sem dados US para '+apiKey);
   }
-  // Loterias Caixa — Supabase primeiro (fonte confiável, sem CORS), depois APIs externas
+  // Loterias Caixa — Supabase primeiro (fonte confiável, sem CORS), depois
+  // duas fontes externas EM PARALELO: os espelhos comunitários (API_BASES,
+  // via fetchCaixaPath) E a API OFICIAL da Caixa (fetchCaixaOficial). A
+  // oficial permite CORS de qualquer origem (confirmado: header
+  // "Access-Control-Allow-Origin: *"), mas antes só era chamada como
+  // verificação secundária — na prática os espelhos comunitários (mantidos
+  // por terceiros, sem SLA) ficam desatualizados por dias sem aviso,
+  // enquanto a oficial nunca fica atrás. Usa sempre o concurso mais recente
+  // entre as três fontes (Supabase/espelhos/oficial), não só a primeira que
+  // responder.
   let data=await fetchSupabaseResultado(apiKey);
-  let dataExterna=null;
-  try{ dataExterna=await fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh); }catch(e){}
-  // Usa o concurso mais recente entre Supabase e API externa
-  if(dataExterna){
-    const numSb=parseInt(data?.concurso||0);
-    const numExt=parseInt(dataExterna?.concurso||dataExterna?.numero||0);
-    if(numExt>numSb) data=dataExterna;
+  const [dataExterna,dataOficial]=await Promise.all([
+    fetchCaixaPath(`${apiKey}/latest`,10000,forcarFresh).catch(()=>null),
+    fetchCaixaOficial(apiKey,10000).catch(()=>null),
+  ]);
+  for(const candidato of [dataExterna,dataOficial]){
+    if(!candidato) continue;
+    const numAtual=parseInt(data?.concurso||0);
+    const numCand=parseInt(candidato?.concurso||candidato?.numero||0);
+    if(numCand>numAtual) data=candidato;
   }
   if(!data) throw new Error('Sem dados para '+apiKey);
   // Concursos especiais (Quina de São João, Mega da Virada etc.) costumam
