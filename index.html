@@ -297,20 +297,30 @@ select option[selected]{
 .gb-content{flex:1;min-height:0;overflow-y:auto;padding:24px;}
 /* Painel real (Apostas Aleatórias / Fechamento / Score) "emprestado" da aba
    Gerador normal — usa bem o espaço maior disponível na aba Beta. */
-.gen-col.gb-mounted{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;max-width:100%;width:100%;}
-/* nth-child considera TODOS os filhos, incluindo .gen-col-hdr (escondido,
-   1º filho) — por isso o índice de cada .gen-sec real é +1 em relação à
-   numeração visível (seção "1" = nth-child(2), seção "2" = nth-child(3)...). */
-.gen-col.gb-mounted .gen-sec:nth-child(2){grid-column:1/2;} /* Seção 1 — Parâmetros */
-.gen-col.gb-mounted .gen-sec:nth-child(3){grid-column:2/3;} /* Seção 2 — Filtros/Base estatística */
-.gen-col.gb-mounted .gen-sec:nth-child(4){grid-column:1/3;} /* Seção 3 — Gerar (ou Filtros, no módulo Score) */
-.gen-col.gb-mounted .gen-sec:nth-child(5){grid-column:1/3;} /* Seção 4 — Vincular ao Bolão (ou Gerar, no Score) */
-.gen-col.gb-mounted .gen-sec:nth-child(6){grid-column:1/3;} /* Seção 5 — Vincular ao Bolão, no módulo Score */
+.gen-col.gb-mounted{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;max-width:100%;width:100%;}
+/* Posicionamento explícito por classe (não mais nth-child) — painel único
+   após a unificação de Apostas Aleatórias/Fechamento Prático/Fechamento
+   por Score num só conjunto de seções. */
+.gen-col.gb-mounted .gen-sec-half{grid-column:span 1;}
+.gen-col.gb-mounted .gen-sec-full{grid-column:1/3;}
 @media (max-width:980px){
   .gen-col.gb-mounted{grid-template-columns:1fr;}
   .gen-col.gb-mounted .gen-sec{grid-column:1/2!important;}
 }
-.gen-col.gb-mounted .gen-col-hdr{display:none;} /* já mostrado no botão de aba acima */
+.gen-col.gb-mounted .gen-col-hdr{display:none;} /* já mostrado no seletor de modo acima */
+/* Painel único do Gerador: botões um pouco mais compactos que o padrão
+   global do app, para caber tudo sem rolagem (pedido do usuário). Escopado
+   só a este painel — não mexe nas variáveis globais --btn-pad-*, que
+   afetariam botões do app inteiro. */
+#aba-painel-jogo .btn-gerar{padding:7px 10px;font-size:11.5px;}
+#aba-painel-jogo .gen-sec{padding:10px 12px;gap:7px;}
+/* Seletor de modo de geração — pill-group compacto (mesmo padrão visual
+   de .ap-period-btn, já usado na página de Análise), substitui as antigas
+   3 abas grandes (.gb-tab-btn) de Apostas Aleatórias/Fechamento/Score. */
+.gen-mode-group{display:flex;gap:6px;flex-wrap:wrap;}
+.gen-mode-pill{border:1px solid var(--glass-border);border-radius:999px;padding:5px 11px;font-family:var(--btn-font);font-size:10.5px;font-weight:700;letter-spacing:.2px;color:var(--text-muted);cursor:pointer;background:transparent;transition:var(--btn-transition);white-space:nowrap;}
+.gen-mode-pill:hover{background:rgba(255,255,255,.08);color:var(--text);}
+.gen-mode-pill.active{background:var(--ac,#3A9B4E);border-color:var(--ac,#3A9B4E);color:#fff;transform:translateY(-1px);}
 .gb-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:280px;text-align:center;gap:8px;}
 #gb-side-slot{flex-shrink:0;align-self:stretch;}
 #gb-side-slot #side-right{position:static!important;height:100%!important;}
@@ -1505,6 +1515,20 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   </div>
 </div>
 
+<!-- ══ MODAL RANKING POR SCORE (Gerador de Jogos — modo Score) ══ -->
+<div class="modal-overlay" id="modal-score-ranking">
+  <div class="modal" style="max-width:640px;max-height:82vh;display:flex;flex-direction:column;">
+    <div class="modal-hdr"><span class="modal-title">⭐ Ranking por Score</span><button class="modal-close" onclick="closeModal('modal-score-ranking')">✕</button></div>
+    <div class="modal-body" style="overflow-y:auto;flex:1">
+      <div id="score-ranking-preview">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:6px">⭐ Top dezenas por Score Global</div>
+        <div id="score-ranking-balls" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-score-ranking')">Fechar</button></div>
+  </div>
+</div>
+
 <!-- ══ MODAL PADRÕES ══ -->
 <div class="modal-overlay" id="modal-padroes">
   <div class="modal" style="max-width:600px;">
@@ -1809,17 +1833,6 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       /* ═══════════════════════════════════════
          MÓDULO FECHAMENTO COM BOLÃO
       ═══════════════════════════════════════ */
-
-      function setFechamentoModo(modo) {
-        _fechModo=modo;
-        var isB=modo==='bolao';
-        document.getElementById('fech-gerar-btn').style.display=isB?'none':'';
-        if(typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
-        var btnInd=document.getElementById('fech-modo-ind');
-
-        if(btnInd){btnInd.style.background=isB?'transparent':'rgba(255,255,255,.15)';btnInd.style.color=isB?'rgba(255,255,255,.5)':'#fff';btnInd.style.borderColor=isB?'rgba(255,255,255,.1)':'rgba(255,255,255,.2)';}
-        if(btnBol){btnBol.style.background=isB?'rgba(245,192,48,.18)':'transparent';btnBol.style.color=isB?'#f5c030':'rgba(255,255,255,.5)';btnBol.style.borderColor=isB?'rgba(245,192,48,.35)':'rgba(255,255,255,.1)';}
-      }
 
       function addParticipanteFechamento() {
         var nomeEl=document.getElementById('fech-part-nome');
@@ -2169,20 +2182,27 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
           <p class="gb-desc">Gere jogos com análise estatística, IA ou sorteio aleatório com cobertura total.</p>
         </div>
         <div class="gb-tabs">
-          <button class="gb-tab-btn active" id="gb-tab-aleatorias" onclick="gbSwitchTab('aleatorias')" title="Geração individual: aleatório puro (urna/PRNG) ou com filtros estatísticos básicos — 1 jogo por vez, sem cobertura combinatória"><span class="ico">🎲</span><span class="ttl">Apostas Aleatórias</span></button>
-          <button class="gb-tab-btn" id="gb-tab-fechamento" onclick="gbSwitchTab('fechamento')" title="Fechamento aleatório dentro do universo disponível (após fixos/exclusões), sem nenhuma ponderação estatística — prioriza volume e velocidade (até 5.000 jogos)"><span class="ico">🔒</span><span class="ttl">Fechamento Prático</span></button>
-          <button class="gb-tab-btn" id="gb-tab-score" onclick="gbSwitchTab('score')" title="Fechamento priorizando as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos — ideal quando você quer usar a análise estatística do app no fechamento"><span class="ico">⭐</span><span class="ttl">Fechamento por Score</span></button>
+          <div class="gen-mode-group" id="gen-mode-group">
+            <button class="gen-mode-pill active" data-modo="filtrado" onclick="setGenModo('filtrado')" title="Geração individual com filtros estatísticos básicos — 1 jogo por vez, sem cobertura combinatória">🎲 Filtrado</button>
+            <button class="gen-mode-pill" data-modo="urna" onclick="setGenModo('urna')" title="Modo urna/saco: embaralha o universo inteiro e distribui com cobertura total e mínima repetição — ZERO estatística">🎲 Aleatório Puro</button>
+            <button class="gen-mode-pill" data-modo="crypto" onclick="setGenModo('crypto')" title="Mesma cobertura total do Aleatório Puro, mas usando crypto.getRandomValues() — o gerador criptograficamente seguro do navegador">🔐 PRNG</button>
+            <button class="gen-mode-pill" data-modo="fechamento" onclick="setGenModo('fechamento')" title="Fechamento aleatório dentro do universo disponível (após fixos/exclusões), sem nenhuma ponderação estatística — prioriza volume e velocidade (até 5.000 jogos)">🔒 Fechamento</button>
+            <button class="gen-mode-pill" data-modo="score" onclick="setGenModo('score')" title="Fechamento priorizando as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos">⭐ Score</button>
+          </div>
           <button class="btn-especial-modulo" id="btn-especial-jogo" onclick="abrirEspecialIndependente(currentKey)" style="display:none">⭐ Especial</button>
         </div>
       </div>
       <div class="gb-card">
         <div class="gb-content" id="gb-content">
-        <!-- ── COLUNA 1: APOSTAS ALEATÓRIAS ── -->
+        <!-- ── PAINEL ÚNICO DE GERAÇÃO — unifica Apostas Aleatórias / Fechamento
+             Prático / Fechamento por Score num só conjunto de controles;
+             o modo escolhido no seletor acima (.gen-mode-pill) decide qual
+             algoritmo o botão "Gerar" dispara (ver setGenModo/GEN_MODES). ── -->
         <div class="gen-col gb-mounted" id="aba-painel-jogo">
-          <div class="gen-col-hdr"><span class="ico">🎲</span><span class="ttl">Apostas Aleatórias</span></div>
+          <div class="gen-col-hdr"><span class="ico">🎯</span><span class="ttl">Gerar Jogos</span></div>
 
           <!-- SEÇÃO 1 — Parâmetros básicos -->
-          <div class="gen-sec">
+          <div class="gen-sec gen-sec-half">
             <div class="gen-sec-hdr">
               <span class="gen-sec-num">1</span>
               <span class="gen-sec-title">Parâmetros do jogo</span>
@@ -2190,9 +2210,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             <div class="estat-row">
               <span class="estat-label">Base</span>
               <select class="estat-sel" id="jogo-estat">
-                <option value="12" selected>📊 Últimos 12 concursos (padrão)</option>
+                <option value="12">📊 Últimos 12 concursos</option>
                 <option value="6">🕐 Últimos 6 concursos</option>
-                <option value="24">🕐 Últimos 24 concursos</option>
+                <option value="24" selected>🕐 Últimos 24 concursos (padrão)</option>
                 <option value="36">🕐 Últimos 36 concursos</option>
                 <option value="48">🕐 Últimos 48 concursos</option>
                 <option value="72">🕐 Últimos 72 concursos</option>
@@ -2206,7 +2226,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             </div>
             <div id="espelho-wrap" style="display:none">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 12px;border:1px solid var(--glass-border);border-radius:8px;background:rgba(124,58,237,.06)">
-                <input type="checkbox" id="jogo-espelho" style="cursor:pointer;width:16px;height:16px"/>
+                <input type="checkbox" id="jogo-espelho" style="cursor:pointer;width:16px;height:16px" onchange="toggleFchEspelho(this.checked)"/>
                 <span style="font-size:12px;font-weight:700;color:var(--text)">🪞 Aposta Espelho</span>
                 <span id="espelho-info" style="font-size:10px;color:var(--text-muted);margin-left:auto"></span>
               </label>
@@ -2214,7 +2234,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
           </div>
 
           <!-- SEÇÃO 2 — Filtros (fixos / exclusões) -->
-          <div class="gen-sec">
+          <div class="gen-sec gen-sec-half">
             <div class="gen-sec-hdr">
               <span class="gen-sec-num">2</span>
               <span class="gen-sec-title">Filtros</span>
@@ -2237,8 +2257,27 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             </div>
           </div>
 
-          <!-- SEÇÃO 3 — Ações de geração -->
-          <div class="gen-sec">
+          <!-- SEÇÃO 3 — Extras específicos do modo Score (Top N + Ranking) -->
+          <div class="gen-sec gen-sec-full" id="jogo-score-extras-sec" style="display:none">
+            <div class="gen-sec-hdr">
+              <span class="gen-sec-num">⭐</span>
+              <span class="gen-sec-title">Base estatística do Score</span>
+              <span class="gen-sec-hint" id="fch-score-desc">Freq 20% · Atraso 20% · Tendência 15% · Correlação 10% · Ciclo 10% · Dispersão 10% · Soma/Pares 15%</span>
+            </div>
+            <div class="field-row">
+              <div class="field-grp" style="flex:1" id="fch-topn-wrap"><span class="field-lbl">Top dezenas por score</span>
+                <select class="f-sel" id="jogo-topn"><option value="10">Top 10 dezenas</option></select>
+              </div>
+              <div class="field-grp" style="flex:1;justify-content:flex-end">
+                <button type="button" id="jogo-ver-ranking-btn" onclick="calcularScoreEPreview()" data-lotbtn style="width:100%;text-align:left;border:1px solid var(--glass-border);border-radius:8px;padding:7px 11px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font-family:var(--font-body);font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer">
+                  <span style="font-size:14px">⭐</span><span>Ver Ranking por Score</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEÇÃO 4 — Ações de geração -->
+          <div class="gen-sec gen-sec-full">
             <div class="gen-sec-hdr">
               <span class="gen-sec-num">3</span>
               <span class="gen-sec-title">Gerar</span>
@@ -2252,8 +2291,6 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             </div>
             <div class="gen-actions-row">
               <button class="btn-gerar" data-lotbtn id="jogo-gerar-btn" onclick="gerarJogos('jogo')">🎲 Gerar Jogos</button>
-              <button class="btn-gerar" data-lotbtn id="jogo-aleatorio-btn" onclick="gerarJogos('jogo','urna')" title="Modo urna/saco: embaralha o universo inteiro e distribui com cobertura total e mínima repetição — ZERO estatística">🎲 Aleatório Puro</button>
-              <button class="btn-gerar btn-crypto" data-lotbtn id="jogo-crypto-btn" onclick="gerarJogos('jogo','crypto')" title="Mesma cobertura total do Aleatório Puro, mas usando crypto.getRandomValues() — o gerador de números aleatórios criptograficamente seguro do navegador, em vez de Math.random()">🔐 Aleatório PRNG</button>
             </div>
             <div class="gen-actions-row">
               <div class="ia-btn-combo" style="flex:1;min-width:150px">
@@ -2268,8 +2305,8 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             <button class="btn-gerar" onclick="gerarComIA('jogo')" data-lotbtn style="width:100%" title="Gera jogos completos pela IA (análise dos 12 parâmetros)">🤖 Gerar com IA</button>
           </div>
 
-          <!-- SEÇÃO 4 — Vincular ao bolão -->
-          <div class="gen-sec">
+          <!-- SEÇÃO 5 — Vincular ao bolão (comum a todos os modos, comportamento inalterado) -->
+          <div class="gen-sec gen-sec-full">
             <div class="gen-sec-hdr">
               <span class="gen-sec-num">4</span>
               <span class="gen-sec-title">👥 Vincular ao Bolão</span>
@@ -2280,230 +2317,6 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
               <button onclick="showTab('boloes')" style="border:1px solid var(--glass-border);border-radius:var(--btn-radius);padding:var(--btn-pad-y) var(--btn-pad-x);font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-tracking);cursor:pointer;background:var(--glass-bg);color:var(--text);white-space:nowrap;transition:var(--btn-transition)">➕ Novo</button>
             </div>
             <div style="font-size:9px;color:var(--text-dim)">Se escolher um bolão, os jogos gerados serão vinculados a ele.</div>
-          </div>
-        </div>
-
-        <!-- ── ABA: BOLÃO ── -->
-
-        <!-- ── COLUNA 2: FECHAMENTO ── -->
-        <div class="gen-col gb-mounted" id="aba-painel-fechamento" style="display:none">
-          <div class="gen-col-hdr" id="gen-col-hdr-fechamento"><span class="ico">🔒</span><span class="ttl">Fechamento</span></div>
-
-          <!-- SEÇÃO 1 — Modo + Parâmetros básicos -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">1</span>
-              <span class="gen-sec-title">Parâmetros do fechamento</span>
-            </div>
-            <!-- Toggle Individual / Bolão dentro do Fechamento -->
-            <div style="display:flex;gap:4px">
-              <button id="fech-modo-ind" onclick="setFechamentoModo('individual')" style="border:1px solid var(--glass-border);border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;transition:all .15s;font-family:var(--font-body)">Individual</button>
-            </div>
-            <div class="estat-row">
-              <span class="estat-label">Base</span>
-              <select class="estat-sel" id="fech-estat">
-                <option value="12" selected>📊 Últimos 12 concursos (padrão)</option>
-                <option value="6">🕐 Últimos 6 concursos</option>
-                <option value="24">🕐 Últimos 24 concursos</option>
-                <option value="36">🕐 Últimos 36 concursos</option>
-                <option value="48">🕐 Últimos 48 concursos</option>
-                <option value="72">🕐 Últimos 72 concursos</option>
-                <option value="96">🕐 Últimos 96 concursos</option>
-                <option value="historica">📚 Histórica — todos os concursos</option>
-              </select>
-            </div>
-            <div class="field-row">
-              <div class="field-grp"><span class="field-lbl">Qtd. de jogos</span><input class="f-inp" id="fech-qty" type="number" min="1" max="5000" placeholder="máx 5000"/></div>
-              <div class="field-grp"><span class="field-lbl">Dezenas / jogo</span><div id="fech-dez-wrap"></div></div>
-            </div>
-            <div id="fech-espelho-wrap" style="display:none">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 12px;border:1px solid var(--glass-border);border-radius:8px;background:rgba(124,58,237,.06)">
-                <input type="checkbox" id="fech-espelho" style="cursor:pointer;width:16px;height:16px"/>
-                <span style="font-size:12px;font-weight:700;color:var(--text)">🪞 Aposta Espelho</span>
-                <span id="fech-espelho-info" style="font-size:10px;color:var(--text-muted);margin-left:auto"></span>
-              </label>
-            </div>
-          </div>
-
-          <!-- SEÇÃO 2 — Filtros (fixos / exclusões) -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">2</span>
-              <span class="gen-sec-title">Filtros</span>
-              <span class="gen-sec-hint">Opcional — refine o universo de dezenas</span>
-            </div>
-            <div class="fixos-sec">
-              <div class="fixos-hdr">
-                <span class="field-lbl">Nº fixos</span>
-                <select class="fixos-qty-sel" id="fech-fixos-qty" onchange="buildFixosGrid('fech')"><option value="0">Nenhum</option></select>
-              </div>
-              <div class="fixos-grid" id="fech-fixos-grid"><span class="fixos-hint">Selecione a qtd. de fixos acima</span></div>
-            </div>
-            <div class="gen-sec-divider"></div>
-            <div class="fechamento-sec">
-              <div class="fechamento-row">
-                <span class="fechamento-label">Excluir dezenas</span>
-                <select class="fixos-qty-sel" id="fech-excl-qty" onchange="buildExclusoesGrid('fech')"><option value="0">Nenhuma</option></select>
-              </div>
-              <div class="fixos-grid" id="fech-excl-grid"><span class="fixos-hint">Selecione quantas dezenas excluir</span></div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO 3 — Ações de geração -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">3</span>
-              <span class="gen-sec-title">Gerar</span>
-            </div>
-            <div id="fech-mestime-sec" style="display:none"></div>
-            <div id="fech-ss-dez-wrap" style="display:none">
-              <div class="ia-btn-combo">
-                <button class="btn-gerar" style="flex:1;background:linear-gradient(135deg,#0e7a3a,#13a04e);pointer-events:none">🎰 Nº de Dezenas</button>
-                <select id="fech-ss-dez" class="ia-combo-sel" style="background:#0e7a3a" title="Quantos números apostar (7 a 21)" onchange="syncSSDezenas('fech')"></select>
-              </div>
-            </div>
-            <div class="gen-actions-row">
-              <button class="btn-gerar btn-fechamento" id="fech-gerar-btn" onclick="gerarFechamento()" style="flex:1 1 100%" title="Sorteio aleatório dentro do universo disponível (após fixos/exclusões) — sem ponderação por frequência/atraso; use 'Fechamento por Score' se quiser priorizar as dezenas com melhor histórico">🔒 Gerar Fechamento</button>
-            </div>
-            <div class="gen-actions-row">
-              <div class="ia-btn-combo" style="flex:1;min-width:150px">
-                <button class="btn-gerar" onclick="fixosComIA('fech')" data-lotbtn style="flex:1" title="IA preenche os números fixos">🎯 Fixos com IA</button>
-                <select id="fech-ia-fixos-qty" class="ia-combo-sel ia-sel-fixos" title="Quantos fixos a IA escolhe"></select>
-              </div>
-              <div class="ia-btn-combo" style="flex:1;min-width:150px">
-                <button class="btn-gerar" onclick="excluirComIA('fech')" data-lotbtn style="flex:1" title="IA preenche os números a excluir">🚫 Excluir com IA</button>
-                <select id="fech-ia-excluir-qty" class="ia-combo-sel ia-sel-excluir" title="Quantas exclusões a IA escolhe"></select>
-              </div>
-            </div>
-            <button class="btn-gerar" onclick="gerarComIA('fech')" data-lotbtn style="width:100%" title="Gera o fechamento completo pela IA">🤖 Gerar com IA</button>
-          </div>
-
-          <!-- SEÇÃO 4 — Vincular ao bolão -->
-          <div class="gen-sec" id="fech-bolao-section">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">4</span>
-              <span class="gen-sec-title">👥 Vincular ao Bolão</span>
-              <span class="gen-sec-hint">O fechamento gerado será vinculado ao bolão selecionado</span>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <select class="f-sel" id="fech-vinculo-sel" style="flex:1;min-width:160px"><option value="">— Selecione um bolão —</option></select>
-              <button onclick="showTab('boloes')" style="border:1px solid var(--glass-border);border-radius:var(--btn-radius);padding:var(--btn-pad-y) var(--btn-pad-x);font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-tracking);cursor:pointer;background:var(--glass-bg);color:var(--text);white-space:nowrap;transition:var(--btn-transition)">➕ Novo</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── COLUNA 3: FECHAMENTO P/ SCORE ── -->
-        <div class="gen-col gb-mounted" id="aba-painel-fch" style="display:none">
-          <div class="gen-col-hdr" id="gen-col-hdr-fch"><span class="ico">⭐</span><span class="ttl">Fechamento p/ Score</span></div>
-
-          <!-- SEÇÃO 1 — Parâmetros básicos -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">1</span>
-              <span class="gen-sec-title">Parâmetros do jogo</span>
-            </div>
-            <div class="field-row">
-              <div class="field-grp" style="flex:1"><span class="field-lbl">Qtd. de jogos</span>
-                <input class="f-inp" id="fch2-qty" type="number" min="1" max="5000" placeholder="máx 5000"/>
-              </div>
-              <div class="field-grp" style="flex:1"><span class="field-lbl">Dezenas / jogo</span>
-                <div id="fch-dez-wrap2" style="width:100%"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO 2 — Base estatística do score -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">2</span>
-              <span class="gen-sec-title">Base estatística</span>
-              <span class="gen-sec-hint" id="fch-score-desc">Freq 20% · Atraso 20% · Tendência 15% · Correlação 10% · Ciclo 10% · Dispersão 10% · Soma/Pares 15%</span>
-            </div>
-            <div class="field-row">
-              <div class="field-grp" style="flex:1"><span class="field-lbl">Histórico considerado</span>
-                <select class="f-sel" id="fch-base">
-                  <option value="12">Últimos 12 concursos</option>
-                  <option value="24">Últimos 24 concursos</option>
-                  <option value="48">Últimos 48 concursos</option>
-                  <option value="96">Últimos 96 concursos</option>
-                  <option value="0">Histórico completo</option>
-                </select>
-              </div>
-              <div class="field-grp" style="flex:1" id="fch-topn-wrap"><span class="field-lbl">Top dezenas por score</span>
-                <select class="f-sel" id="fch-topn"><option value="10">Top 10 dezenas</option></select>
-              </div>
-            </div>
-
-            <!-- Preview do ranking de score -->
-            <div id="fch-score-preview" style="display:none;padding:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:var(--radius-sm)">
-              <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:6px">⭐ Top dezenas por Score Global</div>
-              <div id="fch-score-balls" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-            </div>
-            <div id="fch2-mestime-sec" style="display:none"></div>
-            <button onclick="calcularScoreEPreview()" data-lotbtn class="btn-gerar" style="width:100%">⭐ Ver Ranking por Score</button>
-          </div>
-
-          <!-- SEÇÃO 3 — Filtros (fixos / exclusões) -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">3</span>
-              <span class="gen-sec-title">Filtros</span>
-              <span class="gen-sec-hint">Opcional — refine o universo de dezenas</span>
-            </div>
-            <div class="fixos-sec">
-              <div class="fixos-hdr">
-                <span class="field-lbl">Nº fixos</span>
-                <select class="fixos-qty-sel" id="fch2-fixos-qty" onchange="buildFixosGrid('fch2')"><option value="0">Nenhum</option></select>
-              </div>
-              <div class="fixos-grid" id="fch2-fixos-grid"><span class="fixos-hint">Selecione a qtd. de fixos acima</span></div>
-            </div>
-            <div class="gen-sec-divider"></div>
-            <div class="fixos-sec">
-              <div class="fixos-hdr"><span class="field-lbl">🚫 Excluir dezenas</span></div>
-              <div class="fixos-grid" id="fch2-excl-grid"><span class="fixos-hint">Clique para excluir números no volante</span></div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO 4 — Ações de geração -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">4</span>
-              <span class="gen-sec-title">Gerar</span>
-            </div>
-            <div class="gen-actions-row">
-              <button onclick="gerarFechamentoPorScore()" data-lotbtn class="btn-gerar" title="Combina as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos — clique em 'Ver Ranking' antes se trocou de loteria">🎯 Gerar Fechamento por Score</button>
-              <button onclick="gerarComIA('fch2')" data-lotbtn class="btn-gerar">🤖 Gerar com IA</button>
-            </div>
-            <div class="gen-actions-row">
-              <div style="display:flex;flex:1;min-width:140px">
-                <button class="btn-gerar" data-lotbtn onclick="fixosComIA('fch2')" style="flex:1;border-radius:var(--radius-lg) 0 0 var(--radius-lg)">🎯 Fixos com IA</button>
-                <select id="fch2-ia-fixos-qty" class="ia-combo-sel ia-sel-fixos"></select>
-              </div>
-              <div style="display:flex;flex:1;min-width:140px">
-                <button class="btn-gerar" data-lotbtn onclick="excluirComIA('fch2')" style="flex:1;border-radius:var(--radius-lg) 0 0 var(--radius-lg)">🚫 Excluir com IA</button>
-                <select id="fch2-ia-excluir-qty" class="ia-combo-sel ia-sel-excluir"></select>
-              </div>
-            </div>
-            <div id="fch2-espelho-wrap" style="display:none">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 12px;border:1px solid var(--glass-border);border-radius:var(--radius-sm);background:rgba(124,58,237,.06)">
-                <input type="checkbox" id="fch2-espelho" style="cursor:pointer;width:16px;height:16px" onchange="toggleFchEspelho(this.checked)"/>
-                <span style="font-size:12px;font-weight:700;color:var(--text)">🪞 Aposta Espelho</span>
-                <span id="fch2-espelho-info" style="font-size:10px;color:var(--text-muted);margin-left:auto"></span>
-              </label>
-            </div>
-          </div>
-
-          <!-- SEÇÃO 5 — Vincular ao bolão -->
-          <div class="gen-sec">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">5</span>
-              <span class="gen-sec-title">👥 Vincular ao Bolão</span>
-              <span class="gen-sec-hint">Opcional</span>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <select class="f-sel" id="fch2-vinculo-sel" style="flex:1;min-width:160px"><option value="">— Selecione um bolão —</option></select>
-              <button onclick="showTab('boloes')" style="border:1px solid var(--glass-border);border-radius:var(--btn-radius);padding:var(--btn-pad-y) var(--btn-pad-x);font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-tracking);cursor:pointer;background:var(--glass-bg);color:var(--text);white-space:nowrap;transition:var(--btn-transition)">➕ Novo</button>
-            </div>
           </div>
         </div>
         </div>
@@ -5617,24 +5430,28 @@ document.addEventListener('click', function(e){
 });
 
 // Gerador de Jogos Beta — troca entre os 3 botões (Apostas Aleatórias /
-// Gerador de Jogos — alterna qual dos 3 módulos (Apostas Aleatórias /
-// Fechamento Prático / Fechamento por Score) está visível. Os 3 painéis
-// reais agora vivem fixos dentro de #gb-content (não são mais movidos
-// dinamicamente entre abas — a aba antiga "Gerador" foi removida e esta
-// estrutura passou a ser a única).
-const GB_TABS={
-  aleatorias:{ico:'🎲',titulo:'Apostas Aleatórias',painelId:'aba-painel-jogo'},
-  fechamento:{ico:'🔒',titulo:'Fechamento Prático',painelId:'aba-painel-fechamento'},
-  score:{ico:'⭐',titulo:'Fechamento por Score',painelId:'aba-painel-fch'}
+// Gerador de Jogos — painel ÚNICO (Apostas Aleatórias/Fechamento Prático/
+// Fechamento por Score foram unificados num só conjunto de controles,
+// já que todas as loterias têm suas particularidades tratadas por
+// setupMods(d) independente de qual algoritmo é usado). O que muda por
+// modo agora é só qual função roda ao clicar "Gerar" e quais seções extras
+// (Top N/Ver Ranking, exclusivos do Score) ficam visíveis.
+const GEN_MODES={
+  filtrado:  {btnLabel:'🎲 Gerar Jogos',                 genFn:()=>gerarJogos('jogo')},
+  urna:      {btnLabel:'🎲 Gerar (Aleatório Puro)',       genFn:()=>gerarJogos('jogo','urna')},
+  crypto:    {btnLabel:'🔐 Gerar (Aleatório PRNG)',       genFn:()=>gerarJogos('jogo','crypto')},
+  fechamento:{btnLabel:'🔒 Gerar Fechamento',             genFn:()=>gerarFechamento()},
+  score:     {btnLabel:'🎯 Gerar Fechamento por Score',   genFn:()=>gerarFechamentoPorScore()}
 };
-function gbSwitchTab(tab){
-  document.querySelectorAll('.gb-tab-btn').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('gb-tab-'+tab); if(btn) btn.classList.add('active');
-  const info=GB_TABS[tab]||GB_TABS.aleatorias;
-  Object.values(GB_TABS).forEach(t=>{
-    const el=document.getElementById(t.painelId);
-    if(el) el.style.display=(t.painelId===info.painelId)?'':'none';
-  });
+var _genModoAtual='filtrado';
+function setGenModo(modo){
+  _genModoAtual=GEN_MODES[modo]?modo:'filtrado';
+  document.querySelectorAll('.gen-mode-pill').forEach(b=>b.classList.toggle('active', b.dataset.modo===_genModoAtual));
+  const info=GEN_MODES[_genModoAtual];
+  const btn=document.getElementById('jogo-gerar-btn');
+  if(btn){ btn.textContent=info.btnLabel; btn.onclick=info.genFn; }
+  const isScore=_genModoAtual==='score';
+  const extras=document.getElementById('jogo-score-extras-sec'); if(extras) extras.style.display=isScore?'':'none';
 }
 // #result-box (card de resultado da geração) é mostrado num modal — desde
 // que a aba "Resultado" (#resultado-col-left) e o "Gerador" agora vivem em
@@ -6021,23 +5838,23 @@ function switchGenAba(aba) {
 }
 
 function setupMods(d){
-  // Limpa fixos do volante ao trocar de loteria
-  ['jogo','fech'].forEach(t=>{ if(_volFixos[t])_volFixos[t].clear(); });
-  // Limpa exclusões ao trocar de loteria (todos os tipos)
-  ['jogo','fech','fch2'].forEach(t=>{ if(_volExclMap[t])_volExclMap[t].clear(); });
+  // Limpa fixos/exclusões do volante ao trocar de loteria (painel único,
+  // só existe o conjunto 'jogo' desde a unificação do Gerador de Jogos).
+  if(_volFixos['jogo']) _volFixos['jogo'].clear();
+  if(_volExclMap['jogo']) _volExclMap['jogo'].clear();
   // Atualiza cores das abas do módulo unificado
   switchGenAba(_genAbaAtual);
+  // Reaplica o modo de geração atual (rótulo/onclick do botão Gerar +
+  // visibilidade das seções extras do Score) após trocar de loteria.
+  if(typeof setGenModo==='function') setGenModo(_genModoAtual);
   // result-hdr é o cabeçalho da página de Resultado (não um botão do Gerador)
   // — continua com fundo sólido. jogo-gerar-btn já recebe o estilo translúcido
-  // via [data-lotbtn] acima; bolao-gerar-btn não existe mais no HTML (removido).
+  // via [data-lotbtn] acima.
   const rh=document.getElementById('result-hdr'); if(rh) rh.style.background=d.cor;
-  // fech-gerar-btn segue o mesmo padrão "clean" (contorno + fundo translúcido)
-  const fbtn=document.getElementById('fech-gerar-btn');
-  if(fbtn){ fbtn.style.background=d.cor+'18'; fbtn.style.border=`1px solid ${d.corD||d.cor}`; fbtn.style.color=temColorAcc(d.cor); }
   const btnA=document.getElementById('btn-analise');
   if(btnA){btnA.style.borderColor=`${d.cor}88`;btnA.style.background=`linear-gradient(135deg,${d.cor}22,rgba(255,255,255,.05))`;}
   document.getElementById('btn-voltar').style.borderColor=`${d.cor}88`;
-  ['jogo-estat','fech-estat'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=`${d.cor}aa`;});
+  {const el=document.getElementById('jogo-estat');if(el)el.style.borderColor=`${d.cor}aa`;}
   ['btn-especial-jogo'].forEach(id=>{ const el=document.getElementById(id);if(!el)return; if(d.specialLabel){ el.classList.add('visivel'); el.style.background='#fff'; el.style.color=corContrasteBranco(d.cor); el.style.borderColor=d.cor; el.innerHTML=`⭐ ${d.specialLabel}`; } else { el.classList.remove('visivel'); } });
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
@@ -6059,14 +5876,12 @@ function setupMods(d){
     btn.onmouseover=function(){ this.style.background=d.cor+'28'; };
     btn.onmouseout=function(){ this.style.background=d.cor+'14'; };
   });
-  buildDezSelect('jogo-dez-wrap',d);buildDezSelect('fech-dez-wrap',d);
+  buildDezSelect('jogo-dez-wrap',d);
   buildSSDezSelects(d);
   atualizarEspelhoUI(d);
-  ['jogo','fech','fch2'].forEach(t=>{ const sec=document.getElementById(`${t}-fixos-qty`)?.closest('.fixos-sec'); if(sec) sec.style.display=''; });
-  buildFixosQtySelect('jogo',d);buildFixosQtySelect('fech',d);buildFixosQtySelect('fch2',d);
-  ['jogo','fech','fch2'].forEach(t=>buildMesTimeSec(t,d));
-  // Inicializar dropdown de dezenas do Fch por Score
-  buildDezSelect('fch-dez-wrap2',d);
+  {const sec=document.getElementById('jogo-fixos-qty')?.closest('.fixos-sec'); if(sec) sec.style.display='';}
+  buildFixosQtySelect('jogo',d);
+  buildMesTimeSec('jogo',d);
   // Construir dropdown Top N por Score de forma dinâmica (d.min+4 a d.min+12, cap no universo)
   buildFchTopN(d);
   // Os dropdowns de vínculo ao bolão já são populados por switchGenAba(),
@@ -6075,10 +5890,8 @@ function setupMods(d){
   // aquela, sem uma aguardar a outra; como ambas são assíncronas e cada
   // uma limpa+repopula o <select> de forma independente, o resultado eram
   // bolões duplicados na lista toda vez que o usuário trocava de loteria.
-  // Limpar cache de temperatura ao trocar de loteria (jogo, fech e fch2 — generalizado
-  // a partir do recurso que antes era exclusivo do fch2: ordenação do volante por score)
-  window._tempPorTipo={jogo:null,fech:null,fch2:null};
-  window._tempFch2=null; // mantido por compatibilidade com leituras antigas, se houver
+  // Limpar cache de temperatura ao trocar de loteria (painel único — só existe 'jogo').
+  window._tempPorTipo={jogo:null};
   // ── Atualizar cor de todos os botões [data-lotbtn]: contorno fino + fundo
   // translúcido + texto na cor da loteria (estilo "clean", igual ao padrão já
   // usado nos botões da tela de Bolões — pedido do usuário) ──
@@ -6107,13 +5920,16 @@ function setupMods(d){
     sel.style.color=_txt;
   });
   buildIaQtySelects(d);
-  // Volante de exclusões: oculta selects antigos e reconstrói botões (todos os tipos)
-  ['jogo','fech','fch2'].forEach(t=>{ const se=document.getElementById(`${t}-excl-qty`); if(se) se.style.display='none'; buildExclusoesGrid(t); });
+  // Volante de exclusões: oculta select antigo e reconstrói botões (painel único)
+  {const se=document.getElementById('jogo-excl-qty'); if(se) se.style.display='none'; buildExclusoesGrid('jogo');}
   buildEstatOptions(d);
 }
 function buildEstatOptions(d){
-  const BASE_OPTS = `<option value="12" selected>📊 Últimos 12 concursos (padrão)</option><option value="6">🕐 Últimos 6 concursos</option><option value="24">🕐 Últimos 24 concursos</option><option value="36">🕐 Últimos 36 concursos</option><option value="48">🕐 Últimos 48 concursos</option><option value="72">🕐 Últimos 72 concursos</option><option value="96">🕐 Últimos 96 concursos</option><option value="historica">📚 Histórica — todos os concursos</option>${d.specialLabel ? `<option value="especial">⭐ ${d.specialLabel}</option>` : ''}`;
-  ['jogo-estat','bolao-estat','fech-estat'].forEach(id=>{ const sel=document.getElementById(id); if(sel){sel.innerHTML=BASE_OPTS;sel.value='12';} });
+  const BASE_OPTS = `<option value="12">📊 Últimos 12 concursos</option><option value="6">🕐 Últimos 6 concursos</option><option value="24" selected>🕐 Últimos 24 concursos (padrão)</option><option value="36">🕐 Últimos 36 concursos</option><option value="48">🕐 Últimos 48 concursos</option><option value="72">🕐 Últimos 72 concursos</option><option value="96">🕐 Últimos 96 concursos</option><option value="historica">📚 Histórica — todos os concursos</option>${d.specialLabel ? `<option value="especial">⭐ ${d.specialLabel}</option>` : ''}`;
+  const selJ=document.getElementById('jogo-estat'); if(selJ){selJ.innerHTML=BASE_OPTS;selJ.value='24';}
+  // bolao-estat pertence à tela de Bolões (feature separada) — mantém o
+  // default próprio (12), fora do escopo do novo default do Gerador.
+  const selB=document.getElementById('bolao-estat'); if(selB){selB.innerHTML=BASE_OPTS;selB.value='12';}
 }
 async function fetchConcurso(apiKey, numero){ return await fetchCaixaPath(`${apiKey}/${numero}`,8000); }
 function extrairDezenas(raw, dupla=false){ return (raw.dezenas||raw.listaDezenas||[]).map(n=>parseInt(n)); }
@@ -6330,22 +6146,20 @@ document.addEventListener('click',e=>{if(!e.target.closest('.info-wrap-btn'))doc
 // ── Combo "Nº de Dezenas" do Super Sete (7 a 21) ──
 function buildSSDezSelects(d){
   const ehSS=!!d.superSete;
-  const gerarBtns={jogo:'jogo-gerar-btn',fech:'fech-gerar-btn'};
-  ['jogo','fech'].forEach(t=>{
-    const wrap=document.getElementById(`${t}-ss-dez-wrap`);
-    const sel=document.getElementById(`${t}-ss-dez`);
-    if(wrap) wrap.style.display=ehSS?'flex':'none';
-    if(ehSS&&sel){
-      let opts='';for(let i=7;i<=21;i++)opts+=`<option value="${i}"${i===7?' selected':''}>${i}</option>`;
-      sel.innerHTML=opts;
-    }
-    // Botão Gerar: divide a linha (flex:1) no Super Sete; ocupa tudo (100%) nas demais
-    const gb=document.getElementById(gerarBtns[t]);
-    if(gb) gb.style.flex=ehSS?'1':'1 1 100%';
-    // Oculta o dropdown "Dezenas/jogo" do topo no Super Sete (substituído pelo botão)
-    const topo=document.getElementById(`${t}-dez-wrap`)?.closest('.field-grp');
-    if(topo) topo.style.display=ehSS?'none':'';
-  });
+  const t='jogo';
+  const wrap=document.getElementById(`${t}-ss-dez-wrap`);
+  const sel=document.getElementById(`${t}-ss-dez`);
+  if(wrap) wrap.style.display=ehSS?'flex':'none';
+  if(ehSS&&sel){
+    let opts='';for(let i=7;i<=21;i++)opts+=`<option value="${i}"${i===7?' selected':''}>${i}</option>`;
+    sel.innerHTML=opts;
+  }
+  // Botão Gerar: divide a linha (flex:1) no Super Sete; ocupa tudo (100%) nas demais
+  const gb=document.getElementById('jogo-gerar-btn');
+  if(gb) gb.style.flex=ehSS?'1':'1 1 100%';
+  // Oculta o dropdown "Dezenas/jogo" do topo no Super Sete (substituído pelo botão)
+  const topo=document.getElementById(`${t}-dez-wrap`)?.closest('.field-grp');
+  if(topo) topo.style.display=ehSS?'none':'';
 }
 function syncSSDezenas(tipo){
   const v=document.getElementById(`${tipo}-ss-dez`)?.value;
@@ -6438,13 +6252,13 @@ function calcTemperaturaNumeros(universo, scoreMap){
 function abrirVolante(tipo) {
   const d = CFG[currentKey]; if (!d) return;
   if (!_volFixos[tipo]) _volFixos[tipo] = new Set();
-  if(!window._tempPorTipo) window._tempPorTipo={jogo:null,fech:null,fch2:null};
+  if(!window._tempPorTipo) window._tempPorTipo={jogo:null};
 
   // Calcula temperatura automaticamente se ainda não calculada para este tipo — recurso
   // que originalmente era exclusivo do fch2 (Fechamento por Score), agora replicado para
   // jogo (Individual) e fech (Fechamento): o volante de N° Fixos/Excluir Números exibe
   // os números agrupados e ordenados por Score Global (🔥 Quentes/⚖ Médios/❄ Frios).
-  if(!window._tempExtraPorTipo) window._tempExtraPorTipo={jogo:null,fech:null,fch2:null};
+  if(!window._tempExtraPorTipo) window._tempExtraPorTipo={jogo:null};
   const _precisaCalcular=!window._tempPorTipo[tipo] || (d.americano && !window._tempExtraPorTipo[tipo]);
   if(_precisaCalcular){
     (async()=>{
@@ -7580,9 +7394,7 @@ function atualizarEspelhoUI(d){
   const cfg=ESPELHO_CFG[currentKey];
   const desc = cfg ? (cfg.disjunto?'Dois jogos com dezenas distintas entre si':`Universo dividido em 2 grupos (${cfg.grupoA}+${cfg.grupoB}); 1 jogo de cada`) : '';
   [['espelho-wrap','jogo-espelho','espelho-info'],
-   ['bolao-espelho-wrap','bolao-espelho','bolao-espelho-info'],
-   ['fech-espelho-wrap','fech-espelho','fech-espelho-info'],
-   ['fch2-espelho-wrap','fch2-espelho','fch2-espelho-info']].forEach(function(ids){
+   ['bolao-espelho-wrap','bolao-espelho','bolao-espelho-info']].forEach(function(ids){
     const wrap=document.getElementById(ids[0]);
     const chk=document.getElementById(ids[1]);
     const info=document.getElementById(ids[2]);
@@ -9515,7 +9327,7 @@ function getExcluidosExtra(tipo){
 }
 
 function buildExclusoesGrid(tipo){
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   const d = CFG[currentKey]; if (!d) return;
   const _volExcl = _exclSet(tipo);
   // Oculta o select original (compatibilidade)
@@ -9542,17 +9354,17 @@ function buildExclusoesGrid(tipo){
 }
 
 function limparExclusoes(tipo) {
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   _exclSet(tipo).clear();
   buildExclusoesGrid(tipo);
   if(tipo==='fch2' && typeof atualizarTopNVisibilidade==='function') atualizarTopNVisibilidade();
 }
 
 function abrirVolanteExcl(tipo) {
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   const d = CFG[currentKey]; if (!d) return;
   const _volExcl = _exclSet(tipo);
-  if(!window._tempPorTipo) window._tempPorTipo={jogo:null,fech:null,fch2:null};
+  if(!window._tempPorTipo) window._tempPorTipo={jogo:null};
 
   // Calcula temperatura automaticamente se ainda não calculada para este tipo (mesmo
   // recurso replicado em abrirVolante — ver comentário lá para detalhes)
@@ -9758,7 +9570,7 @@ function abrirVolanteExcl(tipo) {
 }
 
 function toggleVolExcl(tipo, val, btn) {
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   const _volExcl = _exclSet(tipo);
   const d = CFG[currentKey];
   const EXCL_COR = '#ff4d6d';
@@ -9783,7 +9595,7 @@ function toggleVolExcl(tipo, val, btn) {
 }
 
 function atualizarModalExcl(tipo) {
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   const _volExcl = _exclSet(tipo);
   const pad = n => String(n).padStart(2, '0');
   const status = document.getElementById('excl-status');
@@ -9795,7 +9607,7 @@ function atualizarModalExcl(tipo) {
 }
 
 function confirmarExclusoes(tipo){
-  tipo = tipo || 'fech';
+  tipo = tipo || 'jogo';
   document.getElementById('modal-volante-excl')?.remove();
   buildExclusoesGrid(tipo);
   if(tipo==='fch2' && typeof atualizarTopNVisibilidade==='function') atualizarTopNVisibilidade();
@@ -9811,7 +9623,7 @@ function confirmarExclusoes(tipo){
 // Constrói o dropdown "Top dezenas por Score" dinamicamente:
 // opções de d.min+4 a d.min+12, limitado ao tamanho do universo
 function buildFchTopN(d){
-  const sel=document.getElementById('fch-topn');
+  const sel=document.getElementById('jogo-topn');
   if(!sel||!d) return;
   const minDez=d.min||6;
   const maxUni=d.universe||(d.max||60);
@@ -9829,9 +9641,9 @@ function buildFchTopN(d){
 // Controla visibilidade do campo Top Dezenas:
 // Some quando Espelho, Fixos (>0) ou Exclusões estão ativos
 function atualizarTopNVisibilidade(){
-  const espOn=document.getElementById('fch2-espelho')?.checked && ESPELHO_CFG[currentKey];
-  const nFixos=(_volFixos['fch2']?.size||0);
-  const nExcl=(getExcluidos('fch2').length);
+  const espOn=document.getElementById('jogo-espelho')?.checked && ESPELHO_CFG[currentKey];
+  const nFixos=(_volFixos['jogo']?.size||0);
+  const nExcl=(getExcluidos('jogo').length);
   const esconder=!!(espOn||nFixos>0||nExcl>0);
   const wrap=document.getElementById('fch-topn-wrap');
   if(wrap) wrap.style.display=esconder?'none':'';
@@ -9852,7 +9664,7 @@ function atualizarTopNVisibilidade(){
 function toggleFchEspelho(checked){
   atualizarTopNVisibilidade();
   // Limpar preview ao trocar estado
-  const prev=document.getElementById('fch-score-preview');
+  const prev=document.getElementById('score-ranking-preview');
   if(prev) prev.style.display='none';
   window._fchScoreFiltros=null;
   window._fchScoreGrupoA=null; window._fchScoreGrupoB=null;
@@ -9861,18 +9673,23 @@ function toggleFchEspelho(checked){
 
 async function calcularScoreEPreview(){
   const d=CFG[currentKey]; if(!d){toast('Selecione uma loteria.');return;}
-  const baseN=parseInt(document.getElementById('fch-base')?.value)||12;
+  // Base Estatística compartilhada (jogo-estat) usa "historica"/"especial" onde
+  // o antigo select exclusivo do Score (fch-base) usava "0" — mesmo tratamento
+  // já usado em gerarJogos() para uma base ampla quando o histórico completo é pedido.
+  const baseRaw=document.getElementById('jogo-estat')?.value;
+  const baseN=(baseRaw==='historica'||baseRaw==='especial')?3000:(parseInt(baseRaw)||24);
   const historico=await garantirHistoricoLocal(currentKey, baseN||3000);
   if(!historico.length){toast('Sem histórico. Clique em Atualizar primeiro.');return;}
   const filtros=calcFiltrosEstat(historico, d, d.min)||{};
   if(!filtros.scoreGlobalPorNum){toast('Score não disponível para esta loteria.');return;}
   const universo=d.universe===100?Array.from({length:100},(_,i)=>i):Array.from({length:d.universe},(_,i)=>i+d.start);
-  const excl=new Set(getExcluidos('fch2'));
+  const excl=new Set(getExcluidos('jogo'));
   const candidatos=universo.filter(n=>!excl.has(n));
-  const espelhoOn=document.getElementById('fch2-espelho')?.checked && ESPELHO_CFG[currentKey];
+  const espelhoOn=document.getElementById('jogo-espelho')?.checked && ESPELHO_CFG[currentKey];
   const ecfg=espelhoOn?ESPELHO_CFG[currentKey]:null;
-  const preview=document.getElementById('fch-score-preview');
-  const balls=document.getElementById('fch-score-balls');
+  const preview=document.getElementById('score-ranking-preview');
+  const balls=document.getElementById('score-ranking-balls');
+  if(typeof openModal==='function') openModal('modal-score-ranking');
 
   // Ordenar TODOS por Score Global
   const ranking=candidatos.slice().sort((a,b)=>(filtros.scoreGlobalPorNum[b]||0)-(filtros.scoreGlobalPorNum[a]||0));
@@ -9919,7 +9736,7 @@ async function calcularScoreEPreview(){
     toast(`✅ Grupos prontos: PRINCIPAL (${grupoA.length}) + ESPELHO (${grupoB.length}) · Informe a Qtd e clique Gerar`);
   } else {
     // SEM ESPELHO: Top N por score
-    const topN=parseInt(document.getElementById('fch-topn')?.value)||12;
+    const topN=parseInt(document.getElementById('jogo-topn')?.value)||12;
     const topDez=ranking.slice(0,Math.min(topN,candidatos.length));
     window._fchScoreTopDez=topDez; window._fchScoreFiltros=filtros;
     window._fchScoreGrupoA=null; window._fchScoreGrupoB=null; window._fchScoreEspelho=false;
@@ -9941,12 +9758,12 @@ async function gerarFechamentoPorScore(){
   // Mega-Sena aparecendo num fechamento de Dia de Sorte, que só vai até 31).
   if(!window._fchScoreFiltros || window._fchScoreLoteria!==currentKey){await calcularScoreEPreview();}
   const filtros=window._fchScoreFiltros||{};
-  const qtyInput=parseInt(document.getElementById('fch2-qty')?.value)||0;
+  const qtyInput=parseInt(document.getElementById('jogo-qty')?.value)||0;
   const maxJogos=qtyInput>0?Math.min(qtyInput,5000):5000;
-  const numDezSel=document.getElementById('fch-dez-wrap2');
+  const numDezSel=document.getElementById('jogo-dez-wrap');
   const numDez=numDezSel?parseInt(numDezSel.querySelector('select')?.value||d.min):d.min;
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
-  const fixosFch2=getFixos('fch2');
+  const fixosFch2=getFixos('jogo');
   const pad=n=>String(n).padStart(2,'0');
   const _fixSetFch2=new Set(fixosFch2);
 
@@ -10022,7 +9839,7 @@ async function gerarFechamentoPorScore(){
 
   const espelhoOn=window._fchScoreEspelho && window._fchScoreGrupoA && window._fchScoreGrupoB;
   const nFixos=fixosFch2.length;
-  const exclusoesFch2=getExcluidos('fch2');
+  const exclusoesFch2=getExcluidos('jogo');
   const hasFixosOrExcl=nFixos>0||exclusoesFch2.length>0;
   let jogos=[];
 
@@ -10036,7 +9853,7 @@ async function gerarFechamentoPorScore(){
       jogos=[fixosFch2.slice().sort((a,b)=>a-b)];
     } else {
       // Pool: top N por score (padrão 18) - exclusões - fixos
-      const topNVal=parseInt(document.getElementById('fch-topn')?.value)||18;
+      const topNVal=parseInt(document.getElementById('jogo-topn')?.value)||18;
       const uniArr=d.universe===100?Array.from({length:100},(_,i)=>i):Array.from({length:d.universe},(_,i)=>i+d.start);
       const exclSet=new Set(exclusoesFch2);
       const fixSet=new Set(fixosFch2);
@@ -10107,13 +9924,13 @@ async function gerarFechamentoPorScore(){
   // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
   // (Dia de Sorte) e Time do Coração (Timemania) — para principal E
   // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
-  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'fch2'));
+  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'jogo'));
 
   jogosGerados=jogos;
 
   const ESP_COR='#7c3aed';
   document.getElementById('result-title').textContent=`${jogos.length} fechamento${jogos.length!==1?'s':''} por score${espelhoOn?' · 🪞 Aposta Espelho':''}`;
-  const modoDesc=hasFixosOrExcl&&!espelhoOn?`Completado por ranking (top ${parseInt(document.getElementById('fch-topn')?.value)||18}) · 30% 🔥 / 40% ⚖ / 30% ❄`:'Combinações por Score Global';
+  const modoDesc=hasFixosOrExcl&&!espelhoOn?`Completado por ranking (top ${parseInt(document.getElementById('jogo-topn')?.value)||18}) · 30% 🔥 / 40% ⚖ / 30% ❄`:'Combinações por Score Global';
   document.getElementById('result-sub').textContent=`${numDez} dez/jogo · ${modoDesc} · ${d.nome}`;
 
   // Cabeçalho dos grupos (se espelho)
@@ -10153,15 +9970,15 @@ async function gerarFechamentoPorScore(){
   const box=document.getElementById('result-box');box.style.display='block';
   exibirConcursoBar();box.scrollIntoView({behavior:'smooth',block:'nearest'});
   atualizarCustoPainel();
-  const vincSel=document.getElementById('fch2-vinculo-sel');
+  const vincSel=document.getElementById('jogo-vinculo-sel');
   const vincId=vincSel?parseInt(vincSel.value)||0:0;
-  if(vincId&&typeof vincularJogosAoBolao==='function')await vincularJogosAoBolao(vincId,_clonarJogosComExtras(jogos),'fch2-dez-wrap2');
+  if(vincId&&typeof vincularJogosAoBolao==='function')await vincularJogosAoBolao(vincId,_clonarJogosComExtras(jogos),'jogo-dez-wrap');
   toast(`✅ ${jogos.length} par${jogos.length!==1?'es':''} por score${espelhoOn?` (${jogos.length*2} jogos com espelho)`:''} gerado${jogos.length!==1?'s':''}`);
 }
 async function gerarFechamento(){
   const d=CFG[currentKey];if(!d)return;
   const _sorteadosF=await obterSorteadosSet(currentKey); // ineditismo vs todos os concursos
-  const qtyEl=document.getElementById('fech-qty');
+  const qtyEl=document.getElementById('jogo-qty');
   let qty=parseInt(qtyEl.value);
   if(!qty||qty<1){toast('Informe a quantidade de jogos do fechamento.');return;}
   if(qty>5000){qty=5000;qtyEl.value=5000;}
@@ -10169,9 +9986,9 @@ async function gerarFechamento(){
   // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
   // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não gerar N pares
   // (N principais + N espelhos = 2N jogos no total, o dobro do pedido).
-  const _fechEspOnEarly=document.getElementById('fech-espelho')?.checked && ESPELHO_CFG[currentKey];
+  const _fechEspOnEarly=document.getElementById('jogo-espelho')?.checked && ESPELHO_CFG[currentKey];
   if(_fechEspOnEarly) qty=Math.max(1,Math.round(qty/2));
-  const wrapId='fech-dez-wrap';
+  const wrapId='jogo-dez-wrap';
   let numDez=getDezWrap(wrapId,d.min);
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
   // Melhoria sugerida no relatório comparativo dos métodos de geração
@@ -10182,7 +9999,7 @@ async function gerarFechamento(){
   let _histFech=[];
   try{ _histFech=await garantirHistoricoLocal(currentKey,3000,false); }catch(e){ console.warn('[FECHAMENTO] hist local falhou:',e.message); }
   const _filtrosFech=(_histFech.length>=5)?calcFiltrosEstat(_histFech,d,numDez):null;
-  const exclusoes=getExcluidos('fech');
+  const exclusoes=getExcluidos('jogo');
   let universe=[];
   if(d.universe===100){for(let i=0;i<100;i++)universe.push(i);} else if(d.superSete){for(let i=0;i<10;i++)universe.push(i);} else{for(let i=d.start;i<=d.start+d.universe-1;i++)universe.push(i);}
   const univDisp=universe.filter(n=>!exclusoes.includes(n));
@@ -10218,7 +10035,7 @@ async function gerarFechamento(){
       if(!seen.has(k)&&!_sorteadosF.has(k)){seen.add(k);jogos.push(jogo);}
     }
   } else {
-    const fixosF=getFixos('fech').filter(n=>univDisp.includes(n));
+    const fixosF=getFixos('jogo').filter(n=>univDisp.includes(n));
     if(fixosF.length>numDez){toast(`Fixos (${fixosF.length}) excedem as dezenas por jogo (${numDez}).`);return;}
     const restoDisp=univDisp.filter(n=>!fixosF.includes(n));
     const faltam=numDez-fixosF.length;
@@ -10232,7 +10049,7 @@ async function gerarFechamento(){
   // ── Aposta Espelho no Fechamento: cada jogo ganha um espelho do grupo
   // complementar (só os NÚMEROS aqui — bola extra/trevos/mês/time de
   // ambos os lados são atribuídos juntos logo abaixo, num único passo). ──
-  const _fechEspOn = document.getElementById('fech-espelho')?.checked && ESPELHO_CFG[currentKey];
+  const _fechEspOn = document.getElementById('jogo-espelho')?.checked && ESPELHO_CFG[currentKey];
   if(_fechEspOn){
     let uniFull=[];
     if(d.universe===100) for(let i=0;i<100;i++) uniFull.push(i);
@@ -10250,7 +10067,7 @@ async function gerarFechamento(){
   // Bola extra (Powerball/Mega Ball), trevos (+Milionária), Mês da Sorte
   // (Dia de Sorte) e Time do Coração (Timemania) — para principal E
   // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
-  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'fech'));
+  jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'jogo'));
 
   // Score Global (mesma fórmula de 11 fatores do Motor de IA/Gerador Manual)
   // — aplicado como pós-processamento, sem alterar como os jogos foram
@@ -10267,7 +10084,7 @@ async function gerarFechamento(){
   const bxc=d.bolaExtraCor||TURQUESA;
   document.getElementById('result-title').textContent=`${jogos.length} jogos de fechamento gerados`;
   document.getElementById('result-sub').textContent=`${numDez} dez/jogo${exclusoes.length>0?' · '+exclusoes.length+' dezena(s) excluída(s)':''}`;
-  const _fixSetF=new Set(getFixos('fech'));
+  const _fixSetF=new Set(getFixos('jogo'));
   document.getElementById('result-body').innerHTML=jogos.map((jogo,i)=>{
     const mainBalls=jogo.slice(0,numDez).map(n=>{const fx=_fixSetF.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
     const extraHtml=jogo._extra
@@ -10294,10 +10111,10 @@ async function gerarFechamento(){
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
   atualizarCustoPainel();
   // Se houver um bolão selecionado no dropdown, vincula automaticamente os jogos
-  var _fvSel=document.getElementById('fech-vinculo-sel');
+  var _fvSel=document.getElementById('jogo-vinculo-sel');
   var _fvId=_fvSel?parseInt(_fvSel.value)||0:0;
   if(_fvId && typeof vincularJogosAoBolao==='function'){
-    await vincularJogosAoBolao(_fvId, _clonarJogosComExtras(jogos), 'fech-dez-wrap');
+    await vincularJogosAoBolao(_fvId, _clonarJogosComExtras(jogos), 'jogo-dez-wrap');
   }
 }
 // Atualização automática 3x ao dia (08h, 14h, 22h, horário local do
@@ -10449,15 +10266,13 @@ function buildIaQtySelects(d){
   // Faixas customizadas por loteria: iaRange = [fixLo, fixHi, exLo, exHi]
   const R = d.iaRange || [5,12,1,7];
   const cfg = { fixos:[R[0],R[1]], excluir:[R[2],R[3]] };
-  ['jogo','fech','fch2'].forEach(t=>{
-    ['fixos','excluir'].forEach(alvo=>{
-      const sel=document.getElementById(`${t}-ia-${alvo}-qty`); if(!sel)return;
-      const [lo,hi]=cfg[alvo];
-      const def=Math.min(Math.max(lo, alvo==='fixos'?Math.min(7,hi):Math.min(3,hi)), hi);
-      let opts='';
-      for(let v=lo;v<=hi;v++) opts+=`<option value="${v}"${v===def?' selected':''}>${v}</option>`;
-      sel.innerHTML=opts;
-    });
+  ['fixos','excluir'].forEach(alvo=>{
+    const sel=document.getElementById(`jogo-ia-${alvo}-qty`); if(!sel)return;
+    const [lo,hi]=cfg[alvo];
+    const def=Math.min(Math.max(lo, alvo==='fixos'?Math.min(7,hi):Math.min(3,hi)), hi);
+    let opts='';
+    for(let v=lo;v<=hi;v++) opts+=`<option value="${v}"${v===def?' selected':''}>${v}</option>`;
+    sel.innerHTML=opts;
   });
 }
 
@@ -15837,7 +15652,7 @@ async function popularDropdownsVinculo(){
   if(_popularDropdownsVinculoEmAndamento) return;
   _popularDropdownsVinculoEmAndamento=true;
   try{
-  var sels=[document.getElementById('fech-vinculo-sel'),document.getElementById('jogo-vinculo-sel'),document.getElementById('fch2-vinculo-sel')];
+  var sels=[document.getElementById('jogo-vinculo-sel')];
   var todos=[];
   try{ todos=await dbAll('boloes_v2'); }catch(e){}
   // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
