@@ -2185,7 +2185,8 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
           <div class="gen-mode-group" id="gen-mode-group">
             <button class="gen-mode-pill active" data-modo="filtrado" onclick="setGenModo('filtrado')" title="Geração individual com filtros estatísticos básicos — 1 jogo por vez, sem cobertura combinatória">🎲 Filtrado</button>
             <button class="gen-mode-pill" data-modo="urna" onclick="setGenModo('urna')" title="Modo urna/saco: embaralha o universo inteiro e distribui com cobertura total e mínima repetição — ZERO estatística">🎲 Aleatório Puro</button>
-            <button class="gen-mode-pill" data-modo="crypto" onclick="setGenModo('crypto')" title="Mesma cobertura total do Aleatório Puro, mas usando crypto.getRandomValues() — o gerador criptograficamente seguro do navegador">🔐 PRNG</button>
+            <button class="gen-mode-pill" data-modo="crypto" onclick="setGenModo('crypto')" title="Mesma cobertura total do Aleatório Puro, mas usando crypto.getRandomValues() — o gerador CRIPTOGRAFICAMENTE SEGURO do navegador (CSPRNG): imprevisível, não reproduzível">🔐 CSPRNG</button>
+            <button class="gen-mode-pill" data-modo="seed" onclick="setGenModo('seed')" title="PRNG determinístico com seed escolhido por você: o MESMO seed sempre gera a MESMA sequência de jogos — útil para reproduzir/conferir uma geração depois. Não é criptograficamente seguro (não é para imprevisibilidade, é para reprodutibilidade)">🎲 PRNG (Seed)</button>
             <button class="gen-mode-pill" data-modo="fechamento" onclick="setGenModo('fechamento')" title="Fechamento aleatório dentro do universo disponível (após fixos/exclusões), sem nenhuma ponderação estatística — prioriza volume e velocidade (até 5.000 jogos)">🔒 Fechamento</button>
             <button class="gen-mode-pill" data-modo="score" onclick="setGenModo('score')" title="Fechamento priorizando as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos">⭐ Score</button>
           </div>
@@ -2274,6 +2275,22 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
                 </button>
               </div>
             </div>
+          </div>
+
+          <!-- SEÇÃO 3b — Extras específicos do modo PRNG (Seed) -->
+          <div class="gen-sec gen-sec-full" id="jogo-seed-extras-sec" style="display:none">
+            <div class="gen-sec-hdr">
+              <span class="gen-sec-num">🎲</span>
+              <span class="gen-sec-title">Seed do PRNG</span>
+              <span class="gen-sec-hint">O mesmo seed sempre gera a mesma sequência de jogos</span>
+            </div>
+            <div class="field-row">
+              <div class="field-grp" style="flex:1">
+                <span class="field-lbl">Seed (número ou texto)</span>
+                <input class="f-inp" id="jogo-seed-input" type="text" placeholder="Deixe em branco para gerar um seed aleatório" maxlength="64"/>
+              </div>
+            </div>
+            <div style="font-size:9px;color:var(--text-dim)">Se deixar em branco, um seed é sorteado e preenchido aqui automaticamente ao gerar — anote-o se quiser repetir esta mesma geração depois.</div>
           </div>
 
           <!-- SEÇÃO 4 — Ações de geração -->
@@ -5459,7 +5476,8 @@ document.addEventListener('click', function(e){
 const GEN_MODES={
   filtrado:  {btnLabel:'🎲 Gerar Jogos',                 genFn:()=>gerarJogos('jogo')},
   urna:      {btnLabel:'🎲 Gerar (Aleatório Puro)',       genFn:()=>gerarJogos('jogo','urna')},
-  crypto:    {btnLabel:'🔐 Gerar (Aleatório PRNG)',       genFn:()=>gerarJogos('jogo','crypto')},
+  crypto:    {btnLabel:'🔐 Gerar (CSPRNG)',               genFn:()=>gerarJogos('jogo','crypto')},
+  seed:      {btnLabel:'🎲 Gerar (PRNG com Seed)',        genFn:()=>gerarJogos('jogo','seed')},
   fechamento:{btnLabel:'🔒 Gerar Fechamento',             genFn:()=>gerarFechamento()},
   score:     {btnLabel:'🎯 Gerar Fechamento por Score',   genFn:()=>gerarFechamentoPorScore()}
 };
@@ -5472,6 +5490,8 @@ function setGenModo(modo){
   if(btn){ btn.textContent=info.btnLabel; btn.onclick=info.genFn; }
   const isScore=_genModoAtual==='score';
   const extras=document.getElementById('jogo-score-extras-sec'); if(extras) extras.style.display=isScore?'':'none';
+  const isSeed=_genModoAtual==='seed';
+  const seedExtras=document.getElementById('jogo-seed-extras-sec'); if(seedExtras) seedExtras.style.display=isSeed?'':'none';
 }
 // #result-box (card de resultado da geração) é mostrado num modal — desde
 // que a aba "Resultado" (#resultado-col-left) e o "Gerador" agora vivem em
@@ -7514,10 +7534,57 @@ function _shuffleCrypto(a){
   for(let i=a.length-1;i>0;i--){ const j=_cryptoRandomInt(i+1); const t=a[i];a[i]=a[j];a[j]=t; }
   return a;
 }
+
+// ═══════════════════════════════════════════════════════════════════
+//  PRNG COM SEED MANUAL — gerador pseudoaleatório DETERMINÍSTICO: o
+//  mesmo seed sempre produz exatamente a mesma sequência de jogos, para
+//  quem quiser poder reproduzir/conferir um sorteio gerado antes (ex.:
+//  provar publicamente qual seed foi usado, ou repetir a mesma geração
+//  depois). Diferente do CSPRNG (crypto.getRandomValues, não reproduzível
+//  por natureza — essa é a garantia de segurança dele) e do Aleatório
+//  Puro (Math.random, também não reproduzível). Usa mulberry32 (PRNG de
+//  32 bits, período ~4 bilhões, rápido e com boa distribuição para este
+//  uso — não é criptograficamente seguro, e não precisa ser: o objetivo
+//  aqui é reprodutibilidade, não imprevisibilidade).
+function _mulberry32(seed){
+  let a=seed>>>0;
+  return function(){
+    a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+// Converte um seed em texto (qualquer string digitada pelo usuário) num
+// inteiro de 32 bits determinístico (hash FNV-1a) — permite usar tanto
+// números quanto palavras/frases como seed.
+function _seedFromString(str){
+  let h=2166136261>>>0;
+  for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+  return h>>>0;
+}
+function _shuffleSeeded(a,rng){
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; }
+  return a;
+}
 async function gerarJogos(tipo,modo){
   modo=modo||'normal';
-  const _urna=(modo==='urna'||modo==='crypto');
+  const _urna=(modo==='urna'||modo==='crypto'||modo==='seed');
   const _crypto=(modo==='crypto');
+  const _seedMode=(modo==='seed');
+  // Seed manual: lê o campo de texto (só existe/visível no modo Seed); se
+  // vazio, gera um seed aleatório e o escreve de volta no campo, para que
+  // o usuário veja e possa anotar/reutilizar depois (reprodutibilidade só
+  // funciona se ele souber qual seed foi usado).
+  let _seedRng=null, _seedUsado=null;
+  if(_seedMode){
+    const seedInput=document.getElementById('jogo-seed-input');
+    let seedTxt=(seedInput?.value||'').trim();
+    if(!seedTxt){ seedTxt=String(Math.floor(Math.random()*1e9)); if(seedInput) seedInput.value=seedTxt; }
+    _seedUsado=seedTxt;
+    const seedNum=/^-?\d+$/.test(seedTxt)?(parseInt(seedTxt)>>>0):_seedFromString(seedTxt);
+    _seedRng=_mulberry32(seedNum);
+  }
   try{
     /* Ineditismo: conjunto de todas as combinações já sorteadas desta loteria.
        No modo urna (aleatório puro) não aplicamos ineditismo, para preservar a
@@ -7642,7 +7709,7 @@ async function gerarJogos(tipo,modo){
     //  repetição mínima entre jogos). Sorteio sem reposição dentro de cada jogo.
     // ═══════════════════════════════════════════════════════════════════
     if(_urna){
-      const _shuffle=_crypto?_shuffleCrypto:(a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; });
+      const _shuffle=_crypto?_shuffleCrypto:_seedMode?(a=>_shuffleSeeded(a,_seedRng)):(a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; });
 
       if(d.superSete){
         // Uma urna independente de dígitos (0–9) por coluna; reabastece ao esvaziar.
@@ -7899,7 +7966,7 @@ async function gerarJogos(tipo,modo){
     const pad=n=>String(n).padStart(2,'0');
     const fixoSet=new Set(fixos);
     const baseLabel={'historica':'Histórica','6':'Últ. 6','12':'Últ. 12','24':'Últ. 24','36':'Últ. 36','48':'Últ. 48','72':'Últ. 72','96':'Últ. 96','especial':d.specialLabel||'Especial'}[estatBase]||estatBase;
-    const filtroInfo=_urna?' · 🎲 Apostas aleatórias (urna — cobertura total, sem estatística)':((filtros?' · Filtros estatísticos ativos':' · Geração aleatória')+(_sorteadosSet.size?` · ✓ Inéditos vs ${_sorteadosSet.size} concursos`:''));
+    const filtroInfo=_seedMode?` · 🎲 PRNG com Seed — reproduzível (seed: ${_seedUsado})`:_urna?' · 🎲 Apostas aleatórias (urna — cobertura total, sem estatística)':((filtros?' · Filtros estatísticos ativos':' · Geração aleatória')+(_sorteadosSet.size?` · ✓ Inéditos vs ${_sorteadosSet.size} concursos`:''));
 
     document.getElementById('result-title').textContent=`${jogos.length} ${tipo==='bolao'?'jogos de bolão':'jogos'} gerados`;
     const _scoresM1=jogos.map(j=>j._scoreJogo).filter(s=>s!=null);
