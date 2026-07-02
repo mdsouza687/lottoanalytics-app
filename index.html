@@ -5133,9 +5133,20 @@ function laFmtHistLabel(dataStr){
 function renderLaHist(d,key){
   const wrap=document.getElementById('laHistBody'); if(!wrap) return;
 
-  // Se o cache tem concurso mais recente que resultados[key], atualiza em background
+  // Se o cache tem concurso mais recente que resultados[key], atualiza em
+  // background — MAS no máximo UMA VEZ por loteria por sessão (via
+  // _laHistTentado, nunca removido). Sem essa trava: se atualizarLoteria()
+  // falhar (sem rede, API fora do ar etc.) ou devolver um resultado que por
+  // algum motivo não "resolve" a condição de desatualizado, o then() chama
+  // renderLaHist() de novo, que detecta a MESMA condição e tenta atualizar
+  // de novo — um loop infinito de fetch+render que travava a aba
+  // re-renderizando o card dezenas de vezes por segundo ("flicker" visível
+  // no Histórico de Sorteios). Uma tentativa por sessão é suficiente: se
+  // falhar, o botão "Atualizar" manual (ou a próxima visita) resolve.
+  if(typeof _laHistTentado==='undefined') window._laHistTentado=new Set();
   const _cacheTop=(_laHistCache[key]||[])[0];
-  if(_cacheTop&&resultados[key]&&parseInt(_cacheTop.concurso||0)>parseInt(resultados[key].concurso||0)){
+  if(_cacheTop&&resultados[key]&&parseInt(_cacheTop.concurso||0)>parseInt(resultados[key].concurso||0)&&!_laHistTentado.has(key)){
+    _laHistTentado.add(key);
     atualizarLoteria(key).then(r=>{if(r&&CFG[key])renderLaHist(CFG[key],key);}).catch(()=>{});
   }
 
