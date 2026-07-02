@@ -1068,6 +1068,12 @@ body.theme-light .la-home #laAurora b{opacity:.16}
 .la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
 .la-nav::-webkit-scrollbar{height:4px}
 .la-nav::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
+/* Logo e botões (tema/Atualizar/Admin/Sair) da barra de navegação 10%
+   menores — escopado só a .la-nav pra não afetar .btn-sm/.theme-btn em
+   nenhum outro lugar do app (modais, outras telas etc. usam essas mesmas
+   classes e devem continuar no tamanho normal). */
+.la-nav .theme-btn{padding:4.5px 7.2px;font-size:13.5px}
+.la-nav .btn-sm{padding:7.2px 14.4px;font-size:10.35px}
 .la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0}
 .la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
@@ -1518,7 +1524,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   <!-- NAVBAR -->
   <div class="la-nav">
     <div class="dash-brand" style="cursor:pointer" onclick="showDashboard()">
-      <svg width="260" height="40" viewBox="0 0 300 46" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex-shrink:0">
+      <svg width="234" height="36" viewBox="0 0 300 46" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex-shrink:0">
   <defs>
     <radialGradient id="ld-bg" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#2a2010"/><stop offset="100%" stop-color="#0d0a04"/></radialGradient>
     <linearGradient id="ld-gold" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fef5c0"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#8b6914"/></linearGradient>
