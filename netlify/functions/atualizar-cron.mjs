@@ -8,10 +8,17 @@
 // projeto não é mais publicado na Vercel, então aquela função nunca mais foi
 // executada.
 //
-// Powerball e Mega Millions NÃO estão aqui: o cliente já busca os dois
-// diretamente (boot + verificação a cada 30min + botão Atualizar) usando uma
-// lógica própria (jackpot, premiações, cálculo de concurso pela data) grande
-// demais para duplicar com segurança neste primeiro passo.
+// Powerball e Mega Millions: os RESULTADOS (dezenas sorteadas) continuam só
+// no cliente (boot + verificação a cada 30min + botão Atualizar), que já tem
+// a lógica própria de premiações/cálculo de concurso pela data — grande
+// demais para duplicar com segurança aqui.
+//
+// O JACKPOT (valor estimado do prêmio) é diferente: o cliente busca isso via
+// scraping de HTML através de proxies CORS gratuitos e instáveis (rodando no
+// navegador, sujeito a bloqueio de CORS pelos sites oficiais) — por isso
+// ficava sempre desatualizado e precisava de atualização manual no código.
+// Rodando aqui no servidor não existe CORS, então dá pra chamar a API oficial
+// de cada loteria diretamente, sem proxy e sem regex de scraping frágil.
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
@@ -75,6 +82,69 @@ async function buscarResultado(apiKey, concursoAtual) {
   return latest;
 }
 
+function fmtUSD(n) {
+  if (n == null || isNaN(n)) return null;
+  const milhoes = n / 1e6;
+  return `US$ ${milhoes.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} Milhões`;
+}
+
+// As APIs "oficiais" (powerball.com/api/v1/estimates, megamillions.com
+// utilservice.asmx) estão indisponíveis a partir daqui: a da Powerball
+// devolve 301 direto pra home (endpoint descontinuado) e a da Mega Millions
+// devolve 403 (bloqueio de bot). A Texas Lottery — membro oficial do MUSL,
+// mesma fonte já usada como fallback no cliente — publica uma página HTML
+// simples (sem JS) com os jackpots atuais das duas loterias na MESMA página
+// ("latest results"), confirmado manualmente batendo com o valor oficial.
+const TX_LOTTERY_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Mega_Millions/index.html";
+
+function extrairJackpotTexas(html, logoAlt) {
+  const idx = html.indexOf(`alt="${logoAlt}`);
+  if (idx < 0) return null;
+  const chunk = html.slice(idx, idx + 500);
+  const jpM = chunk.match(/<h1>\$([\d.,]+)\s*(Million|Billion)<\/h1>/i);
+  if (!jpM) return null;
+  const cashM = chunk.match(/Cash Value:\s*<strong>\$([\d.,]+)\s*(Million|Billion)<\/strong>/i);
+  const toNum = (m) => (m ? parseFloat(m[1].replace(/,/g, "")) * (/billion/i.test(m[2]) ? 1e9 : 1e6) : null);
+  const jackpotNum = toNum(jpM);
+  const cashNum = toNum(cashM);
+  if (!jackpotNum) return null;
+  return { jackpot: fmtUSD(jackpotNum), cash: fmtUSD(cashNum), fonte: "texaslottery" };
+}
+
+async function buscarJackpotsTexasLottery() {
+  const r = await fetch(TX_LOTTERY_URL, {
+    headers: { "User-Agent": "Mozilla/5.0" },
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!r.ok) return {};
+  const html = await r.text();
+  return {
+    powerball: extrairJackpotTexas(html, "Powerball logo"),
+    megamillions: extrairJackpotTexas(html, "Mega Millions logo"),
+  };
+}
+
+async function upsertJackpot(loteria, info) {
+  const body = JSON.stringify({
+    loteria,
+    jackpot: info.jackpot,
+    cash: info.cash,
+    fonte: info.fonte,
+    atualizado_em: new Date().toISOString(),
+  });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/us_jackpots?on_conflict=loteria`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates",
+    },
+    body,
+  });
+  return r.ok;
+}
+
 async function getSupabaseData() {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/resultados?select=loteria,concurso`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
@@ -134,6 +204,19 @@ export default async () => {
       }
     })
   );
+
+  // Jackpots americanos — Texas Lottery (server-side, sem CORS/proxy).
+  try {
+    const jackpots = await buscarJackpotsTexasLottery();
+    for (const key of ["powerball", "megamillions"]) {
+      const info = jackpots[key];
+      if (!info) { relatorio[`${key}_jackpot`] = "sem resposta"; continue; }
+      const ok = await upsertJackpot(key, info);
+      relatorio[`${key}_jackpot`] = `${ok ? "ok" : "erro"} - ${info.jackpot} / ${info.cash}`;
+    }
+  } catch (e) {
+    relatorio.powerball_jackpot = relatorio.megamillions_jackpot = `erro: ${e.message}`;
+  }
 
   console.log("atualizar-cron:", JSON.stringify(relatorio));
   return new Response(JSON.stringify({ timestamp: new Date().toISOString(), relatorio }), {

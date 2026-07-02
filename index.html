@@ -3451,31 +3451,33 @@ async function fetchUSJackpot(key){
   // um número errado capturado por engano. Para reativar a busca ao vivo,
   // comente a linha "return salvar(FALLBACK[key]);" logo abaixo e descomente
   // o bloco de busca normal mais adiante.
-  const _BUSCA_AO_VIVO_DESATIVADA=true;
-  const cacheKey='us_jackpot_v12_'+key;
-  try{['','_v2','_v3','_v4','_v5','_v6','_v7','_v8','_v9','_v10','_v11'].forEach(s=>localStorage.removeItem('us_jackpot'+s+'_'+key));}catch(e){}
-  // Curto-circuito ABSOLUTO: roda ANTES até de checar o cache (v12). Isso é
-  // proposital — a causa raiz real do bug "valores errados persistindo
-  // mesmo após corrigir o fallback" era que QUALQUER cache salvo
-  // anteriormente (ainda que com lixo, ex.: US$150M/US$50M capturados por
-  // engano de uma página-fonte) era aceito sem nenhuma validação e
-  // retornado direto — a correção do fallback nunca era alcançada, porque
-  // a checagem de cache antigo vinha primeiro. Limpa o próprio cache v12
-  // também, para não deixar um valor errado já salvo nessa versão persistir.
-  if(_BUSCA_AO_VIVO_DESATIVADA){
-    // Última atualização manual: 02/07/2026 — confirmado via loterias
-    // estaduais oficiais (Louisiana, Virginia, Texas) e imprensa (Forbes):
-    // Powerball $396M/Cash $180,2M (próximo sorteio sábado 04/07); Mega
-    // Millions $542M/Cash $242M (próximo sorteio sexta 03/07).
-    const FALLBACK_DIRETO={
-      powerball:    {jackpot:'US$ 396 Milhões', cash:'US$ 180,2 Milhões', fonte:'fallback'},
-      megamillions: {jackpot:'US$ 542 Milhões', cash:'US$ 242 Milhões',  fonte:'fallback'}
-    };
-    if(FALLBACK_DIRETO[key]){
-      try{ localStorage.setItem(cacheKey,JSON.stringify({v:FALLBACK_DIRETO[key],ts:Date.now()})); }catch(e){}
-      return FALLBACK_DIRETO[key];
+  const cacheKey='us_jackpot_v13_'+key;
+  try{['','_v2','_v3','_v4','_v5','_v6','_v7','_v8','_v9','_v10','_v11','_v12'].forEach(s=>localStorage.removeItem('us_jackpot'+s+'_'+key));}catch(e){}
+  // Fonte primária: tabela us_jackpots do Supabase, atualizada a cada 3h por
+  // netlify/functions/atualizar-cron.mjs — que busca a API oficial de cada
+  // loteria DIRETO DO SERVIDOR (sem CORS, sem proxy, sem scraping de HTML),
+  // resolvendo em definitivo o problema que a busca client-side sempre teve
+  // (proxies CORS gratuitos instáveis + risco de capturar texto de regra fixa
+  // do jogo em vez do jackpot real — por isso a busca ao vivo abaixo ficou
+  // desativada por meses e o valor precisava ser atualizado manualmente).
+  try{
+    const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/us_jackpots?loteria=eq.${key}&select=jackpot,cash,fonte,atualizado_em`,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
+    if(r.ok){
+      const arr=await r.json();
+      const row=arr&&arr[0];
+      // Só confia em dados com no máximo 12h (3-4 ciclos do cron) — passado
+      // isso, algo está errado no cron e é mais seguro cair no fallback
+      // estático do que mostrar um valor potencialmente muito desatualizado.
+      if(row&&row.jackpot&&(Date.now()-new Date(row.atualizado_em).getTime())<12*3600*1000){
+        return {jackpot:row.jackpot,cash:row.cash,fonte:row.fonte||'supabase'};
+      }
     }
-  }
+  }catch(e){}
+  // Busca ao vivo client-side (proxies) DESATIVADA — ver histórico acima;
+  // agora que a fonte primária é o cron server-side, isto só serviria como
+  // 2º fallback antes do valor estático, mas manter desativado evita o risco
+  // já documentado de capturar texto de regra fixa do jogo por engano.
+  const _BUSCA_AO_VIVO_DESATIVADA=true;
   try{
     const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
     // Cache reduzido de 3h para 1h (fallback: 30min) — o valor de 3h prolongava
@@ -3485,7 +3487,9 @@ async function fetchUSJackpot(key){
     if(cached&&Date.now()-cached.ts<(cached.v&&cached.v.fonte==='fallback'?30*60*1000:1*3600*1000)) return cached.v;
     const salvar=v=>{localStorage.setItem(cacheKey,JSON.stringify({v,ts:Date.now()}));return v;};
 
-    if(key==='powerball'){
+    if(_BUSCA_AO_VIVO_DESATIVADA){
+      // pula direto para o fallback estático no fim da função
+    } else if(key==='powerball'){
       // As 4 fontes (API oficial, homepage oficial, Texas Lottery, Virginia
       // Lottery) são tentadas em PARALELO entre si — cada uma já tentando
       // seus proxies em paralelo internamente (_tentarProxiesParalelo).
