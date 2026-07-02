@@ -1043,6 +1043,20 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
    Escopo .la-home; herda --ac/--font-head/--font-body/--text do app.
    ══════════════════════════════════════════════════════════════ */
 .la-home{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+/* height:100vh (não min-height) + overflow:hidden, só no layout desktop de
+   grid 2 colunas (min-width:981px, mesmo corte do breakpoint existente de
+   grid 2col->1col em max-width:980px): dá uma altura DEFINIDA para
+   .la-grid dividir via fr/minmax — sem isso, as linhas do grid (onde ficam
+   Previsão/Histórico) se auto-dimensionam pelo CONTEÚDO do momento, e como
+   o card Previsão cicla automaticamente entre loterias a cada ~5s
+   (laResetAuto) com quantidades de dezenas bem diferentes (Mega-Sena: 6,
+   Lotomania: 50), a altura da página inteira ficava pulando a cada troca.
+   No mobile (max-width:680px, cards em 1 coluna, height:auto) a página
+   sempre rolou normalmente e não tem esse problema — overflow:hidden não
+   se aplica lá. */
+@media (min-width:981px){
+  .la-home{height:100vh;overflow:hidden}
+}
 .la-home #laAurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .la-home #laAurora b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;mix-blend-mode:screen}
 .la-home #laAurora b:nth-child(1){width:42vw;height:42vw;left:-8vw;top:-8vw;background:var(--la-a1,#3A9B4E);animation:laDrift1 22s ease-in-out infinite}
