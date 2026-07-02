@@ -1043,20 +1043,6 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
    Escopo .la-home; herda --ac/--font-head/--font-body/--text do app.
    ══════════════════════════════════════════════════════════════ */
 .la-home{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
-/* height:100vh (não min-height) + overflow:hidden: garante que a home NUNCA
-   role verticalmente, em qualquer altura de janela — os cards (grid com
-   fr/minmax, ver .la-grid) já tentam se ajustar ao espaço disponível
-   sozinhos; isso aqui é a garantia final, absoluta, contra a rolagem em
-   casos extremos (janela muito baixa) onde o ajuste fino não for
-   suficiente para caber com folga. SÓ no layout de grid 2 colunas
-   (min-width:981px, mesmo corte usado nas media queries de altura acima)
-   — no mobile (@media max-width:680px, .la-grid vira 1 coluna empilhada)
-   os cards crescem livremente (height:auto) e é a PÁGINA que rola, como
-   qualquer site; aplicar overflow:hidden lá cortava conteúdo (regressão
-   encontrada ao remover os limites artificiais de variantes/linhas). */
-@media (min-width:981px){
-  .la-home{height:100vh;overflow:hidden}
-}
 .la-home #laAurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .la-home #laAurora b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;mix-blend-mode:screen}
 .la-home #laAurora b:nth-child(1){width:42vw;height:42vw;left:-8vw;top:-8vw;background:var(--la-a1,#3A9B4E);animation:laDrift1 22s ease-in-out infinite}
@@ -1065,27 +1051,12 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
 @keyframes laDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,5vh) scale(1.08)}}
 body.theme-light .la-home #laAurora b{opacity:.16}
 
-/* A barra não usa rolagem em NENHUMA hipótese (nem a barra inteira, nem as
-   pílulas). Em vez disso, TUDO (logo, pílulas de loteria, seletor de tema,
-   botões Atualizar/Admin/Sair/Login) encolhe junto, proporcionalmente, via
-   uma única variável --nav-scale calculada em JS (_ajustarEscalaLaNav) —
-   mede a barra inteira depois de cada render e reduz a escala em passos
-   até tudo caber na largura disponível, com piso mínimo de legibilidade. */
-.la-nav{display:flex;align-items:center;gap:calc(12px * var(--nav-scale,1));padding:14px 24px;flex-wrap:nowrap}
-.la-nav>*{flex-shrink:0}
-.dash-brand svg{width:calc(260px * var(--nav-scale,1));height:calc(40px * var(--nav-scale,1))}
-.la-pills{display:flex;gap:calc(5px * var(--nav-scale,1));flex-wrap:nowrap;margin-left:auto}
-.la-pill{font-family:var(--font-head);font-weight:700;font-size:calc(11px * var(--nav-scale,1));white-space:nowrap;padding:calc(8px * var(--nav-scale,1)) calc(10px * var(--nav-scale,1));border-radius:999px;cursor:pointer;
+.la-nav{display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+.la-nav::-webkit-scrollbar{height:4px}
+.la-nav::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
+.la-pills{display:flex;gap:5px;flex-wrap:nowrap;margin-left:auto;flex-shrink:0}
+.la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
   border:1px solid transparent;color:#fff;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center}
-/* Último recurso quando mesmo no piso de escala ainda não coubesse tudo:
-   os botões (Atualizar/Admin/Sair) ficam só com o ícone, sem o texto —
-   aplicado via JS (_ajustarEscalaLaNav) adicionando a classe .compact. */
-.la-nav.compact .btn-sm-label{display:none}
-.la-nav.compact .btn-sm{padding-left:calc(10px * var(--nav-scale,1));padding-right:calc(10px * var(--nav-scale,1))}
-/* Tema e botões DENTRO da barra também encolhem com a mesma escala — fora
-   dela (ex.: topbar interna de cada loteria) mantêm o tamanho normal. */
-.la-nav .theme-btn{padding:calc(5px * var(--nav-scale,1)) calc(8px * var(--nav-scale,1));font-size:calc(15px * var(--nav-scale,1))}
-.la-nav .btn-sm{padding:calc(8px * var(--nav-scale,1)) calc(16px * var(--nav-scale,1));font-size:calc(12px * var(--nav-scale,1));gap:calc(6px * var(--nav-scale,1))}
 .la-pill:hover{transform:translateY(-1px);filter:brightness(1.15)}
 .la-pill.active{box-shadow:0 4px 16px -2px var(--la-shadow,rgba(0,0,0,.4))}
 
@@ -1143,31 +1114,22 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-pred-nav{display:flex;gap:6px}
 .la-pn{width:26px;height:26px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-muted);cursor:pointer;display:grid;place-items:center;font-size:12px}
 .la-pn:hover{color:var(--text)}
-/* --card-scale: mesmo padrão da barra de navegação (--nav-scale) — bolas,
-   fontes e espaçamentos encolhem proporcionalmente até caber sem precisar
-   rolar. Calculado em JS por _ajustarEscalaCard (chamado por renderLaPred
-   e renderLaHist) e definido LOCALMENTE em cada card (.la-pred-body,
-   .la-hist-body) — cada um encolhe de forma independente, mas classes
-   compartilhadas entre os dois (.la-chip/.la-xsep) automaticamente pegam a
-   escala do card em que estão (herança normal de custom property).
-   overflow-y:auto continua como rede de segurança para o piso mínimo de
-   legibilidade em casos extremos. */
-.la-pred-body{--card-scale:1;padding:2px 16px 14px;display:flex;flex-direction:column;gap:calc(8px * var(--card-scale,1));flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.la-pred-body{padding:2px 16px 14px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .la-pred-body::-webkit-scrollbar{width:5px}
 .la-pred-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-.la-variant{display:flex;flex-direction:column;gap:calc(5px * var(--card-scale,1));padding-bottom:calc(8px * var(--card-scale,1));border-bottom:1px solid var(--glass-border)}
+.la-variant{display:flex;flex-direction:column;gap:5px;padding-bottom:8px;border-bottom:1px solid var(--glass-border)}
 .la-variant:last-child{border-bottom:none;padding-bottom:0}
 .la-variant .la-vh{display:flex;align-items:baseline;gap:7px}
-.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:calc(10.5px * var(--card-scale,1));letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
-.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:calc(8px * var(--card-scale,1));font-weight:700;color:var(--text-dim)}
-.la-balls{display:flex;flex-wrap:wrap;gap:calc(4px * var(--card-scale,1));align-items:center}
-.la-ball{width:calc(24px * var(--card-scale,1));height:calc(24px * var(--card-scale,1));border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:calc(10px * var(--card-scale,1));color:#fff;
+.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
+.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:8px;font-weight:700;color:var(--text-dim)}
+.la-balls{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.la-ball{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:10px;color:#fff;
   background:var(--ac);box-shadow:0 2px 6px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.3);
   opacity:0;transform:scale(.3) translateY(6px);animation:laPop .36s cubic-bezier(.2,1.4,.4,1) forwards}
 .la-ball.extra{background:var(--la-xc,#00BCD4);border:2px solid rgba(255,255,255,.3)}
 .la-ball.trevo{background:#0fae8a}
-.la-chip{font-family:var(--font-head);font-weight:800;font-size:calc(9.5px * var(--card-scale,1));padding:calc(5px * var(--card-scale,1)) calc(9px * var(--card-scale,1));border-radius:7px;color:#fff;background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
-.la-xsep{font-family:var(--font-mono);font-size:calc(8px * var(--card-scale,1));font-weight:700;color:var(--text-muted);padding:0 2px;align-self:center}
+.la-chip{font-family:var(--font-head);font-weight:800;font-size:9.5px;padding:5px 9px;border-radius:7px;color:#fff;background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
+.la-xsep{font-family:var(--font-mono);font-size:8px;font-weight:700;color:var(--text-muted);padding:0 2px;align-self:center}
 @keyframes laPop{to{opacity:1;transform:scale(1) translateY(0)}}
 
 .la-fore-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
@@ -1198,7 +1160,7 @@ body.theme-light .la-mcel.mfr{background:rgba(15,23,42,.06)}
 #laWaveCanvas{position:absolute;inset:0;width:100%;height:100%}
 .la-wave-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);padding:0 18px 14px;text-align:center}
 
-.la-hist-body{--card-scale:1;padding:8px 14px 14px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.la-hist-body{padding:8px 14px 14px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .la-hist-body::-webkit-scrollbar{width:5px}
 .la-hist-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
 .la-fixed{display:flex;flex-direction:column;height:100%;min-height:0}
@@ -1206,15 +1168,15 @@ body.theme-light .la-mcel.mfr{background:rgba(15,23,42,.06)}
 .la-hist-row:hover{background:rgba(255,255,255,.04)}
 body.theme-light .la-hist-row:hover{background:rgba(15,23,42,.04)}
 .la-hist-row .la-hd{font-family:var(--font-mono);font-size:9.5px;color:var(--text-muted);width:60px;flex:0 0 auto}
-.la-hd-col{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;width:calc(64px * var(--card-scale,1));flex:0 0 auto;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:8px;padding:calc(5px * var(--card-scale,1)) calc(4px * var(--card-scale,1));margin-top:1px;box-sizing:border-box}
+.la-hd-col{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;width:64px;flex:0 0 auto;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:8px;padding:5px 4px;margin-top:1px;box-sizing:border-box}
 body.theme-light .la-hd-col{background:rgba(15,23,42,.06)}
-.la-hd-data{font-family:var(--font-mono);font-size:calc(10px * var(--card-scale,1));font-weight:700;color:var(--text);line-height:1.25;white-space:nowrap}
-.la-hd-dia{font-family:var(--font-mono);font-size:calc(9px * var(--card-scale,1));color:var(--text-muted);line-height:1.25;text-transform:lowercase;white-space:nowrap}
-.la-hist-balls{display:flex;gap:calc(3px * var(--card-scale,1));flex-wrap:wrap}
-.la-hb{width:calc(20px * var(--card-scale,1));height:calc(20px * var(--card-scale,1));border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:calc(8.5px * var(--card-scale,1));color:#fff;background:var(--ac)}
+.la-hd-data{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text);line-height:1.25;white-space:nowrap}
+.la-hd-dia{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);line-height:1.25;text-transform:lowercase;white-space:nowrap}
+.la-hist-balls{display:flex;gap:3px;flex-wrap:wrap}
+.la-hb{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.5px;color:#fff;background:var(--ac)}
 /* ── Histórico: estrutura de tabela independente por loteria ── */
 .la-hist-table{width:100%;border-collapse:collapse}
-.la-hist-tr td{padding:calc(4px * var(--card-scale,1)) 0;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s}
+.la-hist-tr td{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s}
 body.theme-light .la-hist-tr td{border-bottom:1px solid rgba(15,23,42,.06)}
 .la-hist-tr:last-child td{border-bottom:none}
 .la-hist-tr:hover td{background:rgba(255,255,255,.04)}
@@ -1223,7 +1185,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .la-hist-td-date .la-hd-col{margin:0}
 .la-hist-td-nums{vertical-align:middle}
 .la-hist-td-extra{vertical-align:middle;padding-left:4px;text-align:right;white-space:nowrap;width:1%}
-.la-hist-row2{display:flex;gap:calc(3px * var(--card-scale,1));flex-wrap:wrap;margin-top:calc(3px * var(--card-scale,1));padding-top:calc(3px * var(--card-scale,1));border-top:1px solid rgba(255,255,255,.06)}
+.la-hist-row2{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.06)}
 .la-hist-pill{display:inline-block;padding:0 6px;height:18px;line-height:18px;border-radius:9px;font-family:var(--font-mono);font-size:8.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
 .la-hist-pill-time{font-size:7.5px;max-width:85px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle}
 .la-hist-extra-nome{display:block;font-family:var(--font-mono);font-size:7px;color:var(--text-muted);letter-spacing:.2px;white-space:nowrap;margin-bottom:2px;text-align:right}
@@ -1249,19 +1211,6 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 @media (prefers-reduced-motion:reduce){
   .la-home #laAurora b{animation:none}
   .la-ball,.la-chip{animation:none;opacity:1;transform:none}
-}
-/* Telas largas mas baixas (notebooks com pouca altura, janela redimensionada
-   etc.): os pisos mínimos de altura dos cards da home (240px/190px) somados
-   ao padding do hero podiam passar da altura da janela, forçando rolagem
-   vertical. Aperta os pisos e o padding só quando a altura é pequena — a
-   largura já cabe (é o caso de not-narrow-mas-curto), então não precisa
-   empilhar os cards em 1 coluna como nos breakpoints de largura acima. */
-@media (max-height:760px) and (min-width:981px){
-  .la-grid{grid-template-rows:minmax(190px,1.55fr) minmax(150px,1fr);gap:clamp(8px,1vh,12px)}
-  .la-hero{padding:clamp(12px,2vh,20px) clamp(16px,2.5vw,28px)}
-}
-@media (max-height:620px) and (min-width:981px){
-  .la-grid{grid-template-rows:minmax(160px,1.55fr) minmax(120px,1fr)}
 }
 /* ══ Auth Gate (login/cadastro sob demanda — mesmo padrão visual dos
    outros modais do app: usa .modal-overlay/.open, herda as cores do tema
@@ -1581,9 +1530,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <button class="theme-btn"        id="theme-light"   onclick="setTheme('light')"   title="Tema claro"><span class="emoji-ico">☀️</span></button>
       <button class="theme-btn"        id="theme-colorful" onclick="setTheme('colorful')" title="Tema colorido"><span class="emoji-ico">🌈</span></button>
     </div>
-    <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span><span class="btn-sm-label"> Atualizar</span></button>
-    <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span><span class="btn-sm-label"> Admin</span></button>
-    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span><span class="btn-sm-label"> Sair</span></button>
+    <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
+    <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
+    <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
   <!-- GRID PRINCIPAL -->
@@ -2955,9 +2904,6 @@ async function _agAposLogin(user){
   const btnLogout=document.getElementById('btn-logout'); if(btnLogout) btnLogout.style.display='';
   const btnConta=document.getElementById('btn-ja-tenho-conta'); if(btnConta) btnConta.style.display='none';
   const btnGratis=document.getElementById('btn-experimente-gratis'); if(btnGratis) btnGratis.style.display='none';
-  // Admin/Sair aparecendo muda a largura necessária da barra — recalcula a
-  // escala pra continuar cabendo sem rolagem.
-  if(typeof _ajustarEscalaLaNav==='function') _ajustarEscalaLaNav();
   // Se o login/cadastro foi disparado ao tentar abrir uma ferramenta
   // (Gerar Jogos, Bolões, trocar de loteria etc.), retoma exatamente essa
   // ação agora que o usuário está autenticado — em vez de simplesmente
@@ -4895,72 +4841,6 @@ function renderLaPills(){
     const bg=i===laCur?d.cor:d.cor+'33';
     return `<a class="la-pill${i===laCur?' active':''}" style="background:${bg}" href="javascript:void(0)" onclick="showLottery('${key}')" title="Abrir ${d.nome}">${d.nome.replace('US ','US ')}</a>`;
   }).join('');
-  _ajustarEscalaLaNav();
-}
-// Em vez de rolar horizontalmente, a barra de navegação INTEIRA (logo +
-// pílulas de loteria + tema + botões) encolhe proporcionalmente — fonte,
-// padding, gap e o tamanho do logo — até caber sem NENHUMA rolagem
-// horizontal, em qualquer largura de tela e estado de login. Faz uma busca
-// simples: reduz --nav-scale em passos pequenos até o conteúdo parar de
-// estourar a largura disponível (ou até um piso mínimo de legibilidade).
-function _ajustarEscalaLaNav(){
-  const nav=document.querySelector('.la-nav'); if(!nav) return;
-  nav.classList.remove('compact');
-  nav.style.setProperty('--nav-scale','1');
-  let escala=1;
-  const PISO=0.45; // não encolhe além disso — abaixo fica ilegível/inclicável
-  while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO){
-    escala=Math.max(PISO, +(escala-0.03).toFixed(2));
-    nav.style.setProperty('--nav-scale',escala);
-  }
-  // Se mesmo no piso de escala ainda não coube (telas muito estreitas com
-  // login ativo), o próximo recurso é esconder o TEXTO dos botões
-  // (Atualizar/Admin/Sair — ficam só com o ícone), o que libera bastante
-  // espaço sem precisar encolher a fonte a ponto de ficar ilegível.
-  if(nav.scrollWidth>nav.clientWidth+1){
-    nav.classList.add('compact');
-    escala=1;
-    while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO){
-      escala=Math.max(PISO, +(escala-0.03).toFixed(2));
-      nav.style.setProperty('--nav-scale',escala);
-    }
-  }
-  // Garantia final: mesmo compacto, se 11 loterias de nome longo ainda não
-  // couberem numa tela muito estreita, continua reduzindo além do piso de
-  // legibilidade "normal" — prioriza NUNCA precisar rolar (pedido explícito)
-  // sobre manter o tamanho mínimo confortável de leitura nesse caso extremo.
-  if(nav.scrollWidth>nav.clientWidth+1){
-    const PISO_EXTREMO=0.2;
-    while(nav.scrollWidth>nav.clientWidth+1 && escala>PISO_EXTREMO){
-      escala=Math.max(PISO_EXTREMO, +(escala-0.02).toFixed(2));
-      nav.style.setProperty('--nav-scale',escala);
-    }
-  }
-}
-// Reaplica ao redimensionar a janela (debounce simples) — o conteúdo da
-// barra não muda, mas o espaço disponível sim.
-let _laPillsResizeTO=null;
-window.addEventListener('resize',()=>{
-  clearTimeout(_laPillsResizeTO);
-  _laPillsResizeTO=setTimeout(()=>{ _ajustarEscalaLaNav(); _ajustarEscalaCard('laPredBody'); _ajustarEscalaCard('laHistBody'); },150);
-});
-// Mesmo mecanismo de _ajustarEscalaLaNav, generalizado para qualquer card
-// com --card-scale definido localmente (Previsão e Histórico de Sorteios):
-// loterias com muitas dezenas por aposta (ex.: Lotomania, 50 números) ou
-// muitos concursos/loteria empilhados faziam esses cards precisarem de
-// rolagem vertical interna — em vez disso, bolas/fontes/espaçamentos
-// encolhem proporcionalmente até caber, com um piso mínimo de
-// legibilidade (abaixo disso, a rolagem interna do card continua como
-// rede de segurança, não removida).
-function _ajustarEscalaCard(id){
-  const el=document.getElementById(id); if(!el) return;
-  el.style.setProperty('--card-scale','1');
-  let escala=1;
-  const PISO=0.55;
-  while(el.scrollHeight>el.clientHeight+1 && escala>PISO){
-    escala=Math.max(PISO, +(escala-0.03).toFixed(2));
-    el.style.setProperty('--card-scale',escala);
-  }
 }
 function laRenderBalls(d,v,force2lines){
   // Stagger menor quando há muitas dezenas (ex.: Lotomania = 50) para não demorar ~2,7s
@@ -5013,20 +4893,13 @@ function renderLaPred(){
     {name:'Equilibrado',badge:'EQB', cor:'#7c8df0', v:laRandomPickQtd(d,qtdAposta)},
     {name:'Aleatório',  badge:'RND', cor:'#9ca3af', v:laRandomPickQtd(d,qtdAposta)},
   ];
-  // Antes, Lotofácil/Timemania mostravam só 4 das 5 variantes (faltava
-  // "Aleatório") e Lotomania só 2 (faltavam Atrasados/Equilibrado/
-  // Aleatório) — um teto criado quando o card tinha altura fixa no grid
-  // da home, pra "economizar espaço" escondendo variantes inteiras. Desde
-  // que _ajustarEscalaCard() passou a encolher o card inteiro (bolas/
-  // fontes/espaçamento) até caber, e no mobile o card cresce livremente
-  // (a página rola, não o card), esse corte de informação não faz mais
-  // sentido — todas as loterias mostram as 5 variantes agora.
-  const variantes = todasVariantes;
+  // Teto de previsões exibidas, igual à lógica já aplicada ao Histórico:
+  // 5 para a maioria; Lotofácil e Timemania em 4; Lotomania em 2 (previsão
+  // tem 50 números — cada uma já ocupa bastante espaço vertical).
+  const MAX_PREVISOES={lotofacil:4,timemania:4,lotomania:2}[key] ?? 5;
+  const variantes = todasVariantes.slice(0,MAX_PREVISOES);
   const body=document.getElementById('laPredBody');
-  if(body){
-    body.innerHTML=variantes.map(vr=>`<div class="la-variant"><div class="la-vh" style="--la-vc:${vr.cor}"><span class="la-vname">${vr.name}</span><span class="la-vbadge">${vr.badge}</span></div><div class="la-balls">${laRenderBalls(d,vr.v)}</div></div>`).join('');
-    _ajustarEscalaCard('laPredBody');
-  }
+  if(body) body.innerHTML=variantes.map(vr=>`<div class="la-variant"><div class="la-vh" style="--la-vc:${vr.cor}"><span class="la-vname">${vr.name}</span><span class="la-vbadge">${vr.badge}</span></div><div class="la-balls">${laRenderBalls(d,vr.v)}</div></div>`).join('');
   renderLaPills();
   renderLaFore(d,key);
   renderLaHist(d,key);
@@ -5175,20 +5048,9 @@ function laFmtHistLabel(dataStr){
 function renderLaHist(d,key){
   const wrap=document.getElementById('laHistBody'); if(!wrap) return;
 
-  // Se o cache tem concurso mais recente que resultados[key], atualiza em
-  // background — MAS no máximo UMA VEZ por loteria por sessão (via
-  // _laHistTentado, nunca removido). Sem essa trava: se atualizarLoteria()
-  // falhar (sem rede, API fora do ar etc.) ou devolver um resultado que por
-  // algum motivo não "resolve" a condição de desatualizado, o then() chama
-  // renderLaHist() de novo, que detecta a MESMA condição e tenta atualizar
-  // de novo — um loop infinito de fetch+render que travava a aba
-  // re-renderizando o card dezenas de vezes por segundo ("flicker" visível
-  // no Histórico de Sorteios). Uma tentativa por sessão é suficiente: se
-  // falhar, o botão "Atualizar" manual (ou a próxima visita) resolve.
-  if(typeof _laHistTentado==='undefined') window._laHistTentado=new Set();
+  // Se o cache tem concurso mais recente que resultados[key], atualiza em background
   const _cacheTop=(_laHistCache[key]||[])[0];
-  if(_cacheTop&&resultados[key]&&parseInt(_cacheTop.concurso||0)>parseInt(resultados[key].concurso||0)&&!_laHistTentado.has(key)){
-    _laHistTentado.add(key);
+  if(_cacheTop&&resultados[key]&&parseInt(_cacheTop.concurso||0)>parseInt(resultados[key].concurso||0)){
     atualizarLoteria(key).then(r=>{if(r&&CFG[key])renderLaHist(CFG[key],key);}).catch(()=>{});
   }
 
@@ -5254,12 +5116,7 @@ function renderLaHist(d,key){
   }
 
   // ── 2. Configuração de colunas — cada loteria decide as suas ────────────
-  // Lotofácil/Lotomania mostravam só 3 concursos (as demais, 4) — mesmo
-  // motivo do corte de variantes em renderLaPred() (card de altura fixa
-  // no grid, antes do ajuste de escala existir). Unificado em 4 para
-  // todas: _ajustarEscalaCard() cuida do encolhimento no desktop, e no
-  // mobile o card cresce livremente.
-  const MAX_LINHAS=4;
+  const MAX_LINHAS={lotofacil:3,lotomania:3,duplasena:4}[key]??4;
   const linhas=candidatos.slice(0,Math.min(MAX_LINHAS,candidatos.length));
   const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
   const _pilulaCor=d.corTexto||'#222';
@@ -5301,7 +5158,6 @@ function renderLaHist(d,key){
   }).join('');
 
   wrap.innerHTML=`<table class="la-hist-table"><tbody>${tbody}</tbody></table>`;
-  _ajustarEscalaCard('laHistBody');
 }
 /* Cache em memória dos últimos 4 concursos por loteria (lido 1x do IndexedDB,
    nunca durante o ciclo de 5,2s da home — só leitura local, sem rede). */
