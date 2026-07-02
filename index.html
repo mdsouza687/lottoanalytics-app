@@ -1042,13 +1042,21 @@ body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
    NOVA PÁGINA INICIAL — LOTTO ANALYTICS (substitui o dashboard antigo)
    Escopo .la-home; herda --ac/--font-head/--font-body/--text do app.
    ══════════════════════════════════════════════════════════════ */
+.la-home{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
 /* height:100vh (não min-height) + overflow:hidden: garante que a home NUNCA
    role verticalmente, em qualquer altura de janela — os cards (grid com
    fr/minmax, ver .la-grid) já tentam se ajustar ao espaço disponível
    sozinhos; isso aqui é a garantia final, absoluta, contra a rolagem em
    casos extremos (janela muito baixa) onde o ajuste fino não for
-   suficiente para caber com folga. */
-.la-home{position:relative;z-index:1;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+   suficiente para caber com folga. SÓ no layout de grid 2 colunas
+   (min-width:981px, mesmo corte usado nas media queries de altura acima)
+   — no mobile (@media max-width:680px, .la-grid vira 1 coluna empilhada)
+   os cards crescem livremente (height:auto) e é a PÁGINA que rola, como
+   qualquer site; aplicar overflow:hidden lá cortava conteúdo (regressão
+   encontrada ao remover os limites artificiais de variantes/linhas). */
+@media (min-width:981px){
+  .la-home{height:100vh;overflow:hidden}
+}
 .la-home #laAurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .la-home #laAurora b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;mix-blend-mode:screen}
 .la-home #laAurora b:nth-child(1){width:42vw;height:42vw;left:-8vw;top:-8vw;background:var(--la-a1,#3A9B4E);animation:laDrift1 22s ease-in-out infinite}
@@ -5005,11 +5013,15 @@ function renderLaPred(){
     {name:'Equilibrado',badge:'EQB', cor:'#7c8df0', v:laRandomPickQtd(d,qtdAposta)},
     {name:'Aleatório',  badge:'RND', cor:'#9ca3af', v:laRandomPickQtd(d,qtdAposta)},
   ];
-  // Teto de previsões exibidas, igual à lógica já aplicada ao Histórico:
-  // 5 para a maioria; Lotofácil e Timemania em 4; Lotomania em 2 (previsão
-  // tem 50 números — cada uma já ocupa bastante espaço vertical).
-  const MAX_PREVISOES={lotofacil:4,timemania:4,lotomania:2}[key] ?? 5;
-  const variantes = todasVariantes.slice(0,MAX_PREVISOES);
+  // Antes, Lotofácil/Timemania mostravam só 4 das 5 variantes (faltava
+  // "Aleatório") e Lotomania só 2 (faltavam Atrasados/Equilibrado/
+  // Aleatório) — um teto criado quando o card tinha altura fixa no grid
+  // da home, pra "economizar espaço" escondendo variantes inteiras. Desde
+  // que _ajustarEscalaCard() passou a encolher o card inteiro (bolas/
+  // fontes/espaçamento) até caber, e no mobile o card cresce livremente
+  // (a página rola, não o card), esse corte de informação não faz mais
+  // sentido — todas as loterias mostram as 5 variantes agora.
+  const variantes = todasVariantes;
   const body=document.getElementById('laPredBody');
   if(body){
     body.innerHTML=variantes.map(vr=>`<div class="la-variant"><div class="la-vh" style="--la-vc:${vr.cor}"><span class="la-vname">${vr.name}</span><span class="la-vbadge">${vr.badge}</span></div><div class="la-balls">${laRenderBalls(d,vr.v)}</div></div>`).join('');
@@ -5242,7 +5254,12 @@ function renderLaHist(d,key){
   }
 
   // ── 2. Configuração de colunas — cada loteria decide as suas ────────────
-  const MAX_LINHAS={lotofacil:3,lotomania:3,duplasena:4}[key]??4;
+  // Lotofácil/Lotomania mostravam só 3 concursos (as demais, 4) — mesmo
+  // motivo do corte de variantes em renderLaPred() (card de altura fixa
+  // no grid, antes do ajuste de escala existir). Unificado em 4 para
+  // todas: _ajustarEscalaCard() cuida do encolhimento no desktop, e no
+  // mobile o card cresce livremente.
+  const MAX_LINHAS=4;
   const linhas=candidatos.slice(0,Math.min(MAX_LINHAS,candidatos.length));
   const _ballCor=d.corTexto?`background:${d.cor};color:${d.corTexto}`:`background:${d.cor}`;
   const _pilulaCor=d.corTexto||'#222';
