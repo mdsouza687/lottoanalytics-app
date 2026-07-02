@@ -3463,14 +3463,13 @@ async function fetchUSJackpot(key){
   // a checagem de cache antigo vinha primeiro. Limpa o próprio cache v12
   // também, para não deixar um valor errado já salvo nessa versão persistir.
   if(_BUSCA_AO_VIVO_DESATIVADA){
-    // Última atualização manual: 30/06/2026 — confirmado via múltiplas
-    // loterias estaduais oficiais (Louisiana, Virginia, Nebraska, Texas):
-    // Powerball $375M/Cash $170,6M (próximo sorteio quarta 01/07, após
-    // acúmulo dos sorteios de 27/06 e 29/06 sem ganhador); Mega Millions
-    // $511M/Cash $231M (sorteio de hoje, terça 30/06).
+    // Última atualização manual: 02/07/2026 — confirmado via loterias
+    // estaduais oficiais (Louisiana, Virginia, Texas) e imprensa (Forbes):
+    // Powerball $396M/Cash $180,2M (próximo sorteio sábado 04/07); Mega
+    // Millions $542M/Cash $242M (próximo sorteio sexta 03/07).
     const FALLBACK_DIRETO={
-      powerball:    {jackpot:'US$ 375 Milhões', cash:'US$ 170,6 Milhões', fonte:'fallback'},
-      megamillions: {jackpot:'US$ 511 Milhões', cash:'US$ 231 Milhões',  fonte:'fallback'}
+      powerball:    {jackpot:'US$ 396 Milhões', cash:'US$ 180,2 Milhões', fonte:'fallback'},
+      megamillions: {jackpot:'US$ 542 Milhões', cash:'US$ 242 Milhões',  fonte:'fallback'}
     };
     if(FALLBACK_DIRETO[key]){
       try{ localStorage.setItem(cacheKey,JSON.stringify({v:FALLBACK_DIRETO[key],ts:Date.now()})); }catch(e){}
@@ -3589,13 +3588,12 @@ async function fetchUSJackpot(key){
     // por natureza) falham em buscar o valor real. ATUALIZAR MANUALMENTE
     // sempre que o usuário reportar defasagem: confirmar o valor oficial em
     // powerball.com / megamillions.com / texaslottery.com e atualizar aqui.
-    // Última atualização manual: 30/06/2026 — Powerball $375M (sorteios de
-    // 27/06 e 29/06 acumularam sem ganhador, próximo sorteio quarta 01/07),
-    // Mega Millions $511M (sorteio de hoje, terça 30/06), ambos confirmados
-    // via Virginia Lottery/Nebraska Lottery/Texas Lottery/Louisiana Lottery.
+    // Última atualização manual: 02/07/2026 — Powerball $396M (próximo
+    // sorteio sábado 04/07), Mega Millions $542M (próximo sorteio sexta
+    // 03/07), ambos confirmados via Louisiana/Virginia/Texas Lottery e Forbes.
     const FALLBACK={
-      powerball:    {jackpot:'US$ 375 Milhões', cash:'US$ 170,6 Milhões', fonte:'fallback'},
-      megamillions: {jackpot:'US$ 511 Milhões', cash:'US$ 231 Milhões',  fonte:'fallback'}
+      powerball:    {jackpot:'US$ 396 Milhões', cash:'US$ 180,2 Milhões', fonte:'fallback'},
+      megamillions: {jackpot:'US$ 542 Milhões', cash:'US$ 242 Milhões',  fonte:'fallback'}
     };
     if(FALLBACK[key]) return salvar(FALLBACK[key]);
   }catch(e){}
