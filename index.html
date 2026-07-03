@@ -15494,10 +15494,28 @@ async function imprimirBolao(soPremiados){
     porLoteriaImp[lk].jogos=porLoteriaImp[lk].jogos.concat(cc.jogos||[]);
     porLoteriaImp[lk].custo+=cc.custo||0;
   });
+  // Prêmio REAL apurado por loteria: soma o prêmio de cada jogo vinculado
+  // conferido contra o resultado oficial já sincronizado (_calcPremioJogo,
+  // a mesma função usada em todo o resto do app para conferência) — NÃO a
+  // estimativa/jackpot teórico do concurso (usada só como contexto no
+  // título da mini-tabela). Antes, a coluna "Prêmio" do relatório dividia
+  // a ESTIMATIVA entre os participantes como se o bolão tivesse ganhado o
+  // valor cheio do jackpot, mesmo quando o bolão só teve alguns jogos
+  // premiados em faixas menores (ou nenhum) — número que não tinha relação
+  // nenhuma com o que de fato foi recebido.
+  function _premioRealLoteria(lk,jogosL){
+    var total=0,qtdPremiados=0,algumConferido=false;
+    (jogosL||[]).forEach(function(jg){
+      var r=(typeof _calcPremioJogo==='function')?_calcPremioJogo(lk,jg,jg&&jg._concursoOrigem):null;
+      if(r){ algumConferido=true; if(r.premiado){ total+=r.valor; qtdPremiados++; } }
+    });
+    return {total:total,qtdPremiados:qtdPremiados,algumConferido:algumConferido};
+  }
   var loteriasImp=Object.keys(porLoteriaImp).map(function(lk){
     var dL=CFG[lk]||{};
     var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
     var premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    var _real=_premioRealLoteria(lk,porLoteriaImp[lk].jogos);
     // Deduplica concursos repetidos: se a mesma loteria recebeu várias
     // vinculações de jogos para o MESMO número de concurso (ex.: usuário
     // gerou/vinculou jogos em momentos diferentes, mas para o mesmo
@@ -15514,7 +15532,7 @@ async function imprimirBolao(soPremiados){
       _vistoNum[c.num]=true;
       return true;
     });
-    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL)});
+    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),premioRealNum:_real.total,qtdPremiados:_real.qtdPremiados,algumConferido:_real.algumConferido});
   });
   // Saldo restante do bolão: arrecadação DERIVADA (soma das Contribuições
   // de quem já pagou, não o campo arrecadacaoTotal armazenado cru) menos o
@@ -15639,21 +15657,54 @@ async function imprimirBolao(soPremiados){
     return partes.join(', ');
   }
   var tabelasPorLoteriaHtml = loteriasImp.length ? loteriasImp.map(function(L){
-    var linhasL=(cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctPorCota.toFixed(2)+'%</td><td style="text-align:right">'+_bMoney(L.premioNum*pctPorCota/100)+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>'):'')+
+    // "Prêmio" nesta tabela é sempre o valor REAL apurado (premioRealNum),
+    // dividido por cota — nunca a estimativa do jackpot. Quando o concurso
+    // ainda não foi conferido (nenhum resultado sincronizado bate com ele),
+    // mostra "Aguardando sorteio" em vez de R$ 0,00 — que poderia ser
+    // confundido com "conferido e não ganhou nada".
+    var linhasL=(cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right">'+(L.algumConferido?_bMoney(L.premioRealNum*pctAdmin/100):'<span style="color:#999;font-style:italic">aguardando</span>')+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>'):'')+
       pagosImp.map(function(p){
-        var pctCotaP=pctPorCota;
-        return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right">'+_bMoney(L.premioNum*pctCotaP/100)+'</td><td style="text-align:center;color:#16a34a;font-weight:700">PAGO</td></tr>';
+        // % efetivo do participante = % de 1 cota × quantas cotas ele tem
+        // (antes era sempre o valor de 1 cota, subestimando quem tem mais
+        // de uma — a divisão "por cota quando necessário" depende disso).
+        var pctCotaP=pctPorCota*Math.max(1,p.cotas||1);
+        return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right">'+(L.algumConferido?_bMoney(L.premioRealNum*pctCotaP/100):'<span style="color:#999;font-style:italic">aguardando</span>')+'</td><td style="text-align:center;color:#16a34a;font-weight:700">PAGO</td></tr>';
       }).join('');
     // Cada concurso da loteria mostra seu PRÓPRIO símbolo de status (ver
     // _concursosComStatusHtml acima) — uma loteria com concursos 2973
     // (✓ já sorteado) e 2974 (⏳ vigente) mostra os dois símbolos lado a
     // lado, em vez de um carimbo único que esconderia essa diferença.
     var concursosStatusL=_concursosComStatusHtml(L.loteria,L.concursos);
+    var _premioApuradoTxt=L.algumConferido?(_bMoney(L.premioRealNum)+' ('+L.qtdPremiados+' jogo'+(L.qtdPremiados!==1?'s':'')+' premiado'+(L.qtdPremiados!==1?'s':'')+')'):'aguardando sorteio';
     return '<div class="lot-block" style="margin-top:14px">'+
-      '<div style="font-weight:700;font-size:12px;color:'+corMarca(L)+';margin-bottom:4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[L.loteria]||L,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusL+' · Prêmio estimado: '+(L.premio==='—'?'—':L.premio)+'</div>'+
+      '<div style="font-weight:700;font-size:12px;color:'+corMarca(L)+';margin-bottom:4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[L.loteria]||L,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusL+' · Prêmio estimado: '+(L.premio==='—'?'—':L.premio)+' · <span style="color:'+(L.algumConferido&&L.premioRealNum>0?'#16a34a':'#888')+'">Prêmio apurado: '+_premioApuradoTxt+'</span></div>'+
       '<table style="table-layout:fixed"><thead><tr><th style="width:34%">Participante</th><th style="width:22%;text-align:center">% / Cota</th><th style="width:22%;text-align:right">Prêmio</th><th style="width:22%">Pagamento</th></tr></thead><tbody>'+linhasL+'</tbody></table>'+
       '</div>';
   }).join('') : '';
+  // ── Somatório dos Prêmios Recebidos: soma o prêmio REAL apurado de todas
+  // as loterias/concursos do bolão, e divide entre os participantes por
+  // cota — a informação que faltava no relatório (antes só existia a
+  // divisão por loteria isolada, sem um total consolidado do bolão).
+  var _totalPremioRealBolao=loteriasImp.reduce(function(a,L){return a+(L.premioRealNum||0);},0);
+  var _totalJogosPremiadosBolao=loteriasImp.reduce(function(a,L){return a+(L.qtdPremiados||0);},0);
+  var _algumaLoteriaConferida=loteriasImp.some(function(L){return L.algumConferido;});
+  var somatorioHtml = loteriasImp.length ? (
+    '<div class="lot-block" style="margin-top:18px;border-top:2px solid '+MULTI_LOTERIA_COR+';padding-top:12px">'+
+    '<div style="font-weight:800;font-size:13px;color:'+MULTI_LOTERIA_COR+';margin-bottom:6px">💰 Somatório dos Prêmios Recebidos</div>'+
+    (!_algumaLoteriaConferida
+      ? '<div style="font-size:11px;color:#888;font-style:italic">Nenhum concurso deste bolão foi conferido ainda — aguardando sorteio/sincronização.</div>'
+      : ('<div style="font-size:12px;margin-bottom:8px"><b>Total recebido (todas as loterias):</b> <span style="color:'+(_totalPremioRealBolao>0?'#16a34a':'#888')+';font-weight:800">'+_bMoney(_totalPremioRealBolao)+'</span> <span style="color:#888;font-size:9px">('+_totalJogosPremiadosBolao+' jogo'+(_totalJogosPremiadosBolao!==1?'s':'')+' premiado'+(_totalJogosPremiadosBolao!==1?'s':'')+' no total)</span></div>'+
+        (_totalPremioRealBolao>0
+          ? ('<table style="table-layout:fixed"><thead><tr><th style="width:40%">Participante</th><th style="width:20%;text-align:center">% / Cota</th><th style="width:40%;text-align:right">Total recebido</th></tr></thead><tbody>'+
+              (cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right;font-weight:700">'+_bMoney(_totalPremioRealBolao*pctAdmin/100)+'</td></tr>'):'')+
+              pagosImp.map(function(p){
+                var pctCotaP=pctPorCota*Math.max(1,p.cotas||1);
+                return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right;font-weight:700;color:#16a34a">'+_bMoney(_totalPremioRealBolao*pctCotaP/100)+'</td></tr>';
+              }).join('')+
+            '</tbody></table>')
+          : '')))
+    )+'</div>'
+  : '';
   // Bloco de jogos vinculados
   var jogosHtml='';
   if(jogosVinc.length){
@@ -15925,7 +15976,7 @@ async function imprimirBolao(soPremiados){
     '<table><thead><tr><th>Refer.</th><th>Nome</th><th>Qtd. Cotas</th><th style="text-align:right">Valor pago</th><th style="text-align:right">Meu Saldo</th><th>Organização</th><th style="text-align:right">Cota</th><th>Pagamento</th></tr></thead>'+
     '<tbody>'+linhas+'</tbody>'+
     '<tfoot><tr><td style="text-align:center">'+refSeqP+'</td><td>TOTAL ('+ativos.length+' + admin)</td><td></td><td style="text-align:center">'+totalCotasPremio+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota+valorRateioPorPart;},0))+'</td><td style="text-align:center">'+_bMoney(valorRateioPorPart*pagosImp.length)+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0))+'</td><td></td></tr></tfoot>'+
-    '</table>'+tabelasPorLoteriaHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml+'</body></html>';
+    '</table>'+tabelasPorLoteriaHtml+somatorioHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml+'</body></html>';
   var w=window.open('','_blank');
   if(!w){ toast('Permita pop-ups para imprimir.'); return; }
   w.document.write(html); w.document.close();
