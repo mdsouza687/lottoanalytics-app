@@ -9774,7 +9774,7 @@ function abrirVolanteExcl(tipo) {
           ${_volExcl.size>0?'Excluídos: '+[..._volExcl].sort((a,b)=>a-b).map(n=>pad(n)).join(', '):'Nenhum número excluído'}
         </div>
         <div style="display:flex;gap:6px">
-          <button onclick="limparExclusoes('${tipo}');atualizarModalExcl('${tipo}')" style="border:1px solid var(--glass-border);border-radius:7px;padding:6px 12px;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer">Limpar</button>
+          <button onclick="_exclSet('${tipo}').clear();buildExclusoesGrid('${tipo}');document.getElementById('modal-volante-excl')?.remove();abrirVolanteExcl('${tipo}')" style="border:1px solid var(--glass-border);border-radius:7px;padding:6px 12px;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer">Limpar</button>
           <button onclick="confirmarExclusoes('${tipo}')" style="border:none;border-radius:7px;padding:6px 16px;background:${EXCL_COR};color:#1a0a0d;font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer">Confirmar</button>
         </div>
       </div>
