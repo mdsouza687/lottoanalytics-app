@@ -183,6 +183,61 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
 .res-manual-btn{border:1px dashed #d97706;border-radius:7px;padding:6px 12px;font-size:10.5px;font-weight:700;cursor:pointer;background:#fff7ed;color:#b45309;width:100%;}
 .res-manual-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 7px;border-radius:5px;background:#fff3cd;color:#b45309;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:middle;}
 
+/* ══ TOOLTIP MODERNO ══ — substitui o title="" nativo do navegador (sem
+   quebra de linha, aparência inconsistente entre navegadores) por um popup
+   estilizado, com largura máxima fixa (quebra automática de linha) e
+   suporte a quebras explícitas via \n dentro do próprio texto do atributo
+   data-tt — usado nos tooltips mais longos, que ficavam um bloco só de
+   texto extenso e difícil de ler no tooltip nativo. */
+[data-tt]{position:relative;}
+[data-tt]::after{
+  content:attr(data-tt);
+  position:absolute;
+  bottom:calc(100% + 9px);
+  left:50%;
+  transform:translateX(-50%) translateY(4px);
+  background:#15151f;
+  color:#f2f2f5;
+  font-family:var(--font-body);
+  font-size:11px;
+  font-weight:500;
+  line-height:1.5;
+  white-space:pre-line;
+  max-width:250px;
+  width:max-content;
+  padding:9px 11px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 10px 28px rgba(0,0,0,.4);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .15s ease,transform .15s ease;
+  transition-delay:.05s;
+  z-index:99999;
+  text-align:left;
+}
+[data-tt]::before{
+  content:'';
+  position:absolute;
+  bottom:calc(100% + 4px);
+  left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:#15151f;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .15s ease;
+  transition-delay:.05s;
+  pointer-events:none;
+  z-index:99999;
+}
+[data-tt]:hover::after,[data-tt]:hover::before,[data-tt]:focus-visible::after,[data-tt]:focus-visible::before{
+  opacity:1;
+  visibility:visible;
+  transform:translateX(-50%) translateY(0);
+}
+
 /* ══ GEN CARDS ══ */
 .gen-card{background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;}
 .gen-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;}
@@ -412,6 +467,12 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
 .dt-balls .b.m{background:var(--ac,#3b6fd1);}
 .dt-balls .b.e{background:var(--dt-hit-extra,#d18a00);}
 .dt-balls .sep-dot{width:3px;height:3px;border-radius:50%;background:var(--glass-border);margin:0 1px;}
+/* Dupla Sena: 1º sorteio inline com o concurso/data (dentro de .dt-numdate,
+   sem a margem superior padrão de .dt-balls); 2º sorteio em linha própria
+   logo abaixo, alinhada ao mesmo início da coluna — antes os dois sorteios
+   ficavam concatenados numa fileira só. */
+.dt-balls-inline{margin-top:0;margin-left:2px;}
+.dt-balls-2{margin-top:1px;}
 /* ── Módulo unificado de geração — abas internas ── */
 .gen-aba-btn { outline: none; }
 .gen-aba-btn.active { color: #fff !important; }
@@ -2044,7 +2105,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             <span class="result-hdr-title" id="result-title">—</span>
             <span class="result-hdr-sub" id="result-sub">—</span>
             <span id="result-custo" style="display:none;font-size:11px;font-weight:800;color:#4ade80;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-            <span id="result-chi2" style="display:none;font-size:10px;font-weight:700;color:var(--text-muted);margin-top:2px" title="Teste estatístico que verifica se o histórico de sorteios é consistente com um processo aleatório"></span>
+            <span id="result-chi2" style="display:none;font-size:10px;font-weight:700;color:var(--text-muted);margin-top:2px" data-tt="Teste estatístico que verifica se o
+histórico de sorteios é consistente
+com um processo aleatório"></span>
           </div>
           <div class="result-hdr-btns">
             <button class="result-hdr-btn" onclick="openModalImprimir()">🖨 Imprimir</button>
@@ -2235,12 +2298,34 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
         </div>
         <div class="gb-tabs">
           <div class="gen-mode-group" id="gen-mode-group">
-            <button class="gen-mode-pill active" data-modo="filtrado" onclick="setGenModo('filtrado')" title="Geração individual com filtros estatísticos básicos — 1 jogo por vez, sem cobertura combinatória">🎲 Filtrado</button>
-            <button class="gen-mode-pill" data-modo="urna" onclick="setGenModo('urna')" title="Modo urna/saco: embaralha o universo inteiro e distribui com cobertura total e mínima repetição — ZERO estatística">🎲 Aleatório Puro</button>
-            <button class="gen-mode-pill" data-modo="crypto" onclick="setGenModo('crypto')" title="Mesma cobertura total do Aleatório Puro, mas usando crypto.getRandomValues() — o gerador CRIPTOGRAFICAMENTE SEGURO do navegador (CSPRNG): imprevisível, não reproduzível">🔐 CSPRNG</button>
-            <button class="gen-mode-pill" data-modo="seed" onclick="setGenModo('seed')" title="PRNG determinístico com seed escolhido por você: o MESMO seed sempre gera a MESMA sequência de jogos — útil para reproduzir/conferir uma geração depois. Não é criptograficamente seguro (não é para imprevisibilidade, é para reprodutibilidade)">🎲 PRNG (Seed)</button>
-            <button class="gen-mode-pill" data-modo="fechamento" onclick="setGenModo('fechamento')" title="Fechamento aleatório dentro do universo disponível (após fixos/exclusões), sem nenhuma ponderação estatística — prioriza volume e velocidade (até 5.000 jogos)">🔒 Fechamento</button>
-            <button class="gen-mode-pill" data-modo="score" onclick="setGenModo('score')" title="Fechamento priorizando as dezenas com melhor Score histórico (frequência/atraso), com diversidade mínima garantida entre os jogos">⭐ Score</button>
+            <button class="gen-mode-pill active" data-modo="filtrado" onclick="setGenModo('filtrado')" data-tt="Geração individual com filtros
+estatísticos básicos — 1 jogo por
+vez, sem cobertura combinatória">🎲 Filtrado</button>
+            <button class="gen-mode-pill" data-modo="urna" onclick="setGenModo('urna')" data-tt="Modo urna/saco: embaralha o universo
+inteiro e distribui com cobertura
+total e mínima repetição — ZERO
+estatística">🎲 Aleatório Puro</button>
+            <button class="gen-mode-pill" data-modo="crypto" onclick="setGenModo('crypto')" data-tt="Mesma cobertura total do Aleatório
+Puro, mas usando crypto.getRandomValues()
+— o gerador CRIPTOGRAFICAMENTE SEGURO
+do navegador (CSPRNG): imprevisível,
+não reproduzível">🔐 CSPRNG</button>
+            <button class="gen-mode-pill" data-modo="seed" onclick="setGenModo('seed')" data-tt="PRNG determinístico com seed escolhido
+por você: o MESMO seed sempre gera a
+MESMA sequência de jogos — útil para
+reproduzir/conferir uma geração depois.
+Não é criptograficamente seguro (não é
+para imprevisibilidade, é para
+reprodutibilidade)">🎲 PRNG (Seed)</button>
+            <button class="gen-mode-pill" data-modo="fechamento" onclick="setGenModo('fechamento')" data-tt="Fechamento aleatório dentro do universo
+disponível (após fixos/exclusões), sem
+nenhuma ponderação estatística —
+prioriza volume e velocidade (até
+50.000 jogos)">🔒 Fechamento</button>
+            <button class="gen-mode-pill" data-modo="score" onclick="setGenModo('score')" data-tt="Fechamento priorizando as dezenas com
+melhor Score histórico (frequência/
+atraso), com diversidade mínima
+garantida entre os jogos">⭐ Score</button>
           </div>
           <button class="btn-especial-modulo" id="btn-especial-jogo" onclick="abrirEspecialIndependente(currentKey)" style="display:none">⭐ Especial</button>
         </div>
@@ -2274,7 +2359,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
               </select>
             </div>
             <div class="field-row">
-              <div class="field-grp"><span class="field-lbl">Qtd. de jogos</span><input class="f-inp" id="jogo-qty" type="number" min="1" max="5000" placeholder="máx 5000"/></div>
+              <div class="field-grp"><span class="field-lbl">Qtd. de jogos</span><input class="f-inp" id="jogo-qty" type="number" min="1" max="50000" placeholder="máx 50000"/></div>
               <div class="field-grp"><span class="field-lbl">Dezenas / jogo</span><div id="jogo-dez-wrap"></div></div>
             </div>
             <div id="espelho-wrap" style="display:none">
@@ -2445,8 +2530,8 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
     <div class="modal-body" style="padding:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;flex-wrap:wrap">
         <label style="font-size:11px;font-weight:700;color:rgba(200,160,255,.9);white-space:nowrap">Quantidade de jogos</label>
-        <input id="ia-qty" type="number" min="1" max="5000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),5000)"/>
-        <span style="font-size:9px;color:var(--text-dim)">máx. 5000</span>
+        <input id="ia-qty" type="number" min="1" max="50000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),50000)"/>
+        <span style="font-size:9px;color:var(--text-dim)">máx. 50000</span>
         <button onclick="gerarComIA(window._iaTipo||'jogo')" style="margin-left:auto;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:11px;font-weight:800;padding:7px 14px;cursor:pointer">🤖 Gerar</button>
       </div>
       <!-- Aposta Espelho no modal -->
@@ -3327,20 +3412,20 @@ const BR_RESULT_SEED = {
     {concurso:'2934',data:'08/06/2026',dezenas:[11,12,19,23,27,30,31,41,45,52,54,55,72,83,84,87,89,94,96,99]},
   ],
   timemania: [
-    {concurso:'2406',data:'20/06/2026',dezenas:[1,7,20,53,59,75,80]},
-    {concurso:'2405',data:'18/06/2026',dezenas:[9,15,26,52,56,58,80]},
-    {concurso:'2404',data:'16/06/2026',dezenas:[4,11,15,17,23,42,63]},
-    {concurso:'2403',data:'14/06/2026',dezenas:[13,16,36,43,51,65,66]},
-    {concurso:'2402',data:'11/06/2026',dezenas:[38,42,43,63,72,77,78]},
-    {concurso:'2401',data:'09/06/2026',dezenas:[1,8,10,38,40,50,63]},
+    {concurso:'2406',data:'20/06/2026',dezenas:[1,7,20,53,59,75,80],time:'NOVA IGUAÇU/RJ'},
+    {concurso:'2405',data:'18/06/2026',dezenas:[9,15,26,52,56,58,80],time:'FLORESTA/CE'},
+    {concurso:'2404',data:'16/06/2026',dezenas:[4,11,15,17,23,42,63],time:'BOTAFOGO/PB'},
+    {concurso:'2403',data:'14/06/2026',dezenas:[13,16,36,43,51,65,66],time:'AMÉRICA/RN'},
+    {concurso:'2402',data:'11/06/2026',dezenas:[38,42,43,63,72,77,78],time:'CAMPINENSE/PB'},
+    {concurso:'2401',data:'09/06/2026',dezenas:[1,8,10,38,40,50,63],time:'SAMP CORREA/MA'},
   ],
   diasorte: [
-    {concurso:'1228',data:'20/06/2026',dezenas:[4,5,6,13,14,15,30]},
-    {concurso:'1227',data:'18/06/2026',dezenas:[3,9,10,21,22,28,31]},
-    {concurso:'1226',data:'16/06/2026',dezenas:[2,14,15,16,19,20,29]},
-    {concurso:'1225',data:'14/06/2026',dezenas:[4,5,6,9,11,25,27]},
-    {concurso:'1224',data:'11/06/2026',dezenas:[2,7,15,16,22,27,28]},
-    {concurso:'1223',data:'09/06/2026',dezenas:[9,13,14,21,22,29,30]},
+    {concurso:'1228',data:'20/06/2026',dezenas:[4,5,6,13,14,15,30],mes:'Maio'},
+    {concurso:'1227',data:'18/06/2026',dezenas:[3,9,10,21,22,28,31],mes:'Maio'},
+    {concurso:'1226',data:'16/06/2026',dezenas:[2,14,15,16,19,20,29],mes:'Maio'},
+    {concurso:'1225',data:'14/06/2026',dezenas:[4,5,6,9,11,25,27],mes:'Agosto'},
+    {concurso:'1224',data:'11/06/2026',dezenas:[2,7,15,16,22,27,28],mes:'Junho'},
+    {concurso:'1223',data:'09/06/2026',dezenas:[9,13,14,21,22,29,30],mes:'Dezembro'},
   ],
   maismilionaria: [
     {concurso:'364',data:'17/06/2026',dezenas:[12,20,23,29,32,48],trevos:[3,5]},
@@ -4879,9 +4964,15 @@ function renderLaPred(){
   // do tamanho do volante como as demais variantes, para nunca misturar
   // resultado real com previsão.
   const qtdAposta = d.min;
-  const realCompativel=real&&real.dezenas&&real.dezenas.length===qtdAposta;
-  const principal={name:'Principal',badge:realCompativel?'✓ ÚLTIMO':'TOP',cor:d.cor,
-      v:realCompativel?{nums:[...real.dezenas].sort((a,b)=>a-b),extra:real.bolaExtra,trevos:real.trevos,mes:real.mes,time:real.timeCoracao}:laRandomPickQtd(d,qtdAposta)};
+  // "Principal" é uma SUGESTÃO, igual às outras 4 variantes — nunca deve
+  // mostrar o sorteio real como se fosse previsão (o resultado que já saiu
+  // não é mais "inédito", é passado). Antes, quando o tamanho batia com o
+  // da aposta, a "Principal" mostrava literalmente as dezenas do último
+  // resultado com o selo "✓ ÚLTIMO" — sempre 100% igual a um jogo que já
+  // não pode mais ganhar nada. Agora todas as 5 variantes usam a mesma
+  // geração aleatória ilustrativa (laRandomPickQtd), sem nenhuma delas
+  // reaproveitar um resultado já ocorrido.
+  const principal={name:'Principal',badge:'TOP',cor:d.cor,v:laRandomPickQtd(d,qtdAposta)};
   // Mesmas categorias usadas na aba "Previsão" completa de cada loteria
   // (modeLabels: Principal/Quentes/Atrasados/Equilibrado/Aleatório), para
   // manter consistência visual entre o card da home e a aba dedicada.
@@ -5148,13 +5239,21 @@ function renderLaHist(d,key){
       ?`<span class="la-xsep">${_extraNome}</span><div class="la-hb" style="background:${_extraCor}">${laPad(r.extra)}</div>`
       :'';
     const trevosInline=(d.hasTrevo&&r.trevos&&r.trevos.length)
-      ?`<span class="la-xsep">TREVO</span>`+r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#00BCD4'}">${laPad(t)}</div>`).join('')
+      ?`<span class="la-xsep">TREVO</span>`+r.trevos.map(t=>`<div class="la-hb la-trevo" style="background:${d.trevoCor||'#0fae8a'}">${laPad(t)}</div>`).join('')
       :'';
     const _chipCor=d.corTexto?`color:${d.corTexto}`:'';
     const mesInline=r.mes?`<span class="la-xsep">MÊS</span><div class="la-chip" style="${_chipCor}">${r.mes}</div>`:'';
     const timeInline=r.time?`<div style="flex-basis:100%;height:0"></div><span class="la-xsep">TIME</span><div class="la-chip" style="${_chipCor}">${r.time}</div>`:'';
     const label1=d.dupla?`<span class="la-xsep">1° SORTEIO</span>`:'';
-    const balls=label1+r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${d.superSete?n:laPad(n)}</div>`).join('')+extraInline+trevosInline+mesInline+timeInline;
+    // Super Sete é posicional — cada dígito é o resultado de UMA coluna
+    // (1 a 7), então mostra o número da coluna acima de cada bola, igual ao
+    // card de Previsão (laRenderBalls, ramo v.cols). Antes nenhuma linha do
+    // Histórico de Sorteios mostrava essa numeração, deixando ambíguo a
+    // qual coluna cada dígito pertencia.
+    const numsHtml=d.superSete
+      ? r.nums.map((n,i)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:8px;font-weight:800;color:${corMarca(d)};font-family:var(--font-mono)">${i+1}</span><div class="la-hb" style="${_ballCor}">${n}</div></div>`).join('')
+      : r.nums.map(n=>`<div class="la-hb" style="${_ballCor}">${laPad(n)}</div>`).join('');
+    const balls=label1+numsHtml+extraInline+trevosInline+mesInline+timeInline;
 
     // 2º sorteio da Dupla Sena — linha separada dentro da mesma célula
     const balls2=(d.dupla&&r.nums2&&r.nums2.length)
@@ -5787,6 +5886,15 @@ function showDashboard(){
   // passava por showTab() antes de ir para o dashboard.
   const geradorPanel=document.getElementById('gerador-beta-panel');
   if(geradorPanel) geradorPanel.classList.remove('active');
+  // Mesmo bug do painel do Gerador (comentário acima), só que no painel de
+  // Análise (abas FREQ. BOLAS/FREQUÊNCIAS/DESVIOS/MATRIZ/ONDAS/PAUSAS/
+  // PREVISÃO/RESULTADOS) — #analise-panel também é uma estrutura
+  // independente fora de #card-page, ativada só via classe 'active' por
+  // showTab(). Sem isso, voltar direto pra Home com uma dessas abas aberta
+  // deixava o painel de Análise (fullscreen, com fundo sólido) visível por
+  // cima/no lugar da Home, escondendo o dashboard atrás dele.
+  const analisePanelHome=document.getElementById('analise-panel');
+  if(analisePanelHome) analisePanelHome.classList.remove('active');
   const cpb=document.querySelector('.card-page-body');
   const sr=document.getElementById('side-right');
   if(sr&&cpb&&sr.parentElement!==cpb){ cpb.appendChild(sr); }
@@ -5873,7 +5981,7 @@ function renderCard(res,d){
   // Bola extra americana (PowerBall / Mega Ball) — separada por linha vertical, com o nome acima da bola
   if(d.bolaExtra&&res.bolaExtra){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.bolaExtraCor||'#00BCD4'}">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'}">${pad(res.bolaExtra)}</div></div>`; }
   // Trevos — +Milionária — separados por linha vertical, com "TREVO" acima
-  if(res.trevos&&res.trevos.length){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.trevoCor||'#00BCD4'}">TREVO</span><div class="trevos-row">`; res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#00BCD4'}">${pad(t)}</div>`;}); h+='</div></div>'; }
+  if(res.trevos&&res.trevos.length){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.trevoCor||'#0fae8a'}">TREVO</span><div class="trevos-row">`; res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#0fae8a'}">${pad(t)}</div>`;}); h+='</div></div>'; }
   h+=`</div>`;
   // 2º Sorteio — Dupla Sena
   if(res.dezenas2&&res.dezenas2.length){
@@ -5903,7 +6011,7 @@ function renderCard(res,d){
     // se o valor na tela é "ao vivo" ou uma referência que pode estar
     // desatualizada em relação ao site oficial.
     const _fonteTag=res.estimativaFonte==='fallback'
-      ?'<span title="Não foi possível confirmar este valor em tempo real agora (bloqueios de CORS impediram a consulta ao site oficial). Este é um valor de referência atualizado manualmente — confira no site oficial se precisar de certeza." style="margin-left:5px;font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(245,158,11,.15);color:#f59e0b;cursor:help;vertical-align:middle">ref.</span>'
+      ?'<span data-tt="Não foi possível confirmar este valor\nem tempo real agora (bloqueios de CORS\nimpediram a consulta ao site oficial).\nEste é um valor de referência atualizado\nmanualmente — confira no site oficial\nse precisar de certeza." style="margin-left:5px;font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(245,158,11,.15);color:#f59e0b;cursor:help;vertical-align:middle">ref.</span>'
       :'';
     h+=`<div class="info-row"><span class="info-lbl">${_jpLbl}</span><div class="info-val-col"><span class="info-val" style="color:${corMarca(d)}">${res.estimativa&&res.estimativa!=='—'?res.estimativa:'—'}${_fonteTag}</span><span class="info-note">próximo: ${res.proximoConcurso||'—'}</span></div></div>`;
     h+=`<div class="info-row"><span class="info-lbl">CASH VALUE</span><div class="info-val-col"><span class="info-val" style="color:#0a7a3d">${res.cashValue||'—'}</span><span class="info-note">pagamento à vista</span></div></div>`;
@@ -6675,13 +6783,13 @@ function abrirVolante(tipo) {
     grade = `<div style="margin-bottom:8px;font-size:10px;font-weight:700;color:${ac};letter-spacing:.5px">CAMPO PRINCIPAL (máx. ${fMax} fixos)</div>`;
     grade += _renderGradeVolante(tipo, Array.from({length:50},(_,i)=>i+1), _tempV, fMax, {cols:10, corSel:ac, marginBottom:12});
     // Trevos (0–6) em linha
-    grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#00BCD4;letter-spacing:.5px">TREVOS (selecione 2 a 6)</div>`;
+    grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#0fae8a;letter-spacing:.5px">TREVOS (selecione 2 a 6)</div>`;
     grade += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
     for (let i = 1; i <= 6; i++) {
       const tKey = 1000 + i; // offset para diferenciar trevos de números
       const sel = _volFixos[tipo].has(tKey);
       grade += `<button type="button" data-val="${tKey}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${tKey},6,this,true)"
-        style="width:40px;height:40px;border-radius:50%;border:1px solid ${sel?'#00BCD4':'rgba(0,188,212,.25)'};background:${sel?'#00BCD4':'rgba(0,188,212,.08)'};color:${sel?'#000':'rgba(0,188,212,.9)'};font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer;transition:all .1s">${i}</button>`;
+        style="width:40px;height:40px;border-radius:50%;border:1px solid ${sel?'#0fae8a':'rgba(15,174,138,.25)'};background:${sel?'#0fae8a':'rgba(15,174,138,.08)'};color:${sel?'#000':'rgba(15,174,138,.9)'};font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer;transition:all .1s">${i}</button>`;
     }
     grade += '</div>';
 
@@ -6818,7 +6926,7 @@ function toggleVolBall(tipo, val, maxFixos, btn, isExtra) {
       return;
     }
     fixos.add(val);
-    const cor = isExtra ? (d?.bolaExtraCor || d?.trevoCor || '#00BCD4') : ac;
+    const cor = isExtra ? (d?.bolaExtraCor || d?.trevoCor || '#0fae8a') : ac;
     btn.style.background = cor;
     btn.style.color = '#000';
     btn.style.borderColor = 'transparent';
@@ -7733,7 +7841,7 @@ async function gerarJogos(tipo,modo){
     const qtyEl=document.getElementById(tipo==='fech'?'fech-qty':tipo==='bolao'?'bolao-qty':'jogo-qty');
     let qty=parseInt(qtyEl?.value)||0;
     if(qty<1){toast('Informe a quantidade de jogos.');return;}
-    if(qty>5000){qty=5000;qtyEl.value=5000;}
+    if(qty>50000){qty=50000;qtyEl.value=50000;}
 
     // wrapId: 'bolao' usa o mesmo 'jogo-dez-wrap' que a geração individual
     // (não existe elemento HTML próprio 'bolao-dez-wrap' — confirmado em
@@ -8140,12 +8248,12 @@ async function gerarJogos(tipo,modo){
         ?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome}</span><div class="result-ball" style="background:${d.bolaExtraCor};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`
         :'';
       const trevos=jogo._trevos
-        ?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`
+        ?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`
         :'';
       if(jogo._espelho){
         const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
         const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome}</span><div class="result-ball" style="background:${d.bolaExtraCor};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
-        const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
+        const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
         const espMesTimeJ=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
         const scoreBadgePJ=jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:'';
         const scoreBadgeEJ=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
@@ -8347,7 +8455,7 @@ async function conferirTodos(){
     }
     if(jogo._trevos&&jogo._trevos.length){
       const sortTrevos=new Set((res.trevos||[]).map(t=>parseInt(t)));
-      h+=`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="conf-ball ${sortTrevos.has(t)?'hit':'miss'}" style="background:${sortTrevos.has(t)?(d.trevoCor||'#00BCD4'):'rgba(255,255,255,.1)'}">${pad(t)}</div>`).join('')}`;
+      h+=`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="conf-ball ${sortTrevos.has(t)?'hit':'miss'}" style="background:${sortTrevos.has(t)?(d.trevoCor||'#0fae8a'):'rgba(255,255,255,.1)'}">${pad(t)}</div>`).join('')}`;
     }
     if(jogo._mes!=null){
       const nomeMes=_mesesNomes[jogo._mes-1]||'';
@@ -8378,7 +8486,7 @@ async function conferirTodos(){
     <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
       ${res.dezenas.map(n=>`<div class="conf-ball hit" style="background:${d.cor}">${pad(parseInt(n))}</div>`).join('')}
       ${res.bolaExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;padding:0 4px">${d.bolaExtraNome}</span><div class="conf-ball hit" style="background:${d.bolaExtraCor}">${pad(res.bolaExtra)}</div>`:''}
-      ${res.trevos?.length?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;padding:0 4px">TREVO</span>${res.trevos.map(t=>`<div class="conf-ball hit" style="background:${d.trevoCor||'#00BCD4'}">${pad(parseInt(t))}</div>`).join('')}`:''}
+      ${res.trevos?.length?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;padding:0 4px">TREVO</span>${res.trevos.map(t=>`<div class="conf-ball hit" style="background:${d.trevoCor||'#0fae8a'}">${pad(parseInt(t))}</div>`).join('')}`:''}
       ${res.dezenas2?.length?`<span style="font-size:9px;color:var(--text-dim);padding:0 6px">· 2º</span>${res.dezenas2.map(n=>`<div class="conf-ball hit" style="background:${d.corD}">${pad(parseInt(n))}</div>`).join('')}`:''}
       ${res.mes?`<span style="font-size:9px;color:${d.cor};font-weight:800;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.mes}</div>`:''}
       ${res.timeCoracao?`<span style="font-size:9px;color:${d.cor};font-weight:800;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.timeCoracao}</div>`:''}
@@ -8631,7 +8739,7 @@ function buildPrintRow(jogo, d, sorteadas, idx, valor, fixosSet, nomeJogo, res){
   const TURQUESA='#00BCD4';
   const ESP_COR='#7c3aed';
   const bxc=d.bolaExtraCor||TURQUESA;
-  const trc=d.trevoCor||TURQUESA;
+  const trc=d.trevoCor||'#0fae8a';
   const premiado=valor>0;
   const acertos=sorteadas?jogo.filter(n=>sorteadas.has(n)).length:null;
   const corBase=jogo._isEspelho?ESP_COR:d.cor;
@@ -8941,7 +9049,7 @@ async function openModalSalvar(escopo){
       ?`<span style="font-size:8px;color:${cfg.bolaExtraCor||'#00BCD4'};font-weight:800;padding:0 2px;text-transform:uppercase;align-self:center">${cfg.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:6px;background:${cfg.bolaExtraCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35);border:1px solid var(--glass-border)">${pad(jogo._extra)}</span>`
       :'';
     const trevos=jogo._trevos&&jogo._trevos.length
-      ?`<span style="font-size:10px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${cfg.trevoCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${pad(t)}</span>`).join('')}`
+      ?`<span style="font-size:10px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${cfg.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${pad(t)}</span>`).join('')}`
       :'';
     return `<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${main}${extra}${trevos}</div>`;
   }
@@ -9735,13 +9843,13 @@ function abrirVolanteExcl(tipo) {
   // Trevos (+Milionária) — exclusão própria, grade simples (poucos números, sem score)
   if(d.hasTrevo){
     grade += `<div style="height:1px;background:rgba(255,255,255,.08);margin:14px 0"></div>`;
-    grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#00BCD4;letter-spacing:.5px">TREVOS</div>`;
+    grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#0fae8a;letter-spacing:.5px">TREVOS</div>`;
     grade += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
     for (let i = 1; i <= 6; i++) {
       const tKey = 1000 + i;
       const sel = _volExcl.has(tKey);
       grade += `<button type="button" onclick="toggleVolExcl('${tipo}',${tKey},this)"
-        style="width:36px;height:36px;border-radius:50%;border:1px solid ${sel?EXCL_COR:'rgba(0,188,212,.25)'};background:${sel?EXCL_COR:'rgba(0,188,212,.08)'};color:${sel?'#fff':'rgba(0,188,212,.9)'};font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer;transition:all .1s">${i}</button>`;
+        style="width:36px;height:36px;border-radius:50%;border:1px solid ${sel?EXCL_COR:'rgba(15,174,138,.25)'};background:${sel?EXCL_COR:'rgba(15,174,138,.08)'};color:${sel?'#fff':'rgba(15,174,138,.9)'};font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer;transition:all .1s">${i}</button>`;
     }
     grade += '</div>';
   }
@@ -9974,7 +10082,7 @@ async function gerarFechamentoPorScore(){
   if(!window._fchScoreFiltros || window._fchScoreLoteria!==currentKey){await calcularScoreEPreview();}
   const filtros=window._fchScoreFiltros||{};
   const qtyInput=parseInt(document.getElementById('jogo-qty')?.value)||0;
-  const maxJogos=qtyInput>0?Math.min(qtyInput,5000):5000;
+  const maxJogos=qtyInput>0?Math.min(qtyInput,50000):50000;
   const numDezSel=document.getElementById('jogo-dez-wrap');
   const numDez=numDezSel?parseInt(numDezSel.querySelector('select')?.value||d.min):d.min;
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
@@ -10167,13 +10275,13 @@ async function gerarFechamentoPorScore(){
     const mainBalls=jogo.map(n=>{const fx=_fixSetFch2.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
     const badge=`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${sc}</span>`;
     const extraHtmlFch2=jogo._extra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`:'';
-    const trevosHtmlFch2=jogo._trevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
+    const trevosHtmlFch2=jogo._trevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
     const mesTimeHtmlFch2=mesTimeHtml(jogo,d);
     if(jogo._espelho){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:${ESP_COR};color:#fff">${pad(n)}</div>`).join('');
       const scE=Math.round(scoreCombo(jogo._espelho));
       const espExtraFch2=jogo._espExtra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
-      const espTrevFch2=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#00BCD4'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
+      const espTrevFch2=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTimeFch2=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
       return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${ESP_COR};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR};min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtraFch2}${espTrevFch2}${espMesTimeFch2}</div><span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR};font-weight:700">⭐${scE}</span></div></div></div></div>`;
     }
@@ -10196,7 +10304,7 @@ async function gerarFechamento(){
   const qtyEl=document.getElementById('jogo-qty');
   let qty=parseInt(qtyEl.value);
   if(!qty||qty<1){toast('Informe a quantidade de jogos do fechamento.');return;}
-  if(qty>5000){qty=5000;qtyEl.value=5000;}
+  if(qty>50000){qty=50000;qtyEl.value=50000;}
   // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
   // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
   // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não gerar N pares
@@ -10306,14 +10414,14 @@ async function gerarFechamento(){
       ?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`
       :'';
     const trevosHtml=jogo._trevos
-      ?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`
+      ?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`
       :'';
     const mesTimeHtmlP=mesTimeHtml(jogo,d);
     const scoreBadgeP=jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:'';
     if(jogo._espelho){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
-      const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||TURQUESA};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||TURQUESA};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
+      const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
       const scoreBadgeE=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
       return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div>${scoreBadgeE}</div></div></div></div>`;
@@ -10658,9 +10766,9 @@ async function gerarComIA(tipo){
   const iaQtyEl=document.getElementById('ia-qty');
   // Sincroniza com o campo do painel até o usuário editar o campo do modal
   if(iaQtyEl&&!window._iaQtyTouched&&qtyEl?.value) iaQtyEl.value=qtyEl.value;
-  // Prioridade: campo do modal IA; fallback: campo do painel. Limite 5000 como todas as loterias.
+  // Prioridade: campo do modal IA; fallback: campo do painel. Limite 50000 como todas as loterias.
   let qty=parseInt(iaQtyEl?.value)||parseInt(qtyEl?.value)||5;
-  qty=Math.min(Math.max(qty,1),5000);
+  qty=Math.min(Math.max(qty,1),50000);
   if(iaQtyEl) iaQtyEl.value=qty;
   // wrapId: mesma observação de gerarJogos() — 'bolao' usa 'jogo-dez-wrap',
   // não existe 'bolao-dez-wrap' no HTML (confirmado em auditoria de código
@@ -11204,7 +11312,7 @@ async function gerarComIA(tipo){
     const fixosSet=new Set(fixos);
     const ESP_COR_IA='#7c3aed';
     const bxcIA=d.bolaExtraCor||'#00BCD4';
-    const trcIA=d.trevoCor||'#00BCD4';
+    const trcIA=d.trevoCor||'#0fae8a';
 
     // Cabeçalho dos grupos espelho no topo do modal
     let espelhoHdrModal='';
@@ -11351,7 +11459,7 @@ function usarJogosIA(){
   jogosGerados=jogos;
   const pad=n=>String(n).padStart(2,'0');
   const bxc=d.bolaExtraCor||'#00BCD4';
-  const trc=d.trevoCor||'#00BCD4';
+  const trc=d.trevoCor||'#0fae8a';
   document.getElementById('result-title').textContent=`${jogos.length} jogos gerados com IA${_espOnIA?' · 🪞 Aposta Espelho':''}`;
   const _scoresHdr=jogos.map(j=>j._scoreJogo).filter(s=>s!=null);
   const _scoreMedioHdr=_scoresHdr.length?Math.round(_scoresHdr.reduce((a,b)=>a+b,0)/_scoresHdr.length):null;
@@ -11590,7 +11698,7 @@ function buildManualVolante(){
         style="width:100%;aspect-ratio:1;border-radius:5px;border:1px solid ${selb?ac:'var(--glass-border)'};background:${selb?ac:'var(--glass-bg)'};color:${selb?'#000':'var(--text)'};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad2(i)}</button>`;
     }
     grade+='</div>';
-    const tc=d.trevoCor||'#00BCD4';
+    const tc=d.trevoCor||'#0fae8a';
     grade+=`<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:${tc};letter-spacing:.5px">TREVOS (selecione ${d.trevosMin||2} a ${d.trevosMax||6})</div>`;
     grade+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
     for(let i=1;i<=(d.trevosUniverse||6);i++){
@@ -11773,7 +11881,7 @@ function renderManualLista(){
       balls=jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;border-radius:4px;background:${d.cor};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(n)}</span>`).join('');
     }
     const extra=jogo._extra?`<span style="font-size:8px;color:${d.bolaExtraCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:${d.bolaExtraCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(jogo._extra)}</span>`:'';
-    const trevos=jogo._trevos?.length?`<span style="font-size:9px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${d.trevoCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(t)}</span>`).join('')}`:'';
+    const trevos=jogo._trevos?.length?`<span style="font-size:9px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${d.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(t)}</span>`).join('')}`:'';
     html+=`<div style="padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:6px;margin-bottom:3px;display:flex;align-items:center;gap:6px">
       <span style="font-size:9px;color:var(--text-dim);min-width:18px;font-family:var(--font-mono)">${i+1}.</span>
       <div style="flex:1;display:flex;flex-wrap:wrap;gap:2px;align-items:center">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>
@@ -12164,7 +12272,7 @@ function renderFrequencias(body,d,universe,freq,teoria,hist){
     trevTeo=nTrev*trevQty/uniT;
     h+=`
   <div class="analise-chart-wrap" style="margin-top:14px">
-    <div class="analise-chart-title" style="color:${d.trevoCor||'#00BCD4'}">🍀 Frequência dos Trevos — ${nTrev} sorteios com trevos · Teoria: ${trevTeo.toFixed(1)}</div>
+    <div class="analise-chart-title" style="color:${d.trevoCor||'#0fae8a'}">🍀 Frequência dos Trevos — ${nTrev} sorteios com trevos · Teoria: ${trevTeo.toFixed(1)}</div>
     ${nTrev===0?'<div style="font-size:11px;color:var(--text-dim);padding:10px 0">Sem trevos no histórico salvo — clique em Atualizar para baixar os concursos com trevos.</div>':'<canvas id="chartFreqTrevos" height="90"></canvas>'}
   </div>`;
   }
@@ -12348,8 +12456,26 @@ function renderResultados(body,d,hist,freq){
         :'';
     const dateHtml=`<span class="dt-date">${h.data||''}</span>${mesTimeInline}`;
     const _bct=d.corTexto?`color:${d.corTexto}`:'';
-    const ballsHtml=`<div class="dt-balls">${dzSorted.map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('')}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
-    if(view.info===0) infoHtml=`<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
+    const ball1InlineHtml=dzSorted.map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('');
+    // Dupla Sena (extraInfo.tipo==='dezenas2'): 1º sorteio fica na MESMA
+    // linha do concurso/data, e o 2º sorteio numa linha própria logo
+    // abaixo, alinhado com o 1º — antes os dois sorteios ficavam
+    // concatenados numa fileira só, quebrando de forma confusa quando não
+    // cabiam lado a lado, e sem deixar claro onde um sorteio terminava e o
+    // outro começava.
+    const isDupla=extraInfo&&extraInfo.tipo==='dezenas2';
+    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}</div>`:'';
+    let ballsHtml;
+    if(isDupla){
+      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}</div>`+ball2RowHtml;
+    } else {
+      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
+    }
+    if(view.info===0){
+      infoHtml=isDupla
+        ? `<div class="dt-numdate">${numHtml}${dateHtml}<div class="dt-balls dt-balls-inline">${ball1InlineHtml}</div></div>`+ball2RowHtml
+        : `<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
+    }
     else if(view.info===1) infoHtml=numHtml;
     else if(view.info===2) infoHtml=dateHtml;
     else infoHtml=ballsHtml;
@@ -12648,7 +12774,7 @@ function renderPrevisao(body,d,hist,freq,atraso,mediaFreq){
   }
   function renderTrevos(trevos,d){
     if(!trevos||!trevos.length)return'';
-    const c=d.trevoCor||'#00BCD4';
+    const c=d.trevoCor||'#0fae8a';
     return `<span class="pred-plus" style="color:${temColorAcc(c)};font-size:9px;font-weight:700">TREVO</span>`+
       trevos.map(t=>`<span class="pred-ball pred-ball-extra" style="color:${temColorAcc(c)};border-color:${c};font-family:var(--font-mono)">${pad(t)}</span>`).join('');
   }
@@ -12756,7 +12882,7 @@ function prevMaisVariantes(vi){
     novaLinha.className='pred-combo-line';
     novaLinha.style.opacity='0';
     const trevosNovos=novosTrevos();
-    const trevCor=d.trevoCor||'#00BCD4';
+    const trevCor=d.trevoCor||'#0fae8a';
     novaLinha.innerHTML=
       `<span class="pred-combo-line-num">${novoNum}.</span>`+
       `<div class="pred-balls">`+
@@ -14087,7 +14213,7 @@ function renderFormBolao(){
       return '<div style="display:grid;grid-template-columns:40px 1fr 180px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:4px">'+
         '<span style="font-size:11px;font-weight:800;color:var(--text-muted);text-align:center">'+_ordinals[i]+'</span>'+
         '<div style="font-size:12px;font-weight:700;color:var(--text)">'+sem.inicio+' a '+sem.fim+'</div>'+
-        '<div style="text-align:right;padding:7px 10px;background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.2);border-radius:8px" title="Calculado automaticamente a partir de todos os jogos vinculados nesta semana (qualquer que tenha sido a forma de vinculação).">'+
+        '<div style="text-align:right;padding:7px 10px;background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.2);border-radius:8px" data-tt="Calculado automaticamente a partir de\ntodos os jogos vinculados nesta semana\n(qualquer que tenha sido a forma de\nvinculação).">'+
           '<span style="font-size:13px;font-weight:700;color:#93c5fd">'+vFmt+'</span>'+
         '</div>'+
       '</div>';
@@ -15055,9 +15181,9 @@ function renderParticipantesBoloes(){
         '<span style="font-size:10px;color:var(--text-muted);text-align:right">'+premioTopoFmt+'</span>'+
         colQtd+
         colContrib+
-        (primeira?'<span id="np-saldo-'+i+'" style="font-size:11px;font-weight:700;color:'+corMeuSaldo+'" title="Contribuição menos a parte deste participante no custo das rodadas (dividido igualmente entre os ativos)">'+(meuSaldo>=0?'':'-')+_bMoney(Math.abs(meuSaldo))+'</span>':'<span></span>')+
+        (primeira?'<span id="np-saldo-'+i+'" style="font-size:11px;font-weight:700;color:'+corMeuSaldo+'" data-tt="Contribuição menos a parte deste\nparticipante no custo das rodadas\n(dividido igualmente entre os ativos)">'+(meuSaldo>=0?'':'-')+_bMoney(Math.abs(meuSaldo))+'</span>':'<span></span>')+
         '<span id="np-taxa-'+i+'" style="font-size:11px;color:'+(ativoPago&&taxaAdminRateio>0?'#16a34a':'var(--text-muted)')+';font-weight:600" title="Rateio da taxa de organização do administrador">'+(ativoPago&&taxaAdminRateio>0?'+ '+_bMoney(taxaAdminRateio):_bMoney(0))+'</span>'+
-        '<span id="np-cota-'+i+'" style="font-size:11px;color:var(--text);font-weight:600" title="Valor de referência de 1 cota (Arrecadação Total ÷ total de cotas)">'+_bMoney(ativoPago?valorCota:0)+'</span>'+
+        '<span id="np-cota-'+i+'" style="font-size:11px;color:var(--text);font-weight:600" data-tt="Valor de referência de 1 cota\n(Arrecadação Total ÷ total de cotas)">'+_bMoney(ativoPago?valorCota:0)+'</span>'+
         colPart+colParticipacao+colPag+
         '<span id="np-pct-'+i+'" style="font-size:11px;color:var(--text-muted);text-align:center">'+pctCota.toFixed(2)+'%</span>'+
         '<span id="np-premio-'+i+'" style="font-size:11px;color:var(--text-muted)">'+_bMoney(premioCota)+'</span>'+
@@ -15831,7 +15957,7 @@ async function imprimirBolao(soPremiados){
           }
           var extraCor=dJogo.bolaExtraCor||'#00BCD4';
           var extra=jogo._extra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+extraCor+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jogo._extra)+'</span>':'';
-          var trevoCor=dJogo.trevoCor||'#00BCD4';
+          var trevoCor=dJogo.trevoCor||'#0fae8a';
           var trevos=jogo._trevos?' <span style="font-size:8px;color:#888">T:</span>'+jogo._trevos.map(function(t){return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+trevoCor+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';}).join(''):'';
           var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
           var mesHtmlB=jogo._mes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jogo._mes-1]||'')+'</span>':'';
@@ -15950,6 +16076,22 @@ async function imprimirBolao(soPremiados){
       }).join('')+
       '</tbody></table>';
   }
+  // Linha de totais da tabela principal — antes os valores estavam nas
+  // colunas erradas (o total de "Qtd. Cotas" saía vazio e o número de
+  // cotas aparecia sob "Valor pago"; a coluna "Meu Saldo" mostrava o total
+  // GASTO, não o saldo que de fato resta). Agora cada total fica embaixo
+  // da coluna certa: Qtd. Cotas soma as cotas, Valor pago soma o que cada
+  // um pagou (cota + rateio de organização), e Meu Saldo soma o saldo
+  // individual de cada participante (contribuição − custo já consumido) —
+  // podendo ficar negativo se o grupo já gastou mais do que arrecadou dos
+  // pagantes.
+  var _totalValorPagoImp=pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota+valorRateioPorPart;},0);
+  var _totalSaldoRestanteImp=ativos.reduce(function(a,p,i){
+    var v=meuSaldoInfoImp.porIndice[i];
+    return a+(v!=null?v:0);
+  },0);
+  var _corSaldoTotalImp=_totalSaldoRestanteImp>=0?'#16a34a':'#dc2626';
+  var _tfootHtmlImp='<tfoot><tr><td style="text-align:center">'+refSeqP+'</td><td>TOTAL ('+ativos.length+' + admin)</td><td style="text-align:center">'+totalCotasPremio+'</td><td style="text-align:right">'+_bMoney(_totalValorPagoImp)+'</td><td style="text-align:right;color:'+_corSaldoTotalImp+'">'+(_totalSaldoRestanteImp<0?'-':'')+_bMoney(Math.abs(_totalSaldoRestanteImp))+'</td><td style="text-align:center">'+_bMoney(valorRateioPorPart*pagosImp.length)+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0))+'</td><td></td></tr></tfoot>';
   var html='<html><head><meta charset="utf-8"><title>'+_esc(s.nome)+'</title>'+
     '<style>@page{size:A4 landscape;margin:8mm}'+
     // Regra UNIVERSAL: sem isso, navegadores podem omitir cores de FUNDO
@@ -16015,7 +16157,16 @@ async function imprimirBolao(soPremiados){
     '<div class="admin-box"><b>Administrador:</b> '+_esc(s.admin.nome)+' &nbsp;·&nbsp; <b>Tel:</b> '+_esc(s.admin.telefone)+' &nbsp;·&nbsp; <b>PIX'+(s.admin.pixTipo?' ('+({cpf:'CPF',cnpj:'CNPJ',telefone:'Telefone',email:'E-mail',aleatoria:'Aleatória'}[s.admin.pixTipo]||'')+')':'')+':</b> '+_esc(s.admin.pix)+'</div>'+
     '<table><thead><tr><th>Refer.</th><th>Nome</th><th>Qtd. Cotas</th><th style="text-align:right">Valor pago</th><th style="text-align:right">Meu Saldo</th><th>Organização</th><th style="text-align:right">Cota</th><th>Pagamento</th></tr></thead>'+
     '<tbody>'+linhas+'</tbody>'+
-    '<tfoot><tr><td style="text-align:center">'+refSeqP+'</td><td>TOTAL ('+ativos.length+' + admin)</td><td></td><td style="text-align:center">'+totalCotasPremio+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota+valorRateioPorPart;},0))+'</td><td style="text-align:center">'+_bMoney(valorRateioPorPart*pagosImp.length)+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0))+'</td><td></td></tr></tfoot>'+
+    // Linha de totais — antes os valores estavam nas colunas erradas (o
+    // total de "Qtd. Cotas" saía vazio e o número de cotas aparecia sob
+    // "Valor pago"; a coluna "Meu Saldo" mostrava o total GASTO, não o
+    // saldo que de fato resta). Agora cada total fica embaixo da coluna
+    // certa: Qtd. Cotas soma as cotas, Valor pago soma o que cada um
+    // pagou (cota + rateio de organização), e Meu Saldo soma o saldo
+    // individual de cada participante (contribuição − custo já
+    // consumido) — podendo ficar negativo se o grupo já gastou mais do
+    // que arrecadou dos pagantes.
+    _tfootHtmlImp+
     '</table>'+tabelasPorLoteriaHtml+somatorioHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml+'</body></html>';
   var w=window.open('','_blank');
   if(!w){ toast('Permita pop-ups para imprimir.'); return; }
@@ -16518,7 +16669,7 @@ async function verJogosVinculados(){
       var dConcExtra=dConcurso;
       var extrasHtml='';
       if(j&&j._trevos&&j._trevos.length){
-        var trevoCor=(dConcExtra&&dConcExtra.trevoCor)||'#00BCD4';
+        var trevoCor=(dConcExtra&&dConcExtra.trevoCor)||'#0fae8a';
         extrasHtml+=' <span style="font-size:8px;color:'+trevoCor+';font-weight:800;margin-left:4px">TREVO</span>'+
           j._trevos.map(function(t){return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+trevoCor+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(t).padStart(2,'0')+'</span>';}).join('');
       }
