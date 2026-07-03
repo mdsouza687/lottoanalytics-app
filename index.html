@@ -3142,6 +3142,28 @@ function verificarAvisoBackup(){
     }
   }catch(e){}
 }
+// Backup automático diário — client-side puro (não há servidor para agendar
+// isso): checa, a cada carregamento do app, se o último backup foi feito em
+// um dia civil diferente de hoje (não apenas "há mais de 24h", porque isso
+// dependeria do app ficar aberto o dia todo) e, se sim, exporta sozinho.
+// Só existe download automático de arquivo — não há "nuvem" própria do app
+// para guardar o backup; alguns navegadores podem bloquear/perguntar antes
+// de um download disparado sem clique direto do usuário, então isso é best
+// effort, não uma garantia absoluta em todo navegador/configuração.
+function verificarBackupAutomaticoDiario(){
+  try{
+    const ultimo=parseInt(localStorage.getItem('lotto_ultimo_backup')||'0');
+    const hoje=new Date().toDateString();
+    const diaUltimo=ultimo?new Date(ultimo).toDateString():null;
+    if(diaUltimo===hoje) return; // já rodou hoje
+    dbAll('jogos_salvos').then(js=>{
+      dbAll('boloes_v2').then(bv=>{
+        const temDados=((js&&js.length)||0)+((bv&&bv.length)||0);
+        if(temDados>0) exportarBackup();
+      });
+    }).catch(()=>{});
+  }catch(e){}
+}
 const dbByIdx=(store,idx,val)=>new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).index(idx).getAll(val);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e.target.error);});
 
 /* ════ PADRÕES CONSOLIDADOS — LOTERIAS BRASILEIRAS E AMERICANAS ════
@@ -4762,7 +4784,15 @@ const LA_ORDER=['megasena','lotofacil','quina','lotomania','duplasena','diasorte
 // (faltava terça). Não afeta o cálculo do concurso vigente/próximo (que já
 // usa os dados ao vivo da API da Caixa, não este calendário) — só o texto
 // "Sorteia [dias]" exibido no card da home.
-const LA_DIAS={megasena:'ter, qua e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'qua e sáb',duplasena:'seg e sex',diasorte:'ter, qui e sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'seg, qua, sex e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
+// Calendário semanal oficial das Loterias Caixa, confirmado pelo usuário em
+// 03/07/2026: Segunda = Super Sete, Dupla Sena, Lotofácil, Quina, Lotomania;
+// Terça = Mega-Sena, Lotofácil, Quina, Dia de Sorte, Timemania; Quarta =
+// Super Sete, Dupla Sena, Lotofácil, Quina, Lotomania, +Milionária; Quinta =
+// Mega-Sena, Lotofácil, Quina, Dia de Sorte, Timemania; Sexta = Super Sete,
+// Dupla Sena, Lotofácil, Quina, Lotomania; Sábado = Mega-Sena, Lotofácil,
+// Quina, Dia de Sorte, Timemania, +Milionária.
+const LA_DIAS_NUMS={megasena:[2,4,6],lotofacil:[1,2,3,4,5,6],quina:[1,2,3,4,5,6],lotomania:[1,3,5],duplasena:[1,3,5],diasorte:[2,4,6],supersete:[1,3,5],timemania:[2,4,6],maismilionaria:[3,6]};
+const LA_DIAS={megasena:'ter, qui e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'seg, qua e sex',duplasena:'seg, qua e sex',diasorte:'ter, qui e sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'qua e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
 const LA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Lista oficial dos 80 clubes da Timemania, no formato exato usado pelo
 // volante e pela API de resultados (NOME/UF, sem acento, maiúsculas — ex.
@@ -5889,7 +5919,16 @@ function renderCard(res,d){
   const _diasSorteio=d.americano?(d.apiKey==='powerball'?'Segunda · Quarta · Sábado':'Terça · Sexta'):(typeof LA_DIAS!=='undefined'?(LA_DIAS[currentKey]||''):'');
   if(_diasSorteio) h+=`<div class="info-row"><span class="info-lbl">Dias de sorteio</span><div class="info-val-col"><span class="info-val" style="color:#1a1a1a;font-size:13px">${_diasSorteio}</span></div></div>`;
   h+=`</div>`;
-  if(res.ganhadores&&res.ganhadores.length){
+  // A API da Caixa às vezes já devolve `premiacoes` com uma entrada por
+  // faixa para o concurso do dia mesmo ANTES da apuração oficial (ganhadores
+  // e valorPremio zerados/pendentes em todas as faixas) — usar só
+  // "res.ganhadores.length" para decidir se o resultado já está completo
+  // escondia o botão de inserção manual nesse caso, mesmo sem nenhuma
+  // faixa com valor real ainda. Considera "sincronizado de verdade" apenas
+  // quando pelo menos uma faixa tem valorNum>0 (prêmio pago) OU marca
+  // "ACUMULOU" (jackpot, também um resultado oficial válido).
+  const _temFaixasReais=!!(res.ganhadores&&res.ganhadores.length&&(res.acumulou||res.ganhadores.some(g=>g.valorNum>0)));
+  if(_temFaixasReais){
     let detH='',faiH='';
     res.ganhadores.forEach(g=>{
       const isJackpot=g.p==='JACKPOT'||g.valorNum===0;
@@ -5901,8 +5940,9 @@ function renderCard(res,d){
     h+=`<div class="res-manual-wrap"><div style="font-size:11px;color:#666;padding-bottom:8px">Faixas de premiação e valores oficiais ainda não foram sincronizados. Os jogos já foram conferidos pelas dezenas informadas manualmente.</div></div>`;
   }
   // Botão de inserção manual: só aparece enquanto o concurso não tiver as
-  // informações oficiais completas sincronizadas (sem faixas de premiação).
-  if(!res.ganhadores||!res.ganhadores.length){
+  // informações oficiais completas sincronizadas (sem faixas de premiação
+  // com valor real).
+  if(!_temFaixasReais){
     h+=`<div class="res-manual-wrap"><button class="res-manual-btn" onclick="abrirModalResultadoManual()">📝 ${res.origem==='manual'?'Editar':'Inserir'} Resultado Manual</button></div>`;
   }
   if(d.specialLabel){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px 10px;font-size:11px;color:#a16207;font-weight:600;font-style:italic;background:#fdfdfc">⭐ Pode incluir: ${d.specialLabel}</div>`; }
@@ -6528,17 +6568,24 @@ function _renderGradeVolante(tipo, nums, tempData, maxSel, cfg){
   // padrão visual nenhum; com a ordenação, o degradê fica contínuo e legível
   // da esquerda/cima (quente) até a direita/baixo (frio).
   const numsOrdenados = temTemp ? [...nums].sort((a,b)=>(scoreMap[b]??0)-(scoreMap[a]??0)) : nums;
+  // cfg.set/cfg.onClick permitem reaproveitar esta mesma grade com degradê
+  // em outros volantes além do de Nº Fixos (ex.: Excluir Números) — por
+  // padrão usa o Set e o toggle de fixos, mantendo os 4 call-sites
+  // originais funcionando sem alteração.
+  const selSet = cfg.set || _volFixos[tipo];
+  const corTexto = cfg.corTextoSel || '#000';
+  const onClickFn = cfg.onClick || ((val)=>`toggleVolBall('${tipo}',${val},${maxSel},this${isExtra?',true':''})`);
   let h = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:${cfg.marginBottom??0}px">`;
   numsOrdenados.forEach(n=>{
     const val = n + offset;
-    const sel = _volFixos[tipo].has(val);
+    const sel = selSet.has(val);
     const score = scoreMap[n];
     const bgUnsel = temTemp ? _corGradienteTemp(score) : 'rgba(255,255,255,.05)';
     const txtUnsel = temTemp ? '#fff' : 'rgba(255,255,255,.65)';
     const brUnsel = temTemp ? 'transparent' : 'rgba(255,255,255,.12)';
     const scoreTxt = temTemp ? `<span style="font-size:7px;font-weight:600;opacity:.8">${score}</span>` : '';
-    h += `<button type="button" data-val="${val}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${val},${maxSel},this${isExtra?',true':''})"
-      style="width:100%;aspect-ratio:1;border-radius:6px;border:1px solid ${sel?corSel:brUnsel};background:${sel?corSel:bgUnsel};color:${sel?'#000':txtUnsel};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+    h += `<button type="button" data-val="${val}" class="vol-ball-${tipo}" onclick="${onClickFn(val)}"
+      style="width:100%;aspect-ratio:1;border-radius:6px;border:1px solid ${sel?corSel:brUnsel};background:${sel?corSel:bgUnsel};color:${sel?corTexto:txtUnsel};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
       <span style="font-size:10px;font-weight:800">${pad(n)}</span>${scoreTxt}</button>`;
   });
   h += '</div>';
@@ -9388,6 +9435,55 @@ function calcConcursosTeimosinha(concursoInicial,n){
   for(let i=0;i<n;i++) lista.push(String(base+i));
   return lista;
 }
+// Data da Páscoa (algoritmo de Gauss) — usada só para derivar os feriados
+// nacionais MÓVEIS (Carnaval, Sexta-feira Santa, Corpus Christi), que não
+// têm data fixa no calendário. Necessário porque o cálculo de datas futuras
+// da Teimosinha precisa pular dias sem sorteio, e feriados nacionais
+// suspendem os sorteios da Caixa.
+function _pascoaData(ano){
+  const a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
+  return new Date(ano,mes-1,dia);
+}
+function _feriadosNacionaisSet(ano){
+  const p=_pascoaData(ano);
+  const addDays=(dt,n)=>{const r=new Date(dt);r.setDate(r.getDate()+n);return r;};
+  const key=dt=>dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate();
+  const set=new Set();
+  // Feriados nacionais de data fixa
+  [[0,1],[3,21],[4,1],[8,7],[9,12],[10,2],[10,15],[10,20],[11,25]].forEach(([mes,dia])=>set.add(ano+'-'+mes+'-'+dia));
+  // Feriados móveis (dependem da Páscoa): Carnaval (terça, Páscoa-47),
+  // Sexta-feira Santa (Páscoa-2), Corpus Christi (Páscoa+60)
+  [addDays(p,-47),addDays(p,-2),addDays(p,60)].forEach(dt=>set.add(key(dt)));
+  return set;
+}
+function _ehFeriadoNacional(date){
+  return _feriadosNacionaisSet(date.getFullYear()).has(date.getFullYear()+'-'+date.getMonth()+'-'+date.getDate());
+}
+// Calcula as datas de sorteio dos N concursos de uma sequência de
+// Teimosinha, a partir da data do concurso base (já um dia de sorteio
+// válido) — avança dia a dia, contando só os dias da semana em que a
+// loteria sorteia (LA_DIAS_NUMS) e pulando feriados nacionais (a Caixa não
+// realiza sorteio em feriado nacional, mesmo caindo num dia de sorteio
+// normal da loteria). Retorna strings 'dd/mm/aaaa', na mesma ordem de
+// calcConcursosTeimosinha — datas[i] corresponde ao concurso lista[i].
+function calcDatasTeimosinha(loteriaKey,dataBaseStr,n){
+  const dias=(typeof LA_DIAS_NUMS!=='undefined')?LA_DIAS_NUMS[loteriaKey]:null;
+  if(!dias||!dias.length||!dataBaseStr||dataBaseStr==='—') return [];
+  const partes=dataBaseStr.split('/').map(x=>parseInt(x));
+  const [d,m,y]=partes;
+  if(!d||!m||!y) return [];
+  const cursor=new Date(y,m-1,d);
+  const datas=[];
+  let guard=0;
+  while(datas.length<n && guard<400){
+    if(dias.includes(cursor.getDay()) && !_ehFeriadoNacional(cursor)){
+      datas.push(('0'+cursor.getDate()).slice(-2)+'/'+('0'+(cursor.getMonth()+1)).slice(-2)+'/'+cursor.getFullYear());
+    }
+    cursor.setDate(cursor.getDate()+1);
+    guard++;
+  }
+  return datas;
+}
 // Uma aposta Teimosinha só é considerada FINALIZADA depois que o ÚLTIMO
 // concurso da lista (não o primeiro) já tiver sido sorteado — mesmo que
 // concursos intermediários já tenham saído, a aposta continua "vigente"
@@ -9407,9 +9503,11 @@ function exibirConcursoBar(){
   document.getElementById('result-concurso-num').style.color=d.cor;
   document.getElementById('result-concurso-data').textContent=concursoData!=='—'?`· ${concursoData}`:'';
   bar.style.display='flex';
-  // Guarda o concurso vigente para a Teimosinha calcular a partir dele —
-  // window._teimosinhaConcursoBase é lido por aplicarTeimosinhaResultado().
+  // Guarda o concurso vigente (e sua data) para a Teimosinha calcular a
+  // partir dele — window._teimosinhaConcursoBase/Data são lidos por
+  // aplicarTeimosinhaResultado().
   window._teimosinhaConcursoBase=concursoNum;
+  window._teimosinhaConcursoBaseData=concursoData;
   exibirTeimosinhaBar(d);
 }
 // Popula e exibe a barra de seleção de Teimosinha com as opções oficiais
@@ -9444,13 +9542,19 @@ function aplicarTeimosinhaResultado(n){
   const base=window._teimosinhaConcursoBase;
   if(!base){ toast('Não foi possível identificar o concurso vigente.'); return; }
   const lista=calcConcursosTeimosinha(base,qtd);
+  // Datas de cada concurso da sequência, derivadas do dia da semana de
+  // sorteio da loteria (LA_DIAS_NUMS) e pulando feriados nacionais — antes
+  // só o número do concurso base tinha data conhecida (via API), os
+  // seguintes ficavam sem nenhuma data exibida.
+  const datas=calcDatasTeimosinha(currentKey,window._teimosinhaConcursoBaseData,qtd);
   (jogosGerados||[]).forEach(j=>{
-    if(j&&typeof j==='object'){ j._teimosinhaConcursos=lista; j._teimosinhaQtd=qtd; }
+    if(j&&typeof j==='object'){ j._teimosinhaConcursos=lista; j._teimosinhaQtd=qtd; if(datas.length===lista.length) j._teimosinhaDatas=datas; }
   });
   if(info){
+    const temDatas=datas.length===lista.length;
     info.textContent = lista.length>1
-      ? `Concursos ${lista[0]} a ${lista[lista.length-1]} (${lista.length} sorteios)`
-      : `Concurso ${lista[0]}`;
+      ? `Concursos ${lista[0]} a ${lista[lista.length-1]} (${lista.length} sorteios)`+(temDatas?` · ${datas.join(', ')}`:'')
+      : `Concurso ${lista[0]}`+(temDatas?` (${datas[0]})`:'');
   }
   toast(`Teimosinha aplicada: ${qtd} concursos consecutivos (${lista[0]} a ${lista[lista.length-1]}).`);
 }
@@ -9488,13 +9592,15 @@ function aplicarTeimosinhaIA(n){
   const base=window._teimosinhaConcursoBase;
   if(!base){ toast('Não foi possível identificar o concurso vigente.'); return; }
   const lista=calcConcursosTeimosinha(base,qtd);
+  const datas=calcDatasTeimosinha(currentKey,window._teimosinhaConcursoBaseData,qtd);
   (window._jogosIA||[]).forEach(j=>{
-    if(j&&typeof j==='object'){ j._teimosinhaConcursos=lista; j._teimosinhaQtd=qtd; }
+    if(j&&typeof j==='object'){ j._teimosinhaConcursos=lista; j._teimosinhaQtd=qtd; if(datas.length===lista.length) j._teimosinhaDatas=datas; }
   });
   if(info){
+    const temDatas=datas.length===lista.length;
     info.textContent = lista.length>1
-      ? `Concursos ${lista[0]} a ${lista[lista.length-1]} (${lista.length} sorteios)`
-      : `Concurso ${lista[0]}`;
+      ? `Concursos ${lista[0]} a ${lista[lista.length-1]} (${lista.length} sorteios)`+(temDatas?` · ${datas.join(', ')}`:'')
+      : `Concurso ${lista[0]}`+(temDatas?` (${datas[0]})`:'');
   }
   toast(`Teimosinha aplicada: ${qtd} concursos consecutivos (${lista[0]} a ${lista[lista.length-1]}).`);
 }
@@ -9602,60 +9708,14 @@ function abrirVolanteExcl(tipo) {
     }
     grade += '</div>';
   } else {
-    // Temperatura para fch2: quente=laranja, médio=neutro, frio=azul
+    // Mesmo grid único com degradê contínuo (quente→frio) usado no volante
+    // de Nº Fixos — reaproveita _renderGradeVolante/_corGradienteTemp em vez
+    // do antigo layout de 3 grupos (Quentes/Médios/Frios) com cores fixas.
     const _tempE = (window._tempPorTipo && window._tempPorTipo[tipo]) ? window._tempPorTipo[tipo] : null;
-
-    if(_tempE && _tempE.sorted){
-      // ── fch2: exibe por ranking (quentes → médios → frios) com score ──
-      const hotArr  = _tempE.sorted.filter(x => _tempE.hot.has(x.n));
-      const medArr  = _tempE.sorted.filter(x => !_tempE.hot.has(x.n) && !_tempE.cold.has(x.n));
-      const coldArr = _tempE.sorted.filter(x => _tempE.cold.has(x.n));
-
-      const renderGrpE=(arr, bgUnsel, brUnsel, selColor, label, lblColor, lblBg)=>{
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:8px 0 5px">
-          <span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:12px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:2px">`;
-        arr.forEach(({n,s})=>{
-          const sel=_volExcl.has(n);
-          h+=`<button type="button" onclick="toggleVolExcl('${tipo}',${n},this)"
-            style="width:100%;border-radius:6px;padding:5px 2px 3px;border:1px solid ${sel?selColor:brUnsel};background:${sel?selColor:bgUnsel};color:${sel?'#fff':'rgba(255,255,255,.9)'};font-family:var(--font-head);font-size:${universe.length>50?'10':'11'}px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:1px">
-            <span style="font-size:11px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:8px;font-weight:600;opacity:.65">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-
-      grade = `<div>
-        ${renderGrpE(hotArr,  'rgba(234,88,12,.32)','rgba(234,88,12,.7)', EXCL_COR,'🔥 Quentes','#fed7aa','rgba(234,88,12,.2)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpE(medArr,  'rgba(255,255,255,.06)','rgba(255,255,255,.18)',EXCL_COR,'⚖ Médios','rgba(255,255,255,.75)','rgba(255,255,255,.07)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpE(coldArr, 'rgba(37,99,235,.30)','rgba(37,99,235,.65)', EXCL_COR,'❄ Frios','#bfdbfe','rgba(37,99,235,.2)')}
-      </div>`;
-    } else {
-      const _bgTempE = n => {
-        if(!_tempE) return 'rgba(255,255,255,.04)';
-        if(_tempE.hot.has(n)) return 'rgba(234,88,12,.32)';
-        if(_tempE.cold.has(n)) return 'rgba(37,99,235,.28)';
-        return 'rgba(255,255,255,.06)';
-      };
-      const _brTempE = n => {
-        if(!_tempE) return 'rgba(255,255,255,.12)';
-        if(_tempE.hot.has(n)) return 'rgba(234,88,12,.65)';
-        if(_tempE.cold.has(n)) return 'rgba(37,99,235,.55)';
-        return 'rgba(255,255,255,.12)';
-      };
-      grade = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px">`;
-      universe.forEach(i => {
-        const sel = _volExcl.has(i);
-        grade += `<button type="button" onclick="toggleVolExcl('${tipo}',${i},this)"
-          style="width:100%;aspect-ratio:1;border-radius:6px;border:1px solid ${sel?EXCL_COR:_brTempE(i)};background:${sel?EXCL_COR:_bgTempE(i)};color:${sel?'#fff':'rgba(255,255,255,.75)'};font-family:var(--font-head);font-size:${universe.length>50?'10':'11'}px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      });
-      grade += '</div>';
-    }
+    grade = _renderGradeVolante(tipo, universe, _tempE, null, {
+      cols, corSel:EXCL_COR, corTextoSel:'#fff', set:_volExcl,
+      onClick: val=>`toggleVolExcl('${tipo}',${val},this)`
+    });
   } // fecha else (loterias padrão)
 
   // Bola extra (Powerball/Mega Ball) — seção de exclusão própria, com a mesma ordenação
@@ -9666,42 +9726,10 @@ function abrirVolanteExcl(tipo) {
     const _tempExtra = (window._tempExtraPorTipo && window._tempExtraPorTipo[tipo]) ? window._tempExtraPorTipo[tipo] : null;
     grade += `<div style="height:1px;background:rgba(255,255,255,.08);margin:14px 0"></div>`;
     grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:${extraCor};letter-spacing:.5px">${d.bolaExtraNome} 1–${d.bolaExtraMax}</div>`;
-
-    if(_tempExtra && _tempExtra.sorted){
-      const hotArrX  = _tempExtra.sorted.filter(x => _tempExtra.hot.has(x.n));
-      const medArrX  = _tempExtra.sorted.filter(x => !_tempExtra.hot.has(x.n) && !_tempExtra.cold.has(x.n));
-      const coldArrX = _tempExtra.sorted.filter(x => _tempExtra.cold.has(x.n));
-      const renderGrpXE=(arr, bgUnsel, brUnsel, label, lblColor, lblBg)=>{
-        if(!arr.length) return '';
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 3px">
-          <span style="font-size:9px;font-weight:800;padding:1px 7px;border-radius:10px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">`;
-        arr.forEach(({n,s})=>{
-          const tKey=1000+n;
-          const sel=_volExcl.has(tKey);
-          h+=`<button type="button" onclick="toggleVolExcl('${tipo}',${tKey},this)"
-            style="width:34px;height:38px;border-radius:8px;border:1px solid ${sel?EXCL_COR:brUnsel};background:${sel?EXCL_COR:bgUnsel};color:${sel?'#fff':extraCor};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0">
-            <span style="font-size:10px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:7px;font-weight:600;opacity:.7">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-      grade+=renderGrpXE(hotArrX,  'rgba(234,88,12,.22)','rgba(234,88,12,.6)', '🔥','#fed7aa','rgba(234,88,12,.18)');
-      grade+=renderGrpXE(medArrX,  'transparent',extraCor+'44','⚖','rgba(255,255,255,.7)','rgba(255,255,255,.06)');
-      grade+=renderGrpXE(coldArrX, 'rgba(37,99,235,.20)','rgba(37,99,235,.55)','❄','#bfdbfe','rgba(37,99,235,.18)');
-    } else {
-      grade += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
-      for (let i = 1; i <= d.bolaExtraMax; i++) {
-        const tKey = 1000 + i;
-        const sel = _volExcl.has(tKey);
-        grade += `<button type="button" onclick="toggleVolExcl('${tipo}',${tKey},this)"
-          style="width:32px;height:32px;border-radius:50%;border:1px solid ${sel?EXCL_COR:extraCor+'44'};background:${sel?EXCL_COR:'transparent'};color:${sel?'#fff':extraCor};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      }
-      grade += '</div>';
-    }
+    grade += _renderGradeVolante(tipo, Array.from({length:d.bolaExtraMax},(_,i)=>i+1), _tempExtra, null, {
+      isExtra:true, cols:10, corSel:EXCL_COR, corTextoSel:'#fff', set:_volExcl,
+      onClick: val=>`toggleVolExcl('${tipo}',${val},this)`
+    });
   }
 
   // Trevos (+Milionária) — exclusão própria, grade simples (poucos números, sem score)
@@ -11907,6 +11935,12 @@ async function _bootApp(){
   }, 1500);
   // Aviso periódico de backup (após o app carregar)
   setTimeout(verificarAvisoBackup, 4000);
+  // Backup automático 1x/dia: dispara sozinho (sem precisar do usuário
+  // clicar em "Exportar Backup") assim que o app é aberto pela primeira
+  // vez no dia — reusa o mesmo timestamp "lotto_ultimo_backup" já usado
+  // pelo aviso acima, comparando o DIA civil (não só 24h corridas, para
+  // não depender de manter o app aberto o dia inteiro).
+  setTimeout(verificarBackupAutomaticoDiario, 6000);
   // Limpa cache de tema antigo e restaura tema salvo
   try{
     const t=localStorage.getItem('loterias_theme');
