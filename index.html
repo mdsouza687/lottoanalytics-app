@@ -6298,6 +6298,55 @@ function calcTemperaturaNumeros(universo, scoreMap){
   return {hot, cold, sorted: scored, scores: scoreMap};
 }
 
+// Gradiente contínuo de temperatura: interpola de azul (frio/atrasado) a
+// laranja-avermelhado (quente/frequente) conforme o score (0-100) — em vez
+// de separar os números em 3 grupos discretos (🔥Quentes/⚖Médios/❄Frios)
+// com o mesmo número às vezes espalhado em seções diferentes, cada número
+// aparece UMA vez, na grade natural, colorido pela própria posição na escala.
+function _corGradienteTemp(scorePct){
+  const t=Math.max(0,Math.min(1,(scorePct||0)/100));
+  const frio=[37,99,235], quente=[234,88,12]; // mesmas cores já usadas nos extremos hot/cold
+  const r=Math.round(frio[0]+(quente[0]-frio[0])*t);
+  const g=Math.round(frio[1]+(quente[1]-frio[1])*t);
+  const b=Math.round(frio[2]+(quente[2]-frio[2])*t);
+  return `rgb(${r},${g},${b})`;
+}
+// Grade única (ordem numérica natural) com gradiente de temperatura —
+// substitui os 3 blocos quase-idênticos de renderGrp*/hot-med-cold que
+// existiam para cada campo (principal padrão, +Milionária, Powerball/Mega
+// Millions, bola extra). Sem dados de temperatura ainda calculados, cai
+// para cinza neutro (mesmo comportamento de antes nesse caso).
+function _renderGradeVolante(tipo, nums, tempData, maxSel, cfg){
+  cfg = cfg || {};
+  const isExtra = !!cfg.isExtra;
+  const offset = isExtra ? 1000 : 0;
+  const cols = cfg.cols || (nums.length<=25?5:nums.length<=31?7:10);
+  const corSel = cfg.corSel || '#3b9fff';
+  const pad = n => String(n).padStart(2,'0');
+  const scoreMap = {};
+  const temTemp = !!(tempData && tempData.sorted);
+  if(temTemp) tempData.sorted.forEach(({n,s})=>{ scoreMap[n]=s; });
+  // Ordena do mais quente pro mais frio (score decrescente) — sem isso a
+  // grade ficava em ordem numérica com as cores do degradê espalhadas sem
+  // padrão visual nenhum; com a ordenação, o degradê fica contínuo e legível
+  // da esquerda/cima (quente) até a direita/baixo (frio).
+  const numsOrdenados = temTemp ? [...nums].sort((a,b)=>(scoreMap[b]??0)-(scoreMap[a]??0)) : nums;
+  let h = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:${cfg.marginBottom??0}px">`;
+  numsOrdenados.forEach(n=>{
+    const val = n + offset;
+    const sel = _volFixos[tipo].has(val);
+    const score = scoreMap[n];
+    const bgUnsel = temTemp ? _corGradienteTemp(score) : 'rgba(255,255,255,.05)';
+    const txtUnsel = temTemp ? '#fff' : 'rgba(255,255,255,.65)';
+    const brUnsel = temTemp ? 'transparent' : 'rgba(255,255,255,.12)';
+    const scoreTxt = temTemp ? `<span style="font-size:7px;font-weight:600;opacity:.8">${score}</span>` : '';
+    h += `<button type="button" data-val="${val}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${val},${maxSel},this${isExtra?',true':''})"
+      style="width:100%;aspect-ratio:1;border-radius:6px;border:1px solid ${sel?corSel:brUnsel};background:${sel?corSel:bgUnsel};color:${sel?'#000':txtUnsel};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+      <span style="font-size:10px;font-weight:800">${pad(n)}</span>${scoreTxt}</button>`;
+  });
+  h += '</div>';
+  return h;
+}
 function abrirVolante(tipo) {
   const d = CFG[currentKey]; if (!d) return;
   if (!_volFixos[tipo]) _volFixos[tipo] = new Set();
@@ -6371,59 +6420,16 @@ function abrirVolante(tipo) {
     grade += '</div><div style="margin-top:8px;font-size:10px;color:var(--text-dim)">Cada coluna é uma posição do Super Sete — selecione de 1 a 3 dígitos por coluna</div>';
 
   } else if (d.universe === 100) {
-    // Lotomania: 0–99, grade 10×10
-    grade = '<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px">';
-    for (let i = 0; i < 100; i++) {
-      const sel = _volFixos[tipo].has(i);
-      grade += `<button type="button" data-val="${i}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${i},${fMax},this)"
-        style="width:100%;aspect-ratio:1;border-radius:5px;border:1px solid ${sel?ac:'rgba(255,255,255,.1)'};background:${sel?ac:'rgba(255,255,255,.04)'};color:${sel?'#000':'rgba(255,255,255,.6)'};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-    }
-    grade += '</div>';
+    // Lotomania: 0–99, grade única com gradiente de temperatura
+    const _tempV = (window._tempPorTipo && window._tempPorTipo[tipo]) ? window._tempPorTipo[tipo] : null;
+    grade = _renderGradeVolante(tipo, Array.from({length:100},(_,i)=>i), _tempV, fMax, {corSel:ac});
 
   } else if (d.hasTrevo) {
-    // +Milionária: 50 números (1–50) em grade 10×5 — campo principal recebe a mesma
-    // ordenação por temperatura/score das demais loterias (Trevos seguem grade simples,
-    // já que são poucos números e a auditoria de score cobre só o campo principal).
-    const cols = 10;
+    // +Milionária: 50 números (1–50), grade única com gradiente de temperatura
+    // (Trevos seguem grade simples, já que são poucos números e não têm score).
     const _tempV = (window._tempPorTipo && window._tempPorTipo[tipo]) ? window._tempPorTipo[tipo] : null;
     grade = `<div style="margin-bottom:8px;font-size:10px;font-weight:700;color:${ac};letter-spacing:.5px">CAMPO PRINCIPAL (máx. ${fMax} fixos)</div>`;
-
-    if(_tempV && _tempV.sorted){
-      const hotArr  = _tempV.sorted.filter(x => _tempV.hot.has(x.n));
-      const medArr  = _tempV.sorted.filter(x => !_tempV.hot.has(x.n) && !_tempV.cold.has(x.n));
-      const coldArr = _tempV.sorted.filter(x => _tempV.cold.has(x.n));
-      const renderGrpM=(arr, bgUnsel, brUnsel, label, lblColor, lblBg)=>{
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:6px 0 5px">
-          <span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:12px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:2px">`;
-        arr.forEach(({n,s})=>{
-          const sel=_volFixos[tipo].has(n);
-          h+=`<button type="button" data-val="${n}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${n},${fMax},this)"
-            style="width:100%;border-radius:6px;padding:5px 2px 3px;border:1px solid ${sel?ac:brUnsel};background:${sel?ac:bgUnsel};color:${sel?'#000':'rgba(255,255,255,.9)'};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:1px">
-            <span style="font-size:10px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:8px;font-weight:600;opacity:.65">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-      grade += `<div style="margin-bottom:12px">
-        ${renderGrpM(hotArr,  'rgba(234,88,12,.32)','rgba(234,88,12,.7)', '🔥 Quentes','#fed7aa','rgba(234,88,12,.2)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpM(medArr,  'rgba(255,255,255,.06)','rgba(255,255,255,.18)','⚖ Médios','rgba(255,255,255,.75)','rgba(255,255,255,.07)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpM(coldArr, 'rgba(37,99,235,.30)','rgba(37,99,235,.65)', '❄ Frios','#bfdbfe','rgba(37,99,235,.2)')}
-      </div>`;
-    } else {
-      grade += '<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:12px">';
-      for (let i = 1; i <= 50; i++) {
-        const sel = _volFixos[tipo].has(i);
-        grade += `<button type="button" data-val="${i}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${i},${fMax},this)"
-          style="width:100%;aspect-ratio:1;border-radius:5px;border:1px solid ${sel?ac:'rgba(255,255,255,.1)'};background:${sel?ac:'rgba(255,255,255,.04)'};color:${sel?'#000':'rgba(255,255,255,.6)'};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      }
-      grade += '</div>';
-    }
+    grade += _renderGradeVolante(tipo, Array.from({length:50},(_,i)=>i+1), _tempV, fMax, {cols:10, corSel:ac, marginBottom:12});
     // Trevos (0–6) em linha
     grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#00BCD4;letter-spacing:.5px">TREVOS (selecione 2 a 6)</div>`;
     grade += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
@@ -6436,149 +6442,26 @@ function abrirVolante(tipo) {
     grade += '</div>';
 
   } else if (d.americano) {
-    // Powerball / Mega Millions: campo principal recebe a mesma ordenação por
-    // temperatura/score; bola extra continua em grade simples (poucos números).
-    const cols = 10;
+    // Powerball / Mega Millions: campo principal e bola extra, ambos em
+    // grade única com gradiente de temperatura (score global, calculado
+    // separadamente para cada campo).
     const mainMax = d.universe;
     const _tempV = (window._tempPorTipo && window._tempPorTipo[tipo]) ? window._tempPorTipo[tipo] : null;
     grade = `<div style="margin-bottom:8px;font-size:10px;font-weight:700;color:${ac};letter-spacing:.5px">CAMPO PRINCIPAL 1–${mainMax}</div>`;
+    grade += _renderGradeVolante(tipo, Array.from({length:d.universe},(_,i)=>i+d.start), _tempV, fMax, {cols:10, corSel:ac, marginBottom:12});
 
-    if(_tempV && _tempV.sorted){
-      const hotArr  = _tempV.sorted.filter(x => _tempV.hot.has(x.n));
-      const medArr  = _tempV.sorted.filter(x => !_tempV.hot.has(x.n) && !_tempV.cold.has(x.n));
-      const coldArr = _tempV.sorted.filter(x => _tempV.cold.has(x.n));
-      const renderGrpA=(arr, bgUnsel, brUnsel, label, lblColor, lblBg)=>{
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:6px 0 5px">
-          <span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:12px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:2px">`;
-        arr.forEach(({n,s})=>{
-          const sel=_volFixos[tipo].has(n);
-          h+=`<button type="button" data-val="${n}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${n},${fMax},this)"
-            style="width:100%;border-radius:6px;padding:5px 2px 3px;border:1px solid ${sel?ac:brUnsel};background:${sel?ac:bgUnsel};color:${sel?'#000':'rgba(255,255,255,.9)'};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:1px">
-            <span style="font-size:10px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:8px;font-weight:600;opacity:.65">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-      grade += `<div style="margin-bottom:12px">
-        ${renderGrpA(hotArr,  'rgba(234,88,12,.32)','rgba(234,88,12,.7)', '🔥 Quentes','#fed7aa','rgba(234,88,12,.2)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpA(medArr,  'rgba(255,255,255,.06)','rgba(255,255,255,.18)','⚖ Médios','rgba(255,255,255,.75)','rgba(255,255,255,.07)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrpA(coldArr, 'rgba(37,99,235,.30)','rgba(37,99,235,.65)', '❄ Frios','#bfdbfe','rgba(37,99,235,.2)')}
-      </div>`;
-    } else {
-      grade += `<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:12px">`;
-      for (let i = d.start; i <= d.start + d.universe - 1; i++) {
-        const sel = _volFixos[tipo].has(i);
-        grade += `<button type="button" data-val="${i}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${i},${fMax},this)"
-          style="width:100%;aspect-ratio:1;border-radius:5px;border:1px solid ${sel?ac:'rgba(255,255,255,.1)'};background:${sel?ac:'rgba(255,255,255,.04)'};color:${sel?'#000':'rgba(255,255,255,.6)'};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      }
-      grade += '</div>';
-    }
-    // Bola extra (Powerball/Mega Ball) — mesma ordenação por temperatura do campo
-    // principal, usando o score próprio calculado sobre esse campo (frequência+atraso).
+    // Bola extra (Powerball/Mega Ball) — score próprio (frequência+atraso
+    // calculado sobre esse campo, não o mesmo do campo principal).
     const extraCor = d.bolaExtraCor || '#00BCD4';
     const _tempExtra = (window._tempExtraPorTipo && window._tempExtraPorTipo[tipo]) ? window._tempExtraPorTipo[tipo] : null;
     grade += `<div style="margin-bottom:6px;font-size:10px;font-weight:700;color:${extraCor};letter-spacing:.5px">${d.bolaExtraNome} 1–${d.bolaExtraMax}</div>`;
-
-    if(_tempExtra && _tempExtra.sorted){
-      const hotArrX  = _tempExtra.sorted.filter(x => _tempExtra.hot.has(x.n));
-      const medArrX  = _tempExtra.sorted.filter(x => !_tempExtra.hot.has(x.n) && !_tempExtra.cold.has(x.n));
-      const coldArrX = _tempExtra.sorted.filter(x => _tempExtra.cold.has(x.n));
-      const renderGrpX=(arr, bgUnsel, brUnsel, label, lblColor, lblBg)=>{
-        if(!arr.length) return '';
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 3px">
-          <span style="font-size:9px;font-weight:800;padding:1px 7px;border-radius:10px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">`;
-        arr.forEach(({n,s})=>{
-          const tKey=1000+n;
-          const sel=_volFixos[tipo].has(tKey);
-          h+=`<button type="button" data-val="${tKey}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${tKey},1,this,true)"
-            style="width:34px;height:38px;border-radius:8px;border:1px solid ${sel?extraCor:brUnsel};background:${sel?extraCor:bgUnsel};color:${sel?'#000':extraCor};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0">
-            <span style="font-size:10px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:7px;font-weight:600;opacity:.7">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-      grade+=renderGrpX(hotArrX,  'rgba(234,88,12,.22)','rgba(234,88,12,.6)', '🔥','#fed7aa','rgba(234,88,12,.18)');
-      grade+=renderGrpX(medArrX,  'transparent',extraCor+'44','⚖','rgba(255,255,255,.7)','rgba(255,255,255,.06)');
-      grade+=renderGrpX(coldArrX, 'rgba(37,99,235,.20)','rgba(37,99,235,.55)','❄','#bfdbfe','rgba(37,99,235,.18)');
-    } else {
-      grade += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
-      for (let i = 1; i <= d.bolaExtraMax; i++) {
-        const tKey = 1000 + i;
-        const sel = _volFixos[tipo].has(tKey);
-        grade += `<button type="button" data-val="${tKey}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${tKey},1,this,true)"
-          style="width:32px;height:32px;border-radius:50%;border:1px solid ${sel?extraCor:extraCor+'44'};background:${sel?extraCor:'transparent'};color:${sel?'#000':extraCor};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      }
-      grade += '</div>';
-    }
+    grade += _renderGradeVolante(tipo, Array.from({length:d.bolaExtraMax},(_,i)=>i+1), _tempExtra, 1, {isExtra:true, cols:10, corSel:extraCor});
 
   } else {
-    // Loterias padrão: grade automática baseada no universo
+    // Loterias padrão: grade única com gradiente de temperatura, baseada no universo
     const total = d.universe;
-    const cols = total <= 25 ? 5 : total <= 31 ? 7 : 10;
     const _tempV = (window._tempPorTipo && window._tempPorTipo[tipo]) ? window._tempPorTipo[tipo] : null;
-
-    if(_tempV && _tempV.sorted){
-      // ── fch2 com temperatura: exibe por ranking (quentes → médios → frios) ──
-      const hotArr  = _tempV.sorted.filter(x => _tempV.hot.has(x.n));
-      const medArr  = _tempV.sorted.filter(x => !_tempV.hot.has(x.n) && !_tempV.cold.has(x.n));
-      const coldArr = _tempV.sorted.filter(x => _tempV.cold.has(x.n));
-
-      const renderGrp=(arr, bgUnsel, brUnsel, label, lblColor, lblBg)=>{
-        let h=`<div style="display:flex;align-items:center;gap:6px;padding:8px 0 5px">
-          <span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:12px;background:${lblBg};border:1px solid ${brUnsel};color:${lblColor}">${label} (${arr.length})</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px;margin-bottom:2px">`;
-        arr.forEach(({n,s})=>{
-          const sel=_volFixos[tipo].has(n);
-          h+=`<button type="button" data-val="${n}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${n},${fMax},this)"
-            style="width:100%;border-radius:6px;padding:5px 2px 3px;border:1px solid ${sel?ac:brUnsel};background:${sel?ac:bgUnsel};color:${sel?'#000':'rgba(255,255,255,.9)'};font-family:var(--font-head);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:1px">
-            <span style="font-size:11px;font-weight:800">${pad(n)}</span>
-            <span style="font-size:8px;font-weight:600;opacity:.65">${s}</span>
-          </button>`;
-        });
-        h+='</div>';
-        return h;
-      };
-
-      grade = `<div>
-        ${renderGrp(hotArr,  'rgba(234,88,12,.32)','rgba(234,88,12,.7)', '🔥 Quentes','#fed7aa','rgba(234,88,12,.2)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrp(medArr,  'rgba(255,255,255,.06)','rgba(255,255,255,.18)','⚖ Médios','rgba(255,255,255,.75)','rgba(255,255,255,.07)')}
-        <div style="height:1px;background:rgba(255,255,255,.07);margin:2px 0"></div>
-        ${renderGrp(coldArr, 'rgba(37,99,235,.30)','rgba(37,99,235,.65)', '❄ Frios','#bfdbfe','rgba(37,99,235,.2)')}
-      </div>`;
-    } else {
-      // Grade sequencial padrão (outras abas ou sem temperatura calculada)
-      const _bgTemp = n => {
-        if(!_tempV) return 'rgba(255,255,255,.04)';
-        if(_tempV.hot.has(n)) return 'rgba(234,88,12,.32)';
-        if(_tempV.cold.has(n)) return 'rgba(37,99,235,.28)';
-        return 'rgba(255,255,255,.06)';
-      };
-      const _brTemp = n => {
-        if(!_tempV) return 'rgba(255,255,255,.12)';
-        if(_tempV.hot.has(n)) return 'rgba(234,88,12,.65)';
-        if(_tempV.cold.has(n)) return 'rgba(37,99,235,.55)';
-        return 'rgba(255,255,255,.12)';
-      };
-      grade = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:3px">`;
-      for (let i = d.start; i <= d.start + total - 1; i++) {
-        const sel = _volFixos[tipo].has(i);
-        grade += `<button type="button" data-val="${i}" class="vol-ball-${tipo}" onclick="toggleVolBall('${tipo}',${i},${fMax},this)"
-          style="width:100%;aspect-ratio:1;border-radius:6px;border:1px solid ${sel?ac:_brTemp(i)};background:${sel?ac:_bgTemp(i)};color:${sel?'#000':'rgba(255,255,255,.75)'};font-family:var(--font-head);font-size:11px;font-weight:800;cursor:pointer;transition:all .1s">${pad(i)}</button>`;
-      }
-      grade += '</div>';
-    }
+    grade = _renderGradeVolante(tipo, Array.from({length:total},(_,i)=>i+d.start), _tempV, fMax, {corSel:ac});
 
     // Dia de Sorte: adiciona campo dos meses
     if (d.apiKey === 'diadesorte') {
