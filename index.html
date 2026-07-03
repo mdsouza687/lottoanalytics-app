@@ -467,12 +467,14 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
 .dt-balls .b.m{background:var(--ac,#3b6fd1);}
 .dt-balls .b.e{background:var(--dt-hit-extra,#d18a00);}
 .dt-balls .sep-dot{width:3px;height:3px;border-radius:50%;background:var(--glass-border);margin:0 1px;}
-/* Dupla Sena: 1º sorteio inline com o concurso/data (dentro de .dt-numdate,
-   sem a margem superior padrão de .dt-balls); 2º sorteio em linha própria
-   logo abaixo, alinhada ao mesmo início da coluna — antes os dois sorteios
-   ficavam concatenados numa fileira só. */
+/* Dupla Sena: mesmo padrão do card "Histórico de Sorteios" da home — linha
+   1 com concurso/data + rótulo "1° SORTEIO"; linha 2 com "2° SORTEIO",
+   alinhada embaixo da primeira, com uma linha divisória fina entre elas
+   (igual .la-hist-row2). Antes os dois sorteios ficavam concatenados numa
+   fileira só, sem indicar onde um terminava e o outro começava. */
 .dt-balls-inline{margin-top:0;margin-left:2px;}
-.dt-balls-2{margin-top:1px;}
+.dt-balls-2{margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.06);}
+.dt-xsep{font-family:var(--font-mono);font-size:7.5px;font-weight:700;color:var(--text-dim);padding:0 3px;align-self:center;white-space:nowrap;}
 /* ── Módulo unificado de geração — abas internas ── */
 .gen-aba-btn { outline: none; }
 .gen-aba-btn.active { color: #fff !important; }
@@ -2111,6 +2113,10 @@ com um processo aleatório"></span>
           </div>
           <div class="result-hdr-btns">
             <button class="result-hdr-btn" onclick="openModalImprimir()">🖨 Imprimir</button>
+            <button class="result-hdr-btn" id="btn-imprimir-volante-mm" style="display:none" onclick="imprimirVolantes()" data-tt="Imprime o volante oficial já marcado,
+em escala real (mm), com o maior
+número de volantes por folha A4
+e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
             <button class="result-hdr-btn" onclick="openModalSalvar('atual')">💾 Salvar</button>
             <button class="result-hdr-btn" onclick="conferirTodos()">✅ Conferir</button>
             <button class="result-hdr-btn" onclick="abrirBacktestUI()" title="Testa o motor contra concursos reais passados">📊 Validar Histórico</button>
@@ -5280,13 +5286,23 @@ async function laCarregarHistCache(){
     });
     Object.keys(porLoteria).forEach(k=>{
       porLoteria[k].sort((a,b)=>(parseInt(b.concurso)||0)-(parseInt(a.concurso)||0));
-      // Elimina duplicatas por número de concurso (IndexedDB pode ter integer e string como chave)
-      const seen=new Set();
-      porLoteria[k]=porLoteria[k].filter(r=>{
+      // Elimina duplicatas por número de concurso (IndexedDB pode ter integer
+      // e string como chave — dois caminhos diferentes de escrita nesta
+      // mesma store, garantirHistorico() e o sync desta tela, gravam
+      // "concurso" com tipos diferentes, criando 2 registros pro mesmo
+      // concurso real). Antes ficava com o que aparecesse primeiro, não
+      // importa se estava incompleto (sem mês/time/2º sorteio) — mesmo
+      // quando já existia um duplicado completo. Agora, entre duplicatas do
+      // mesmo concurso, fica com a mais completa (mais campos preenchidos).
+      const porConcurso=new Map();
+      porLoteria[k].forEach(r=>{
         const c=String(parseInt(r.concurso)||0);
-        if(seen.has(c)) return false;
-        seen.add(c); return true;
+        const atual=porConcurso.get(c);
+        if(!atual){ porConcurso.set(c,r); return; }
+        const score=x=>(x.mes?1:0)+(x.timeCoracao?1:0)+(x.dezenas2&&x.dezenas2.length?1:0)+(x.trevos&&x.trevos.length?1:0);
+        if(score(r)>score(atual)) porConcurso.set(c,r);
       });
+      porLoteria[k]=[...porConcurso.values()].sort((a,b)=>(parseInt(b.concurso)||0)-(parseInt(a.concurso)||0));
     });
     _laHistCache=porLoteria;
   }catch(e){}
@@ -6245,6 +6261,10 @@ function setupMods(d){
   // — continua com fundo sólido. jogo-gerar-btn já recebe o estilo translúcido
   // via [data-lotbtn] acima.
   const rh=document.getElementById('result-hdr'); if(rh) rh.style.background=d.cor;
+  // "Imprimir Volantes" (volante oficial em escala real) existe para as 9
+  // loterias da Caixa configuradas em VOLANTE_IMG — Powerball/Mega
+  // Millions não têm volante físico brasileiro equivalente, então ficam de fora.
+  {const btnVolMM=document.getElementById('btn-imprimir-volante-mm'); if(btnVolMM) btnVolMM.style.display=(typeof VOLANTE_IMG!=='undefined'&&VOLANTE_IMG[d.apiKey])?'':'none';}
   const btnA=document.getElementById('btn-analise');
   if(btnA){btnA.style.borderColor=`${d.cor}88`;btnA.style.background=`linear-gradient(135deg,${d.cor}22,rgba(255,255,255,.05))`;}
   document.getElementById('btn-voltar').style.borderColor=`${d.cor}88`;
@@ -6384,11 +6404,22 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
   // Normaliza chaves como inteiros
   const savedMap=new Map(salvos.map(s=>[parseInt(s.concurso),{dezenas:s.dezenas,data:s.data||'',trevos:s.trevos!==undefined?s.trevos:null,dezenas2:s.dezenas2||null,mes:s.mes||null,timeCoracao:s.timeCoracao||null}]));
 
-  // Baixa concursos faltantes em lotes
+  // Baixa concursos faltantes em lotes — um registro salvo só conta como
+  // "completo" se tiver TODOS os campos obrigatórios da modalidade, não só
+  // as dezenas. Sem essa checagem extra, um concurso salvo antes de algum
+  // campo passar a ser capturado (ex.: mesSorte/timeCoracao) ficava
+  // incompleto PARA SEMPRE no cache local — nunca era buscado de novo,
+  // mesmo com o app já sabendo capturar esse campo corretamente.
+  const _incompleto=(key,_e)=>{
+    if(key==='diasorte') return !_e.mes;
+    if(key==='timemania') return !_e.timeCoracao;
+    if(d.dupla) return !(_e.dezenas2&&_e.dezenas2.length);
+    return false;
+  };
   const necessarios=[];
   for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--){
     const _e=savedMap.get(c);
-    if(!_e||!(_e.dezenas&&_e.dezenas.length)) necessarios.push(c);
+    if(!_e||!(_e.dezenas&&_e.dezenas.length)||_incompleto(key,_e)) necessarios.push(c);
   }
   window._diagHist=window._diagHist||{};
   window._diagHist[key]={necessarios:necessarios.length,obtidos:0,erros:[]};
@@ -6407,8 +6438,15 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
             const reg={loteria:key,concurso:num,dezenas,data:raw.data||''};
             if(trevos.length) reg.trevos=trevos;
             if(dezenas2&&dezenas2.length) reg.dezenas2=dezenas2;
-            if(raw.mesSorte) reg.mes=raw.mesSorte;
-            if(raw.timeCoracao) reg.timeCoracao=raw.timeCoracao;
+            // A API da Caixa usa um único campo "nomeTimeCoracaoMesSorte"
+            // pros dois propósitos (mês da sorte OU time do coração,
+            // dependendo da loteria) — raw.mesSorte/raw.timeCoracao nunca
+            // existem de verdade nessa resposta; sem esse fallback, o
+            // registro salvo ficava permanentemente sem o mês/time, mesmo
+            // depois de detectado como incompleto e buscado de novo.
+            const _mesOuTime=raw.mesSorte||raw.timeCoracao||raw.nomeTimeCoracaoMesSorte||null;
+            if(key==='diasorte'&&_mesOuTime) reg.mes=_mesOuTime;
+            if(key==='timemania'&&_mesOuTime) reg.timeCoracao=_mesOuTime;
             await dbPut('historico',reg);
             savedMap.set(num,{dezenas,data:raw.data||'',trevos:reg.trevos||null,dezenas2:reg.dezenas2||null,mes:reg.mes||null,timeCoracao:reg.timeCoracao||null});
             window._diagHist[key].obtidos++;
@@ -8538,7 +8576,8 @@ async function conferirTodos(){
   document.getElementById('body-conferir').innerHTML=html;
   openModal('modal-conferir');
 }
-function abrirJanelaImpressao(tituloDoc, htmlConteudo){
+function abrirJanelaImpressao(tituloDoc, htmlConteudo, opts){
+  opts = opts || {};
   // Implementação via <iframe> oculto no próprio documento, em vez de
   // window.open(). Isso evita depender de popups (que muitos navegadores
   // bloqueiam silenciosamente ou impedem de abrir o diálogo de impressão
@@ -8636,7 +8675,8 @@ function abrirJanelaImpressao(tituloDoc, htmlConteudo){
     .nenhum{text-align:center;padding:14px;color:#aaa;border:1px dashed #ddd;border-radius:7px;font-style:italic;}
     .resultado-box{background:#f8f9fa;border:1px solid #e9ecef;border-radius:7px;padding:8px 12px;margin-bottom:10px;}
     .disclaimer{font-size:7px;color:#aaa;text-align:center;margin-top:12px;border-top:1px solid #eee;padding-top:6px;}
-  </style></head><body>
+    ${opts.extraCSS||''}
+  </style></head><body${opts.bodyStyle?` style="${opts.bodyStyle}"`:''}>
   ${htmlConteudo}
   </body></html>`);
   doc.close();
@@ -8711,6 +8751,239 @@ function abrirJanelaImpressao(tituloDoc, htmlConteudo){
   // conteúdo necessário muito antes disso.
   setTimeout(()=>{ const f=document.getElementById('print-iframe'); if(f) f.remove(); },60000);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VOLANTES OFICIAIS DAS LOTERIAS CAIXA — reprodução PIXEL-A-PIXEL do
+   volante real (não é mais desenhado do zero com formas genéricas). A
+   imagem de fundo é a PRÓPRIA digitalização em 600dpi fornecida pelo
+   usuário (recortada, orientada e salva em assets/volantes/*.jpg) — só as
+   marcações (círculos preenchidos) são desenhadas por cima, nas
+   coordenadas em mm extraídas da imagem por detecção de cor (projeção do
+   canal vermelho da tinta dos números/brackets), não estimadas visualmente.
+
+   Método de extração (fora do app, ver histórico): 1) recorta a área do
+   volante na digitalização; 2) roda pra orientação de leitura correta;
+   3) máscara de pixels vermelhos (tinta dos números); 4) projeção de
+   linhas/colunas pra achar o centro de cada número; 5) converte px→mm
+   usando a resolução real do scan (600dpi = 23.622 px/mm).
+
+   Precisão: Mega-Sena, Lotofácil, Quina, Lotomania, Dupla Sena, Timemania,
+   Dia de Sorte (grade principal) e Super Sete têm coordenadas extraídas
+   assim, validadas uma a uma. +Milionária usa uma imagem de resolução bem
+   menor fornecida pelo usuário — coordenadas estimadas visualmente sobre
+   ela, precisão menor que as demais. Mês da Sorte/Time do Coração/Trevos
+   (seções extras) também são estimados visualmente, não extraídos.
+═══════════════════════════════════════════════════════════════════════ */
+// Compensação de impressora — ajustar aqui se a marcação sair deslocada
+// em relação ao volante físico real, sem tocar no restante do código.
+const VOLANTE_CALIB = { offsetX:0, offsetY:0, escala:1 };
+
+const VOLANTE_ASSETS_BASE = 'assets/volantes/';
+
+// Coordenadas em mm, origem (0,0) no canto superior-esquerdo da IMAGEM
+// (não do papel A4) — extraídas por detecção de cor a partir da
+// digitalização real de cada volante (ver comentário do módulo acima).
+const VOLANTE_IMG = {
+  megasena: { file:'megasena.jpg', wmm:113.58, hmm:180.64, jogos:[
+    {cols:[46.99,53.382,59.584,66.125,72.644,78.719,85.344,91.715,98.383,104.86],   rows:[48.366,51.583,54.8,58.124,61.362,64.664]},
+    {cols:[46.99,53.361,59.563,66.125,72.623,78.719,85.344,91.673,98.361,104.817], rows:[73.385,76.623,79.819,83.121,86.381,89.62]},
+    {cols:[46.948,53.319,59.542,66.082,72.602,78.677,85.302,91.652,98.319,104.775],rows:[98.361,101.6,104.839,108.141,111.358,114.617]},
+  ]},
+  duplasena: { file:'duplasena.jpg', wmm:122.94, hmm:181.44, jogos:[
+    {cols:[56.282,62.59,68.834,75.374,81.852,88.307,94.636,100.901,107.315,113.75],  rows:[52.832,56.07,59.33,62.59,65.828]},
+    {cols:[56.24,62.569,68.792,75.311,81.809,88.265,94.594,100.88,107.273,113.686],  rows:[75.332,78.592,81.852,85.111,88.35]},
+    {cols:[56.197,62.505,68.749,75.269,81.767,88.201,94.53,100.817,107.23,113.665],  rows:[98.404,101.663,104.923,108.162,111.4]},
+  ]},
+  quina: { file:'quina.jpg', wmm:98.26, hmm:184.91, jogos:[
+    {cols:[31.538,37.931,44.111,50.652,57.15,63.246,69.892,76.263,82.444,88.9],     rows:[37.19,40.45,43.709,47.011,50.228,53.467,56.832,60.113]},
+    {cols:[31.454,37.825,44.048,50.588,57.087,63.182,69.85,76.2,82.381,88.858],     rows:[69.173,72.369,75.629,78.888,82.148,85.407,88.773,91.99]},
+    {cols:[31.538,37.952,44.175,50.715,57.213,63.309,69.935,76.306,82.508,88.985], rows:[101.028,104.288,107.527,110.807,114.025,117.284,120.671,123.952]},
+  ]},
+  lotomania: { file:'lotomania.jpg', wmm:81.45, hmm:186.65, jogos:[
+    {cols:[14.224,20.574,26.903,33.359,39.814,46.186,52.493,58.928,65.32,71.755], rows:[27.707,31.157,34.65,38.142,41.635,45.127,48.578,52.049,55.584,59.076]},
+    {cols:[14.182,20.489,26.839,33.295,39.751,46.122,52.43,58.864,65.236,71.713], rows:[72.581,76.031,79.544,83.016,86.487,90.001,93.472,96.964,100.499,103.971]},
+  ]},
+  timemania: { file:'timemania.jpg', wmm:81.15, hmm:189.44, jogos:[
+    {cols:[15.198,21.399,27.813,34.29,40.788,47.202,53.594,59.965,66.442,72.919], rows:[23.347,27.009,30.67,34.29,37.909,41.55,45.212,48.874]},
+  ]},
+  diasorte: { file:'diasorte.jpg', wmm:101.52, hmm:182.84, jogos:[
+    {cols:[27.961,34.438,40.598,47.096,53.573,59.69,66.421,72.729,78.846,85.259], rows:[40.111,43.349,46.63,49.89]},
+    {cols:[27.898,34.353,40.513,47.011,53.488,59.605,66.336,72.644,78.761,85.196], rows:[72.263,75.544,78.803,82.063]},
+    {cols:[27.813,34.269,40.407,46.926,53.404,59.521,66.252,72.559,78.677,85.111], rows:[104.288,107.505,110.765,114.004]},
+  ], mesGrid:{cols6:[27.9,37,46,55,64,73], rows2:[57,63.5]} }, // estimado, não extraído
+  lotofacil: { file:'lotofacil.jpg', wmm:120.01, hmm:185.0,
+    // colunas vêm da esquerda p/ direita já na ordem REAL da folha
+    // (o volante real do Lotofácil imprime 21-25,16-20,11-15,06-10,01-05
+    // da esquerda pra direita, não 01-05 primeiro) — colBase reflete isso.
+    colBase:[21,16,11,6,1], jogos:[
+    {cols:[53.086,65.511,78.486,91.63,104.14],   rows:[47.329,51.816,56.303,60.812,65.299]},
+    {cols:[52.895,65.553,78.422,91.546,104.076], rows:[72.496,76.962,81.428,85.958,90.403]},
+    {cols:[52.832,65.511,78.359,91.461,104.013], rows:[97.769,102.256,106.722,111.21,115.697]},
+  ]},
+  supersete: { file:'supersete.jpg', wmm:98.59, hmm:135.34,
+    cols:[32.067,38.417,44.958,51.393,57.785,64.347,70.633],
+    rows:[37.698,41.042,45.17,48.874,52.578,56.24,59.944,63.648,67.331,71.014] },
+  // +Milionária: imagem de resolução bem menor (fornecida pelo usuário) —
+  // coordenadas estimadas visualmente sobre ela, não extraídas por cor
+  // como as demais. Único painel (a folha real tem 4 painéis idênticos
+  // lado a lado; já recortamos só 1).
+  maismilionaria: { file:'maismilionaria.jpg', wmm:47.4, hmm:110, jogos:[
+    {cols:[5.5,11.7,17.9,24.2,30.4], rows:[31.4,34.1,36.8,39.5,42.2,44.9,47.6,50.3,53.0,55.7]},
+  ], trevoGrid:{cols3:[22,27.2,32.5], rows2:[62,66.5]} },
+};
+
+// Desenha UM círculo de marcação sobre a imagem real — formato
+// centralizado aqui de propósito (fácil trocar por outro formato depois).
+function _volanteMarcaDiv(xmm,ymm,diamMm,cor,marcado){
+  if(!marcado) return '';
+  // Estilo 100% inline (não depende de nenhuma classe CSS externa) — assim
+  // funciona tanto dentro do iframe de impressão (que só carrega o CSS
+  // passado via extraCSS) quanto em qualquer outro contexto de teste/DOM.
+  return `<div style="position:absolute;left:${xmm}mm;top:${ymm}mm;width:${diamMm}mm;height:${diamMm}mm;border-radius:50%;background:${cor};opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6)"></div>`;
+}
+function _volanteDims(key){
+  const v=VOLANTE_IMG[key];
+  return {w:v.wmm, h:v.hmm};
+}
+// Constrói as marcações (divs absolutos) para 1 volante — jogosGrupo é o
+// array de jogos empilhados dentro desse volante (ver estrutura real de
+// cada modalidade em VOLANTE_IMG).
+function _volanteMarcacoesHtml(key,jogosGrupo){
+  const v=VOLANTE_IMG[key], d=CFG[key];
+  const jogos=Array.isArray(jogosGrupo)?jogosGrupo:[jogosGrupo];
+  const DIAM=2.6;
+  let html='';
+  if(key==='supersete'){
+    const jogo=jogos[0];
+    const colunas=(jogo&&jogo._ssCols)||[jogo||[]];
+    v.cols.forEach((cx,c)=>{
+      const marcadosCol=new Set((colunas[c]||[]).map(Number));
+      v.rows.forEach((cy,digito)=>{
+        html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#c0392b',marcadosCol.has(digito));
+      });
+    });
+    return html;
+  }
+  jogos.forEach((jogo,idx)=>{
+    const jg=v.jogos[idx]; if(!jg) return;
+    const marcados=new Set((jogo||[]).map(Number));
+    if(key==='lotofacil'){
+      jg.cols.forEach((cx,c)=>{
+        const base=v.colBase[c];
+        jg.rows.forEach((cy,r)=>{
+          const n=base+r;
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#a0308a',marcados.has(n));
+        });
+      });
+    } else {
+      let n=d.start;
+      jg.rows.forEach(cy=>{
+        jg.cols.forEach(cx=>{
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#c0392b',marcados.has(n));
+          n++;
+        });
+      });
+    }
+    // Extras estimados (trevo/mês) — só existem pra +Milionária/Dia de Sorte
+    if(key==='maismilionaria' && v.trevoGrid){
+      const trevos=new Set(((jogo&&jogo._trevos)||[]).map(Number));
+      let t=1;
+      v.trevoGrid.rows2.forEach(cy=>{
+        v.trevoGrid.cols3.forEach(cx=>{
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#0fae8a',trevos.has(t));
+          t++;
+        });
+      });
+    }
+    if(key==='diasorte' && v.mesGrid){
+      const mesIdx=(jogo&&jogo._mes!=null)?jogo._mes:null;
+      let i=0;
+      v.mesGrid.rows2.forEach(cy=>{
+        v.mesGrid.cols6.forEach(cx=>{
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM*0.8,'#9a8000',mesIdx===i);
+          i++;
+        });
+      });
+    }
+  });
+  return html;
+}
+function buildVolanteSVG(key,jogosGrupo){
+  const v=VOLANTE_IMG[key];
+  const marcacoes=_volanteMarcacoesHtml(key,jogosGrupo);
+  return `<div class="volante-img-wrap" style="position:relative;overflow:hidden;width:${v.wmm}mm;height:${v.hmm}mm">`+
+    `<img class="volante-bg" src="${VOLANTE_ASSETS_BASE}${v.file}" style="position:absolute;top:0;left:0;display:block;width:${v.wmm}mm;height:${v.hmm}mm"/>`+
+    marcacoes+
+  `</div>`;
+}
+// Quantos jogos ficam empilhados dentro de 1 volante oficial — vem do
+// tamanho do array "jogos" em VOLANTE_IMG (supersete não tem essa chave
+// porque só tem 1 jogo por volante, tratado à parte).
+function _jogosPorVolante(key){
+  const v=VOLANTE_IMG[key];
+  return v.jogos ? v.jogos.length : 1;
+}
+// Calcula quantos volantes cabem numa página A4 (retrato ou paisagem) com
+// a folga (gap) reservada para as marcas de corte entre eles.
+function _volanteGradePagina(pagW,pagH,dim,gap,margem){
+  const cols=Math.max(1,Math.floor((pagW-margem*2+gap)/(dim.w+gap)));
+  const rows=Math.max(1,Math.floor((pagH-margem*2+gap)/(dim.h+gap)));
+  return {cols,rows,total:cols*rows};
+}
+function imprimirVolantes(key,jogosParaImprimir){
+  key=key||currentKey;
+  const d=CFG[key], v=VOLANTE_IMG[key];
+  if(!d||!v){ toast('Impressão de volante não disponível para esta loteria.'); return; }
+  const jogos=jogosParaImprimir||(typeof jogosGerados!=='undefined'?jogosGerados:[])||[];
+  if(!jogos.length){ toast('Gere jogos antes de imprimir os volantes.'); return; }
+  const dim=_volanteDims(key);
+  const jogosPorVolante=_jogosPorVolante(key);
+  // A4 = 210×297mm. MARGEM=5mm é a margem mínima segura suportada pela
+  // grande maioria das impressoras domésticas/laser (abaixo disso, muitos
+  // modelos cortam a borda da impressão) — usar o máximo de área útil
+  // possível na folha. GAP=5mm é o corredor entre volantes onde ficam as
+  // marcas de corte (guilhotina), sem invadir a arte de nenhum dos dois.
+  const GAP=5, MARGEM=5;
+  const retrato=_volanteGradePagina(210,297,dim,GAP,MARGEM);
+  const paisagem=_volanteGradePagina(297,210,dim,GAP,MARGEM);
+  const usaPaisagem=paisagem.total>retrato.total;
+  const grade=usaPaisagem?paisagem:retrato;
+  const orient=usaPaisagem?'landscape':'portrait';
+  const porPagina=grade.cols*grade.rows;
+
+  // Agrupa os jogos gerados em blocos de jogosPorVolante — cada bloco vira
+  // 1 volante impresso (não 1 jogo por volante, ver comentário do módulo).
+  const grupos=[];
+  for(let i=0;i<jogos.length;i+=jogosPorVolante) grupos.push(jogos.slice(i,i+jogosPorVolante));
+
+  const cortes=`<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>`;
+  let paginasHtml='';
+  grupos.forEach((grupo,i)=>{
+    if(i%porPagina===0){ if(i>0) paginasHtml+='</div>'; paginasHtml+='<div class="volante-page">'; }
+    paginasHtml+=`<div class="volante-cell">${cortes}${buildVolanteSVG(key,grupo)}</div>`;
+  });
+  paginasHtml+='</div>';
+
+  const extraCSS=`
+    @page{size:A4 ${orient};margin:${MARGEM}mm;}
+    .volante-wrap{transform:translate(${VOLANTE_CALIB.offsetX}mm,${VOLANTE_CALIB.offsetY}mm) scale(${VOLANTE_CALIB.escala});transform-origin:top left;}
+    .volante-page{display:grid;grid-template-columns:repeat(${grade.cols},${dim.w}mm);grid-auto-rows:${dim.h}mm;gap:${GAP}mm;page-break-after:always;justify-content:start;}
+    .volante-page:last-child{page-break-after:auto;}
+    .volante-cell{position:relative;overflow:visible;}
+    .volante-img-wrap{position:relative;overflow:hidden;}
+    .volante-bg{position:absolute;top:0;left:0;display:block;}
+    .vmk{position:absolute;border-radius:50%;background:#c0392b;opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6);}
+    .ck{position:absolute;width:2.2mm;height:2.2mm;pointer-events:none;}
+    .ck-tl{top:-2.4mm;left:-2.4mm;border-right:0.15mm solid #999;border-bottom:0.15mm solid #999;}
+    .ck-tr{top:-2.4mm;right:-2.4mm;border-left:0.15mm solid #999;border-bottom:0.15mm solid #999;}
+    .ck-bl{bottom:-2.4mm;left:-2.4mm;border-right:0.15mm solid #999;border-top:0.15mm solid #999;}
+    .ck-br{bottom:-2.4mm;right:-2.4mm;border-left:0.15mm solid #999;border-top:0.15mm solid #999;}
+  `;
+  const html=`<div class="volante-wrap">${paginasHtml}</div>`;
+  abrirJanelaImpressao(`Volantes ${d.nome}`, html, {extraCSS, bodyStyle:'padding:0'});
+}
+// Nome antigo mantido por compatibilidade com o botão já existente na tela.
+function imprimirVolantesMaisMilionaria(){ imprimirVolantes('maismilionaria'); }
 
 function buildPrintHeader(titulo, subtitulo, d, cor){
   const agora=new Date().toLocaleString('pt-BR');
@@ -12463,17 +12736,25 @@ function renderResultados(body,d,hist,freq){
     // concatenados numa fileira só, quebrando de forma confusa quando não
     // cabiam lado a lado, e sem deixar claro onde um sorteio terminava e o
     // outro começava.
+    // Dupla Sena: mesmo padrão já usado no card "Histórico de Sorteios" da
+    // home (renderLaHist) — linha 1 com concurso/data + rótulo "1° SORTEIO"
+    // + as 6 bolas; linha 2 com "2° SORTEIO" + as outras 6, alinhada
+    // embaixo da primeira (mesma indentação, com uma linha divisória fina
+    // entre as duas). É o MESMO concurso e as MESMAS 6 dezenas apostadas
+    // concorrendo aos dois sorteios oficiais — não dois jogos diferentes.
     const isDupla=extraInfo&&extraInfo.tipo==='dezenas2';
-    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}</div>`:'';
+    const sorteio1LblHtml=isDupla?`<span class="dt-xsep">1° SORTEIO</span>`:'';
+    const sorteio2LblHtml=isDupla?`<span class="dt-xsep">2° SORTEIO</span>`:'';
+    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${sorteio2LblHtml}${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}</div>`:'';
     let ballsHtml;
     if(isDupla){
-      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}</div>`+ball2RowHtml;
+      ballsHtml=`<div class="dt-balls">${sorteio1LblHtml}${ball1InlineHtml}</div>`+ball2RowHtml;
     } else {
       ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
     }
     if(view.info===0){
       infoHtml=isDupla
-        ? `<div class="dt-numdate">${numHtml}${dateHtml}<div class="dt-balls dt-balls-inline">${ball1InlineHtml}</div></div>`+ball2RowHtml
+        ? `<div class="dt-numdate">${numHtml}${dateHtml}<div class="dt-balls dt-balls-inline">${sorteio1LblHtml}${ball1InlineHtml}</div></div>`+ball2RowHtml
         : `<div class="dt-numdate">${numHtml}${dateHtml}</div>`+ballsHtml;
     }
     else if(view.info===1) infoHtml=numHtml;
