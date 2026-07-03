@@ -165,11 +165,16 @@ body.theme-light .badge.hit{background:rgba(34,197,94,.15);color:#15803d;}
 .info-lbl{font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap;}
 .info-val-col{text-align:right;}.info-val{font-size:13px;font-weight:700;display:block;}
 .info-note{font-size:10px;color:var(--text-dim);display:block;margin-top:1px;}
-.win-wrap{padding:10px 18px 14px;}
-.win-title{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
-.win-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border);}
-.win-left{display:flex;flex-direction:column;gap:1px;}.win-lbl{font-size:11px;font-weight:600;}.win-qtd{font-size:10px;color:var(--text-dim);}
-.win-prize{font-family:var(--font-head);font-size:13px;font-weight:800;}
+.win-wrap{padding:10px 18px 14px;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;}
+.win-col-det{border-right:1px solid var(--glass-border);padding-right:14px;}
+.win-title{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.win-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border);gap:6px;}
+.win-col-fai .win-row{justify-content:flex-end;}
+.win-left{display:flex;flex-direction:column;gap:1px;min-width:0;}.win-lbl{font-size:11px;font-weight:600;}.win-qtd{font-size:10px;color:var(--text-dim);}
+.win-prize{font-family:var(--font-head);font-size:13px;font-weight:800;white-space:nowrap;}
+.res-manual-wrap{padding:10px 18px 4px;text-align:center;}
+.res-manual-btn{border:1px dashed rgba(255,180,0,.5);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,180,0,.08);color:#f5a623;width:100%;}
+.res-manual-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 7px;border-radius:5px;background:rgba(255,180,0,.15);color:#f5a623;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:middle;}
 
 /* ══ GEN CARDS ══ */
 .gen-card{background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;}
@@ -1530,6 +1535,14 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 </div>
 
 <!-- ══ MODAL PADRÕES ══ -->
+<div class="modal-overlay" id="modal-resultado-manual">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-hdr" id="hdr-resultado-manual"><span class="modal-title">📝 Inserir Resultado Manual</span><button class="modal-close" onclick="closeModal('modal-resultado-manual')">✕</button></div>
+    <div class="modal-body" id="body-resultado-manual"></div>
+    <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-resultado-manual')">Cancelar</button><button class="result-hdr-btn" style="background:var(--accent);color:#000;font-weight:800" onclick="salvarResultadoManual()">Confirmar</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-padroes">
   <div class="modal" style="max-width:600px;">
     <div class="modal-hdr" id="hdr-padroes"><span class="modal-title">🔢 Padrões</span><button class="modal-close" onclick="closeModal('modal-padroes')">✕</button></div>
@@ -4354,8 +4367,18 @@ async function atualizarTodas(silencioso=false){
   const resultadosSettled=await Promise.allSettled(Object.keys(CFG).map(async key=>{
     const d=CFG[key];
     const raw=await fetchResultado(d.apiKey,forcarFresh);
-    const p=parseResultado(raw,key);
-    await dbPut('resultados',p);
+    let p=parseResultado(raw,key);
+    // Resultado manual é sempre provisório: só é sobrescrito quando a
+    // sincronização oficial trouxer um concurso igual ou mais novo (dado
+    // completo, com faixas de premiação). Se a API da Caixa ainda não
+    // publicou o concurso inserido manualmente, mantém o registro manual
+    // em vez de reverter para um concurso mais antigo.
+    const atualExistente=resultados[key];
+    if(atualExistente?.origem==='manual' && (parseInt(p.concurso)||0) < (parseInt(atualExistente.concurso)||0)){
+      p=atualExistente;
+    } else {
+      await dbPut('resultados',p);
+    }
     return {key,d,p};
   }));
   resultadosSettled.forEach((res,idx)=>{
@@ -4545,7 +4568,20 @@ async function atualizarLoteria(key){
   // Sempre força bypass de cache: esta função é chamada explicitamente
   // quando o app precisa de um dado garantidamente atual (ex.: antes de
   // calcular o concurso vigente ao salvar um jogo), não em segundo plano.
-  try{setDot('loading',`Atualizando ${CFG[key].nome}...`);const raw=await fetchResultado(CFG[key].apiKey,true);const p=parseResultado(raw,key);await dbPut('resultados',p);resultados[key]=p;setDot('ok',`✓ ${CFG[key].nome} atualizada`);return p;}
+  try{
+    setDot('loading',`Atualizando ${CFG[key].nome}...`);
+    const raw=await fetchResultado(CFG[key].apiKey,true);
+    let p=parseResultado(raw,key);
+    const atualExistente=resultados[key];
+    if(atualExistente?.origem==='manual' && (parseInt(p.concurso)||0) < (parseInt(atualExistente.concurso)||0)){
+      p=atualExistente;
+    } else {
+      await dbPut('resultados',p);
+    }
+    resultados[key]=p;
+    setDot('ok',`✓ ${CFG[key].nome} atualizada`);
+    return p;
+  }
   catch(e){setDot('error',`Erro: ${CFG[key].nome}`);return null;}
 }
 function setDot(s,t){
@@ -5781,7 +5817,8 @@ function renderCard(res,d){
   if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.timeCoracao}</span></div>`;
   if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
-  if(res.acumulou){h+=`<div class="status-txt">ACUMULOU!</div>`;}
+  if(res.origem==='manual'){h+=`<div class="status-txt" style="font-size:15px;color:#f5a623">AGUARDANDO SINCRONIZAÇÃO<span class="res-manual-tag">📝 MANUAL</span></div>`;}
+  else if(res.acumulou){h+=`<div class="status-txt">ACUMULOU!</div>`;}
   else{const n=parseInt(((res.ganhadores||[])[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?'GANHADOR':'GANHADORES'}</div>`;}
   h+=`</div><div class="card-divider"></div>`;
   h+=`<div class="info-wrap">`;
@@ -5814,12 +5851,20 @@ function renderCard(res,d){
   }
   h+=`</div>`;
   if(res.ganhadores&&res.ganhadores.length){
-    h+=`<div class="win-wrap"><div class="win-title">Premiação por Faixa</div>`;
+    let detH='',faiH='';
     res.ganhadores.forEach(g=>{
       const isJackpot=g.p==='JACKPOT'||g.valorNum===0;
-      h+=`<div class="win-row"><div class="win-left"><span class="win-lbl">${g.f}</span><span class="win-qtd">${g.q} ganh.</span></div><span class="win-prize" style="color:${isJackpot?'var(--gold)':corMarca(d)}">${isJackpot?'🏆 JACKPOT':g.p}</span></div>`;
+      detH+=`<div class="win-row"><div class="win-left"><span class="win-lbl">${g.f}</span><span class="win-qtd">${g.q} ganh.</span></div></div>`;
+      faiH+=`<div class="win-row"><span class="win-prize" style="color:${isJackpot?'var(--gold)':corMarca(d)}">${isJackpot?'🏆 JACKPOT':g.p}</span></div>`;
     });
-    h+=`</div>`;
+    h+=`<div class="win-wrap"><div class="win-col-det"><div class="win-title">Detalhamento de Ganhadores</div>${detH}</div><div class="win-col-fai"><div class="win-title">Faixas de Premiação</div>${faiH}</div></div>`;
+  } else if(res.origem==='manual'){
+    h+=`<div class="res-manual-wrap"><div style="font-size:11px;color:var(--text-dim);padding-bottom:8px">Faixas de premiação e valores oficiais ainda não foram sincronizados. Os jogos já foram conferidos pelas dezenas informadas manualmente.</div></div>`;
+  }
+  // Botão de inserção manual: só aparece enquanto o concurso não tiver as
+  // informações oficiais completas sincronizadas (sem faixas de premiação).
+  if(!res.ganhadores||!res.ganhadores.length){
+    h+=`<div class="res-manual-wrap"><button class="res-manual-btn" onclick="abrirModalResultadoManual()">📝 ${res.origem==='manual'?'Editar':'Inserir'} Resultado Manual</button></div>`;
   }
   if(d.specialLabel){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px 10px;font-size:11px;color:rgba(255,200,0,.85);font-weight:600;font-style:italic">⭐ Pode incluir: ${d.specialLabel}</div>`; }
   card.innerHTML=_staleWarn+h;
@@ -5885,6 +5930,107 @@ async function verificarPremiacaoCard(key){
   banner.innerHTML=`<span style="font-size:20px;flex-shrink:0">🏆</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:800;color:#fff">Você fez ${label} na ${d.nome}!</div><div style="font-size:10px;color:var(--text);margin-top:2px">Prêmio: ${fmtPremio(melhorValor,key)} · ${qtdPremiados} jogo${qtdPremiados!==1?'s':''} premiado${qtdPremiados!==1?'s':''}</div></div><span style="font-size:15px;font-weight:900;color:#fff;flex-shrink:0">${fmtPremio(melhorValor,key)}</span><button onclick="document.getElementById('banner-premiacao').remove()" style="background:rgba(0,0,0,.25);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1">✕</button>`;
   const statusWrap=card.querySelector('.status-wrap');
   if(statusWrap && statusWrap.nextSibling){ card.insertBefore(banner, statusWrap.nextSibling); } else { card.appendChild(banner); }
+}
+/* ═══════════════════════════════════════════════════════
+   RESULTADO MANUAL — permite ao usuário inserir as dezenas
+   sorteadas antes da sincronização oficial (faixas/premiação),
+   para conferir os jogos com antecedência. É sempre um dado
+   provisório: quando a sincronização oficial trouxer o mesmo
+   concurso (ou mais novo), ela sobrescreve o registro manual
+   por completo — ver guarda em atualizarLoteria/atualizarTodas.
+═══════════════════════════════════════════════════════ */
+const LA_MESES_SORTE=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function _rmParseNums(str){
+  return (str||'').split(/[,;\s]+/).map(s=>s.trim()).filter(Boolean).map(n=>parseInt(n));
+}
+function _rmValidaGrupo(nums,qtd,min,max,label){
+  if(nums.some(n=>isNaN(n))) return `${label}: valor inválido.`;
+  if(nums.length!==qtd) return `${label}: informe exatamente ${qtd} número${qtd!==1?'s':''} (foram informados ${nums.length}).`;
+  if(new Set(nums).size!==nums.length) return `${label}: não é permitido repetir números.`;
+  if(nums.some(n=>n<min||n>max)) return `${label}: números devem estar entre ${min} e ${max}.`;
+  return null;
+}
+function abrirModalResultadoManual(){
+  const key=currentKey; const d=CFG[key]; if(!d) return;
+  const res=resultados[key];
+  const proxConcurso=res?(parseInt(res.concurso)||0)+(res.origem==='manual'?0:1):'';
+  const dataAtualISO=new Date().toISOString().slice(0,10);
+  let bodyH=`<div style="display:flex;flex-direction:column;gap:10px">`;
+  bodyH+=`<div style="font-size:11px;color:var(--text-dim)">Preencha as dezenas sorteadas para conferência antecipada. Assim que a sincronização oficial da Caixa trouxer os dados completos (incluindo faixas de premiação), este resultado será substituído automaticamente.</div>`;
+  bodyH+=`<label style="font-size:11px;font-weight:700">Nº do concurso<input type="number" id="rm-concurso" value="${res&&res.origem==='manual'?res.concurso:proxConcurso}" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  bodyH+=`<label style="font-size:11px;font-weight:700">Data do sorteio<input type="date" id="rm-data" value="${res&&res.origem==='manual'&&res._dataISO?res._dataISO:dataAtualISO}" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  if(d.superSete){
+    bodyH+=`<label style="font-size:11px;font-weight:700">Colunas sorteadas (7 dígitos de 0 a 9, na ordem, separados por vírgula)<input type="text" id="rm-dez" placeholder="ex: 3,7,0,5,9,1,2" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  } else {
+    bodyH+=`<label style="font-size:11px;font-weight:700">Dezenas sorteadas (${d.min} números de ${String(d.start).padStart(2,'0')} a ${d.start+d.universe-1}, separados por vírgula)<input type="text" id="rm-dez" placeholder="ex: 04,12,23,34,45,58" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  }
+  if(d.dupla){
+    bodyH+=`<label style="font-size:11px;font-weight:700">2º Sorteio — Dezenas (${d.min} números de ${String(d.start).padStart(2,'0')} a ${d.start+d.universe-1})<input type="text" id="rm-dez2" placeholder="ex: 03,11,22,33,44,50" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  }
+  if(d.bolaExtra){
+    bodyH+=`<label style="font-size:11px;font-weight:700">${d.bolaExtraNome} (1 a ${d.bolaExtraMax})<input type="text" id="rm-extra" placeholder="ex: 07" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  }
+  if(d.hasTrevo){
+    bodyH+=`<label style="font-size:11px;font-weight:700">Trevos da Sorte (${d.trevosMin} números de 1 a ${d.trevosUniverse})<input type="text" id="rm-trevos" placeholder="ex: 2,5" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff"></label>`;
+  }
+  if(key==='diasorte'){
+    bodyH+=`<label style="font-size:11px;font-weight:700">Mês da Sorte<select id="rm-mes" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff">${LA_MESES_SORTE.map(m=>`<option value="${m}">${m}</option>`).join('')}</select></label>`;
+  }
+  if(key==='timemania'){
+    bodyH+=`<label style="font-size:11px;font-weight:700">Time do Coração<select id="rm-time" style="width:100%;margin-top:4px;padding:8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:#fff">${(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES:[]).map(t=>`<option value="${t}">${t}</option>`).join('')}</select></label>`;
+  }
+  bodyH+=`<div id="rm-erro" style="font-size:11px;color:#e33;display:none"></div>`;
+  bodyH+=`</div>`;
+  document.getElementById('body-resultado-manual').innerHTML=bodyH;
+  setModalHeaderCor('hdr-resultado-manual',d.cor);
+  document.getElementById('hdr-resultado-manual').querySelector('.modal-title').textContent=`📝 Inserir Resultado Manual — ${d.nome}`;
+  openModal('modal-resultado-manual');
+}
+async function salvarResultadoManual(){
+  const key=currentKey; const d=CFG[key]; if(!d) return;
+  const erroEl=document.getElementById('rm-erro');
+  const mostrarErro=msg=>{ erroEl.textContent=msg; erroEl.style.display='block'; };
+  erroEl.style.display='none';
+  const concurso=parseInt(document.getElementById('rm-concurso')?.value);
+  if(!concurso||concurso<=0) return mostrarErro('Informe um número de concurso válido.');
+  const dataISO=document.getElementById('rm-data')?.value;
+  if(!dataISO) return mostrarErro('Informe a data do sorteio.');
+  const [y,m,dd]=dataISO.split('-');
+  const dataBR=`${dd}/${m}/${y}`;
+  let dezenas,dezenas2=null,bolaExtra=null,trevos=null,mes=null,timeCoracao=null;
+  if(d.superSete){
+    dezenas=_rmParseNums(document.getElementById('rm-dez')?.value);
+    const errS=_rmValidaGrupo(dezenas,7,0,9,'Colunas');
+    if(errS) return mostrarErro(errS);
+  } else {
+    dezenas=_rmParseNums(document.getElementById('rm-dez')?.value);
+    const err1=_rmValidaGrupo(dezenas,d.min,d.start,d.start+d.universe-1,'Dezenas');
+    if(err1) return mostrarErro(err1);
+  }
+  if(d.dupla){
+    dezenas2=_rmParseNums(document.getElementById('rm-dez2')?.value);
+    const err2=_rmValidaGrupo(dezenas2,d.min,d.start,d.start+d.universe-1,'2º Sorteio');
+    if(err2) return mostrarErro(err2);
+  }
+  if(d.bolaExtra){
+    const arr=_rmParseNums(document.getElementById('rm-extra')?.value);
+    const err3=_rmValidaGrupo(arr,1,1,d.bolaExtraMax,d.bolaExtraNome);
+    if(err3) return mostrarErro(err3);
+    bolaExtra=arr[0];
+  }
+  if(d.hasTrevo){
+    trevos=_rmParseNums(document.getElementById('rm-trevos')?.value);
+    const err4=_rmValidaGrupo(trevos,d.trevosMin,1,d.trevosUniverse,'Trevos');
+    if(err4) return mostrarErro(err4);
+  }
+  if(key==='diasorte') mes=document.getElementById('rm-mes')?.value||null;
+  if(key==='timemania') timeCoracao=document.getElementById('rm-time')?.value||null;
+  const p={loteria:key,concurso:String(concurso),data:dataBR,_dataISO:dataISO,dezenas,dezenas2,trevos,bolaExtra,acumulou:false,local:'Aguardando sincronização oficial',estimativa:'—',proximoConcurso:null,proximoConcursoNum:null,acumulado:'—',acumuladoFinal5:null,acumuladoFinalConcurso:null,acumuladoVirada:null,arrecadacao:'—',timeCoracao,mes,ganhadores:[],premiacoes:[],updatedAt:Date.now(),origem:'manual',manualEm:Date.now()};
+  await dbPut('resultados',p);
+  await dbPut('historico',{loteria:key,concurso:String(concurso),dezenas,data:dataBR,trevos,dezenas2,bolaExtra:bolaExtra||null,mes,timeCoracao});
+  resultados[key]=p;
+  closeModal('modal-resultado-manual');
+  renderCard(p,d);
 }
 /* ═══════════════════════════════════════════════════════
    MÓDULO UNIFICADO — controle de abas (Item 1 documento)
