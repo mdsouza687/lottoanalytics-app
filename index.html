@@ -2371,9 +2371,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       <span style="font-size:10px;color:var(--text-dim);font-weight:700;margin-right:4px">Sorteios:</span>
       <button class="ap-period-btn" onclick="setApPeriod(6)">6</button>
       <button class="ap-period-btn" onclick="setApPeriod(12)">12</button>
-      <button class="ap-period-btn" onclick="setApPeriod(24)">24</button>
+      <button class="ap-period-btn active" onclick="setApPeriod(24)">24</button>
       <button class="ap-period-btn" onclick="setApPeriod(36)">36</button>
-      <button class="ap-period-btn active" onclick="setApPeriod(48)">48</button>
+      <button class="ap-period-btn" onclick="setApPeriod(48)">48</button>
       <button class="ap-period-btn" onclick="setApPeriod(72)">72</button>
       <button class="ap-period-btn" onclick="setApPeriod(96)">96</button>
       <button class="ap-period-btn" onclick="setApPeriod(0)">Histórica</button>
@@ -5417,16 +5417,25 @@ function setTheme(t){
   if(btnTb)btnTb.classList.add('active');
   try{localStorage.setItem('loterias_theme',t);}catch(e){}
 }
-let _apPeriod=48;
-// setApPeriod(): mantida por segurança/compatibilidade, mas hoje nenhum
-// elemento HTML a chama mais — os botões .ap-period-btn que a chamavam
-// pertenciam ao painel de análise fullscreen removido em auditoria de
-// código morto (26/06/2026). O select real do modal de Análise Completa
-// (#analise-periodo) atualiza _apPeriod diretamente no próprio onchange,
-// sem passar por esta função.
+let _apPeriod=24;
+// setApPeriod(): usada pelos botões .ap-period-btn (#ap-controls) — a
+// barra "Sorteios: 6 12 24 36 48 72 96 Histórica" visível em cima dos
+// painéis de Análise (Pausas, Frequências, Freq. Bolas, Ondas etc.),
+// compartilhada por todos eles via _apPeriod/_analiseTab. O comentário
+// antigo aqui dizia que nenhum elemento HTML chamava mais esta função
+// (supostamente código morto de um painel removido) — estava errado: os
+// botões continuam no HTML e são a forma normal de trocar o período.
+// BUG que isso escondia: a função nunca atualizava a classe "active" dos
+// botões — só trocava _apPeriod e re-renderizava os gráficos (que
+// refletiam a escolha corretamente), mas o botão "48" ficava marcado
+// como ativo pra sempre (era o único com "active" fixo no HTML estático),
+// dando a impressão de que a seleção não tinha efeito nenhum.
 function setApPeriod(n){
   _apPeriod=n;
   _analiseEspecial=(n===-1);
+  document.querySelectorAll('#ap-controls .ap-period-btn').forEach(b=>b.classList.remove('active'));
+  const btnAlvo=[...document.querySelectorAll('#ap-controls .ap-period-btn')].find(b=>b.getAttribute('onclick')===`setApPeriod(${n})`);
+  if(btnAlvo) btnAlvo.classList.add('active');
   renderAnalise();
 }
 
