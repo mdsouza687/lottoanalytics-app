@@ -1882,6 +1882,24 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
          Todos os campos obrigatórios do documento
       ═══════════════════════════════════════ */
 
+      /* Soma o prêmio de todos os jogos do bolão contra o resultado oficial
+         já conferido (via _calcPremioJogo, definida mais abaixo no arquivo).
+         Só produz valor quando resultados[grupo.loteria] já corresponde ao
+         mesmo concurso do bolão — senão retorna null (ainda não dá pra
+         saber se houve acerto). */
+      function _calcPremioTotalGrupo(grupo){
+        if(typeof _calcPremioJogo!=='function') return null;
+        var res=(typeof resultados!=='undefined')?resultados[grupo.loteria]:null;
+        if(!res||!res.dezenas||!res.dezenas.length) return null;
+        if(String(parseInt(res.concurso))!==String(parseInt(grupo.concurso))) return null;
+        var total=0, qtdPremiados=0;
+        (grupo.jogos||[]).forEach(function(jogo){
+          var r=_calcPremioJogo(grupo.loteria,jogo,grupo.concurso);
+          if(r&&r.premiado){ total+=r.valor; qtdPremiados++; }
+        });
+        return {total:total,qtdPremiados:qtdPremiados};
+      }
+
       function abrirRelatorio(grupo, d) {
         if(!d||!grupo) return;
         var ac=d.cor;
@@ -1920,13 +1938,24 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
             _th('Valor / Cota','center')+_th('Total a receber','center')+
           '</tr></thead><tbody>'+linhas+'</tbody></table>';
 
-        /* Seção financeira — Lacuna 2: input com recálculo automático (oninput) */
+        /* Seção financeira — Lacuna 2: input com recálculo automático (oninput).
+           Quando o concurso já foi conferido (resultado oficial ou manual
+           batendo com o concurso do bolão) e há jogo(s) premiado(s), o
+           prêmio total é detectado automaticamente a partir da conferência
+           (_calcPremioTotalGrupo) e o campo já vem preenchido — o usuário
+           ainda pode sobrescrever manualmente se quiser. */
+        var _premioAuto=_calcPremioTotalGrupo(grupo);
+        var _premioAutoVal=(_premioAuto&&_premioAuto.total>0)?_premioAuto.total.toFixed(2):'';
+        var _avisoAuto=(_premioAuto&&_premioAuto.total>0)
+          ?'<div style="font-size:10px;color:#1de98e;margin-bottom:8px">🏆 Prêmio detectado automaticamente pela conferência do concurso #'+grupo.concurso+' — '+_premioAuto.qtdPremiados+' jogo'+(_premioAuto.qtdPremiados!==1?'s':'')+' premiado'+(_premioAuto.qtdPremiados!==1?'s':'')+'. Você pode ajustar o valor abaixo se necessário.</div>'
+          :(_premioAuto?'<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Conferência do concurso #'+grupo.concurso+' feita — nenhum jogo premiado neste bolão.</div>':'<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Resultado do concurso #'+grupo.concurso+' ainda não sincronizado — informe o prêmio manualmente ou aguarde a conferência automática.</div>');
         var parcJson=JSON.stringify(partic).replace(/'/g,'&#39;');
         var financeiro=
           '<div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:8px;padding:12px 14px">'+
             '<div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">💰 Calcular rateio do prêmio</div>'+
+            _avisoAuto+
             '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">'+
-              '<input id="rel-premio-input" type="number" placeholder="R$ valor total do prêmio" step="0.01" class="f-inp" style="flex:1"'+
+              '<input id="rel-premio-input" type="number" placeholder="R$ valor total do prêmio" step="0.01" class="f-inp" style="flex:1" value="'+_premioAutoVal+'"'+
               ' oninput="calcularRateioRelatorio('+parcJson+','+totalCotas+')" />'+
               '<button onclick="calcularRateioRelatorio('+parcJson+','+totalCotas+')" '+
               'style="border:none;border-radius:7px;padding:7px 14px;font-family:var(--font-head);font-weight:700;font-size:12px;color:'+corTextoSobre(ac)+';cursor:pointer;background:'+ac+';white-space:nowrap">Calcular</button>'+
@@ -1947,6 +1976,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
         var hdrEl=document.getElementById(hdrId);
         if(hdrEl){hdrEl.style.background=ac; var t=hdrEl.querySelector('.modal-title'); if(t)t.textContent='👥 Bolão — '+d.nome+' · Concurso #'+grupo.concurso;}
         openModal(modalId);
+        // Se o prêmio foi detectado automaticamente, já exibe o rateio calculado
+        // (sem exigir que o usuário clique em "Calcular" ou digite algo).
+        if(_premioAutoVal) calcularRateioRelatorio(partic,totalCotas);
       }
 
       function _th(label,align){
@@ -8780,23 +8812,34 @@ function doPrint(destino){
 
 function buildPrintRelatorioParticipantes(grupo){
   const pad=n=>String(n).padStart(2,'0');
+  const totalCotas=grupo.totalCotas||(grupo.participantes||[]).reduce((a,p)=>a+(p.cotas||0),0);
+  const premioAuto=(typeof _calcPremioTotalGrupo==='function')?_calcPremioTotalGrupo(grupo):null;
+  const temPremio=premioAuto&&premioAuto.total>0;
+  const valorCota=temPremio&&totalCotas>0?premioAuto.total/totalCotas:0;
   let html=`<div style="margin-top:24px;border-top:2px solid #333;padding-top:14px">
-    <div style="font-weight:900;font-size:14px;margin-bottom:8px">👥 Participantes do Bolão</div>
-    <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <div style="font-weight:900;font-size:14px;margin-bottom:8px">👥 Participantes do Bolão</div>`;
+  if(temPremio){
+    html+=`<div style="font-size:11px;font-weight:700;color:#0a7a3d;margin-bottom:8px">🏆 Prêmio total apurado no concurso ${grupo.concurso}: ${_brl(premioAuto.total)} (${premioAuto.qtdPremiados} jogo${premioAuto.qtdPremiados!==1?'s':''} premiado${premioAuto.qtdPremiados!==1?'s':''}) — ${_brl(valorCota)} por cota</div>`;
+  }
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="background:#f0f0f0">
       <th style="padding:6px 8px;text-align:left;border:1px solid #ccc">#</th>
       <th style="padding:6px 8px;text-align:left;border:1px solid #ccc">Participante</th>
       <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Cotas</th>
       <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">% Part.</th>
       <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Pagamento</th>
+      <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Prêmio recebido</th>
     </tr></thead><tbody>`;
   grupo.participantes.forEach((p,i)=>{
+    const cotasEf=p.isento?0:(p.cotasEfetivas||p.cotas||0);
+    const premioRecebido=temPremio&&!p.isento?_brl(cotasEf*valorCota):(p.isento?'—':(temPremio?'—':'—'));
     html+=`<tr style="border-bottom:1px solid #eee">
       <td style="padding:6px 8px;border:1px solid #ddd">${i+1}</td>
       <td style="padding:6px 8px;font-weight:700;border:1px solid #ddd">${p.nome}${p.isAdmin?' ⭐':''}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.cotas}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'Isento':(p.pct||'—')+'%'}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'<b>ISENTO</b>':'—'}</td>
+      <td style="padding:6px 8px;text-align:center;border:1px solid #ddd;font-weight:700;color:${temPremio&&!p.isento?'#0a7a3d':'#999'}">${premioRecebido}</td>
     </tr>`;
   });
   html+=`</tbody></table></div>`;
