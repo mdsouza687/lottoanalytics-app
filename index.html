@@ -15672,19 +15672,25 @@ async function imprimirBolao(soPremiados){
     var partes=[];
     itens.forEach(function(item){
       var lista=(item&&item.teimosinhaTodos&&item.teimosinhaTodos.length)?item.teimosinhaTodos:[item&&item.num!=null?item.num:item];
-      // Data do sorteio: só temos a data do primeiro/único concurso de cada
-      // item (item.data) — numa sequência de Teimosinha, os concursos
-      // seguintes são consecutivos ao primeiro, mas suas datas individuais
-      // não ficam guardadas à parte, então a data é anexada uma vez por
-      // item, não repetida em cada número da lista.
+      // Data do sorteio de CADA concurso da sequência (não só o primeiro):
+      // se o item já carrega as datas calculadas (_teimosinhaDatas, salvo
+      // no momento em que a Teimosinha foi aplicada — ver
+      // aplicarTeimosinhaResultado/IA), usa direto; senão recalcula aqui a
+      // partir da data do primeiro concurso, avançando pelos dias de
+      // sorteio da loteria (mesma calcDatasTeimosinha usada na geração) —
+      // antes, só o primeiro concurso da lista tinha data exibida.
       var dataItem=(item&&item.data)?item.data:'';
+      var datasSeq=(item&&item.teimosinhaDatas&&item.teimosinhaDatas.length===lista.length)
+        ? item.teimosinhaDatas
+        : (dataItem&&lista.length>1?calcDatasTeimosinha(loteriaKey,dataItem,lista.length):(dataItem?[dataItem]:[]));
       lista.forEach(function(c,ci){
         c=String(c);
         var realizado=_concursoJaRealizado(loteriaKey,c);
         var simbolo=realizado
           ?'<span title="Concurso '+_esc(c)+' já foi sorteado (finalizado)" style="display:inline-block;color:#dc2626;font-weight:900;font-size:15px;line-height:1;transform:scaleX(1.35);vertical-align:middle">✓</span>'
           :'<span title="Concurso '+_esc(c)+' ainda não foi sorteado (vigente)" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#16a34a;vertical-align:middle"></span>';
-        var dataHtml=(dataItem&&ci===0)?' <span style="font-size:9px;color:#888">('+_esc(dataItem)+')</span>':'';
+        var dataC=datasSeq[ci]||'';
+        var dataHtml=dataC?' <span style="font-size:9px;color:#888">('+_esc(dataC)+')</span>':'';
         partes.push(_esc(c)+'&nbsp;'+simbolo+dataHtml);
       });
     });
