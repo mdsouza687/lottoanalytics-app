@@ -140,41 +140,48 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
 .col-left .result-card{flex:1;display:flex;flex-direction:column;}
 .col-left .result-card .win-wrap{flex:1;}
 
-/* ══ RESULT CARD ══ */
-.result-card{border-radius:var(--radius-xl);background:var(--bg2);border:1px solid var(--glass-border);overflow:hidden;}
-.card-top{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
+/* ══ RESULT CARD — reprodução fiel do layout de referência: cartão
+   sempre em fundo claro (independe do tema do app), faixa colorida no
+   topo só com concurso/data, bolas grandes, "ACUMULOU!"/status em
+   serifada, 3 blocos de info com divisórias verticais, e as duas
+   colunas "Detalhamento de Ganhadores" / "Faixas de Premiação". ══ */
+.result-card{border-radius:14px;background:#fdfdfc;border:1px solid rgba(0,0,0,.06);overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.16);color:#1a1a1a;}
+.card-top{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
 .card-top::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none;}
-.card-top-concurso{font-family:var(--font-mono);font-size:20px;font-weight:800;}
-.card-top-nome{font-family:var(--font-head);font-size:15px;font-weight:700;}
-.card-top-data{font-size:13px;font-weight:600;opacity:.85;}
-.balls-wrap{padding:18px 14px 12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
-.ball{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:16px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 -3px 0 rgba(0,0,0,.25),inset 0 3px 0 rgba(255,255,255,.25);transition:transform .2s;}
-.ball:hover{transform:scale(1.12);}
-.trevos-lbl{text-align:center;font-size:10px;color:var(--text-dim);font-weight:700;padding:0 16px 3px;letter-spacing:.8px;text-transform:uppercase;}
-.trevos-row{display:flex;gap:8px;justify-content:center;padding:4px 16px 8px;}
-.trevo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:14px;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.3);}
-.badge-row{display:flex;align-items:center;gap:8px;padding:5px 16px;font-size:12px;color:var(--text-muted);}
-.badge{padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;color:var(--text);background:rgba(255,255,255,.08);}
-.badge.hit{background:rgba(74,222,128,.18);color:#22c55e;}
-body.theme-light .badge.hit{background:rgba(34,197,94,.15);color:#15803d;}
-.status-wrap{padding:6px 18px 14px;text-align:center;}
-.status-txt{font-family:var(--font-mono);font-size:22px;font-weight:800;letter-spacing:.5px;}
-.card-divider{height:1px;background:var(--glass-border);margin:0 16px;}
-.info-wrap{padding:10px 18px 8px;display:flex;flex-direction:column;gap:6px;}
-.info-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.info-lbl{font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap;}
-.info-val-col{text-align:right;}.info-val{font-size:13px;font-weight:700;display:block;}
-.info-note{font-size:10px;color:var(--text-dim);display:block;margin-top:1px;}
-.win-wrap{padding:10px 18px 14px;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;}
-.win-col-det{border-right:1px solid var(--glass-border);padding-right:14px;}
-.win-title{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
-.win-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border);gap:6px;}
+.card-top-concurso{font-family:var(--font-head);font-size:17px;font-weight:800;letter-spacing:.3px;}
+.card-top-nome{display:none;}
+.card-top-data{font-size:14px;font-weight:600;opacity:.92;}
+.balls-wrap{background:#fdfdfc;padding:26px 16px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:center;}
+.ball{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;font-size:24px;font-weight:800;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.28);transition:transform .2s;}
+.ball:hover{transform:scale(1.08);}
+.res-extra-sep{width:1px;align-self:stretch;background:rgba(0,0,0,.12);margin:2px 4px;}
+.res-extra-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.res-extra-lbl{font-size:11px;font-weight:700;color:#333;}
+.trevos-lbl{display:none;}
+.trevos-row{display:flex;gap:8px;justify-content:center;padding:0;}
+.trevo{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:800;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.28);}
+.badge-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 16px;font-size:12px;color:#444;background:#fdfdfc;}
+.badge{padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;color:#fff;background:#555;}
+.badge.hit{background:rgba(34,197,94,.18);color:#15803d;}
+.status-wrap{background:#fdfdfc;padding:10px 18px 22px;text-align:center;}
+.status-txt{font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:800;letter-spacing:.5px;color:#1a1a1a;}
+.card-divider{height:1px;background:rgba(0,0,0,.1);margin:0;}
+.info-wrap{background:#fdfdfc;padding:0;display:flex;flex-wrap:wrap;}
+.info-row{flex:1 1 0;min-width:150px;display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-right:1px solid rgba(0,0,0,.08);border-bottom:1px solid rgba(0,0,0,.08);}
+.info-row:last-child{border-right:none;}
+.info-lbl{font-size:12px;color:#444;font-weight:400;white-space:nowrap;}
+.info-val-col{text-align:left;}.info-val{font-size:14px;font-weight:800;display:block;color:#1a1a1a;}
+.info-note{font-size:10px;color:#888;display:block;margin-top:2px;}
+.win-wrap{background:#fdfdfc;padding:18px 20px 22px;display:grid;grid-template-columns:1fr 1fr;column-gap:22px;}
+.win-col-det{border-right:1px solid rgba(0,0,0,.1);padding-right:22px;}
+.win-title{font-family:var(--font-head);font-size:14px;font-weight:800;color:#1a1a1a;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px;}
+.win-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08);gap:8px;font-size:13px;color:#333;font-weight:600;}
 .win-col-fai .win-row{justify-content:flex-end;}
-.win-left{display:flex;flex-direction:column;gap:1px;min-width:0;}.win-lbl{font-size:11px;font-weight:600;}.win-qtd{font-size:10px;color:var(--text-dim);}
-.win-prize{font-family:var(--font-head);font-size:13px;font-weight:800;white-space:nowrap;}
-.res-manual-wrap{padding:10px 18px 4px;text-align:center;}
-.res-manual-btn{border:1px dashed rgba(255,180,0,.5);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,180,0,.08);color:#f5a623;width:100%;}
-.res-manual-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 7px;border-radius:5px;background:rgba(255,180,0,.15);color:#f5a623;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:middle;}
+.win-left{display:contents;}.win-lbl{font-weight:600;}.win-qtd{font-weight:600;color:#333;}
+.win-prize{font-family:var(--font-head);font-size:14px;font-weight:800;white-space:nowrap;color:#b91c1c;}
+.res-manual-wrap{background:#fdfdfc;padding:10px 18px 14px;text-align:center;}
+.res-manual-btn{border:1px dashed #d97706;border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;background:#fff7ed;color:#b45309;width:100%;}
+.res-manual-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 7px;border-radius:5px;background:#fff3cd;color:#b45309;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:middle;}
 
 /* ══ GEN CARDS ══ */
 .gen-card{background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;}
@@ -5826,21 +5833,21 @@ function renderSkel(d){document.getElementById('lottery-card').innerHTML=`<div c
 function renderCard(res,d){
   // Indicador de dados desatualizados (> 6h)
   const _ageH=res.updatedAt?Math.round((Date.now()-res.updatedAt)/3600000):0;
-  const _staleWarn=_ageH>6?`<div style="font-size:9px;color:rgba(255,180,0,.7);padding:4px 18px;display:flex;align-items:center;gap:4px">⚠️ Dados de ${_ageH}h atrás — clique em <strong>Atualizar</strong> para renovar</div>`:'';
+  const _staleWarn=_ageH>6?`<div style="font-size:9px;color:#b45309;background:#fff7ed;padding:4px 18px;display:flex;align-items:center;gap:4px">⚠️ Dados de ${_ageH}h atrás — clique em <strong>Atualizar</strong> para renovar</div>`:'';
   const card=document.getElementById('lottery-card');let h='';
-  h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso">${res.concurso}</span><span class="card-top-nome"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,18,true)}</span>${d.nome}</span><span class="card-top-data">${res.data}</span></div>`;
+  h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
   // 1º Sorteio (ou único para loterias simples)
-  if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
+  if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${d.cor};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
-  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${pad(n)}</div>`;});
-  // Bola extra americana (PowerBall / Mega Ball) — inline após as dezenas
-  if(d.bolaExtra&&res.bolaExtra){ h+=`<span class="la-xsep" style="font-size:10px">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'};border:3px solid rgba(255,255,255,.35)">${pad(res.bolaExtra)}</div>`; }
-  // Trevos — +Milionária — inline após as dezenas
-  if(res.trevos&&res.trevos.length){ h+=`<span class="la-xsep" style="font-size:10px">TREVO</span>`; res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#00BCD4'};box-shadow:0 3px 10px rgba(0,0,0,.3)">${pad(t)}</div>`;}); }
+  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}">${pad(n)}</div>`;});
+  // Bola extra americana (PowerBall / Mega Ball) — separada por linha vertical, com o nome acima da bola
+  if(d.bolaExtra&&res.bolaExtra){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.bolaExtraCor||'#00BCD4'}">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'}">${pad(res.bolaExtra)}</div></div>`; }
+  // Trevos — +Milionária — separados por linha vertical, com "TREVO" acima
+  if(res.trevos&&res.trevos.length){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.trevoCor||'#00BCD4'}">TREVO</span><div class="trevos-row">`; res.trevos.forEach(t=>{h+=`<div class="trevo" style="background:${d.trevoCor||'#00BCD4'}">${pad(t)}</div>`;}); h+='</div></div>'; }
   h+=`</div>`;
   // 2º Sorteio — Dupla Sena
   if(res.dezenas2&&res.dezenas2.length){
-    h+=`<div style="height:1px;background:rgba(255,255,255,.08);margin:0 16px"></div>`;
+    h+=`<div style="height:1px;background:rgba(0,0,0,.08);margin:0 16px"></div>`;
     h+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${d.corD};opacity:.9;border-left:3px solid ${d.corD};padding-left:6px">2º SORTEIO</div></div>`;
     h+=`<div class="balls-wrap" style="padding-top:4px;padding-bottom:8px">`;
     res.dezenas2.forEach(n=>{h+=`<div class="ball" style="background:${d.corD}">${pad(n)}</div>`;});
@@ -5849,7 +5856,7 @@ function renderCard(res,d){
   if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.timeCoracao}</span></div>`;
   if(res.mes)h+=`<div class="badge-row">🌟 <span>Mês da Sorte</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
-  if(res.origem==='manual'){h+=`<div class="status-txt" style="font-size:15px;color:#f5a623">AGUARDANDO SINCRONIZAÇÃO<span class="res-manual-tag">📝 MANUAL</span></div>`;}
+  if(res.origem==='manual'){h+=`<div class="status-txt" style="font-size:16px;color:#b45309">AGUARDANDO SINCRONIZAÇÃO<span class="res-manual-tag">📝 MANUAL</span></div>`;}
   else if(res.acumulou){h+=`<div class="status-txt">ACUMULOU!</div>`;}
   else{const n=parseInt(((res.ganhadores||[])[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?'GANHADOR':'GANHADORES'}</div>`;}
   h+=`</div><div class="card-divider"></div>`;
@@ -5869,7 +5876,7 @@ function renderCard(res,d){
       ?'<span title="Não foi possível confirmar este valor em tempo real agora (bloqueios de CORS impediram a consulta ao site oficial). Este é um valor de referência atualizado manualmente — confira no site oficial se precisar de certeza." style="margin-left:5px;font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(245,158,11,.15);color:#f59e0b;cursor:help;vertical-align:middle">ref.</span>'
       :'';
     h+=`<div class="info-row"><span class="info-lbl">${_jpLbl}</span><div class="info-val-col"><span class="info-val" style="color:${corMarca(d)}">${res.estimativa&&res.estimativa!=='—'?res.estimativa:'—'}${_fonteTag}</span><span class="info-note">próximo: ${res.proximoConcurso||'—'}</span></div></div>`;
-    h+=`<div class="info-row"><span class="info-lbl">CASH VALUE</span><div class="info-val-col"><span class="info-val" style="color:#39FF14">${res.cashValue||'—'}</span><span class="info-note">pagamento à vista</span></div></div>`;
+    h+=`<div class="info-row"><span class="info-lbl">CASH VALUE</span><div class="info-val-col"><span class="info-val" style="color:#0a7a3d">${res.cashValue||'—'}</span><span class="info-note">pagamento à vista</span></div></div>`;
   } else {
     if(res.estimativa&&res.estimativa!=='—')h+=`<div class="info-row"><span class="info-lbl">Estimativa do prêmio</span><div class="info-val-col"><span class="info-val" style="color:${corMarca(d)}">${res.estimativa}</span><span class="info-note">próximo: ${res.proximoConcurso||'—'}</span></div></div>`;
   }
@@ -5879,7 +5886,7 @@ function renderCard(res,d){
   if(res.arrecadacao&&res.arrecadacao!=='—')h+=`<div class="info-row"><span class="info-lbl">Arrecadação total</span><div class="info-val-col"><span class="info-val" style="color:${corMarca(d)}">${res.arrecadacao}</span></div></div>`;
   if(d.americano){
     const dias=d.apiKey==='powerball'?'Segunda · Quarta · Sábado':'Terça · Sexta';
-    h+=`<div class="info-row"><span class="info-lbl">Dias de sorteio</span><div class="info-val-col"><span class="info-val" style="color:var(--text-muted);font-size:11px">${dias}</span></div></div>`;
+    h+=`<div class="info-row"><span class="info-lbl">Dias de sorteio</span><div class="info-val-col"><span class="info-val" style="color:#1a1a1a;font-size:13px">${dias}</span></div></div>`;
   }
   h+=`</div>`;
   if(res.ganhadores&&res.ganhadores.length){
@@ -5887,18 +5894,18 @@ function renderCard(res,d){
     res.ganhadores.forEach(g=>{
       const isJackpot=g.p==='JACKPOT'||g.valorNum===0;
       detH+=`<div class="win-row"><div class="win-left"><span class="win-lbl">${g.f}</span><span class="win-qtd">${g.q} ganh.</span></div></div>`;
-      faiH+=`<div class="win-row"><span class="win-prize" style="color:${isJackpot?'var(--gold)':corMarca(d)}">${isJackpot?'🏆 JACKPOT':g.p}</span></div>`;
+      faiH+=`<div class="win-row">${isJackpot?'<span style="font-size:15px">🏆</span>':''}<span class="win-prize">${isJackpot?'JACKPOT':g.p}</span></div>`;
     });
     h+=`<div class="win-wrap"><div class="win-col-det"><div class="win-title">Detalhamento de Ganhadores</div>${detH}</div><div class="win-col-fai"><div class="win-title">Faixas de Premiação</div>${faiH}</div></div>`;
   } else if(res.origem==='manual'){
-    h+=`<div class="res-manual-wrap"><div style="font-size:11px;color:var(--text-dim);padding-bottom:8px">Faixas de premiação e valores oficiais ainda não foram sincronizados. Os jogos já foram conferidos pelas dezenas informadas manualmente.</div></div>`;
+    h+=`<div class="res-manual-wrap"><div style="font-size:11px;color:#666;padding-bottom:8px">Faixas de premiação e valores oficiais ainda não foram sincronizados. Os jogos já foram conferidos pelas dezenas informadas manualmente.</div></div>`;
   }
   // Botão de inserção manual: só aparece enquanto o concurso não tiver as
   // informações oficiais completas sincronizadas (sem faixas de premiação).
   if(!res.ganhadores||!res.ganhadores.length){
     h+=`<div class="res-manual-wrap"><button class="res-manual-btn" onclick="abrirModalResultadoManual()">📝 ${res.origem==='manual'?'Editar':'Inserir'} Resultado Manual</button></div>`;
   }
-  if(d.specialLabel){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px 10px;font-size:11px;color:rgba(255,200,0,.85);font-weight:600;font-style:italic">⭐ Pode incluir: ${d.specialLabel}</div>`; }
+  if(d.specialLabel){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px 10px;font-size:11px;color:#a16207;font-weight:600;font-style:italic;background:#fdfdfc">⭐ Pode incluir: ${d.specialLabel}</div>`; }
   card.innerHTML=_staleWarn+h;
   atualizarBtnDash(currentKey,res);
   document.getElementById('print-title').innerHTML=`<span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome} — Concurso ${res.concurso}`;
