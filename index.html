@@ -4675,7 +4675,19 @@ function laLineColor(i,total){
   return `hsl(${hue},72%,58%)`;
 }
 const LA_ORDER=['megasena','lotofacil','quina','lotomania','duplasena','diasorte','supersete','timemania','maismilionaria','powerball','megamillions'];
-const LA_DIAS={megasena:'qua e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'ter e sex',duplasena:'ter, qui, sáb',diasorte:'ter, qui, sáb',supersete:'seg, qua, sex',timemania:'ter, qui, sáb',maismilionaria:'qua e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
+// Calendário semanal oficial das Loterias CAIXA (confirmado pelo usuário,
+// 02/07/2026): seg=Super Sete/Lotofácil/Quina/Dupla Sena/+Milionária;
+// ter=Mega-Sena/Lotofácil/Quina/Timemania/Dia de Sorte; qua=Super
+// Sete/Lotofácil/Quina/Lotomania/Mega-Sena/+Milionária; qui=Lotofácil/
+// Quina/Timemania/Dia de Sorte; sex=Super Sete/Lotofácil/Quina/Dupla
+// Sena/+Milionária; sáb=Mega-Sena/Lotofácil/Quina/Lotomania/Timemania/Dia
+// de Sorte/+Milionária. Corrigido: Lotomania (era "ter e sex", real é
+// "qua e sáb"), Dupla Sena (era "ter, qui, sáb", real é "seg e sex"),
+// +Milionária (era "qua e sáb", real é "seg, qua, sex e sáb"), Mega-Sena
+// (faltava terça). Não afeta o cálculo do concurso vigente/próximo (que já
+// usa os dados ao vivo da API da Caixa, não este calendário) — só o texto
+// "Sorteia [dias]" exibido no card da home.
+const LA_DIAS={megasena:'ter, qua e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'qua e sáb',duplasena:'seg e sex',diasorte:'ter, qui e sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'seg, qua, sex e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
 const LA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Lista oficial dos 80 clubes da Timemania, no formato exato usado pelo
 // volante e pela API de resultados (NOME/UF, sem acento, maiúsculas — ex.
