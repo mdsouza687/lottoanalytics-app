@@ -5991,7 +5991,7 @@ async function garantirHistoricoLocal(key, qtdNecessaria, soEspecial=false){
   for(const h of salvos){
     if(!h.dezenas) continue;
     const esp=isEspecial(key,parseInt(h.concurso));
-    if(soEspecial?esp:!esp) out.push({concurso:parseInt(h.concurso)||0,dezenas:h.dezenas,data:h.data,trevos:h.trevos||null,dezenas2:h.dezenas2||null});
+    if(soEspecial?esp:!esp) out.push({concurso:parseInt(h.concurso)||0,dezenas:h.dezenas,data:h.data,trevos:h.trevos||null,dezenas2:h.dezenas2||null,bolaExtra:h.bolaExtra||null,mes:h.mes||null,timeCoracao:h.timeCoracao||null});
   }
   out.sort((a,b)=>b.concurso-a.concurso);
   return out.slice(0,qtdNecessaria);
