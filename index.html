@@ -6617,7 +6617,7 @@ function abrirVolante(tipo) {
         <div>
           <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:#fff"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,16,true)}</span>${d.nome}</div>
           <div id="vol-status-${tipo}" style="font-size:10px;color:var(--text-muted);margin-top:1px">
-            ${_volFixos[tipo].size} fixo${_volFixos[tipo].size!==1?'s':''} selecionado${_volFixos[tipo].size!==1?'s':''} · máx. ${fMax}
+            ${[..._volFixos[tipo]].filter(v=>v<1000).length} fixo${[..._volFixos[tipo]].filter(v=>v<1000).length!==1?'s':''} · máx. ${fMax}
           </div>
         </div>
         <button onclick="document.getElementById('modal-volante').remove()" style="border:none;background:rgba(0,0,0,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
@@ -6632,7 +6632,7 @@ function abrirVolante(tipo) {
           ${_volFixos[tipo].size>0?'Fixos: '+[..._volFixos[tipo]].filter(v=>v<1000).sort((a,b)=>a-b).map(n=>pad(n)).join(', '):'Nenhum número fixo selecionado'}
         </div>
         <div style="display:flex;gap:6px">
-          <button onclick="limparFixos('${tipo}');atualizarModalVolante('${tipo}')" style="border:1px solid var(--glass-border);border-radius:7px;padding:6px 12px;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer">Limpar</button>
+          <button onclick="limparFixos('${tipo}');document.getElementById('modal-volante')?.remove();abrirVolante('${tipo}')" style="border:1px solid var(--glass-border);border-radius:7px;padding:6px 12px;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer">Limpar</button>
           <button onclick="confirmarVolante('${tipo}')" style="border:none;border-radius:7px;padding:6px 16px;background:${ac};color:${corTextoSobre(ac)};font-family:var(--font-head);font-size:12px;font-weight:800;cursor:pointer">Confirmar</button>
         </div>
       </div>
