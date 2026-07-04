@@ -8875,15 +8875,23 @@ function _volanteDims(key){
 function _volanteMarcacoesHtml(key,jogosGrupo){
   const v=VOLANTE_IMG[key], d=CFG[key];
   const jogos=Array.isArray(jogosGrupo)?jogosGrupo:[jogosGrupo];
-  // Fração do espaçamento real entre marcas usada como tamanho do retângulo
-  // — deixa uma folguinha entre células vizinhas em vez de tocar ou invadir
-  // o número ao lado.
-  const FRAC=0.86;
+  // Frações do espaçamento real entre marcas usadas como tamanho do
+  // retângulo — medidas a partir da largura/altura real da tinta impressa
+  // de cada TIPO de campo (não um valor único para tudo, porque a razão
+  // "tinta ocupada ÷ espaçamento entre células" muda bastante entre a
+  // grade de dezenas (colunas bem próximas) e a de mês/trevo (colunas mais
+  // espaçadas, com bem mais vão em branco entre elas). Em nenhuma hipótese
+  // a marca pode ultrapassar o campo do número — por isso as frações abaixo
+  // ficam sempre um pouco ABAIXO do que foi medido na digitalização real,
+  // nunca no limite.
+  const FRAC_NUM_W=0.42, FRAC_NUM_H=0.62;   // dezenas / super sete
+  const FRAC_MES_W=0.32, FRAC_MES_H=0.42;   // mês da sorte (colunas largas)
+  const FRAC_TREVO_W=0.42, FRAC_TREVO_H=0.62; // trevo (+Milionária)
   let html='';
   if(key==='supersete'){
     const jogo=jogos[0];
     const colunas=(jogo&&jogo._ssCols)||[jogo||[]];
-    const w=_pitch(v.cols)*FRAC, h=_pitch(v.rows)*FRAC;
+    const w=_pitch(v.cols)*FRAC_NUM_W, h=_pitch(v.rows)*FRAC_NUM_H;
     v.cols.forEach((cx,c)=>{
       const marcadosCol=new Set((colunas[c]||[]).map(Number));
       v.rows.forEach((cy,digito)=>{
@@ -8895,7 +8903,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   jogos.forEach((jogo,idx)=>{
     const jg=v.jogos[idx]; if(!jg) return;
     const marcados=new Set((jogo||[]).map(Number));
-    const w=_pitch(jg.cols)*FRAC, h=_pitch(jg.rows)*FRAC;
+    const w=_pitch(jg.cols)*FRAC_NUM_W, h=_pitch(jg.rows)*FRAC_NUM_H;
     if(key==='lotofacil'){
       jg.cols.forEach((cx,c)=>{
         const base=v.colBase[c];
@@ -8917,7 +8925,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
     // e mês da sorte (Dia de Sorte)
     if(key==='maismilionaria' && jg.trevoCols && jg.trevoRows){
       const trevos=new Set(((jogo&&jogo._trevos)||[]).map(Number));
-      const tw=_pitch(jg.trevoCols)*FRAC, th=_pitch(jg.trevoRows)*FRAC;
+      const tw=_pitch(jg.trevoCols)*FRAC_TREVO_W, th=_pitch(jg.trevoRows)*FRAC_TREVO_H;
       let t=1;
       jg.trevoRows.forEach(cy=>{
         jg.trevoCols.forEach(cx=>{
@@ -8927,9 +8935,13 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
       });
     }
     if(key==='diasorte' && v.mesGrid){
+      // jogo._mes é 1-based em todo o app (1=Janeiro...12=Dezembro — ver
+      // "_mesesNomes[jogo._mes-1]" usado nos outros lugares que exibem o
+      // mês). O contador "i" abaixo também precisa começar em 1, senão a
+      // marca sai deslocada em 1 mês (ex.: Abril marcava Maio).
       const mesIdx=(jogo&&jogo._mes!=null)?jogo._mes:null;
-      const mw=_pitch(v.mesGrid.cols6)*FRAC, mh=_pitch(v.mesGrid.rows2)*FRAC;
-      let i=0;
+      const mw=_pitch(v.mesGrid.cols6)*FRAC_MES_W, mh=_pitch(v.mesGrid.rows2)*FRAC_MES_H;
+      let i=1;
       v.mesGrid.rows2.forEach(cy=>{
         v.mesGrid.cols6.forEach(cx=>{
           html+=_volanteMarcaDiv(cx,cy,mw,mh,'#000',mesIdx===i);
