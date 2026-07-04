@@ -8708,9 +8708,25 @@ function abrirJanelaImpressao(tituloDoc, htmlConteudo, opts){
   // visibilidade do modal que estava escondido por baixo dele.
   frame.contentWindow.addEventListener('afterprint',restaurarModais);
 
+  // Espera todas as <img> do documento terminarem de carregar antes de
+  // imprimir — sem isso, o diálogo de impressão (principalmente "Salvar
+  // como PDF") tira o "retrato" da página antes da imagem do volante
+  // terminar de baixar/decodificar, e ela sai em branco (só as marcas
+  // aparecem). Ao cancelar a impressão, a imagem já tinha carregado por
+  // trás, por isso parecia "funcionar só depois de cancelar".
+  const esperarImagens=()=>{
+    const imgs=[...frame.contentDocument.images];
+    if(!imgs.length) return Promise.resolve();
+    return Promise.all(imgs.map(img=>{
+      if(img.complete) return img.decode?img.decode().catch(()=>{}):Promise.resolve();
+      return new Promise(res=>{ img.addEventListener('load',res,{once:true}); img.addEventListener('error',res,{once:true}); });
+    }));
+  };
   const dispararPrint=()=>{
-    try{ frame.contentWindow.focus(); frame.contentWindow.print(); }
-    catch(e){ /* tratado pelo aviso de fallback abaixo, se necessário */ }
+    esperarImagens().then(()=>{
+      try{ frame.contentWindow.focus(); frame.contentWindow.print(); }
+      catch(e){ /* tratado pelo aviso de fallback abaixo, se necessário */ }
+    });
   };
 
   const mostrarAvisoFallback=()=>{
@@ -8834,10 +8850,13 @@ const VOLANTE_IMG = {
     {cols:[15.157,21.467,27.695,34.176,40.677,47.115,53.427,59.675,66.071,72.509],rows:[100.87,104.2,107.552,110.838,114.126]},
   ]},
   diasorte: { file:'diasorte.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[7.64,14.708,20.909,27.363,33.796,39.891,46.663,53.076,59.171,65.54],rows:[41.718,44.969,48.221]},
-    {cols:[7.851,14.877,21.12,27.575,33.987,40.103,46.875,53.266,59.361,65.731],rows:[73.766,77.018,80.27]},
-    {cols:[8.57,15.089,21.29,27.766,34.177,40.272,47.044,53.457,59.531,65.9],rows:[105.646,108.855,112.149]},
-  ], mesGrid:{cols6:[7.872,20.909,33.881,46.727,59.277,71.953],rows2:[57.911,61.606]}},
+    {cols:[7.64,14.708,20.909,27.363,33.796,39.891,46.663,53.076,59.171,65.54],rows:[41.718,44.969,48.221],
+     mesGrid:{cols6:[8.191,20.892,33.846,46.736,59.309,71.945],rows2:[57.976,61.659]}},
+    {cols:[7.851,14.877,21.12,27.575,33.987,40.103,46.875,53.266,59.361,65.731],rows:[73.766,77.018,80.27],
+     mesGrid:{cols6:[8.445,21.082,34.036,46.926,59.436,72.136],rows2:[90.043,93.218]}},
+    {cols:[8.57,15.089,21.29,27.766,34.177,40.272,47.044,53.457,59.531,65.9],rows:[105.646,108.855,112.149],
+     mesGrid:{cols6:[8.636,20.955,34.226,47.053,59.627,72.326],rows2:[121.983,125.159]}},
+  ]},
   supersete: { file:'supersete.jpg', wmm:83, hmm:142,
     cols:[14.957,21.296,27.806,34.178,40.551,47.101,53.39],
     rows:[47.46,51.383,55.286,59.076,62.933,66.79,70.692,74.548,78.405,81.996] },
@@ -8934,16 +8953,21 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
         });
       });
     }
-    if(key==='diasorte' && v.mesGrid){
+    if(key==='diasorte' && jg.mesGrid){
       // jogo._mes é 1-based em todo o app (1=Janeiro...12=Dezembro — ver
       // "_mesesNomes[jogo._mes-1]" usado nos outros lugares que exibem o
       // mês). O contador "i" abaixo também precisa começar em 1, senão a
       // marca sai deslocada em 1 mês (ex.: Abril marcava Maio).
+      // IMPORTANTE: mesGrid é POR JOGO (jg.mesGrid), não compartilhado do
+      // volante (v.mesGrid) — cada um dos 3 jogos empilhados no volante tem
+      // sua própria grade de mês numa posição vertical diferente da folha;
+      // usar uma grade única fazia os meses dos jogos 2 e 3 caírem todos
+      // empilhados na área do jogo 1.
       const mesIdx=(jogo&&jogo._mes!=null)?jogo._mes:null;
-      const mw=_pitch(v.mesGrid.cols6)*FRAC_MES_W, mh=_pitch(v.mesGrid.rows2)*FRAC_MES_H;
+      const mw=_pitch(jg.mesGrid.cols6)*FRAC_MES_W, mh=_pitch(jg.mesGrid.rows2)*FRAC_MES_H;
       let i=1;
-      v.mesGrid.rows2.forEach(cy=>{
-        v.mesGrid.cols6.forEach(cx=>{
+      jg.mesGrid.rows2.forEach(cy=>{
+        jg.mesGrid.cols6.forEach(cx=>{
           html+=_volanteMarcaDiv(cx,cy,mw,mh,'#000',mesIdx===i);
           i++;
         });
