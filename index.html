@@ -16440,11 +16440,20 @@ async function imprimirBolao(soPremiados){
       // página impressa), então o status precisa aparecer nos dois lugares
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
+      // Bolões de teste/grande volume podem ter dezenas de milhares de jogos
+      // vinculados — imprimir cada um individualmente (com o cálculo de
+      // prêmio por jogo, que já é custoso) travava o diálogo de impressão
+      // por horas e gerava centenas de páginas inúteis. Sem o filtro "Só
+      // premiados" (que já reduz bastante o volume), limita a impressão aos
+      // primeiros 300 jogos por loteria e avisa quantos ficaram de fora.
+      var LIMITE_JOGOS_PRINT=300;
+      var jogosParaImprimirL=soPremiados?L.jogos:L.jogos.slice(0,LIMITE_JOGOS_PRINT);
+      var jogosOcultosL=soPremiados?0:Math.max(0,L.jogos.length-LIMITE_JOGOS_PRINT);
       jogosHtml+='<div class="lot-block">'+
-        '<div style="font-weight:700;font-size:12px;color:'+corJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        '<div style="font-weight:700;font-size:12px;color:'+corJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+(jogosOcultosL?' <span style="font-size:10px;color:#c0392b;font-weight:400">(mostrando '+LIMITE_JOGOS_PRINT+' de '+L.jogos.length+' jogos — '+jogosOcultosL+' não impressos)</span>':'')+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">'+
-        L.jogos.map(function(jogo,i){
+        jogosParaImprimirL.map(function(jogo,i){
           var ehEsp=jogo._isEspelho;
           var cBase=ehEsp?corEsp:corJogo;
           // Calcula o prêmio deste jogo específico ANTES de montar as
