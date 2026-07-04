@@ -6272,7 +6272,7 @@ function setupMods(d){
   // "Imprimir Volantes" (volante oficial em escala real) existe para as 9
   // loterias da Caixa configuradas em VOLANTE_IMG — Powerball/Mega
   // Millions não têm volante físico brasileiro equivalente, então ficam de fora.
-  {const btnVolMM=document.getElementById('btn-imprimir-volante-mm'); if(btnVolMM) btnVolMM.style.display=(typeof VOLANTE_IMG!=='undefined'&&VOLANTE_IMG[d.apiKey])?'':'none';}
+  {const btnVolMM=document.getElementById('btn-imprimir-volante-mm'); if(btnVolMM) btnVolMM.style.display=(typeof VOLANTE_IMG!=='undefined'&&VOLANTE_IMG[currentKey])?'':'none';}
   const btnA=document.getElementById('btn-analise');
   if(btnA){btnA.style.borderColor=`${d.cor}88`;btnA.style.background=`linear-gradient(135deg,${d.cor}22,rgba(255,255,255,.05))`;}
   document.getElementById('btn-voltar').style.borderColor=`${d.cor}88`;
@@ -8630,6 +8630,7 @@ function abrirJanelaImpressao(tituloDoc, htmlConteudo, opts){
   const doc=frame.contentWindow.document;
   doc.open();
   doc.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${tituloDoc}</title>
+  <base href="${location.origin}${location.pathname}">
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0;}
@@ -8848,14 +8849,21 @@ const VOLANTE_IMG = {
   ]},
 };
 
-// Desenha UM círculo de marcação sobre a imagem real — formato
-// centralizado aqui de propósito (fácil trocar por outro formato depois).
-function _volanteMarcaDiv(xmm,ymm,diamMm,cor,marcado){
+// Desenha UM retângulo de marcação sobre a imagem real, cobrindo o número
+// inteiro (formato centralizado aqui de propósito — fácil trocar depois).
+// cx/cy = centro da marca em mm; wMm/hMm = largura/altura do retângulo.
+function _volanteMarcaDiv(cx,cy,wMm,hMm,cor,marcado){
   if(!marcado) return '';
   // Estilo 100% inline (não depende de nenhuma classe CSS externa) — assim
   // funciona tanto dentro do iframe de impressão (que só carrega o CSS
   // passado via extraCSS) quanto em qualquer outro contexto de teste/DOM.
-  return `<div style="position:absolute;left:${xmm}mm;top:${ymm}mm;width:${diamMm}mm;height:${diamMm}mm;border-radius:50%;background:${cor};opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6)"></div>`;
+  return `<div style="position:absolute;left:${cx-wMm/2}mm;top:${cy-hMm/2}mm;width:${wMm}mm;height:${hMm}mm;border-radius:0.4mm;background:${cor};opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6)"></div>`;
+}
+// Espaçamento entre pontos consecutivos de uma grade (usado para dimensionar
+// o retângulo de marcação proporcionalmente a cada grade — cada modalidade
+// tem espaçamentos reais diferentes). Cai num valor padrão se só houver 1.
+function _pitch(arr,fallback){
+  return (arr&&arr.length>1) ? Math.abs(arr[1]-arr[0]) : (fallback||3);
 }
 function _volanteDims(key){
   const v=VOLANTE_IMG[key];
@@ -8867,15 +8875,19 @@ function _volanteDims(key){
 function _volanteMarcacoesHtml(key,jogosGrupo){
   const v=VOLANTE_IMG[key], d=CFG[key];
   const jogos=Array.isArray(jogosGrupo)?jogosGrupo:[jogosGrupo];
-  const DIAM=2.6;
+  // Fração do espaçamento real entre marcas usada como tamanho do retângulo
+  // — deixa uma folguinha entre células vizinhas em vez de tocar ou invadir
+  // o número ao lado.
+  const FRAC=0.86;
   let html='';
   if(key==='supersete'){
     const jogo=jogos[0];
     const colunas=(jogo&&jogo._ssCols)||[jogo||[]];
+    const w=_pitch(v.cols)*FRAC, h=_pitch(v.rows)*FRAC;
     v.cols.forEach((cx,c)=>{
       const marcadosCol=new Set((colunas[c]||[]).map(Number));
       v.rows.forEach((cy,digito)=>{
-        html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcadosCol.has(digito));
+        html+=_volanteMarcaDiv(cx,cy,w,h,'#000',marcadosCol.has(digito));
       });
     });
     return html;
@@ -8883,19 +8895,20 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   jogos.forEach((jogo,idx)=>{
     const jg=v.jogos[idx]; if(!jg) return;
     const marcados=new Set((jogo||[]).map(Number));
+    const w=_pitch(jg.cols)*FRAC, h=_pitch(jg.rows)*FRAC;
     if(key==='lotofacil'){
       jg.cols.forEach((cx,c)=>{
         const base=v.colBase[c];
         jg.rows.forEach((cy,r)=>{
           const n=base+r;
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcados.has(n));
+          html+=_volanteMarcaDiv(cx,cy,w,h,'#000',marcados.has(n));
         });
       });
     } else {
       let n=d.start;
       jg.rows.forEach(cy=>{
         jg.cols.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcados.has(n));
+          html+=_volanteMarcaDiv(cx,cy,w,h,'#000',marcados.has(n));
           n++;
         });
       });
@@ -8904,20 +8917,22 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
     // e mês da sorte (Dia de Sorte)
     if(key==='maismilionaria' && jg.trevoCols && jg.trevoRows){
       const trevos=new Set(((jogo&&jogo._trevos)||[]).map(Number));
+      const tw=_pitch(jg.trevoCols)*FRAC, th=_pitch(jg.trevoRows)*FRAC;
       let t=1;
       jg.trevoRows.forEach(cy=>{
         jg.trevoCols.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',trevos.has(t));
+          html+=_volanteMarcaDiv(cx,cy,tw,th,'#000',trevos.has(t));
           t++;
         });
       });
     }
     if(key==='diasorte' && v.mesGrid){
       const mesIdx=(jogo&&jogo._mes!=null)?jogo._mes:null;
+      const mw=_pitch(v.mesGrid.cols6)*FRAC, mh=_pitch(v.mesGrid.rows2)*FRAC;
       let i=0;
       v.mesGrid.rows2.forEach(cy=>{
         v.mesGrid.cols6.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM*0.8,'#000',mesIdx===i);
+          html+=_volanteMarcaDiv(cx,cy,mw,mh,'#000',mesIdx===i);
           i++;
         });
       });
