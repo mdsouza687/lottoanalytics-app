@@ -14591,9 +14591,25 @@ function renderFormBolao(){
       if(wi<0) return;
       var res=(typeof resultados!=='undefined')?resultados[cc.loteria]:null;
       if(!res||!res.dezenas||!cc.num||parseInt(res.concurso)!==parseInt(cc.num)) return;
-      var sorteadasBol=new Set(res.dezenas.map(function(n){return parseInt(n);}));
+      // Super Sete NÃO usa a regra de "quantos números batem" das demais
+      // loterias — cada jogo é 1 dígito (0-9) escolhido por COLUNA (7
+      // colunas), e só conta acerto quando o dígito da coluna bate com o
+      // dígito sorteado NAQUELA MESMA coluna. Tratar como as outras
+      // loterias (checando se o dígito aparece em QUALQUER posição do
+      // resultado) gera acertos falsos em massa e credita prêmios muito
+      // acima do real (bug identificado: um bolão de teste com milhares de
+      // jogos de Super Sete somava R$ 3 milhões indevidos por causa disso).
+      var ehSuperSete=(cc.loteria==='supersete');
+      var sorteadasBol=ehSuperSete?null:new Set(res.dezenas.map(function(n){return parseInt(n);}));
       cc.jogos.forEach(function(jogo){
-        var acertosBol=jogo.filter(function(n){return sorteadasBol.has(n);}).length;
+        var acertosBol;
+        if(ehSuperSete){
+          if(!Array.isArray(jogo)||jogo.length!==7||!Array.isArray(res.dezenas)||res.dezenas.length!==7) return;
+          acertosBol=0;
+          for(var ssI=0;ssI<7;ssI++){ if(parseInt(jogo[ssI])===parseInt(res.dezenas[ssI])) acertosBol++; }
+        } else {
+          acertosBol=jogo.filter(function(n){return sorteadasBol.has(n);}).length;
+        }
         var faixaBol=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertosBol+'\\s*acerto','i').test(p.descricao);});
         var valorBol=faixaBol?(faixaBol.valorPremio||0):0;
         if(jogo._mes!=null&&res.mes){
