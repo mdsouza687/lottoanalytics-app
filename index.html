@@ -14573,11 +14573,55 @@ function renderFormBolao(){
     var _corSaldo=_saldoMen>=0?'#4ade80':'#f87171';
     var _bgSaldo=_saldoMen>=0?'rgba(74,222,128,.10)':'rgba(248,113,113,.10)';
     var _brSaldo=_saldoMen>=0?'rgba(74,222,128,.25)':'rgba(248,113,113,.25)';
+    // Prêmios da semana: soma, para cada jogo de cada rodada (s.concursos[])
+    // vinculada àquela semana, o valor efetivamente premiado — confere as
+    // dezenas do jogo contra o resultado oficial já sincronizado em
+    // "resultados" (mesmo cache global usado na conferência de "Jogos
+    // Salvos"), incluindo os prêmios de Mês da Sorte/Time do Coração que
+    // não dependem das dezenas. Só é possível conferir rodadas cujo
+    // concurso já tenha resultado divulgado E esteja atualmente em cache
+    // (resultados[loteria].concurso === cc.num) — rodadas mais antigas,
+    // cujo resultado em cache já avançou para um concurso posterior, ficam
+    // de fora da soma (limitação aceita, mesma usada na conferência).
+    var _mNBol=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var _premioPorSemanaReal=_sems.map(function(){return 0;});
+    (s.concursos||[]).forEach(function(cc){
+      if(!cc.savedAt||!cc.jogos||!cc.jogos.length||!cc.loteria) return;
+      var wi=_semanaIdxDeData(cc.savedAt);
+      if(wi<0) return;
+      var res=(typeof resultados!=='undefined')?resultados[cc.loteria]:null;
+      if(!res||!res.dezenas||!cc.num||parseInt(res.concurso)!==parseInt(cc.num)) return;
+      var sorteadasBol=new Set(res.dezenas.map(function(n){return parseInt(n);}));
+      cc.jogos.forEach(function(jogo){
+        var acertosBol=jogo.filter(function(n){return sorteadasBol.has(n);}).length;
+        var faixaBol=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertosBol+'\\s*acerto','i').test(p.descricao);});
+        var valorBol=faixaBol?(faixaBol.valorPremio||0):0;
+        if(jogo._mes!=null&&res.mes){
+          var nomeMesBol=_mNBol[jogo._mes-1]||'';
+          if(nomeMesBol.toLowerCase()===res.mes.trim().toLowerCase()){
+            var fMesBol=(res.premiacoes||[]).find(function(p){return /m[eê]s/i.test(p.descricao);});
+            if(fMesBol&&fMesBol.valorPremio) valorBol=Math.max(valorBol,fMesBol.valorPremio);
+          }
+        }
+        if(jogo._time!=null&&res.timeCoracao){
+          var nomeTimeBol=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
+          if(nomeTimeBol.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
+            var fTimeBol=(res.premiacoes||[]).find(function(p){return /time/i.test(p.descricao);});
+            if(fTimeBol&&fTimeBol.valorPremio) valorBol=Math.max(valorBol,fTimeBol.valorPremio);
+          }
+        }
+        _premioPorSemanaReal[wi]+=valorBol;
+      });
+    });
     var _rows=_sems.map(function(sem,i){
       var vFmt=_bMoney(_gastoPorSemanaReal[i]);
-      return '<div style="display:grid;grid-template-columns:40px 1fr 180px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:4px">'+
+      var pFmt=_bMoney(_premioPorSemanaReal[i]);
+      return '<div style="display:grid;grid-template-columns:40px 1fr 180px 180px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:4px">'+
         '<span style="font-size:11px;font-weight:800;color:var(--text-muted);text-align:center">'+_ordinals[i]+'</span>'+
         '<div style="font-size:12px;font-weight:700;color:var(--text)">'+sem.inicio+' a '+sem.fim+'</div>'+
+        '<div style="text-align:right;padding:7px 10px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:8px" data-tt="Somatório de todos os prêmios ganhos\npelos jogos vinculados nesta semana,\nconferidos contra o resultado oficial\njá sincronizado. Rodadas cujo\nresultado ainda não foi divulgado ou já\nsaiu do cache não entram na soma.">'+
+          '<span style="font-family:var(--font-head);font-size:13px;font-weight:800;color:#4ade80">'+pFmt+'</span>'+
+        '</div>'+
         '<div style="text-align:right;padding:7px 10px;background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.2);border-radius:8px" data-tt="Calculado automaticamente a partir de\ntodos os jogos vinculados nesta semana\n(qualquer que tenha sido a forma de\nvinculação).">'+
           '<span style="font-size:13px;font-weight:700;color:#93c5fd">'+vFmt+'</span>'+
         '</div>'+
@@ -14684,8 +14728,8 @@ function renderFormBolao(){
             '<input type="month" id="bol-mes-ref" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--font-body)" value="'+(s.mesReferencia||new Date().toISOString().slice(0,7))+'" onchange="_boloesState.mesReferencia=this.value;_boloesState.semanas=_calcSemanasDoMes(this.value);renderFormBolao()"/>'+
           '</div>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:40px 1fr 180px;gap:8px;padding:4px 10px 6px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">'+
-          '<span></span><span>Período (Dom - Sab)</span><span style="text-align:right">Gasto na semana (R$)</span>'+
+        '<div style="display:grid;grid-template-columns:40px 1fr 180px 180px;gap:8px;padding:4px 10px 6px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">'+
+          '<span></span><span>Período (Dom - Sab)</span><span style="text-align:right">Prêmios da semana (R$)</span><span style="text-align:right">Gasto na semana (R$)</span>'+
         '</div>'+
         _rows+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px;margin-top:8px">'+
