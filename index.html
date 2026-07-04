@@ -15527,10 +15527,16 @@ function renderParticipantesBoloes(){
       }).join('')+'</div>'
     : '<span style="color:var(--text-muted)">—</span>';
   var premioTopoFmt=s.premio>0?_bMoney(s.premio):'—';
-  var grid='24px 44px 1.4fr 78px 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 24px';
+  // Coluna "Concurso(s)" removida daqui — antes cada linha repetia a MESMA
+  // lista completa de concursos do bolão (não é uma informação específica
+  // do participante), empilhada verticalmente e deixando as linhas muito
+  // altas/cheias de informação. Essa lista agora vira uma área própria
+  // abaixo da tabela (ver renderConcursosPorParticipanteHtml), com um
+  // cartão por participante em grade de 2-3 colunas.
+  var grid='24px 44px 1.4fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 24px';
   var head='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:6px 8px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--glass-border);align-items:center">'+
     '<input type="checkbox" id="bol-sel-all" onchange="toggleSelAllPart(this.checked)" title="Selecionar todos" style="cursor:pointer"'+(nSel&&nSel===s.participantes.length?' checked':'')+'/>'+
-    '<span>Refer.</span><span>Nome</span><span>Concurso(s)</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span></span></div>';
+    '<span>Refer.</span><span>Nome</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span></span></div>';
 
   // Linha do administrador: aparece se ele tem cotas isentas (modelo antigo)
   // OU se está no modo de orçamento fixo (modelo novo).
@@ -15542,7 +15548,6 @@ function renderParticipantesBoloes(){
     '<span style="font-size:10px;color:var(--text-dim);text-align:center">—</span>'+
     '<span style="font-size:12px;font-weight:800;color:var(--text)">'+_esc(s.admin.nome||'(Administrador)')+'</span>'+
     '<span style="font-size:10px;color:var(--text-dim);text-align:center">—</span>'+
-    '<span style="font-size:10px;color:var(--text-muted)">'+concursoChipsHtml+'</span>'+
     '<span style="font-size:10px;color:var(--text-muted);text-align:right">'+premioTopoFmt+'</span>'+
     '<span style="font-size:11px;text-align:center;color:var(--text)">'+(tipoOrg==='fixo'?(s.admin.adminParticipaCotas?(s.admin.cotasProprias||0):'—'):cotasAdmin)+'</span>'+
     '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'&&s.admin.adminParticipaCotas?'− '+_bMoney(consumoOrcamentoAdmin):'—')+'</span>'+
@@ -15638,7 +15643,6 @@ function renderParticipantesBoloes(){
         colChk+
         '<span style="font-size:10px;color:var(--text-dim);text-align:center;font-weight:700">'+refLinha+'</span>'+
         colNome+
-        '<span style="font-size:10px;color:var(--text-muted)">'+concursoChipsHtml+'</span>'+
         '<span style="font-size:10px;color:var(--text-muted);text-align:right">'+premioTopoFmt+'</span>'+
         colQtd+
         colContrib+
@@ -15661,7 +15665,37 @@ function renderParticipantesBoloes(){
         '<button onclick="_boloesState._sel=[];renderParticipantesBoloes()" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 12px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">Limpar seleção</button>'+
       '</div>'
     : '';
-  box.innerHTML=barraSel+head+linhaAdmin+rows+'<div id="np-footer-resumo">'+resumoFooterHtml+'</div>';
+  var concursosPorParticipanteHtml=_gerarConcursosPorParticipanteHtml(s,concursosLista);
+  box.innerHTML=barraSel+head+linhaAdmin+rows+'<div id="np-footer-resumo">'+resumoFooterHtml+'</div>'+concursosPorParticipanteHtml;
+}
+// Área "Concursos por Participante" — um cartão por participante (nome em
+// cima, grade de 2-3 colunas com os chips de concurso embaixo), substituindo
+// a antiga coluna "Concurso(s)" da tabela principal. A lista de concursos é
+// a mesma para todos os participantes (é do bolão como um todo, não há
+// vínculo concurso→participante individual nos dados) — só a apresentação
+// muda: em vez de repetir a lista inteira empilhada em CADA linha da
+// tabela (deixando as linhas altas e cheias), ela aparece uma vez por
+// participante numa área própria, mais fácil de ler.
+function _gerarConcursosPorParticipanteHtml(s,concursosLista){
+  if(!s.participantes.length||!concursosLista.length) return '';
+  var chipsGrid=function(){
+    return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;max-width:420px">'+
+      concursosLista.map(function(cc){
+        var iconeCc=cc._cfg?iconLoteria(cc._cfg,12):'🌐';
+        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:8px;background:'+cc.cor+'1a;border:1px solid '+cc.cor+'44;color:'+corMarca(cc)+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
+      }).join('')+
+    '</div>';
+  };
+  var cards=s.participantes.map(function(p){
+    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
+      '<div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px">'+_esc(p.nome||'(sem nome)')+'</div>'+
+      chipsGrid()+
+    '</div>';
+  }).join('');
+  return '<div style="margin-top:14px">'+
+    '<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Concursos por Participante</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">'+cards+'</div>'+
+  '</div>';
 }
 // Gera o HTML do resumo no rodapé da tabela de participantes (pagantes,
 // rateio, valor gasto, valor da cota, saldo geral e por loteria). Extraído
