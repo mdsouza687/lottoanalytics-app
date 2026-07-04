@@ -16948,6 +16948,77 @@ async function abrirBacktestUI(){
     </div>`;
 }
 
+// Exclui TODOS os jogos de uma rodada/concurso vinculado de uma vez só (botão
+// no cabeçalho de cada rodada no modal "Jogos do Bolão") — sem isso, remover
+// uma rodada com milhares/dezenas de milhares de jogos exigia clicar no 🗑 de
+// cada jogo individualmente, um por um, o que é inviável na prática (ex.: uma
+// rodada com 50 mil volantes). Reaproveita a mesma lógica de devolução de
+// saldo/desvínculo de "Jogos Salvos" já usada em excluirJogoDoBolao, mas
+// removendo a rodada inteira (o concurso) de uma vez, não jogo por jogo.
+async function excluirRodadaDoBolao(concursoIdxExibido){
+  var s=_boloesState;
+  if(!s.editId){ toast('Salve o bolão antes de excluir jogos.'); return; }
+  var concursosExibidos=(s.concursos||[]).slice().reverse();
+  var cExibido=concursosExibidos[concursoIdxExibido];
+  if(!cExibido){ toast('Concurso não encontrado.'); return; }
+  var nJogos=(cExibido.jogos||[]).length;
+  if(!confirm('Excluir TODA a rodada do concurso #'+cExibido.num+' ('+nJogos+' jogo'+(nJogos!==1?'s':'')+')? O valor total será devolvido ao saldo. Esta ação não pode ser desfeita.')) return;
+
+  var d=CFG[s.loteria||currentKey]||CFG[currentKey];
+  try{
+    var todos=await dbAll('boloes_v2');
+    var g=todos.filter(function(x){return x.id===s.editId;})[0];
+    if(!g){ toast('Bolão não encontrado no banco.'); return; }
+    var idxOriginal=-1;
+    for(var i=0;i<(g.concursos||[]).length;i++){
+      if(g.concursos[i].num===cExibido.num && g.concursos[i].savedAt===cExibido.savedAt){ idxOriginal=i; break; }
+    }
+    if(idxOriginal<0){ toast('Concurso não localizado para exclusão.'); return; }
+    var c=g.concursos[idxOriginal];
+    var custoRemovido=c.custo||0;
+
+    // Devolve o valor à semana correspondente (apenas bolão mensal) — mesma
+    // lógica de excluirJogoDoBolao, mas com o custo total da rodada de uma vez.
+    var devolvido=0;
+    if(g.modalidade==='mensal' && g.semanas && c.semana){
+      for(var w=0;w<g.semanas.length;w++){
+        var semLabel=g.semanas[w].inicio+' a '+g.semanas[w].fim;
+        if(semLabel===c.semana){
+          g.semanas[w].valorJogos=Math.max(0,(g.semanas[w].valorJogos||0)-custoRemovido);
+          devolvido=custoRemovido;
+          break;
+        }
+      }
+    }
+
+    // Desvincula o conjunto correspondente em "Jogos Salvos" (mesmo critério
+    // de correspondência usado em excluirJogoDoBolao) — a rodada inteira
+    // está sendo removida, então o vínculo precisa cair junto.
+    try{
+      var _salvosR=await dbAll('jogos_salvos');
+      var _candidatosR=_salvosR.filter(function(x){return x.bolaoId===g.id && x.vinculadoBolao;});
+      var _itemR=_candidatosR.length===1?_candidatosR[0]:_candidatosR.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
+      if(_itemR){
+        _itemR.vinculadoBolao=false;
+        _itemR.bolaoId=null;
+        await dbPut('jogos_salvos', _itemR);
+      }
+    }catch(eR){ console.warn('[excluirRodadaDoBolao] desvínculo:',eR.message); }
+
+    g.concursos.splice(idxOriginal,1);
+    if(idxOriginal===g.concursos.length){ g.jogos=[]; g.numDez=0; } // era o último concurso (campo legado)
+    await dbPut('boloes_v2', g);
+
+    s.concursos=g.concursos;
+    s.semanas=g.semanas||s.semanas;
+    s.jogosVinculados=g.concursos.reduce(function(a,cc){return a.concat(cc.jogos||[]);},[]);
+
+    toast(devolvido>0?'Rodada excluída · R$ '+devolvido.toFixed(2).replace('.',',')+' devolvido ao saldo':'Rodada excluída.');
+    document.getElementById('modal-jogos-vinc')?.remove();
+    verJogosVinculados();
+    renderFormBolao();
+  }catch(e){ console.warn('[excluirRodadaDoBolao]',e.message); toast('Erro ao excluir rodada.'); }
+}
 // Exclui um jogo individual de um concurso vinculado ao bolão (botão no modal "Jogos do
 // Bolão"). Recalcula o custo do concurso, persiste no banco, e devolve o valor do jogo
 // excluído à arrecadação: se for bolão mensal, subtrai da semana correspondente
@@ -17070,7 +17141,14 @@ async function verJogosVinculados(){
     var corConcurso=(dConcurso&&dConcurso.cor)||cor;
     var custo=c.custo||(dConcurso&&typeof calcCustoTotal==='function'?calcCustoTotal(jogos,dConcurso)||0:0);
     var stCor=statusCor[c.status]||statusCor['Aguardando'];
-    var jogosRows=jogos.map(function(j,ji){
+    // Rodadas com milhares/dezenas de milhares de jogos travariam o navegador
+    // se cada um virasse uma linha no DOM — mostra só os primeiros 100 e
+    // avisa quantos ficaram de fora (a exclusão em massa via "Excluir toda a
+    // rodada" no cabeçalho não depende de renderizar cada jogo).
+    var LIMITE_EXIBICAO=100;
+    var jogosExibidos=jogos.slice(0,LIMITE_EXIBICAO);
+    var jogosOcultos=jogos.length-jogosExibidos.length;
+    var jogosRows=jogosExibidos.map(function(j,ji){
       var dezenas=(Array.isArray(j)?j:[]).filter(function(x){return x<1000;}).sort(function(a,b){return a-b;});
       // Calcula o prêmio deste jogo específico (mesma função usada na
       // impressão — ver _calcPremioJogo) ANTES de montar as bolinhas, para
@@ -17123,7 +17201,8 @@ async function verJogosVinculados(){
         '<div>'+balls+extrasHtml+esp+statusJogoTela+'</div></div>'+
         '<button onclick="excluirJogoDoBolao('+ci+','+ji+')" title="Excluir este jogo (devolve o valor ao saldo)" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑</button>'+
         '</div>';
-    }).join('');
+    }).join('')+
+    (jogosOcultos>0?'<div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted);font-style:italic">+ '+jogosOcultos+' jogo'+(jogosOcultos!==1?'s':'')+' não exibido'+(jogosOcultos!==1?'s':'')+' (use "Excluir toda a rodada" acima para remover todos de uma vez)</div>':'');
     var idSel='conc-status-'+ci+'-'+Date.now();
     var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
     return '<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
@@ -17141,6 +17220,7 @@ async function verJogosVinculados(){
             '<option value="Conferido"'+(c.status==='Conferido'?' selected':'')+'>Conferido</option>'+
             '<option value="Finalizado"'+(c.status==='Finalizado'?' selected':'')+'>Finalizado</option>'+
           '</select>'+
+          '<button onclick="excluirRodadaDoBolao('+ci+')" title="Excluir TODOS os jogos desta rodada de uma vez (devolve o valor total ao saldo)" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑 Excluir toda a rodada</button>'+
         '</div>'+
       '</div>'+
       '<div style="padding:8px 14px">'+jogosRows+'</div>'+
