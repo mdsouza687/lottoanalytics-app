@@ -16673,7 +16673,26 @@ async function popularDropdownsVinculo(){
 }
 
 // Vincula um conjunto de jogos JÁ SALVO (da tela Jogos Salvos) a um bolão escolhido
+// Fila compartilhada de escrita no bolão — TODA função que faz
+// dbAll('boloes_v2') → modifica g.concursos em memória → dbPut('boloes_v2', g)
+// precisa passar por aqui, senão duas vinculações disparadas em sequência
+// rápida (ex.: vincular vários conjuntos de "Jogos Salvos" um atrás do
+// outro) correm em paralelo: a segunda lê o bolão ANTES do dbPut da
+// primeira terminar, e quando as duas gravam de volta, a que termina por
+// último APAGA a rodada que a outra tinha acabado de adicionar (mesmo o
+// item em "Jogos Salvos" ficando corretamente marcado como vinculado —
+// só a rodada em si que suma do bolão). Enfileirar garante que cada
+// vinculação só começa depois que a anterior já terminou de gravar.
+let _boloesEscritaFila=Promise.resolve();
+function _enfileirarEscritaBolao(fn){
+  const p=_boloesEscritaFila.then(fn,fn);
+  _boloesEscritaFila=p.catch(function(){});
+  return p;
+}
 async function vincularSalvoAoBolao(itemId){
+  return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId); });
+}
+async function _vincularSalvoAoBolaoImpl(itemId){
   var sel=document.getElementById('vinc-sel-'+itemId);
   var bolaoId=sel?parseInt(sel.value)||0:0;
   if(!bolaoId){ toast('Selecione um bolão para vincular.'); return; }
@@ -17306,14 +17325,16 @@ function _clonarJogosComExtras(jogos){
     return a;
   });
 }
-let _vincularJogosAoBolaoEmAndamento=false;
+// Mesma proteção de salvarBolao(), agora via fila compartilhada
+// _enfileirarEscritaBolao (ver comentário completo acima de
+// vincularSalvoAoBolao) — impede que um duplo-clique em "Vincular"/
+// "Adicionar Jogo", ou uma vinculação disparada enquanto outra ainda
+// está em andamento (inclusive vinda de "Jogos Salvos"), leia o bolão
+// antes da gravação anterior terminar e apague a rodada dela.
 async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
-  // Mesma proteção de salvarBolao(): impede que um duplo-clique em
-  // "Vincular"/"Adicionar Jogo" leia o bolão duas vezes (com o mesmo
-  // estado antigo) e grave duas atualizações conflitantes em sequência,
-  // uma das quais perderia a rodada/concurso adicionado pela outra.
-  if(_vincularJogosAoBolaoEmAndamento) return;
-  _vincularJogosAoBolaoEmAndamento=true;
+  return _enfileirarEscritaBolao(function(){ return _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride); });
+}
+async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride){
   try{
     var todos=await dbAll('boloes_v2');
     var g=todos.filter(function(x){return x.id===bolaoId;})[0];
@@ -17515,7 +17536,6 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
     }
     toast('✓ '+jogos.length+' jogos vinculados ao bolão "'+g.nome+'"');
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
-  finally{ _vincularJogosAoBolaoEmAndamento=false; }
 }
 
 // Abre o gerador já com um bolão pré-selecionado para vínculo
