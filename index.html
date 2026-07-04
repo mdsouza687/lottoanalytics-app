@@ -4744,6 +4744,40 @@ async function atualizarLoteria(key){
   }
   catch(e){setDot('error',`Erro: ${CFG[key].nome}`);return null;}
 }
+// Indicador de progresso da geração de jogos — separado do "dot" discreto
+// do cabeçalho porque aquele é pequeno demais e fácil de não notar. Para
+// quantidades altas (ex.: 5.000, 50.000 jogos), a geração podia levar
+// segundos/minutos rodando no mesmo lugar, sem nenhum sinal visível de que
+// ainda estava processando (parecia travado). Mostra contador de jogos
+// gerados + tempo decorrido, num cartão flutuante impossível de não ver.
+let _genProgStart=null;
+function _genProgShow(atual,total){
+  if(!_genProgStart) _genProgStart=Date.now();
+  let el=document.getElementById('gen-progress-overlay');
+  if(!el){
+    el=document.createElement('div');
+    el.id='gen-progress-overlay';
+    el.style.cssText='position:fixed;bottom:22px;right:22px;z-index:99998;background:#12151f;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:var(--font-body,sans-serif);color:#fff;font-size:12px;min-width:230px';
+    document.body.appendChild(el);
+  }
+  const seg=Math.round((Date.now()-_genProgStart)/1000);
+  const pct=total?Math.min(100,Math.round(atual/total*100)):0;
+  el.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+      '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#4ade80;animation:genspin .8s linear infinite"></span>'+
+      '<b>Gerando jogos...</b></div>'+
+    '<div style="font-family:var(--font-mono,monospace)">'+atual.toLocaleString('pt-BR')+' / '+total.toLocaleString('pt-BR')+' jogos · '+seg+'s</div>'+
+    '<div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:#4ade80;transition:width .2s"></div></div>';
+  if(!document.getElementById('genspin-keyframes')){
+    const st=document.createElement('style');
+    st.id='genspin-keyframes';
+    st.textContent='@keyframes genspin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+}
+function _genProgHide(){
+  document.getElementById('gen-progress-overlay')?.remove();
+  _genProgStart=null;
+}
 function setDot(s,t){
   const dot=document.getElementById('dot');
   const txt=document.getElementById('update-text');
@@ -8011,7 +8045,7 @@ async function gerarJogos(tipo,modo){
         const baseCol=Array.from({length:7},(_,c)=>{ const fx=new Set(fixCol[c]); return [0,1,2,3,4,5,6,7,8,9].filter(dg=>!exGlobal.has(dg)&&!fx.has(dg)); });
         const bags=Array.from({length:7},()=>[]);
         for(let g=0; g<qty; g++){
-          if(g%300===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
+          if(g%300===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); _genProgShow(g,qty); await new Promise(r=>setTimeout(r,0)); }
           const cols=[];
           for(let c=0;c<7;c++){
             const escolhidos=[...new Set(fixCol[c])].slice(0,porColuna);
@@ -8039,7 +8073,7 @@ async function gerarJogos(tipo,modo){
         let bag=[];
         const refill=()=>{ bag=_shuffle(bagSource.slice()); };
         for(let g=0; g<qty; g++){
-          if(g%200===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
+          if(g%200===0){ setDot('loading',`Gerando... ${g}/${qty} jogos`); _genProgShow(g,qty); await new Promise(r=>setTimeout(r,0)); }
           const cur=new Set(fixos);
           const drawn=[];
           const holdBack=[];
@@ -8064,7 +8098,7 @@ async function gerarJogos(tipo,modo){
       // Também mostra progresso: sem isso, gerar quantidades grandes com filtros
       // estatísticos (mais lento por avaliar cada candidato) parecia travado —
       // o usuário via a tela parada por até ~20s sem nenhum feedback visível.
-      if(tries%200===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
+      if(tries%200===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); _genProgShow(jogos.length,qty); await new Promise(r=>setTimeout(r,0)); }
       let jogo=null;
       let valido=true;
 
@@ -8169,7 +8203,7 @@ async function gerarJogos(tipo,modo){
       const GMAX=qty*2000+10000;
       while(jogos.length<qty && guard<GMAX){
         guard++;
-        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
+        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); _genProgShow(jogos.length,qty); await new Promise(r=>setTimeout(r,0)); }
         const jogo=gerarJogoSimples(universe,numDez,fixos);
         if(!jogo||jogo.length<numDez) continue;
         const k=jogo.slice(0,numDez).join(',');
@@ -8222,7 +8256,7 @@ async function gerarJogos(tipo,modo){
       let guard=0;
       while(jogos.length<qty && guard<qty*400+4000){
         guard++;
-        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); await new Promise(r=>setTimeout(r,0)); }
+        if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); _genProgShow(jogos.length,qty); await new Promise(r=>setTimeout(r,0)); }
         const principal=gerarJogoSimples(grupoA, numDez, fixos.filter(f=>grupoA.includes(f)));
         let poolB = espCfg.disjunto ? grupoB.filter(n=>!principal.includes(n)) : grupoB;
         const espelho=gerarJogoSimples(poolB, numDez, []);
@@ -8328,6 +8362,8 @@ async function gerarJogos(tipo,modo){
     console.error('[GERAR ERROR]',err);
     toast('Erro: '+err.message);
     setDot('ok','');
+  }finally{
+    _genProgHide();
   }
 }
 function toggleMarcado(i,checked){const rg=document.getElementById(`rg-${i}`);if(rg)rg.classList.toggle('marcado',!checked);atualizarContagemSel();}
