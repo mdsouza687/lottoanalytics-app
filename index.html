@@ -9629,7 +9629,23 @@ async function deletarGrupoBolao(id){
   try{ await dbDel('bolao_grupos',id); toast('Bolão removido.'); openModalSalvar(); }
   catch(e){ toast('Erro ao remover bolão.'); }
 }
+// Trava contra clique duplo/chamada dupla: a função faz vários awaits antes
+// de gravar (dbAll para checar limite de 10 conjuntos, às vezes uma
+// atualização de concurso vigente na API se o cache estiver velho) — um
+// segundo clique em "Salvar Jogos Gerados" durante essa janela disparava
+// outra execução completa em paralelo, duplicando o mesmo conjunto de
+// jogos em "Jogos Salvos" (bug recorrente relatado pelo usuário).
+let _salvarJogosEmAndamento=false;
 async function salvarJogos(){
+  if(_salvarJogosEmAndamento) return;
+  _salvarJogosEmAndamento=true;
+  try{
+    await _salvarJogosImpl();
+  } finally{
+    _salvarJogosEmAndamento=false;
+  }
+}
+async function _salvarJogosImpl(){
   if(!jogosGerados.length){toast('Nenhum jogo gerado.');return;}
   const selIdx=getJogosSelecionados();
   if(!selIdx.length){toast('Selecione ao menos um jogo para salvar.');return;}
@@ -16752,6 +16768,11 @@ async function _vincularSalvoAoBolaoImpl(itemId){
         semana:g.semanaInicio&&g.semanaFim?g.semanaInicio+' a '+g.semanaFim:'',
         savedAt:g.jogosSavedAt||g.savedAt||Date.now()}];
     }
+    // Avisa se algum destes jogos já está vinculado neste bolão (mesmas
+    // dezenas) — deixa o usuário decidir se quer duplicar mesmo assim ou
+    // vincular só os que ainda não existiam.
+    jogos=_confirmarDuplicadosOuFiltrar(g, jogos, loteriaItem);
+    if(!jogos) return;
     // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
     // especiais como Quina de São João têm período de vendas longo), mas
     // todas precisam ser para a MESMA loteria e o MESMO concurso já fixado
@@ -17336,6 +17357,40 @@ async function verJogosVinculados(){
   document.body.appendChild(div.firstChild);
 }
 
+// Detecta, entre os jogos que estão sendo vinculados, quais já existem no
+// bolão (mesma loteria + mesmas dezenas, em qualquer concurso já
+// registrado) — usado para avisar o usuário ANTES de duplicar uma aposta
+// sem querer (ex.: vincular o mesmo conjunto duas vezes por engano).
+function _jogosDuplicadosNoBolao(g, jogosNovos, loteriaKey){
+  var chavesExistentes=new Set();
+  (g.concursos||[]).forEach(function(c){
+    if(c.loteria!==loteriaKey) return;
+    (c.jogos||[]).forEach(function(j){
+      if(Array.isArray(j)) chavesExistentes.add(j.slice().sort(function(a,b){return a-b;}).join(','));
+    });
+  });
+  return jogosNovos.filter(function(j){
+    return Array.isArray(j) && chavesExistentes.has(j.slice().sort(function(a,b){return a-b;}).join(','));
+  });
+}
+// Pergunta ao usuário o que fazer quando parte (ou todos) dos jogos sendo
+// vinculados já existem no bolão. Retorna a lista final de jogos a
+// vincular (pode ser jogosNovos inteira, se o usuário confirmar incluir
+// mesmo assim, ou só os jogos que ainda não existiam) — ou null se deve
+// abortar a vinculação por completo (todos eram duplicados e o usuário
+// não quis incluir de novo).
+function _confirmarDuplicadosOuFiltrar(g, jogosNovos, loteriaKey){
+  var duplicados=_jogosDuplicadosNoBolao(g, jogosNovos, loteriaKey);
+  if(!duplicados.length) return jogosNovos;
+  var msg=duplicados.length===1
+    ? 'Este jogo já está vinculado neste bolão (mesmas dezenas). Deseja incluí-lo assim mesmo (duplicado)?'
+    : duplicados.length+' destes jogos já estão vinculados neste bolão (mesmas dezenas). Deseja incluí-los assim mesmo (duplicados)?';
+  if(confirm(msg)) return jogosNovos; // usuário quer duplicar mesmo assim
+  var restantes=jogosNovos.filter(function(j){ return duplicados.indexOf(j)<0; });
+  if(!restantes.length){ toast('Nenhum jogo novo para vincular — todos já existiam no bolão.'); return null; }
+  toast((jogosNovos.length-restantes.length)+' jogo(s) duplicado(s) ignorado(s); vinculando só os '+restantes.length+' novo(s).');
+  return restantes;
+}
 // Clona um array de jogos preservando as propriedades extras anexadas a cada
 // jogo (j._trevos, j._extra, j._isEspelho, j._ssCols). Array.prototype.slice()
 // NÃO preserva essas propriedades customizadas (só copia os índices numéricos)
@@ -17394,6 +17449,11 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
         semana:g.semanaInicio&&g.semanaFim?g.semanaInicio+' a '+g.semanaFim:'',
         savedAt:g.jogosSavedAt||g.savedAt||Date.now(),loteria:g.loteria||loteriaKey}];
     }
+    // Avisa se algum destes jogos já está vinculado neste bolão (mesmas
+    // dezenas) — deixa o usuário decidir se quer duplicar mesmo assim ou
+    // vincular só os que ainda não existiam.
+    jogos=_confirmarDuplicadosOuFiltrar(g, jogos, loteriaKey);
+    if(!jogos) return;
     // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
     // especiais como Quina de São João têm período de vendas longo, então é
     // comum ir adicionando jogos aos poucos) — mas TODAS elas precisam ser
