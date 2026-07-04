@@ -15954,20 +15954,45 @@ async function limparBoloesDuplicados(){
 }
 
 let _salvarBolaoEmAndamento=false;
+// salvarBolao() agora passa pela MESMA fila compartilhada
+// (_enfileirarEscritaBolao) usada pelas vinculações — sem isso, salvar a
+// lista de participantes/admin enquanto uma vinculação de jogos está em
+// andamento (ex.: logo depois de "Gerar Jogos") é uma corrida: as duas
+// leem o bolão e escrevem de volta o registro INTEIRO, e quem terminar de
+// gravar por último apaga o que a outra tinha acabado de salvar — era
+// exatamente o "salvei e quando abro não salvou" relatado pelo usuário.
+// Além de enfileirar, busca a versão MAIS RECENTE do bolão no banco no
+// momento da gravação (em vez de confiar cegamente em concursos/jogos já
+// em _boloesState, que podem estar desatualizados se uma vinculação
+// aconteceu em outra aba/ação enquanto o formulário estava aberto) —
+// assim salvarBolao só sobrescreve os campos que ele realmente edita
+// (nome, admin, participantes, cotas etc.), preservando concursos/jogos
+// como estão de fato gravados no banco.
 async function salvarBolao(){
-  // Proteção contra duplo clique / chamadas concorrentes: sem isso, dois
-  // cliques rápidos no botão "Salvar"/"Gerar Jogos" disparavam duas
-  // chamadas de salvarBolao() antes da primeira terminar e definir
-  // _boloesState.editId — como o registro ainda não tinha id, a segunda
-  // chamada também criava um registro NOVO (em vez de atualizar), e o
-  // bolão acabava duplicado na listagem.
   if(_salvarBolaoEmAndamento) return;
   _salvarBolaoEmAndamento=true;
   try{
+    await _enfileirarEscritaBolao(_salvarBolaoImpl);
+  } finally{
+    _salvarBolaoEmAndamento=false;
+  }
+}
+async function _salvarBolaoImpl(){
   var s=_boloesState;
   if(!s.nome.trim()){ toast('Informe o nome do bolão.'); return; }
   if(!s.admin.nome.trim()||!s.admin.telefone.trim()||!s.admin.pix.trim()){ toast('Preencha nome, telefone e PIX do administrador.'); return; }
   if(!s.participantes.length){ toast('Adicione ao menos um participante.'); return; }
+  // Busca a versão mais recente já persistida (se for edição), para não
+  // sobrescrever concursos/jogos vinculados por uma operação concorrente.
+  var existente=null;
+  if(s.editId){
+    try{
+      var todosExist=await dbAll('boloes_v2');
+      existente=todosExist.filter(function(x){return x.id===s.editId;})[0]||null;
+    }catch(e){ console.warn('[salvarBolao] falha ao buscar versão atual:',e.message); }
+  }
+  var concursosFrescos=existente?(existente.concursos||[]):(_boloesState.concursos||[]);
+  var jogosFrescos=existente?(existente.jogos||[]):(concursosFrescos.length?concursosFrescos[concursosFrescos.length-1].jogos||[]:_boloesState.jogosVinculados||[]);
   var registro={
     // Corrige bug onde o bolão era salvo com a loteria ATIVA no momento do
     // clique em "Salvar" (currentKey), em vez da loteria com que o bolão foi
@@ -15984,8 +16009,8 @@ async function salvarBolao(){
     dataSorteio: s.dataSorteio||'',
     semanaInicio: s.semanaInicio||'', semanaFim: s.semanaFim||'',
     rodadas: s.rodadas||[],
-    jogos: _boloesState.concursos&&_boloesState.concursos.length?_boloesState.concursos[_boloesState.concursos.length-1].jogos||[]:_boloesState.jogosVinculados||[],
-    concursos: _boloesState.concursos||[],
+    jogos: jogosFrescos,
+    concursos: concursosFrescos,
     numDez: _boloesState.numDezBolao||0,
     savedAt: Date.now()
   };
@@ -15993,11 +16018,9 @@ async function salvarBolao(){
   try{
     var id=await dbPut('boloes_v2', registro);
     _boloesState.editId=id;
+    _boloesState.concursos=concursosFrescos;
     toast('✓ Bolão salvo');
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
-  }finally{
-    _salvarBolaoEmAndamento=false;
-  }
 }
 
 async function listarBoloesSalvos(){
