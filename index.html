@@ -190,12 +190,17 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
    data-tt — usado nos tooltips mais longos, que ficavam um bloco só de
    texto extenso e difícil de ler no tooltip nativo. */
 [data-tt]{position:relative;}
+/* Por padrão o balão abre PARA BAIXO — a maioria dos elementos com data-tt
+   fica perto do topo de cards/tabelas/abas, e um tooltip abrindo para cima
+   nesses casos saía cortado pelo topo da viewport, ilegível. Elementos que
+   realmente precisem abrir para cima (perto do rodapé da tela) usam a
+   classe opcional .tt-up, que inverte a direção. */
 [data-tt]::after{
   content:attr(data-tt);
   position:absolute;
-  bottom:calc(100% + 9px);
+  top:calc(100% + 9px);
   left:50%;
-  transform:translateX(-50%) translateY(4px);
+  transform:translateX(-50%) translateY(-4px);
   background:#15151f;
   color:#f2f2f5;
   font-family:var(--font-body);
@@ -220,11 +225,11 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
 [data-tt]::before{
   content:'';
   position:absolute;
-  bottom:calc(100% + 4px);
+  top:calc(100% + 4px);
   left:50%;
   transform:translateX(-50%);
   border:5px solid transparent;
-  border-top-color:#15151f;
+  border-bottom-color:#15151f;
   opacity:0;
   visibility:hidden;
   transition:opacity .15s ease;
@@ -237,6 +242,9 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
   visibility:visible;
   transform:translateX(-50%) translateY(0);
 }
+[data-tt].tt-up::after{ top:auto; bottom:calc(100% + 9px); transform:translateX(-50%) translateY(4px); }
+[data-tt].tt-up::before{ top:auto; bottom:calc(100% + 4px); border-bottom-color:transparent; border-top-color:#15151f; }
+[data-tt].tt-up:hover::after,[data-tt].tt-up:hover::before,[data-tt].tt-up:focus-visible::after,[data-tt].tt-up:focus-visible::before{ transform:translateX(-50%) translateY(0); }
 
 /* ══ GEN CARDS ══ */
 .gen-card{background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;}
@@ -8783,53 +8791,61 @@ const VOLANTE_ASSETS_BASE = 'assets/volantes/';
 // Coordenadas em mm, origem (0,0) no canto superior-esquerdo da IMAGEM
 // (não do papel A4) — extraídas por detecção de cor a partir da
 // digitalização real de cada volante (ver comentário do módulo acima).
+// Imagens/coordenadas regeradas em 03/07/2026 a partir de uma nova
+// digitalização (600dpi) fornecida pelo usuário, com recorte SEM sobra de
+// fundo branco (borda externa completamente removida) e redimensionadas
+// para as dimensões OFICIAIS de cada volante (fonte: medição do usuário):
+// Grupo 1 (83×186mm): megasena, lotofacil, quina, lotomania, timemania,
+// duplasena, diasorte. Grupo 2 (83×142mm): supersete. Grupo 3 (186×110mm):
+// maismilionaria. +Milionária agora tem digitalização em resolução plena
+// (antes era estimada) — a folha real tem 4 painéis de jogo lado a lado,
+// por isso "jogos" tem 4 entradas (cada uma com seu próprio trevoCols/Rows).
 const VOLANTE_IMG = {
-  megasena: { file:'megasena.jpg', wmm:113.58, hmm:180.64, jogos:[
-    {cols:[46.99,53.382,59.584,66.125,72.644,78.719,85.344,91.715,98.383,104.86],   rows:[48.366,51.583,54.8,58.124,61.362,64.664]},
-    {cols:[46.99,53.361,59.563,66.125,72.623,78.719,85.344,91.673,98.361,104.817], rows:[73.385,76.623,79.819,83.121,86.381,89.62]},
-    {cols:[46.948,53.319,59.542,66.082,72.602,78.677,85.302,91.652,98.319,104.775],rows:[98.361,101.6,104.839,108.141,111.358,114.617]},
+  megasena: { file:'megasena.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[14.881,21.372,27.568,34.018,40.383,46.453,53.198,59.563,66.139,72.483],rows:[49.147,52.496,55.843,59.279,62.649,66.063]},
+    {cols:[15.049,21.54,27.737,34.165,40.53,46.622,53.345,59.71,66.286,72.63],rows:[75.035,78.382,81.73,85.122,88.514,91.906]},
+    {cols:[15.217,21.709,27.906,34.334,40.699,46.77,53.535,59.88,66.456,72.778],rows:[104.247,107.595,111.008,114.357,117.749,121.141]},
   ]},
-  duplasena: { file:'duplasena.jpg', wmm:122.94, hmm:181.44, jogos:[
-    {cols:[56.282,62.59,68.834,75.374,81.852,88.307,94.636,100.901,107.315,113.75],  rows:[52.832,56.07,59.33,62.59,65.828]},
-    {cols:[56.24,62.569,68.792,75.311,81.809,88.265,94.594,100.88,107.273,113.686],  rows:[75.332,78.592,81.852,85.111,88.35]},
-    {cols:[56.197,62.505,68.749,75.269,81.767,88.201,94.53,100.817,107.23,113.665],  rows:[98.404,101.663,104.923,108.162,111.4]},
-  ]},
-  quina: { file:'quina.jpg', wmm:98.26, hmm:184.91, jogos:[
-    {cols:[31.538,37.931,44.111,50.652,57.15,63.246,69.892,76.263,82.444,88.9],     rows:[37.19,40.45,43.709,47.011,50.228,53.467,56.832,60.113]},
-    {cols:[31.454,37.825,44.048,50.588,57.087,63.182,69.85,76.2,82.381,88.858],     rows:[69.173,72.369,75.629,78.888,82.148,85.407,88.773,91.99]},
-    {cols:[31.538,37.952,44.175,50.715,57.213,63.309,69.935,76.306,82.508,88.985], rows:[101.028,104.288,107.527,110.807,114.025,117.284,120.671,123.952]},
-  ]},
-  lotomania: { file:'lotomania.jpg', wmm:81.45, hmm:186.65, jogos:[
-    {cols:[14.224,20.574,26.903,33.359,39.814,46.186,52.493,58.928,65.32,71.755], rows:[27.707,31.157,34.65,38.142,41.635,45.127,48.578,52.049,55.584,59.076]},
-    {cols:[14.182,20.489,26.839,33.295,39.751,46.122,52.43,58.864,65.236,71.713], rows:[72.581,76.031,79.544,83.016,86.487,90.001,93.472,96.964,100.499,103.971]},
-  ]},
-  timemania: { file:'timemania.jpg', wmm:81.15, hmm:189.44, jogos:[
-    {cols:[15.198,21.399,27.813,34.29,40.788,47.202,53.594,59.965,66.442,72.919], rows:[23.347,27.009,30.67,34.29,37.909,41.55,45.212,48.874]},
-  ]},
-  diasorte: { file:'diasorte.jpg', wmm:101.52, hmm:182.84, jogos:[
-    {cols:[27.961,34.438,40.598,47.096,53.573,59.69,66.421,72.729,78.846,85.259], rows:[40.111,43.349,46.63,49.89]},
-    {cols:[27.898,34.353,40.513,47.011,53.488,59.605,66.336,72.644,78.761,85.196], rows:[72.263,75.544,78.803,82.063]},
-    {cols:[27.813,34.269,40.407,46.926,53.404,59.521,66.252,72.559,78.677,85.111], rows:[104.288,107.505,110.765,114.004]},
-  ], mesGrid:{cols6:[27.9,37,46,55,64,73], rows2:[57,63.5]} }, // estimado, não extraído
-  lotofacil: { file:'lotofacil.jpg', wmm:120.01, hmm:185.0,
+  lotofacil: { file:'lotofacil.jpg', wmm:83, hmm:186,
     // colunas vêm da esquerda p/ direita já na ordem REAL da folha
     // (o volante real do Lotofácil imprime 21-25,16-20,11-15,06-10,01-05
     // da esquerda pra direita, não 01-05 primeiro) — colBase reflete isso.
     colBase:[21,16,11,6,1], jogos:[
-    {cols:[53.086,65.511,78.486,91.63,104.14],   rows:[47.329,51.816,56.303,60.812,65.299]},
-    {cols:[52.895,65.553,78.422,91.546,104.076], rows:[72.496,76.962,81.428,85.958,90.403]},
-    {cols:[52.832,65.511,78.359,91.461,104.013], rows:[97.769,102.256,106.722,111.21,115.697]},
+    {cols:[15.431,27.864,40.741,53.913,66.346],rows:[47.623,52.119,56.614,61.13,65.626]},
+    {cols:[15.24,27.885,40.656,53.849,66.261],rows:[72.857,77.331,81.846,86.363,90.837]},
+    {cols:[15.157,27.8,40.571,53.743,66.176],rows:[98.258,102.754,107.228,111.744,116.24]},
   ]},
-  supersete: { file:'supersete.jpg', wmm:98.59, hmm:135.34,
-    cols:[32.067,38.417,44.958,51.393,57.785,64.347,70.633],
-    rows:[37.698,41.042,45.17,48.874,52.578,56.24,59.944,63.648,67.331,71.014] },
-  // +Milionária: imagem de resolução bem menor (fornecida pelo usuário) —
-  // coordenadas estimadas visualmente sobre ela, não extraídas por cor
-  // como as demais. Único painel (a folha real tem 4 painéis idênticos
-  // lado a lado; já recortamos só 1).
-  maismilionaria: { file:'maismilionaria.jpg', wmm:47.4, hmm:110, jogos:[
-    {cols:[5.5,11.7,17.9,24.2,30.4], rows:[31.4,34.1,36.8,39.5,42.2,44.9,47.6,50.3,53.0,55.7]},
-  ], trevoGrid:{cols3:[22,27.2,32.5], rows2:[62,66.5]} },
+  quina: { file:'quina.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[14.786,21.146,27.214,33.68,40.061,46.108,52.719,58.976,65.024,71.384],rows:[39.741,43.04,46.339,49.638,52.917,56.215,59.665,62.964]},
+    {cols:[14.619,20.98,27.069,33.513,39.895,45.942,52.553,58.789,64.836,71.197],rows:[72.091,75.368,78.689,81.988,85.287,88.587,92.015,95.292]},
+    {cols:[14.64,20.98,27.069,33.513,39.895,45.942,52.553,58.768,64.836,71.197],rows:[104.483,107.739,111.039,114.36,117.658,120.958,124.407,127.663]},
+  ]},
+  lotomania: { file:'lotomania.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[14.258,20.644,27.073,33.565,39.972,46.295,52.66,59.195,65.624,72.052],rows:[33.166,36.676,40.251,43.867,47.399,50.973,54.526,58.079,61.675,65.228]},
+    {cols:[14.258,20.665,27.094,33.565,39.972,46.295,52.638,59.174,65.602,72.031],rows:[79.092,82.645,86.198,89.794,93.325,96.899,100.452,104.048,107.623,111.175]},
+  ]},
+  timemania: { file:'timemania.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[15.458,21.744,28.265,34.829,41.35,47.829,54.264,60.743,67.307,73.849],rows:[24.974,28.667,32.359,35.988,39.681,43.351,47.023,50.737]},
+  ]},
+  duplasena: { file:'duplasena.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[14.839,21.13,27.357,33.837,40.34,46.777,53.089,59.359,65.754,72.172],rows:[54.317,57.603,60.934,64.284,67.593]},
+    {cols:[15.009,21.299,27.526,34.028,40.508,46.947,53.258,59.527,65.902,72.34],rows:[77.302,80.631,83.961,87.292,90.599]},
+    {cols:[15.157,21.467,27.695,34.176,40.677,47.115,53.427,59.675,66.071,72.509],rows:[100.87,104.2,107.552,110.838,114.126]},
+  ]},
+  diasorte: { file:'diasorte.jpg', wmm:83, hmm:186, jogos:[
+    {cols:[7.64,14.708,20.909,27.363,33.796,39.891,46.663,53.076,59.171,65.54],rows:[41.718,44.969,48.221]},
+    {cols:[7.851,14.877,21.12,27.575,33.987,40.103,46.875,53.266,59.361,65.731],rows:[73.766,77.018,80.27]},
+    {cols:[8.57,15.089,21.29,27.766,34.177,40.272,47.044,53.457,59.531,65.9],rows:[105.646,108.855,112.149]},
+  ], mesGrid:{cols6:[7.872,20.909,33.881,46.727,59.277,71.953],rows2:[57.911,61.606]}},
+  supersete: { file:'supersete.jpg', wmm:83, hmm:142,
+    cols:[14.957,21.296,27.806,34.178,40.551,47.101,53.39],
+    rows:[47.46,51.383,55.286,59.076,62.933,66.79,70.692,74.548,78.405,81.996] },
+  maismilionaria: { file:'maismilionaria.jpg', wmm:186, hmm:110, jogos:[
+    {cols:[12.891,18.638,24.428,30.218,35.987],rows:[33.804,36.381,38.915,41.407,43.963,46.476,49.01,51.523,54.016,56.508],trevoCols:[12.891,24.438,35.987],trevoRows:[65.158,71.086]},
+    {cols:[47.208,52.977,58.724,64.536,70.283],rows:[33.699,36.276,38.81,41.303,43.837,46.35,48.905,51.418,53.911,56.383],trevoCols:[47.208,58.745,70.283],trevoRows:[65.557,70.938]},
+    {cols:[81.484,87.252,92.979,98.811,104.58],rows:[33.615,36.213,38.726,41.219,43.753,46.266,48.821,51.335,53.806,56.299],trevoCols:[81.484,93.031,104.58],trevoRows:[62.352,64.655]},
+    {cols:[115.59,121.379,127.149,132.938,138.749],rows:[33.532,36.129,38.643,41.135,43.69,46.182,48.738,51.251,53.744,56.215],trevoCols:[115.59,127.17,138.749],trevoRows:[64.928,71.065]}
+  ]},
 };
 
 // Desenha UM círculo de marcação sobre a imagem real — formato
@@ -8859,7 +8875,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
     v.cols.forEach((cx,c)=>{
       const marcadosCol=new Set((colunas[c]||[]).map(Number));
       v.rows.forEach((cy,digito)=>{
-        html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#c0392b',marcadosCol.has(digito));
+        html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcadosCol.has(digito));
       });
     });
     return html;
@@ -8872,25 +8888,26 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
         const base=v.colBase[c];
         jg.rows.forEach((cy,r)=>{
           const n=base+r;
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#a0308a',marcados.has(n));
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcados.has(n));
         });
       });
     } else {
       let n=d.start;
       jg.rows.forEach(cy=>{
         jg.cols.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#c0392b',marcados.has(n));
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',marcados.has(n));
           n++;
         });
       });
     }
-    // Extras estimados (trevo/mês) — só existem pra +Milionária/Dia de Sorte
-    if(key==='maismilionaria' && v.trevoGrid){
+    // Extras — trevo (+Milionária, agora com coords próprias por painel/jogo)
+    // e mês da sorte (Dia de Sorte)
+    if(key==='maismilionaria' && jg.trevoCols && jg.trevoRows){
       const trevos=new Set(((jogo&&jogo._trevos)||[]).map(Number));
       let t=1;
-      v.trevoGrid.rows2.forEach(cy=>{
-        v.trevoGrid.cols3.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#0fae8a',trevos.has(t));
+      jg.trevoRows.forEach(cy=>{
+        jg.trevoCols.forEach(cx=>{
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM,'#000',trevos.has(t));
           t++;
         });
       });
@@ -8900,7 +8917,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
       let i=0;
       v.mesGrid.rows2.forEach(cy=>{
         v.mesGrid.cols6.forEach(cx=>{
-          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM*0.8,'#9a8000',mesIdx===i);
+          html+=_volanteMarcaDiv(cx-DIAM/2,cy-DIAM/2,DIAM*0.8,'#000',mesIdx===i);
           i++;
         });
       });
@@ -8949,6 +8966,7 @@ function imprimirVolantes(key,jogosParaImprimir){
   const usaPaisagem=paisagem.total>retrato.total;
   const grade=usaPaisagem?paisagem:retrato;
   const orient=usaPaisagem?'landscape':'portrait';
+  const pagW=usaPaisagem?297:210, pagH=usaPaisagem?210:297;
   const porPagina=grade.cols*grade.rows;
 
   // Agrupa os jogos gerados em blocos de jogosPorVolante — cada bloco vira
@@ -8967,12 +8985,12 @@ function imprimirVolantes(key,jogosParaImprimir){
   const extraCSS=`
     @page{size:A4 ${orient};margin:${MARGEM}mm;}
     .volante-wrap{transform:translate(${VOLANTE_CALIB.offsetX}mm,${VOLANTE_CALIB.offsetY}mm) scale(${VOLANTE_CALIB.escala});transform-origin:top left;}
-    .volante-page{display:grid;grid-template-columns:repeat(${grade.cols},${dim.w}mm);grid-auto-rows:${dim.h}mm;gap:${GAP}mm;page-break-after:always;justify-content:start;}
+    .volante-page{display:grid;grid-template-columns:repeat(${grade.cols},${dim.w}mm);grid-auto-rows:${dim.h}mm;gap:${GAP}mm;page-break-after:always;width:${pagW-MARGEM*2}mm;height:${pagH-MARGEM*2}mm;justify-content:center;align-content:center;}
     .volante-page:last-child{page-break-after:auto;}
     .volante-cell{position:relative;overflow:visible;}
     .volante-img-wrap{position:relative;overflow:hidden;}
     .volante-bg{position:absolute;top:0;left:0;display:block;}
-    .vmk{position:absolute;border-radius:50%;background:#c0392b;opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6);}
+    .vmk{position:absolute;border-radius:50%;background:#000;opacity:.88;box-shadow:0 0 0 0.2mm rgba(255,255,255,.6);}
     .ck{position:absolute;width:2.2mm;height:2.2mm;pointer-events:none;}
     .ck-tl{top:-2.4mm;left:-2.4mm;border-right:0.15mm solid #999;border-bottom:0.15mm solid #999;}
     .ck-tr{top:-2.4mm;right:-2.4mm;border-left:0.15mm solid #999;border-bottom:0.15mm solid #999;}
@@ -12668,7 +12686,22 @@ function renderResultados(body,d,hist,freq){
   const view=window._histView;
   const key=d.apiKey;
   const extraInfo=_histExtraInfo(d);
-  const sorted=[...hist].sort((a,b)=>a.concurso>b.concurso?-1:1);
+  let sorted=[...hist].sort((a,b)=>a.concurso>b.concurso?-1:1);
+  // Dupla Sena: alguns registros mais antigos em cache ainda guardam os 12
+  // números do concurso todos juntos em "dezenas", sem "dezenas2" separado
+  // (formato antigo, de antes da API distinguir os 2 sorteios). Sem este
+  // fallback, esta aba mostrava as 12 dezenas concatenadas numa linha só —
+  // o mesmo problema que já tinha sido corrigido no card "Histórico de
+  // Sorteios" da home (renderLaHist), mas nunca replicado aqui.
+  if(d.dupla){
+    sorted=sorted.map(h=>{
+      const dz=(h.dezenas||[]).map(Number);
+      if(dz.length>6&&(!h.dezenas2||!h.dezenas2.length)){
+        return {...h,dezenas:dz.slice(0,6),dezenas2:dz.slice(6)};
+      }
+      return h;
+    });
+  }
 
   // ── Construção da grade de paletas ──
   function ballColorClass(){ return 'hm'; }
