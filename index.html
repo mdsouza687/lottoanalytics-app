@@ -4644,39 +4644,22 @@ async function conferirJogosSalvos(){
       const concursoSalvo=parseInt(concursoEfetivo);
       const concursoResultado=parseInt(res.concurso);
       if(concursoSalvo && concursoResultado && concursoSalvo>concursoResultado) continue;
-      const sorteadas = new Set(res.dezenas.map(n=>parseInt(n)));
-      const _mNConf=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      // Delega para _calcPremioJogo (fonte única de verdade das regras de
+      // premiação, auditada contra a tabela oficial da Caixa) em vez de
+      // reimplementar a lógica de faixas aqui — evita as duas
+      // implementações divergirem de novo (esta cópia não conferia o 2º
+      // sorteio da Dupla Sena nem a combinação dezenas+trevos da
+      // +Milionária, por exemplo).
       let melhorAcertos = 0, melhorValor = 0, melhorFaixa = null, qtdPremiados = 0;
       item.jogos.forEach(jogo=>{
-        const acertos = jogo.filter(n=>sorteadas.has(n)).length;
-        // Fronteira de palavra: evita confundir "0 acertos" com a
-        // substring final de "20 acertos" (Lotomania premia ambas faixas,
-        // mas são faixas DIFERENTES com valores diferentes).
-        const faixa = (res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
-        let valor = faixa?.valorPremio||0;
-        // Mês da Sorte (Dia de Sorte) — premia independente das dezenas
-        if(jogo._mes!=null && res.mes){
-          const nomeMes=_mNConf[jogo._mes-1]||'';
-          if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
-            const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
-            if(fMes?.valorPremio){ valor=Math.max(valor,fMes.valorPremio); if(!melhorFaixa) melhorFaixa=fMes.descricao; }
-          }
-        }
-        // Time do Coração (Timemania) — premia independente das dezenas
-        if(jogo._time!=null && res.timeCoracao){
-          const nomeTime=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
-          if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
-            const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
-            if(fTime?.valorPremio){ valor=Math.max(valor,fTime.valorPremio); if(!melhorFaixa) melhorFaixa=fTime.descricao; }
-          }
-        }
-        if(acertos > melhorAcertos){ melhorAcertos = acertos; if(faixa) melhorFaixa = faixa.descricao||null; melhorValor = valor; }
+        const info=_calcPremioJogo(key, jogo, concursoEfetivo);
+        const acertos=info?info.acertos:0;
+        const valor=info?info.valor:0;
+        if(acertos > melhorAcertos){ melhorAcertos = acertos; melhorValor = valor; }
         else if(valor > melhorValor){ melhorValor = valor; }
         if(valor>0) qtdPremiados++;
       });
-      // diasorte/timemania: prêmio de mês/time tem minPremiavel=0 (funciona com qualquer qtd de acertos)
-      const minPremiavel = { megasena:4, lotofacil:11, quina:2, lotomania:0, timemania:0, duplasena:4, diasorte:0, supersete:4, maismilionaria:4, powerball:3, megamillions:3 }[key]??d.min;
-      if(melhorAcertos >= minPremiavel && melhorValor > 0){
+      if(melhorValor > 0){
         // Lê o registro de "já avisado" NESTE momento (não uma única vez no
         // início da função) — assim, se outra aba/janela já gravou um aviso
         // para este concurso enquanto este loop estava em andamento, essa
@@ -4931,6 +4914,15 @@ const LA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 // volante e pela API de resultados (NOME/UF, sem acento, maiúsculas — ex.
 // "ATLETICO/MG"). Transcrita diretamente do seletor oficial "Time do
 // Coração" (telas de aposta), confirmada pelo usuário em 26/06/2026.
+// Normaliza nomes de time/mês antes de comparar — a API da Caixa às vezes
+// retorna o nome com espaçamento diferente do usado na lista interna do
+// app (ex.: "FLORESTA /CE" vindo da API vs "FLORESTA/CE" na lista local),
+// o que fazia a comparação exata falhar silenciosamente e o prêmio do
+// Time do Coração/Mês da Sorte nunca ser detectado nesses casos. Colapsa
+// espaços ao redor da barra e espaços duplicados antes de comparar.
+function _normNomeCompat(s){
+  return String(s||'').replace(/\s*\/\s*/g,'/').replace(/\s+/g,' ').trim().toLowerCase();
+}
 const LA_TIMEMANIA_TIMES=['ABC/RN','ALTOS/PI','AMAZONAS/AM','AMERICA/MG','AMERICA/RN','APARECIDENSE/GO','ATHLETIC CLUB/MG','ATHLETICO/PR','ATLETICO/GO','ATLETICO/MG','AVAI/SC','BAHIA/BA','BAHIA DE FEIRA/BA','BOTAFOGO/PB','BOTAFOGO/RJ','BOTAFOGO/SP','BRAGANTINO/SP','BRASIL DE PELOTAS/RS','BRASILIENSE/DF','BRUSQUE/SC','CAMPINENSE/PB','CASCAVEL/PR','CAXIAS/RS','CEARA/CE','CEILANDIA ESPORTE/DF','CHAPECOENSE/SC','CONFIANCA/SE','CORINTHIANS/SP','CORITIBA/PR','CRB/AL','CRICIUMA/SC','CRUZEIRO/MG','CSA/AL','CUIABA/MT','FERROVIARIA/SP','FERROVIARIO/CE','FIGUEIRENSE/SC','FLAMENGO/RJ','FLORESTA/CE','FLUMINENSE/RJ','FORTALEZA/CE','GOIAS/GO','GREMIO/RS','GUARANI/SP','INTERNACIONAL/RS','ITUANO/SP','JACUIPENSE/BA','JUAZEIRENSE/BA','JUVENTUDE/RS','LONDRINA/PR','MANAUS/AM','MIRASSOL/SP','NAUTICO/PE','NOVA IGUACU/RJ','NOVORIZONTINO/SP','OESTE/SP','OPERARIO/PR','PALMEIRAS/SP','PARANA/PR','PAYSANDU/PA','PONTE PRETA/SP','PORTUGUESA/RJ','POUSO ALEGRE/MG','REMO/PA','RETRO BRASIL/PE','SAMPAIO CORREA/MA','SANTA CRUZ/PE','SANTOS/SP','SAO BERNARDO/SP','SAO JOSE/RS','SAO PAULO/SP','SAO RAIMUNDO/RR','SPORT/PE','TOCANTINOPOLIS/TO','TOMBENSE/MG','VASCO DA GAMA/RJ','VILA NOVA/GO','VITORIA/BA','VOLTA REDONDA/RJ','YPIRANGA/RS'];
 const LA_TIMES=LA_TIMEMANIA_TIMES;
 let laCur=0;
@@ -6124,7 +6116,6 @@ async function verificarPremiacaoCard(key){
   const todos=await dbAll('jogos_salvos');
   const paraCurr=todos.filter(j=>j.loteria===key);
   if(!paraCurr.length) return;
-  const sorteadas=new Set(res.dezenas.map(n=>parseInt(n)));
   const concursoResultado=parseInt(res.concurso);
   let melhorAcertos=0, melhorValor=0, qtdPremiados=0;
   for(const item of paraCurr){
@@ -6137,32 +6128,18 @@ async function verificarPremiacaoCard(key){
     const concursoEfetivo=await resolverConcursoDoItem(item);
     const concursoSalvo=parseInt(concursoEfetivo);
     if(concursoSalvo && concursoResultado && concursoSalvo>concursoResultado) continue;
-    const _mNCard=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    // Delega para _calcPremioJogo (fonte única de verdade — ver
+    // conferirJogosSalvos) em vez de reimplementar a lógica de faixas aqui.
     (item.jogos||[]).forEach(jogo=>{
-      const acertos=jogo.filter(n=>sorteadas.has(n)).length;
-      const faixa=(res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
-      let valor=faixa?.valorPremio||0;
-      if(jogo._mes!=null && res.mes){
-        const nomeMes=_mNCard[jogo._mes-1]||'';
-        if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
-          const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
-          if(fMes?.valorPremio) valor=Math.max(valor,fMes.valorPremio);
-        }
-      }
-      if(jogo._time!=null && res.timeCoracao){
-        const nomeTime=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
-        if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
-          const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
-          if(fTime?.valorPremio) valor=Math.max(valor,fTime.valorPremio);
-        }
-      }
+      const info=_calcPremioJogo(key, jogo, concursoEfetivo);
+      const acertos=info?info.acertos:0;
+      const valor=info?info.valor:0;
       if(acertos>melhorAcertos){melhorAcertos=acertos;melhorValor=valor;}
       else if(valor>melhorValor){melhorValor=valor;}
       if(valor>0) qtdPremiados++;
     });
   }
-  const minPremiavel={megasena:4,lotofacil:11,quina:2,lotomania:0,timemania:0,duplasena:4,diasorte:0,supersete:4,maismilionaria:4,powerball:3,megamillions:3}[key]??d.min;
-  if(melhorAcertos<minPremiavel||melhorValor<=0) return;
+  if(melhorValor<=0) return;
   const brl=v=>fmtPremio(v,key);
   const label=`${melhorAcertos} acerto${melhorAcertos!==1?'s':''}`;
   const card=document.getElementById('lottery-card');
@@ -9182,32 +9159,18 @@ function imprimirConferir(){
   const pad=n=>String(n).padStart(2,'0');
   const TURQUESA='#00BCD4';
   const bxc=d.bolaExtraCor||TURQUESA;
-  const sorteadas=new Set(res.dezenas.map(n=>parseInt(n)));
   // Lê a opção escolhida no modal (todos os jogos conferidos, ou só os
   // premiados) — antes o relatório sempre mostrava só os premiados, sem
   // dar a opção de ver a lista completa.
   const filtroSel=document.querySelector('input[name="conferir-print-filtro"]:checked');
   const soPremiados=filtroSel?filtroSel.value==='premiados':false;
 
-  const _mNPrint=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  // Delega para _calcPremioJogo (fonte única de verdade — ver
+  // conferirJogosSalvos) em vez de reimplementar a lógica de faixas aqui.
   const todos=jogosGerados.map((jogo,i)=>{
-    const acertos=jogo.filter(n=>sorteadas.has(n)).length;
-    const faixa=(res.premiacoes||[]).find(p=>new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao));
-    let valor=faixa?.valorPremio||0;
-    if(jogo._mes!=null && res.mes){
-      const nomeMes=_mNPrint[jogo._mes-1]||'';
-      if(nomeMes.toLowerCase()===res.mes.trim().toLowerCase()){
-        const fMes=(res.premiacoes||[]).find(p=>/m[eê]s/i.test(p.descricao));
-        if(fMes?.valorPremio) valor=Math.max(valor,fMes.valorPremio);
-      }
-    }
-    if(jogo._time!=null && res.timeCoracao){
-      const nomeTime=LA_TIMEMANIA_TIMES?.[jogo._time]||'';
-      if(nomeTime.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
-        const fTime=(res.premiacoes||[]).find(p=>/time/i.test(p.descricao));
-        if(fTime?.valorPremio) valor=Math.max(valor,fTime.valorPremio);
-      }
-    }
+    const info=_calcPremioJogo(currentKey, jogo, res.concurso);
+    const acertos=info?info.acertos:0;
+    const valor=info?info.valor:0;
     return{jogo,acertos,valor,idx:i};
   }).sort((a,b)=>b.valor-a.valor||b.acertos-a.acertos);
 
@@ -12285,7 +12248,22 @@ function renderManualLista(){
   lista.innerHTML=html;
 }
 
+// Mesma trava de salvarJogos(): sem proteção, um clique duplo (ou o Enter
+// do prompt() disparando o handler mais de uma vez) rodava duas gravações
+// completas em paralelo, cada uma criando seu próprio registro em
+// "jogos_salvos" (sem id definido, o banco gera um novo a cada dbPut) —
+// duplicando o mesmo conjunto de jogos manuais.
+let _salvarJogosManuaisEmAndamento=false;
 async function salvarJogosManuais(){
+  if(_salvarJogosManuaisEmAndamento) return;
+  _salvarJogosManuaisEmAndamento=true;
+  try{
+    await _salvarJogosManuaisImpl();
+  } finally{
+    _salvarJogosManuaisEmAndamento=false;
+  }
+}
+async function _salvarJogosManuaisImpl(){
   const sel=document.getElementById('manual-loteria-sel');
   const key=sel?.value; const d=key?CFG[key]:null;
   if(!d){toast('Selecione a loteria.');return;}
@@ -12435,6 +12413,13 @@ async function _bootApp(){
     if(n>0 && typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
     if(n>0 && typeof popularDropdownManualBolao==='function') popularDropdownManualBolao();
   }, 1500);
+  // Mesma limpeza automática, agora para "jogos_salvos" — bugs de clique
+  // duplo em salvarJogos()/salvarJogosManuais() (já corrigidos) deixaram
+  // um acúmulo de conjuntos idênticos salvos várias vezes; roda sozinho
+  // em segundo plano a cada carregamento, sem exigir nenhuma ação manual.
+  setTimeout(async()=>{
+    await limparJogosSalvosDuplicados();
+  }, 1600);
   // Aviso periódico de backup (após o app carregar)
   setTimeout(verificarAvisoBackup, 4000);
   // Backup automático 1x/dia: dispara sozinho (sem precisar do usuário
@@ -14244,22 +14229,65 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
     if(acertosCols<minPremiavel||valorSS<=0) return {premiado:false,acertos:acertosCols,valor:0,colsAcertadas:colsAcertadas};
     return {premiado:true,acertos:acertosCols,valor:valorSS,colsAcertadas:colsAcertadas};
   }
-  // LIMITAÇÃO CONHECIDA (documentada em 26/06/2026, durante auditoria das
-  // faixas de premiação contra as regras oficiais da Caixa): esta função
-  // só compara DEZENAS. Três loterias têm regras adicionais que dependem
-  // de informação por jogo que o app não rastreia hoje:
-  //  - TIMEMANIA: premia também quem acerta o "Time do Coração" sorteado,
-  //    independentemente do número de dezenas batidas — mas o app não
-  //    salva qual time o apostador escolheu em cada jogo individual.
-  //  - DIA DE SORTE: mesma lógica para o "Mês de Sorte".
-  //  - +MILIONÁRIA: tem 10 faixas combinando dezenas E trevos (ex.: "5
-  //    dezenas + 2 trevos" paga mais que "5 dezenas + 0 trevos") — esta
-  //    função usa só o mínimo de dezenas (2), ignorando a combinação com
-  //    trevos, então pode subestimar o valor do prêmio nessas faixas
-  //    mistas mesmo identificando corretamente que o jogo é premiado.
-  // Corrigir isso exigiria adicionar campos de time/mês/trevos por jogo
-  // individual nas telas de geração e inserção manual — fora do escopo
-  // desta correção pontual das faixas mínimas de acerto.
+  // +MILIONÁRIA: tabela oficial tem 10 faixas que combinam DEZENAS e
+  // TREVOS ao mesmo tempo (ex.: "5 acertos + 2 trevos" é uma faixa
+  // diferente e mais valiosa que "5 acertos + 1 ou nenhum trevo") — não dá
+  // para achar a faixa certa só pelo número de dezenas, como as demais
+  // loterias fazem, senão a faixa errada é escolhida (a primeira que bater
+  // "N acertos" na descrição, ignorando quantos trevos vieram junto).
+  if(loteriaKey==='maismilionaria'){
+    var sorteadasM=new Set(res.dezenas.map(function(n){return parseInt(n);}));
+    var dezenasAcertadasM=new Set((jogo||[]).filter(function(n){return sorteadasM.has(parseInt(n));}).map(function(n){return parseInt(n);}));
+    var acertosM=dezenasAcertadasM.size;
+    var trevosSorteados=new Set((res.trevos||[]).map(function(n){return parseInt(n);}));
+    var trevosAcertados=new Set((jogo._trevos||[]).filter(function(n){return trevosSorteados.has(parseInt(n));}).map(function(n){return parseInt(n);}));
+    var acertosTrevo=trevosAcertados.size;
+    // Tabela oficial (10 faixas): cada uma exige um número de dezenas E uma
+    // faixa de trevos específica — "re" localiza a faixa certa dentro de
+    // res.premiacoes mesmo com pequenas variações de texto na API.
+    var FAIXAS_MILIONARIA=[
+      {dez:6,trevoMin:2,trevoMax:2,re:/6[^0-9]*2\s*trevo/i},
+      {dez:6,trevoMin:0,trevoMax:1,re:/6[^0-9]*(1\s*ou\s*(nenhum|0)|0\s*ou\s*1|1\s*trevo)/i},
+      {dez:5,trevoMin:2,trevoMax:2,re:/5[^0-9]*2\s*trevo/i},
+      {dez:5,trevoMin:0,trevoMax:1,re:/5[^0-9]*(1\s*ou\s*(nenhum|0)|0\s*ou\s*1|1\s*trevo)/i},
+      {dez:4,trevoMin:2,trevoMax:2,re:/4[^0-9]*2\s*trevo/i},
+      {dez:4,trevoMin:0,trevoMax:1,re:/4[^0-9]*(1\s*ou\s*(nenhum|0)|0\s*ou\s*1|1\s*trevo)/i},
+      {dez:3,trevoMin:2,trevoMax:2,re:/3[^0-9]*2\s*trevo/i},
+      {dez:3,trevoMin:1,trevoMax:1,re:/3[^0-9]*1\s*trevo/i},
+      {dez:2,trevoMin:2,trevoMax:2,re:/2[^0-9]*2\s*trevo/i},
+      {dez:2,trevoMin:1,trevoMax:1,re:/2[^0-9]*1\s*trevo/i},
+    ];
+    var faixaM=FAIXAS_MILIONARIA.find(function(f){return f.dez===acertosM&&acertosTrevo>=f.trevoMin&&acertosTrevo<=f.trevoMax;});
+    var premiacaoM=faixaM?(res.premiacoes||[]).find(function(p){return faixaM.re.test(p.descricao);}):null;
+    var valorM=premiacaoM?(premiacaoM.valorPremio||0):0;
+    if(!faixaM||valorM<=0) return {premiado:false,acertos:acertosM,valor:0,dezenasAcertadas:dezenasAcertadasM};
+    return {premiado:true,acertos:acertosM,valor:valorM,dezenasAcertadas:dezenasAcertadasM};
+  }
+  // DUPLA SENA: dois sorteios INDEPENDENTES no mesmo concurso — o mesmo
+  // bilhete concorre aos dois, e pode ganhar em nenhum, um ou ambos (nesse
+  // caso os dois prêmios se somam). Antes esta função só conferia contra
+  // res.dezenas (1º sorteio), ignorando res.dezenas2 por completo.
+  if(loteriaKey==='duplasena'&&res.dezenas2&&res.dezenas2.length){
+    var minPremiavelDS=3; // Terno (3 acertos) já paga na Dupla Sena — tabela oficial confirma faixa 4/8 = Terno
+    var _confereSorteioDS=function(dezenasSorteio){
+      var sSet=new Set(dezenasSorteio.map(function(n){return parseInt(n);}));
+      var acertadasSet=new Set((jogo||[]).filter(function(n){return sSet.has(parseInt(n));}).map(function(n){return parseInt(n);}));
+      var ac=acertadasSet.size;
+      var fx=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+ac+'\\s*acerto','i').test(p.descricao);});
+      var vl=fx?(fx.valorPremio||0):0;
+      return {acertos:ac,valor:(ac>=minPremiavelDS?vl:0),dezenasAcertadas:acertadasSet};
+    };
+    var r1=_confereSorteioDS(res.dezenas);
+    var r2=_confereSorteioDS(res.dezenas2);
+    var somaValorDS=r1.valor+r2.valor;
+    var melhorDS=r1.valor>=r2.valor?r1:r2;
+    if(somaValorDS<=0) return {premiado:false,acertos:melhorDS.acertos,valor:0,dezenasAcertadas:melhorDS.dezenasAcertadas};
+    // dezenasAcertadas para colorir as bolinhas usa a UNIÃO dos dois
+    // sorteios — uma dezena que só bateu no 2º sorteio também merece
+    // aparecer destacada, mesmo que o 1º sorteio não tenha acertado nada.
+    var uniaoDS=new Set([...r1.dezenasAcertadas,...r2.dezenasAcertadas]);
+    return {premiado:true,acertos:Math.max(r1.acertos,r2.acertos),valor:somaValorDS,dezenasAcertadas:uniaoDS};
+  }
   var sorteadas=new Set(res.dezenas.map(function(n){return parseInt(n);}));
   var dezenasAcertadas=new Set((jogo||[]).filter(function(n){return sorteadas.has(parseInt(n));}).map(function(n){return parseInt(n);}));
   var acertos=dezenasAcertadas.size;
@@ -14290,7 +14318,26 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
   // erroneamente lido com o valor (geralmente R$ 0,00) da faixa de 20.
   var faixa=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertos+'\\s*acerto','i').test(p.descricao);});
   var valor=faixa?(faixa.valorPremio||0):0;
-  if(!elegivelLotomania||acertos<minPremiavel||valor<=0) return {premiado:false,acertos:acertos,valor:0,dezenasAcertadas:dezenasAcertadas};
+  // TIMEMANIA (Time do Coração) e DIA DE SORTE (Mês da Sorte): faixa
+  // especial independente das dezenas — premia mesmo com poucos acertos,
+  // e pode somar com o prêmio das dezenas se o jogo ganhar nas duas ao
+  // mesmo tempo (regra oficial confirmada na tabela de premiação).
+  if(loteriaKey==='timemania'&&jogo._time!=null&&res.timeCoracao){
+    var nomeTimeJogo=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
+    if(nomeTimeJogo&&_normNomeCompat(nomeTimeJogo)===_normNomeCompat(res.timeCoracao)){
+      var faixaTime=(res.premiacoes||[]).find(function(p){return /time/i.test(p.descricao);});
+      if(faixaTime&&faixaTime.valorPremio) valor+=faixaTime.valorPremio;
+    }
+  }
+  if(loteriaKey==='diasorte'&&jogo._mes!=null&&res.mes){
+    var _mNPremio=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var nomeMesJogo=_mNPremio[jogo._mes-1]||'';
+    if(nomeMesJogo&&_normNomeCompat(nomeMesJogo)===_normNomeCompat(res.mes)){
+      var faixaMes=(res.premiacoes||[]).find(function(p){return /m[eê]s/i.test(p.descricao);});
+      if(faixaMes&&faixaMes.valorPremio) valor+=faixaMes.valorPremio;
+    }
+  }
+  if(!elegivelLotomania||(acertos<minPremiavel&&valor<=0)||valor<=0) return {premiado:false,acertos:acertos,valor:0,dezenasAcertadas:dezenasAcertadas};
   return {premiado:true,acertos:acertos,valor:valor,dezenasAcertadas:dezenasAcertadas};
 }
 
@@ -14635,7 +14682,12 @@ function renderFormBolao(){
     // (resultados[loteria].concurso === cc.num) — rodadas mais antigas,
     // cujo resultado em cache já avançou para um concurso posterior, ficam
     // de fora da soma (limitação aceita, mesma usada na conferência).
-    var _mNBol=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    // Delega para _calcPremioJogo (fonte única de verdade — mesma função
+    // usada na conferência de "Jogos Salvos" e no relatório impresso do
+    // bolão) em vez de reimplementar a lógica de faixas aqui — já cobre
+    // Super Sete (comparação posicional por coluna), Dupla Sena (soma dos
+    // 2 sorteios independentes), +Milionária (combinação dezenas+trevos) e
+    // os bônus de Mês da Sorte/Time do Coração.
     var _premioPorSemanaReal=_sems.map(function(){return 0;});
     (s.concursos||[]).forEach(function(cc){
       if(!cc.savedAt||!cc.jogos||!cc.jogos.length||!cc.loteria) return;
@@ -14643,42 +14695,9 @@ function renderFormBolao(){
       if(wi<0) return;
       var res=(typeof resultados!=='undefined')?resultados[cc.loteria]:null;
       if(!res||!res.dezenas||!cc.num||parseInt(res.concurso)!==parseInt(cc.num)) return;
-      // Super Sete NÃO usa a regra de "quantos números batem" das demais
-      // loterias — cada jogo é 1 dígito (0-9) escolhido por COLUNA (7
-      // colunas), e só conta acerto quando o dígito da coluna bate com o
-      // dígito sorteado NAQUELA MESMA coluna. Tratar como as outras
-      // loterias (checando se o dígito aparece em QUALQUER posição do
-      // resultado) gera acertos falsos em massa e credita prêmios muito
-      // acima do real (bug identificado: um bolão de teste com milhares de
-      // jogos de Super Sete somava R$ 3 milhões indevidos por causa disso).
-      var ehSuperSete=(cc.loteria==='supersete');
-      var sorteadasBol=ehSuperSete?null:new Set(res.dezenas.map(function(n){return parseInt(n);}));
       cc.jogos.forEach(function(jogo){
-        var acertosBol;
-        if(ehSuperSete){
-          if(!Array.isArray(jogo)||jogo.length!==7||!Array.isArray(res.dezenas)||res.dezenas.length!==7) return;
-          acertosBol=0;
-          for(var ssI=0;ssI<7;ssI++){ if(parseInt(jogo[ssI])===parseInt(res.dezenas[ssI])) acertosBol++; }
-        } else {
-          acertosBol=jogo.filter(function(n){return sorteadasBol.has(n);}).length;
-        }
-        var faixaBol=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertosBol+'\\s*acerto','i').test(p.descricao);});
-        var valorBol=faixaBol?(faixaBol.valorPremio||0):0;
-        if(jogo._mes!=null&&res.mes){
-          var nomeMesBol=_mNBol[jogo._mes-1]||'';
-          if(nomeMesBol.toLowerCase()===res.mes.trim().toLowerCase()){
-            var fMesBol=(res.premiacoes||[]).find(function(p){return /m[eê]s/i.test(p.descricao);});
-            if(fMesBol&&fMesBol.valorPremio) valorBol=Math.max(valorBol,fMesBol.valorPremio);
-          }
-        }
-        if(jogo._time!=null&&res.timeCoracao){
-          var nomeTimeBol=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
-          if(nomeTimeBol.toLowerCase()===res.timeCoracao.trim().toLowerCase()){
-            var fTimeBol=(res.premiacoes||[]).find(function(p){return /time/i.test(p.descricao);});
-            if(fTimeBol&&fTimeBol.valorPremio) valorBol=Math.max(valorBol,fTimeBol.valorPremio);
-          }
-        }
-        _premioPorSemanaReal[wi]+=valorBol;
+        var info=_calcPremioJogo(cc.loteria, jogo, cc.num);
+        _premioPorSemanaReal[wi]+=info?info.valor:0;
       });
     });
     var _rows=_sems.map(function(sem,i){
@@ -15952,6 +15971,49 @@ async function limparBoloesDuplicados(){
     return removidos;
   }catch(e){ console.warn('[DEDUP-BOLAO]',e.message); return 0; }
 }
+// Mesma ideia de limparBoloesDuplicados(), mas para "jogos_salvos" — os
+// bugs de clique duplo em salvarJogos()/salvarJogosManuais() (já
+// corrigidos) deixaram um acúmulo de conjuntos idênticos salvos várias
+// vezes. Em vez de exigir que o usuário rode um script no console para
+// limpar isso, roda sozinho em segundo plano toda vez que o app carrega —
+// dois conjuntos são duplicata quando têm a MESMA loteria, o MESMO
+// concurso e as MESMAS dezenas em todos os jogos (comparando por
+// conteúdo, não por id/data de salvamento, que naturalmente divergem
+// entre a cópia original e a duplicada).
+function _jogoSalvoAssinatura(item){
+  const jogosKey=(item.jogos||[]).map(function(j){
+    return (Array.isArray(j)?j.slice().sort(function(a,b){return a-b;}):j).join(',');
+  }).sort().join('|');
+  return [item.loteria||'',item.concurso||'',jogosKey].join('||');
+}
+async function limparJogosSalvosDuplicados(){
+  try{
+    const todos=await dbAll('jogos_salvos');
+    if(!todos||todos.length<2) return 0;
+    const grupos=new Map();
+    todos.forEach(function(item){
+      const key=_jogoSalvoAssinatura(item);
+      if(!grupos.has(key)) grupos.set(key,[]);
+      grupos.get(key).push(item);
+    });
+    let removidos=0;
+    for(const [key,grupo] of grupos){
+      if(grupo.length<2) continue;
+      const vinculados=grupo.filter(function(x){return x.vinculadoBolao;});
+      const soltos=grupo.filter(function(x){return !x.vinculadoBolao;});
+      for(const sub of [vinculados,soltos]){
+        if(sub.length<2) continue;
+        sub.sort(function(a,b){return (a.savedAt||0)-(b.savedAt||0);});
+        for(let i=1;i<sub.length;i++){
+          try{ await dbDel('jogos_salvos', sub[i].id); removidos++; }
+          catch(e){ console.warn('[DEDUP-JOGOS-SALVOS] falha ao remover',sub[i].id,e.message); }
+        }
+      }
+    }
+    if(removidos>0) console.log('[DEDUP-JOGOS-SALVOS]',removidos,'jogo(s) salvo(s) duplicado(s) removido(s) automaticamente.');
+    return removidos;
+  }catch(e){ console.warn('[DEDUP-JOGOS-SALVOS]',e.message); return 0; }
+}
 
 let _salvarBolaoEmAndamento=false;
 // salvarBolao() agora passa pela MESMA fila compartilhada
@@ -16414,7 +16476,16 @@ async function imprimirBolao(soPremiados){
     // (item solicitado: nome + número de concurso de cada loteria).
     jogosHtml='<h2 style="color:'+MULTI_LOTERIA_COR+';margin:18px 0 8px;font-size:15px">'+(soPremiados?'🏆 Jogos Premiados':'🎲 Jogos do Bolão')+' ('+jogosVinc.length+')</h2>';
     var jogosHtmlAntesDoLoop=jogosHtml;
-    loteriasImp.forEach(function(L){
+    // Gera o relatório COMPLETO, sem cortar jogos — bolões de grande volume
+    // (dezenas de milhares de jogos) processam tudo, mas em pequenos lotes
+    // que cedem o controle ao navegador periodicamente (mesmo padrão já
+    // usado na geração de jogos por IA), mostrando um indicador visível de
+    // progresso — em vez de travar a tela por tempo indefinido sem
+    // nenhum sinal do que está acontecendo.
+    var _processadosPrint=0;
+    var _totalPrint=jogosVinc.length;
+    for(var _Li=0;_Li<loteriasImp.length;_Li++){
+      var L=loteriasImp[_Li];
       var dJogo=CFG[L.loteria]||d;
       var corJogo=dJogo.cor||cor;
       // Filtro "Só premiados": se nenhum jogo desta loteria bateu prêmio,
@@ -16427,7 +16498,7 @@ async function imprimirBolao(soPremiados){
           var info=_calcPremioJogo(L.loteria,jg,cOrig);
           return info&&info.premiado;
         });
-        if(!temAlgumPremiadoNestaLot) return;
+        if(!temAlgumPremiadoNestaLot) continue;
       }
       // CORREÇÃO do bug "Lotomania com 6 números": cada jogo usa a quantidade
       // de dezenas DA SUA PRÓPRIA loteria (dJogo.min) — antes usava um único
@@ -16440,20 +16511,13 @@ async function imprimirBolao(soPremiados){
       // página impressa), então o status precisa aparecer nos dois lugares
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
-      // Bolões de teste/grande volume podem ter dezenas de milhares de jogos
-      // vinculados — imprimir cada um individualmente (com o cálculo de
-      // prêmio por jogo, que já é custoso) travava o diálogo de impressão
-      // por horas e gerava centenas de páginas inúteis. Sem o filtro "Só
-      // premiados" (que já reduz bastante o volume), limita a impressão aos
-      // primeiros 300 jogos por loteria e avisa quantos ficaram de fora.
-      var LIMITE_JOGOS_PRINT=300;
-      var jogosParaImprimirL=soPremiados?L.jogos:L.jogos.slice(0,LIMITE_JOGOS_PRINT);
-      var jogosOcultosL=soPremiados?0:Math.max(0,L.jogos.length-LIMITE_JOGOS_PRINT);
       jogosHtml+='<div class="lot-block">'+
-        '<div style="font-weight:700;font-size:12px;color:'+corJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+(jogosOcultosL?' <span style="font-size:10px;color:#c0392b;font-weight:400">(mostrando '+LIMITE_JOGOS_PRINT+' de '+L.jogos.length+' jogos — '+jogosOcultosL+' não impressos)</span>':'')+'</div>'+
+        '<div style="font-weight:700;font-size:12px;color:'+corJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">'+
-        jogosParaImprimirL.map(function(jogo,i){
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
+      var _linhasJogosL=[];
+      for(var _ji=0;_ji<L.jogos.length;_ji++){
+        var _linhaJ=(function(jogo,i){
           var ehEsp=jogo._isEspelho;
           var cBase=ehEsp?corEsp:corJogo;
           // Calcula o prêmio deste jogo específico ANTES de montar as
@@ -16555,8 +16619,17 @@ async function imprimirBolao(soPremiados){
             }
           }
           return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px">'+(i+1)+'.</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
-        }).join('')+'</div>';
-    });
+        })(L.jogos[_ji], _ji);
+        if(_linhaJ) _linhasJogosL.push(_linhaJ);
+        _processadosPrint++;
+        if(_processadosPrint%300===0){
+          setDot('loading','Gerando relatório... '+_processadosPrint+'/'+_totalPrint+' jogos');
+          _genProgShow(_processadosPrint,_totalPrint);
+          await new Promise(function(r){ setTimeout(r,0); });
+        }
+      }
+      jogosHtml+=_linhasJogosL.join('')+'</div>';
+    }
     // Se o filtro "Só premiados" eliminou todos os blocos (nenhum jogo
     // bateu prêmio em nenhuma loteria do bolão), jogosHtml ficaria só com
     // o título solto, sem nenhum jogo embaixo — substitui por uma mensagem
@@ -17323,6 +17396,21 @@ async function verJogosVinculados(){
         var extraNome=(dConcExtra&&dConcExtra.bolaExtraNome)||'Extra';
         extrasHtml+=' <span style="font-size:8px;color:'+extraCor+';font-weight:800;margin-left:4px">'+extraNome.toUpperCase()+'</span>'+
           '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+extraCor+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(j._extra).padStart(2,'0')+'</span>';
+      }
+      // Mês da Sorte (Dia de Sorte) e Time do Coração (Timemania) — mesmos
+      // campos já exibidos na impressão do relatório (mesHtmlB/timeHtmlB),
+      // mas que faltavam aqui no modal "Jogos do Bolão": um jogo dessas
+      // duas loterias aparecia incompleto (só as dezenas, sem a informação
+      // que também vale prêmio).
+      if(j&&j._mes!=null){
+        var _mNVinc=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+corConcurso+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
+      }
+      if(j&&j._time!=null){
+        var _timeNomeVinc=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':'');
+        extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+corConcurso+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
       }
       var esp=j._isEspelho?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">🪞</span>':'';
       // Status individual deste jogo na TELA — mesma lógica de 3 estados
