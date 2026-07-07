@@ -12319,6 +12319,14 @@ function abrirJogosManuais(){
   if(sel&&currentKey) sel.value=currentKey;
   _manualSel=new Set();
   _manualJogos=[];
+  // Zera o vínculo de bolão a CADA abertura do modal — sem isso, o select
+  // "manual-vinculo-sel" mantinha a seleção da última vez que o modal foi
+  // usado (popularDropdownManualBolao() restaura dd.value de propósito ao
+  // trocar de loteria DENTRO da mesma sessão do modal), e um bolão
+  // escolhido numa inserção anterior acabava vinculando silenciosamente
+  // jogos de uma loteria totalmente diferente numa sessão seguinte.
+  const vincSel=document.getElementById('manual-vinculo-sel');
+  if(vincSel) vincSel.value='';
   // atualizarManualDica() já chama popularDropdownManualBolao() internamente.
   // Havia uma SEGUNDA chamada direta aqui antes, disparando as duas em
   // paralelo (ambas async, sem aguardar uma a outra) — dependendo do
