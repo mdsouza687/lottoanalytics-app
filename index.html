@@ -2688,15 +2688,15 @@ const CFG = {
   // progressão simples, sem múltiplos de 3). Loterias americanas
   // (Powerball/Mega Millions) não têm Teimosinha — modalidade exclusiva
   // das loterias da Caixa.
-  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00AB67',corD:'#009B63',corClara:'#6BCEA7',orb:[0,171,103],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12]},
-  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#803594',corD:'#702A82',corClara:'#B58AC1',orb:[128,53,148],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24]},
-  quina:         {nome:'QUINA',        emoji:'💜',cor:'#005DA4',corD:'#00508F',corClara:'#6BA1CA',orb:[0,93,164],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24]},
-  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12]},
-  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFDD00',corD:'#FFEB95',corClara:'#FFEB6B',corTexto:'#00AB67',orb:[255,221,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12]},
-  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A62A52',corD:'#90214A',corClara:'#CB839B',orb:[166,42,82],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12]},
-  diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12]},
-  supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#A6CE39',corD:'#80C342',corClara:'#CBE38C',orb:[166,206,57], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12]},
-  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#1E3F8A',corD:'#152e66',corClara:'#6E84B8',orb:[30,63,138],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5]},
+  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00AB67',corD:'#009B63',corClara:'#6BCEA7',orb:[0,171,103],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
+  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#803594',corD:'#702A82',corClara:'#B58AC1',orb:[128,53,148],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  quina:         {nome:'QUINA',        emoji:'💜',cor:'#005DA4',corD:'#00508F',corClara:'#6BA1CA',orb:[0,93,164],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFDD00',corD:'#FFEB95',corClara:'#FFEB6B',corTexto:'#00AB67',orb:[255,221,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A62A52',corD:'#90214A',corClara:'#CB839B',orb:[166,42,82],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#A6CE39',corD:'#80C342',corClara:'#CBE38C',orb:[166,206,57], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#1E3F8A',corD:'#152e66',corClara:'#6E84B8',orb:[30,63,138],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
   powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26},
   megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#FFB800',corD:'#cc9200',orb:[255,184,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25},
 };
@@ -8869,54 +8869,171 @@ const VOLANTE_ASSETS_BASE = 'assets/volantes/';
 // (antes era estimada) — a folha real tem 4 painéis de jogo lado a lado,
 // por isso "jogos" tem 4 entradas (cada uma com seu próprio trevoCols/Rows).
 const VOLANTE_IMG = {
-  megasena: { file:'megasena.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[14.881,21.372,27.568,34.018,40.383,46.453,53.198,59.563,66.139,72.483],rows:[49.147,52.496,55.843,59.279,62.649,66.063]},
-    {cols:[15.049,21.54,27.737,34.165,40.53,46.622,53.345,59.71,66.286,72.63],rows:[75.035,78.382,81.73,85.122,88.514,91.906]},
-    {cols:[15.217,21.709,27.906,34.334,40.699,46.77,53.535,59.88,66.456,72.778],rows:[104.247,107.595,111.008,114.357,117.749,121.141]},
-  ]},
-  lotofacil: { file:'lotofacil.jpg', wmm:83, hmm:186,
+  megasena: { file:'megasena.jpg', wmm:83, hmm:146.44, jogos:[
+    {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[47.399,50.645,53.891,57.222,60.49,63.8]},
+    {cols:[14.894,21.429,27.667,34.138,40.545,46.677,53.445,59.853,66.472,72.858],rows:[72.499,75.745,78.991,82.28,85.505,88.751]},
+    {cols:[15.043,21.577,27.815,34.265,40.715,46.804,53.594,60.001,66.621,72.986],rows:[97.577,100.823,104.07,107.379,110.626,113.914]},
+  ],
+  // Novos campos (item "Correção do Módulo de Impressão de Volantes"):
+  // marca automaticamente quantas dezenas foram apostadas neste jogo, e em
+  // quantos concursos a Teimosinha está marcada. dezCountRow.values e
+  // teimosinhaRow.values são os números que EXISTEM impressos no volante
+  // oficial (a Teimosinha em papel só oferece 3 opções fixas — se o valor
+  // escolhido no app não for nenhuma delas, nenhuma caixinha é marcada,
+  // porque fisicamente ela não existe no papel).
+  // w/h medidos DIRETO na tinta real de cada colchete (não estimados por
+  // fração do espaçamento entre colunas) — números de 1 dígito são mais
+  // estreitos que os de 2 dígitos, então cada caixinha tem seu próprio w.
+  dezCountRow:{row:124.671,cells:[
+    {v:6,x:15.849,w:2.673},{v:7,x:22.447,w:2.631},{v:8,x:28.728,w:2.631},{v:9,x:35.199,w:2.588},
+    {v:10,x:40.8,w:4.286},{v:11,x:46.931,w:4.328},{v:12,x:53.742,w:4.286},{v:13,x:60.086,w:4.243},
+    {v:14,x:66.706,w:4.243},{v:15,x:73.092,w:4.286},
+  ], h:2.249},
+  teimosinhaRow:{row:144.488,cells:[
+    {v:2,x:15.276,w:4.328},{v:4,x:28.049,w:4.243},{v:8,x:41.712,w:2.716},
+  ], h:2.249},
+  },
+  lotofacil: { file:'lotofacil.jpg', wmm:108.5, hmm:141.86,
     // colunas vêm da esquerda p/ direita já na ordem REAL da folha
     // (o volante real do Lotofácil imprime 21-25,16-20,11-15,06-10,01-05
     // da esquerda pra direita, não 01-05 primeiro) — colBase reflete isso.
     colBase:[21,16,11,6,1], jogos:[
-    {cols:[15.431,27.864,40.741,53.913,66.346],rows:[47.623,52.119,56.614,61.13,65.626]},
-    {cols:[15.24,27.885,40.656,53.849,66.261],rows:[72.857,77.331,81.846,86.363,90.837]},
-    {cols:[15.157,27.8,40.571,53.743,66.176],rows:[98.258,102.754,107.228,111.744,116.24]},
+    {cols:[16.341,28.829,41.72,54.949,67.416],rows:[44.619,49.086,53.573,58.102,62.59]},
+    {cols:[16.171,28.85,41.656,54.864,67.331],rows:[69.787,74.274,78.761,83.291,87.736]},
+    {cols:[16.108,28.765,41.571,54.779,67.246],rows:[95.144,99.653,104.14,108.627,113.115]},
+  ],
+  // Assinale quantos números você está marcando (6 caixinhas: 15 a 20) +
+  // Teimosinha (5 caixinhas: 3,6,12,18,24 — subconjunto físico das opções
+  // do app, que também tem 2,4,8,9 só disponíveis na aposta online).
+  dezCountRow:{row:120.269,cells:[
+    {v:15,x:15.6,w:3.598},{v:16,x:21.865,w:3.429},{v:17,x:28.046,w:3.429},
+    {v:18,x:34.756,w:3.641},{v:19,x:41.169,w:3.598},{v:20,x:47.71,w:3.641},
+  ], h:2.074},
+  teimosinhaRow:{row:136.356,cells:[
+    {v:3,x:15.558,w:3.598},{v:6,x:28.067,w:3.556},{v:12,x:40.979,w:3.641},
+    {v:18,x:54.038,w:3.598},{v:24,x:66.59,w:3.641},
+  ], h:2.201},
+  },
+  quina: { file:'quina.jpg', wmm:93.98, hmm:158.33, jogos:[
+    {cols:[25.463,31.919,38.079,44.641,51.117,57.256,63.966,70.316,76.454,82.91],rows:[39.984,43.243,46.503,49.763,53.001,56.261,59.669,62.928]},
+    {cols:[25.294,31.75,37.931,44.471,50.948,57.087,63.796,70.125,76.264,82.719],rows:[71.945,75.184,78.465,81.725,84.984,88.244,91.63,94.869]},
+    {cols:[25.315,31.75,37.931,44.471,50.948,57.087,63.796,70.104,76.264,82.719],rows:[103.95,107.167,110.427,113.707,116.967,120.227,123.635,126.852]},
+  ],
+  // Assinale quantos números você está marcando (11 caixinhas: 5 a 15) +
+  // Teimosinha (5 caixinhas: 3,6,12,18,24 — igual às opções do app, todas
+  // existem fisicamente no volante da Quina).
+  dezCountRow:{row:137.583,cells:[
+    {v:5,x:24.871,w:4.191},{v:6,x:31.39,w:4.106},{v:7,x:37.634,w:4.149},{v:8,x:44.069,w:4.233},
+    {v:9,x:50.588,w:4.233},{v:10,x:56.706,w:4.191},{v:11,x:63.458,w:4.149},{v:12,x:69.765,w:4.149},
+    {v:13,x:75.904,w:4.149},{v:14,x:82.317,w:4.191},{v:15,x:88.582,w:4.191},
+  ], h:2.15},
+  teimosinhaRow:{row:154.644,cells:[
+    {v:3,x:31.263,w:4.106},{v:6,x:44.048,w:4.191},{v:12,x:56.663,w:4.191},
+    {v:18,x:69.638,w:4.149},{v:24,x:82.042,w:4.233},
+  ], h:2.15},
+  },
+  lotomania: { file:'lotomania.jpg', wmm:72.81, hmm:161.29, jogos:[
+    {cols:[11.261,17.632,24.045,30.522,36.915,43.222,49.572,56.092,62.505,68.919],rows:[31.559,34.989,38.481,42.016,45.466,48.959,52.43,55.901,59.415,62.886]},
+    {cols:[11.261,17.653,24.067,30.522,36.915,43.222,49.551,56.071,62.484,68.898],rows:[76.433,79.904,83.376,86.889,90.339,93.832,97.303,100.817,104.309,107.781]},
+  ],
+  // Lotomania sempre aposta exatamente 50 dezenas fixas — não existe campo
+  // de "quantidade de dezenas apostadas" no volante oficial (diferente das
+  // demais loterias), por isso não há dezCountRow aqui, só Teimosinha.
+  teimosinhaRow:{row:157.057,cells:[
+    {v:3,x:11.239,w:4.276},{v:6,x:24.003,w:4.318},{v:9,x:36.978,w:4.191},{v:12,x:49.467,w:4.276},
+  ], h:2.244},
+  },
+  timemania: { file:'timemania.jpg', wmm:80.43, hmm:162.56, jogos:[
+    {cols:[12.255,18.479,24.934,31.433,37.888,44.302,50.673,57.087,63.585,70.062],rows:[23.918,27.58,31.242,34.84,38.502,42.143,45.784,49.467]},
+  ],
+  // Timemania sempre aposta exatamente 10 dezenas fixas — sem dezCountRow.
+  // A marcação do Time do Coração no volante físico (lista com ~80 times)
+  // fica fora do escopo deste item (Doc 3 só cobre dezenas apostadas +
+  // Teimosinha); o Time do Coração já é exibido em texto/badge em toda a
+  // interface (Doc 1), só não é marcado na imagem física do volante.
+  teimosinhaRow:{row:159.385,cells:[
+    {v:3,x:24.68,w:4.233},{v:6,x:31.136,w:4.276},{v:9,x:37.592,w:4.233},{v:12,x:44.027,w:4.149},
+  ], h:2.23},
+  },
+  duplasena: { file:'duplasena.jpg', wmm:82.97, hmm:145.2,
+  // Assinale quantos números você está marcando (10 caixinhas: 6 a 15) +
+  // Teimosinha (4 caixinhas: 3,6,9,12 — subconjunto físico das opções do
+  // app, que também tem 2,4,8 só disponíveis na aposta online).
+  dezCountRow:{row:123.613,cells:[
+    {v:6,x:15.494,w:4.149},{v:7,x:22.818,w:4.149},{v:8,x:28.194,w:4.149},{v:9,x:34.692,w:4.191},
+    {v:10,x:41.084,w:4.191},{v:11,x:47.159,w:4.149},{v:12,x:53.7,w:4.106},{v:13,x:60.113,w:4.149},
+    {v:14,x:66.506,w:4.233},{v:15,x:73.067,w:4.149},
+  ], h:2.0},
+  teimosinhaRow:{row:143.722,cells:[
+    {v:3,x:15.706,w:4.149},{v:6,x:28.279,w:4.149},{v:9,x:41.169,w:4.191},{v:12,x:53.954,w:4.106},
+  ], h:2.05},
+  jogos:[
+    {cols:[15.05,21.357,27.601,34.099,40.619,47.075,53.404,59.69,66.103,72.538],rows:[52.324,55.541,58.801,62.082,65.32]},
+    {cols:[15.219,21.526,27.771,34.29,40.788,47.244,53.573,59.859,66.252,72.707],rows:[74.824,78.084,81.344,84.603,87.842]},
+    {cols:[15.367,21.696,27.94,34.438,40.958,47.413,53.742,60.008,66.421,72.877],rows:[97.896,101.156,104.436,107.654,110.871]},
   ]},
-  quina: { file:'quina.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[14.786,21.146,27.214,33.68,40.061,46.108,52.719,58.976,65.024,71.384],rows:[39.741,43.04,46.339,49.638,52.917,56.215,59.665,62.964]},
-    {cols:[14.619,20.98,27.069,33.513,39.895,45.942,52.553,58.789,64.836,71.197],rows:[72.091,75.368,78.689,81.988,85.287,88.587,92.015,95.292]},
-    {cols:[14.64,20.98,27.069,33.513,39.895,45.942,52.553,58.768,64.836,71.197],rows:[104.483,107.739,111.039,114.36,117.658,120.958,124.407,127.663]},
-  ]},
-  lotomania: { file:'lotomania.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[14.258,20.644,27.073,33.565,39.972,46.295,52.66,59.195,65.624,72.052],rows:[33.166,36.676,40.251,43.867,47.399,50.973,54.526,58.079,61.675,65.228]},
-    {cols:[14.258,20.665,27.094,33.565,39.972,46.295,52.638,59.174,65.602,72.031],rows:[79.092,82.645,86.198,89.794,93.325,96.899,100.452,104.048,107.623,111.175]},
-  ]},
-  timemania: { file:'timemania.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[15.458,21.744,28.265,34.829,41.35,47.829,54.264,60.743,67.307,73.849],rows:[24.974,28.667,32.359,35.988,39.681,43.351,47.023,50.737]},
-  ]},
-  duplasena: { file:'duplasena.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[14.839,21.13,27.357,33.837,40.34,46.777,53.089,59.359,65.754,72.172],rows:[54.317,57.603,60.934,64.284,67.593]},
-    {cols:[15.009,21.299,27.526,34.028,40.508,46.947,53.258,59.527,65.902,72.34],rows:[77.302,80.631,83.961,87.292,90.599]},
-    {cols:[15.157,21.467,27.695,34.176,40.677,47.115,53.427,59.675,66.071,72.509],rows:[100.87,104.2,107.552,110.838,114.126]},
-  ]},
-  diasorte: { file:'diasorte.jpg', wmm:83, hmm:186, jogos:[
-    {cols:[7.64,14.708,20.909,27.363,33.796,39.891,46.663,53.076,59.171,65.54],rows:[41.718,44.969,48.221],
-     mesGrid:{cols6:[8.191,20.892,33.846,46.736,59.309,71.945],rows2:[57.976,61.659]}},
-    {cols:[7.851,14.877,21.12,27.575,33.987,40.103,46.875,53.266,59.361,65.731],rows:[73.766,77.018,80.27],
-     mesGrid:{cols6:[8.445,21.082,34.036,46.926,59.436,72.136],rows2:[90.043,93.218]}},
-    {cols:[8.57,15.089,21.29,27.766,34.177,40.272,47.044,53.457,59.531,65.9],rows:[105.646,108.855,112.149],
-     mesGrid:{cols6:[8.636,20.955,34.226,47.053,59.627,72.326],rows2:[121.983,125.159]}},
-  ]},
-  supersete: { file:'supersete.jpg', wmm:83, hmm:142,
-    cols:[14.957,21.296,27.806,34.178,40.551,47.101,53.39],
-    rows:[47.46,51.383,55.286,59.076,62.933,66.79,70.692,74.548,78.405,81.996] },
+  diasorte: { file:'diasorte.jpg', wmm:78.74, hmm:154.94, jogos:[
+    {cols:[3.577,10.647,16.849,23.305,29.739,35.835,42.608,49.022,55.118,61.489],rows:[41.995,45.254,48.514],
+     mesGrid:{cols6:[3.81,16.849,29.824,42.672,55.224,67.903],rows2:[58.23,61.934]}},
+    {cols:[3.789,10.816,17.06,23.516,29.93,36.047,42.82,49.212,55.309,61.68],rows:[74.126,77.385,80.645],
+     mesGrid:{cols6:[4.0,17.039,29.993,42.841,55.393,68.072],rows2:[90.424,93.662]}},
+    {cols:[4.508,11.028,17.23,23.707,30.12,36.216,42.989,49.403,55.478,61.849],rows:[106.087,109.305,112.607],
+     mesGrid:{cols6:[4.593,17.23,30.163,43.032,55.562,68.241],rows2:[122.386,125.624]}},
+  ],
+  // Assinale quantos números você está marcando (9 caixinhas: 7 a 15) +
+  // Teimosinha (4 caixinhas: 3,6,9,12 — subconjunto físico das opções do
+  // app, que também tem 2,4,8 só disponíveis na aposta online).
+  dezCountRow:{row:136.44,cells:[
+    {v:7,x:4.381,w:4.191},{v:8,x:10.858,w:4.191},{v:9,x:17.314,w:4.149},{v:10,x:23.326,w:4.149},
+    {v:11,x:30.057,w:4.149},{v:12,x:36.428,w:4.191},{v:13,x:42.672,w:4.233},{v:14,x:49.064,w:4.149},
+    {v:15,x:55.181,w:4.106},
+  ], h:2.16},
+  teimosinhaRow:{row:153.607,cells:[
+    {v:3,x:4.466,w:4.191},{v:6,x:17.335,w:4.106},{v:9,x:29.76,w:4.149},{v:12,x:42.905,w:4.191},
+  ], h:2.16},
+  },
+  supersete: { file:'supersete.jpg', wmm:80.43, hmm:105.83,
+    cols:[12.044,18.415,24.956,31.348,38.439,45.022,51.35],
+    rows:[37.486,41.169,44.895,48.578,52.282,55.944,59.669,63.352,67.077,70.739],
+  // Assinale quantos números você está marcando: no Super Sete essas 15
+  // opções (7 a 21) não cabem numa linha só no volante físico — o campo se
+  // divide em 2 linhas impressas (7 a 14 numa, 15 a 21 na outra), por isso
+  // cada célula carrega sua própria "row" além da compartilhada abaixo.
+  dezCountRow:{row:80.687,cells:[
+    {v:7,x:5.524,w:3.65},{v:8,x:12.531,w:3.641},{v:9,x:18.965,w:3.641},{v:10,x:25.421,w:3.683},
+    {v:11,x:31.856,w:3.683},{v:12,x:38.354,w:3.725},{v:13,x:44.873,w:3.641},{v:14,x:51.223,w:3.641},
+    {v:15,x:5.588,w:3.68,row:84.73},{v:16,x:12.594,w:3.683,row:84.73},{v:17,x:19.029,w:3.598,row:84.73},
+    {v:18,x:25.463,w:3.683,row:84.73},{v:19,x:31.919,w:3.725,row:84.73},{v:20,x:38.418,w:3.683,row:84.73},
+    {v:21,x:44.937,w:3.683,row:84.73},
+  ], h:1.93},
+  teimosinhaRow:{row:102.341,cells:[
+    {v:3,x:5.715,w:3.6},{v:6,x:19.219,w:3.556},{v:9,x:32.131,w:3.641},{v:12,x:45.148,w:3.598},
+  ], h:1.93},
+  },
   maismilionaria: { file:'maismilionaria.jpg', wmm:186, hmm:110, jogos:[
     {cols:[12.891,18.638,24.428,30.218,35.987],rows:[33.804,36.381,38.915,41.407,43.963,46.476,49.01,51.523,54.016,56.508],trevoCols:[12.891,24.438,35.987],trevoRows:[65.158,71.086]},
     {cols:[47.208,52.977,58.724,64.536,70.283],rows:[33.699,36.276,38.81,41.303,43.837,46.35,48.905,51.418,53.911,56.383],trevoCols:[47.208,58.745,70.283],trevoRows:[65.557,70.938]},
     {cols:[81.484,87.252,92.979,98.811,104.58],rows:[33.615,36.213,38.726,41.219,43.753,46.266,48.821,51.335,53.806,56.299],trevoCols:[81.484,93.031,104.58],trevoRows:[62.352,64.655]},
     {cols:[115.59,121.379,127.149,132.938,138.749],rows:[33.532,36.129,38.643,41.135,43.69,46.182,48.738,51.251,53.744,56.215],trevoCols:[115.59,127.17,138.749],trevoRows:[64.928,71.065]}
-  ]},
+  ],
+  // Números (6 a 12) e Trevos (2 a 6) apostados + Teimosinha (2 a 5, todas
+  // opções do app existem fisicamente aqui). Medido direto no arquivo
+  // maismilionaria.jpg (resolução mais baixa que os scans 600dpi das
+  // outras loterias, já que essa imagem foi montada/composta numa sessão
+  // anterior a partir do scan original, cuja tira de rodapé é impressa
+  // rotacionada 90° em relação ao resto da folha) — por isso a margem de
+  // segurança padrão (SEGURANCA_CAMPO) importa ainda mais aqui.
+  dezCountRow:{row:89.55,cells:[
+    {v:6,x:18.717,w:3.4},{v:7,x:24.467,w:3.4},{v:8,x:30.217,w:3.4},{v:9,x:35.967,w:3.4},
+    {v:10,x:41.717,w:3.4},{v:11,x:47.467,w:3.4},{v:12,x:53.217,w:3.4},
+  ], h:1.9},
+  trevoCountRow:{row:92.09,cells:[
+    {v:2,x:13.675,w:3.2},{v:3,x:19.425,w:3.2},{v:4,x:25.175,w:3.2},{v:5,x:30.925,w:3.2},{v:6,x:36.675,w:3.2},
+  ], h:1.9},
+  teimosinhaRow:{row:102.569,cells:[
+    {v:2,x:87.731,w:2.3},{v:3,x:94.079,w:2.3},{v:4,x:99.094,w:2.3},{v:5,x:105.633,w:2.3},
+  ], h:1.8},
+  },
 };
 
 // Desenha UM retângulo de marcação sobre a imagem real, cobrindo o número
@@ -8968,10 +9085,13 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
         html+=_volanteMarcaDiv(cx,cy,w,h,'#000',marcadosCol.has(digito));
       });
     });
-    return html;
+    // Não retorna aqui — cai no bloco compartilhado abaixo (dezCountRow /
+    // teimosinhaRow), que também vale pro Super Sete. O forEach de jogos
+    // logo a seguir não faz nada pra essa loteria (v.jogos não existe),
+    // então é seguro deixar passar direto.
   }
   jogos.forEach((jogo,idx)=>{
-    const jg=v.jogos[idx]; if(!jg) return;
+    const jg=v.jogos&&v.jogos[idx]; if(!jg) return;
     const marcados=new Set((jogo||[]).map(Number));
     const w=_pitch(jg.cols)*FRAC_NUM_W, h=_pitch(jg.rows)*FRAC_NUM_H;
     if(key==='lotofacil'){
@@ -9025,6 +9145,59 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
       });
     }
   });
+  // Quantidade de dezenas apostadas + Teimosinha (item "Correção do Módulo
+  // de Impressão de Volantes"): campos impressos UMA VEZ na folha, não
+  // repetidos por jogo empilhado (diferente do mês/trevo, que têm uma
+  // grade própria por jogo) — por isso usa o PRIMEIRO jogo do grupo como
+  // referência. Na prática, todos os jogos de um mesmo lote normalmente
+  // têm a mesma quantidade de dezenas/mesma Teimosinha, então isso cobre o
+  // caso comum corretamente; se algum dia os jogos de um mesmo volante
+  // tiverem quantidades diferentes, só o do primeiro fica refletido aqui.
+  const jogoRef=jogos[0];
+  // Margem de segurança: desenha a marca num pouco MENOR que a tinta real
+  // medida em cada caixinha (nunca no tamanho exato) — garante que em
+  // nenhuma hipótese a marca ultrapasse o campo, e como w/h agora vêm de
+  // medição direta por caixinha (não mais uma fração genérica do
+  // espaçamento entre colunas), a marca fica bem centralizada no colchete.
+  const SEGURANCA_CAMPO=0.88;
+  if(v.dezCountRow && jogoRef){
+    // Super Sete não tem "quantidade de dezenas" no sentido comum — a
+    // contagem impressa no volante (7 a 21) é a SOMA de dígitos marcados
+    // em todas as 7 colunas (jogo._ssCols), não o tamanho de um array
+    // plano de dezenas como nas demais loterias.
+    const qtdDez=jogoRef&&jogoRef._ssCols?jogoRef._ssCols.reduce((s,c)=>s+c.length,0)
+      :(Array.isArray(jogoRef)?jogoRef.filter(n=>typeof n==='number').length:0);
+    const dh=v.dezCountRow.h*SEGURANCA_CAMPO;
+    // cell.row: usado só pelo Super Sete, cujas 15 opções (7 a 21) não
+    // cabem numa única linha impressa no volante — o campo se divide em
+    // 2 linhas físicas, então cada célula pode ter sua PRÓPRIA y além da
+    // y compartilhada em v.dezCountRow.row (usada pelas demais loterias).
+    v.dezCountRow.cells.forEach(cell=>{
+      html+=_volanteMarcaDiv(cell.x,cell.row??v.dezCountRow.row,cell.w*SEGURANCA_CAMPO,dh,'#000',cell.v===qtdDez);
+    });
+  }
+  // Trevos apostados (exclusivo +Milionária): campo próprio, separado da
+  // quantidade de dezenas — o volante pergunta os dois separadamente
+  // ("Números:" e "Trevos:" em linhas distintas).
+  if(v.trevoCountRow && jogoRef){
+    const qtdTrevo=Array.isArray(jogoRef&&jogoRef._trevos)?jogoRef._trevos.length:0;
+    const trh=v.trevoCountRow.h*SEGURANCA_CAMPO;
+    v.trevoCountRow.cells.forEach(cell=>{
+      html+=_volanteMarcaDiv(cell.x,v.trevoCountRow.row,cell.w*SEGURANCA_CAMPO,trh,'#000',cell.v===qtdTrevo);
+    });
+  }
+  if(v.teimosinhaRow && jogoRef){
+    // Só marca se o valor escolhido no app for uma das opções que EXISTEM
+    // impressas no volante oficial — a Teimosinha em papel só oferece
+    // umas poucas opções fixas (ex.: 2/4/8), bem menos que as opções do
+    // app; se o valor não bater com nenhuma caixinha real, não marca nada
+    // (não dá para assinalar uma opção que fisicamente não existe ali).
+    const qtdTeim=(jogoRef&&jogoRef._teimosinhaConcursos)?jogoRef._teimosinhaConcursos.length:null;
+    const th=v.teimosinhaRow.h*SEGURANCA_CAMPO;
+    v.teimosinhaRow.cells.forEach(cell=>{
+      html+=_volanteMarcaDiv(cell.x,v.teimosinhaRow.row,cell.w*SEGURANCA_CAMPO,th,'#000',qtdTeim!=null&&cell.v===qtdTeim);
+    });
+  }
   return html;
 }
 function buildVolanteSVG(key,jogosGrupo){
@@ -10054,13 +10227,30 @@ function exibirConcursoBar(){
 // da loteria atual (d.teimosinha, definido em CFG) — esconde a barra
 // inteira para loterias que não oferecem a modalidade (ex.: Powerball,
 // Mega Millions, que não têm Teimosinha por serem loterias americanas).
+// Monta as <option>s de Teimosinha agrupadas por onde a marcação realmente
+// funciona: "Impressão física" (opções que existem de fato como caixinha no
+// volante oficial escaneado — d.teimosinhaFisico, mapeado por loteria em
+// VOLANTE_IMG) e "Outros" (demais opções de d.teimosinha, disponíveis só na
+// aposta online — no volante impresso essa Teimosinha fica sem marcação).
+// Enquanto uma loteria ainda não teve seu volante físico mapeado (Doc 3),
+// d.teimosinhaFisico é undefined e a lista sai sem agrupamento, como antes.
+function _teimosinhaOptionsHtml(d,selecionado){
+  const opts=n=>`<option value="${n}"${String(selecionado)===String(n)?' selected':''}>${n} concursos</option>`;
+  if(!d.teimosinhaFisico||!d.teimosinhaFisico.length){
+    return d.teimosinha.map(opts).join('');
+  }
+  const fisico=d.teimosinha.filter(n=>d.teimosinhaFisico.includes(n));
+  const outros=d.teimosinha.filter(n=>!d.teimosinhaFisico.includes(n));
+  let html='<optgroup label="🖨 Impressão física">'+fisico.map(opts).join('')+'</optgroup>';
+  if(outros.length) html+='<optgroup label="💻 Outros (só aposta online)">'+outros.map(opts).join('')+'</optgroup>';
+  return html;
+}
 function exibirTeimosinhaBar(d){
   const barT=document.getElementById('result-teimosinha-bar');
   const sel=document.getElementById('result-teimosinha-select');
   if(!barT||!sel) return;
   if(!d||!d.teimosinha||!d.teimosinha.length){ barT.style.display='none'; return; }
-  sel.innerHTML='<option value="">Não usar</option>'+
-    d.teimosinha.map(n=>`<option value="${n}">${n} concursos</option>`).join('');
+  sel.innerHTML='<option value="">Não usar</option>'+_teimosinhaOptionsHtml(d);
   sel.value='';
   document.getElementById('result-teimosinha-info').textContent='';
   barT.style.display='flex';
@@ -10110,8 +10300,7 @@ function exibirTeimosinhaBarIA(d){
   const sel=document.getElementById('ia-teimosinha-select');
   if(!barT||!sel) return;
   if(!d||!d.teimosinha||!d.teimosinha.length){ barT.style.display='none'; return; }
-  sel.innerHTML='<option value="">Não usar</option>'+
-    d.teimosinha.map(n=>`<option value="${n}">${n} concursos</option>`).join('');
+  sel.innerHTML='<option value="">Não usar</option>'+_teimosinhaOptionsHtml(d);
   sel.value='';
   const info=document.getElementById('ia-teimosinha-info');
   if(info) info.textContent='';
@@ -12091,7 +12280,7 @@ function buildManualVolante(){
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🔁</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">Teimosinha (repetir por vários concursos)</span></div>
       <select id="manual-teimosinha-sel" onchange="_manualTeimosinha=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">Não usar</option>
-        ${d.teimosinha.map(n=>`<option value="${n}"${_manualTeimosinha===n?' selected':''}>${n} concursos</option>`).join('')}
+        ${_teimosinhaOptionsHtml(d,_manualTeimosinha)}
       </select>
     </div>`;
   }
