@@ -2737,7 +2737,19 @@ function isEspecial(key, concursoNum){
 }
 
 /* ════ SUPABASE — Banco de dados externo ════ */
-const SUPABASE_CONFIG = { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 'sb_publishable_59Io3j2Z-lUgFL-SrJYFSw_HQUdNKhp', tabela: 'jogos_loterias' };
+// IMPORTANTE (incidente de integridade de dados, 07/2026): até aqui, o
+// mesmo Supabase de PRODUÇÃO era usado tanto pelo app publicado quanto por
+// qualquer ambiente local/preview de desenvolvimento — um teste rodado
+// localmente (inclusive um simples F5 repetido) sincronizava e apagava
+// dados reais de usuário. Agora local/preview (localhost/127.0.0.1) usa um
+// projeto Supabase SEPARADO ("LottoAnalytics-DEV", schema idêntico ao de
+// produção, sem nenhum dado de usuário real) — só o domínio publicado de
+// verdade (Netlify) usa o projeto de produção. NUNCA volte a apontar os
+// dois para o mesmo projeto.
+const _SUPABASE_EH_DEV = ['localhost','127.0.0.1'].includes(location.hostname);
+const SUPABASE_CONFIG = _SUPABASE_EH_DEV
+  ? { url: 'https://ycssmyqhjlhoiomyvkba.supabase.co', key: 'sb_publishable_X9KfKhaSmjnwcjOl4NAdlg_gkflFRRF', tabela: 'jogos_loterias' }
+  : { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 'sb_publishable_59Io3j2Z-lUgFL-SrJYFSw_HQUdNKhp', tabela: 'jogos_loterias' };
 function supabaseAtivo(){ return !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.key); }
 async function supabaseSalvar(item){ if(!supabaseAtivo()) return; try{ const temExtras=(item.extras&&item.extras.some(Boolean))||(item.trevos&&item.trevos.some(Boolean)); const jogosPayload=temExtras?{v:2,jogos:item.jogos,extras:item.extras||null,trevos:item.trevos||null}:item.jogos; await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}`, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_CONFIG.key, 'Authorization': `Bearer ${SUPABASE_CONFIG.key}`, 'Prefer':'return=minimal' }, body: JSON.stringify({ loteria: item.loteria, nome: item.nome, jogos: jogosPayload, num_dez: item.numDez, saved_at: new Date(item.savedAt).toISOString() }) }); }catch(e){console.warn(e);} }
 async function supabaseCarregar(){ if(!supabaseAtivo()) return 0; try{ const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}?select=*`, { headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`} }); if(!r.ok) return 0; const dados=await r.json(); let importados=0; for(const d of dados){ let jg=d.jogos,ex=null,tv=null; if(jg&&!Array.isArray(jg)&&Array.isArray(jg.jogos)){ex=jg.extras||null;tv=jg.trevos||null;jg=jg.jogos;} const item={loteria:d.loteria,nome:d.nome,jogos:jg,numDez:d.num_dez,savedAt:new Date(d.saved_at).getTime()}; if(ex)item.extras=ex; if(tv)item.trevos=tv; await dbPut('jogos_salvos',item); importados++; } return importados; }catch(e){return 0;} }
