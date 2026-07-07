@@ -9874,12 +9874,25 @@ async function openModalSalvar(escopo){
       var d2=CFG[currentKey];
       var res2=resultados[currentKey];
       var nomeDefault=d2.nome+' #'+(res2?(res2.proximoConcursoNum||String(parseInt(res2.concurso)+1)):'?')+' · '+(new Date().toLocaleDateString('pt-BR'));
+      // Escolha obrigatória "Jogo Salvo" vs "Vincular a um Bolão" (Doc 2,
+      // item 5) — "Jogo Salvo" vem marcado por padrão (preserva o
+      // comportamento de sempre para quem não usa bolões), mas a escolha
+      // fica EXPLÍCITA e, se "Vincular a um Bolão" for marcada, o Salvar
+      // só libera depois de um bolão selecionado (ver _salvarComEscolha).
+      var _boloesElegiveisFooter=(typeof _todosBoloesV!=='undefined'?_todosBoloesV:[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+      var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+_boloesElegiveisFooter.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
       footer.innerHTML=`
         <div style="display:flex;flex-direction:column;gap:8px;width:100%">
           <div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase">Nome do conjunto</div>
           <input id="salvar-nome-input" class="f-inp" type="text" value="${window._salvarNomeSugerido||nomeDefault}" placeholder="Ex: Mega-Sena #2800 · 10/06/2026" style="font-size:12px"/>
+          <div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-top:2px">Onde salvar</div>
+          <div style="display:flex;gap:12px;font-size:12px">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="salvo" checked onchange="_atualizarModoSalvarUI()"/> Jogo Salvo</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="vincular" onchange="_atualizarModoSalvarUI()"/> Vincular a um Bolão</label>
+          </div>
+          <select id="salvar-bolao-sel" class="f-sel" style="display:none;font-size:12px">${_optsBolaoFooter}</select>
           <div style="display:flex;gap:6px">
-            <button class="result-hdr-btn" style="flex:1;background:${d2.cor};border-color:${corMarca(d2)};color:${corTextoSobre(d2.cor)}" onclick="salvarJogos()">💾 Salvar</button>
+            <button class="result-hdr-btn" style="flex:1;background:${d2.cor};border-color:${corMarca(d2)};color:${corTextoSobre(d2.cor)}" onclick="_salvarComEscolha()">💾 Salvar</button>
             <button class="result-hdr-btn" onclick="closeModal('modal-salvar')">Fechar</button>
           </div>
         </div>`;
@@ -9908,20 +9921,50 @@ async function deletarGrupoBolao(id){
 // segundo clique em "Salvar Jogos Gerados" durante essa janela disparava
 // outra execução completa em paralelo, duplicando o mesmo conjunto de
 // jogos em "Jogos Salvos" (bug recorrente relatado pelo usuário).
+function _atualizarModoSalvarUI(){
+  var modo=(document.querySelector('input[name="salvar-modo"]:checked')||{}).value||'salvo';
+  var sel=document.getElementById('salvar-bolao-sel');
+  if(sel) sel.style.display=(modo==='vincular')?'':'none';
+}
+// Doc 2 (item 5): garante que o salvamento sempre passa pela escolha
+// explícita "Jogo Salvo" vs "Vincular a um Bolão" feita no rodapé do modal
+// — se "Vincular" estiver marcada mas nenhum bolão selecionado, bloqueia
+// (não deixa cair silenciosamente em Jogos Salvos). Reaproveita o mesmo
+// fluxo de 2 passos já existente e testado (salvarJogos() cria o registro,
+// vincularSalvoAoBolao() o vincula), sem duplicar lógica de gravação.
+async function _salvarComEscolha(){
+  var modo=(document.querySelector('input[name="salvar-modo"]:checked')||{}).value||'salvo';
+  if(modo==='vincular'){
+    var sel=document.getElementById('salvar-bolao-sel');
+    var bolaoId=sel?parseInt(sel.value)||0:0;
+    if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
+    var novoId=await salvarJogos();
+    if(novoId==null) return; // salvarJogos() já mostrou o toast do motivo (nada gerado/selecionado)
+    // salvarJogos() dispara openModalSalvar() internamente SEM aguardar
+    // (fire-and-forget) — sem este await extra, o <select> "vinc-sel-{id}"
+    // do item recém-criado pode ainda não existir no DOM no momento abaixo.
+    await openModalSalvar();
+    var selVinc=document.getElementById('vinc-sel-'+novoId);
+    if(selVinc){ selVinc.value=String(bolaoId); }
+    await vincularSalvoAoBolao(novoId);
+  } else {
+    await salvarJogos();
+  }
+}
 let _salvarJogosEmAndamento=false;
 async function salvarJogos(){
   if(_salvarJogosEmAndamento) return;
   _salvarJogosEmAndamento=true;
   try{
-    await _salvarJogosImpl();
+    return await _salvarJogosImpl();
   } finally{
     _salvarJogosEmAndamento=false;
   }
 }
 async function _salvarJogosImpl(){
-  if(!jogosGerados.length){toast('Nenhum jogo gerado.');return;}
+  if(!jogosGerados.length){toast('Nenhum jogo gerado.');return null;}
   const selIdx=getJogosSelecionados();
-  if(!selIdx.length){toast('Selecione ao menos um jogo para salvar.');return;}
+  if(!selIdx.length){toast('Selecione ao menos um jogo para salvar.');return null;}
   const jogosSel=selIdx.map(i=>jogosGerados[i]);
   // Aposta Espelho: expande cada jogo em principal + espelho (salvos separadamente)
   let jogosFinais=[];
@@ -9995,6 +10038,7 @@ async function _salvarJogosImpl(){
   window._salvarNomeSugerido=null;
   supabaseSalvar(itemSalvar);
   toast(`✓ ${jogosFinais.length} jogo${jogosFinais.length!==1?'s':''} salvo${jogosFinais.length!==1?'s':''}${temEspelho?' (principais + espelhos)':''}`);openModalSalvar();
+  return novoId;
 }
 /* Reanexa bola extra (Powerball/Mega Ball) e trevos (+Milionária) aos jogos de um conjunto salvo */
 function hidratarJogosSalvos(item){
