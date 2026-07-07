@@ -12362,7 +12362,9 @@ async function popularDropdownManualBolao(){
       opt.value=b.id;
       const nomeLot=(typeof CFG!=='undefined'&&CFG[b.loteria])?CFG[b.loteria].nome:(b.loteria||'');
       const mesmaLot=b.loteria===loteriaAlvo;
-      opt.textContent=(b.nome||'Bolão')+(mesmaLot?'':' ['+nomeLot+']')+(b.concurso?' · conc. '+b.concurso:'');
+      // Bolão virgem (b.loteria vazio — Doc 2, ainda sem jogo vinculado) não
+      // mostra colchete nenhum, em vez de "[ ]" vazio.
+      opt.textContent=(b.nome||'Bolão')+((mesmaLot||!b.loteria)?'':' ['+nomeLot+']')+(b.concurso?' · conc. '+b.concurso:'');
       dd.appendChild(opt);
     });
     if(valorAtual) dd.value=valorAtual;
@@ -16527,7 +16529,14 @@ async function _salvarBolaoImpl(){
     // criado/editado (s.loteria) — causava bolões "perdidos" (ex.: criados na
     // Lotomania, mas gravados sob outra loteria se o usuário navegasse antes
     // de salvar, ficando invisíveis na listagem da Lotomania).
-    loteria: s.loteria||currentKey||'geral',
+    // Doc 2: um bolão recém-criado (ainda sem nenhum concurso/jogo vinculado)
+    // deve nascer "virgem" — sem vínculo com loteria nenhuma. Só cai no
+    // fallback de currentKey se JÁ existirem concursos (caso legado onde
+    // s.loteria por algum motivo não foi definido, preservando o comportamento
+    // do bugfix acima); um bolão de verdade virgem fica com loteria=null até
+    // o primeiro jogo ser vinculado (ver vincularJogosAoBolao/
+    // vincularSalvoAoBolao, que definem g.loteria a partir daí).
+    loteria: s.loteria||(concursosFrescos.length?currentKey:null),
     nome: s.nome, admin: s.admin, modalidade: s.modalidade, sorteio: s.sorteio, concurso: s.concurso,
     cotas: s.cotas, premio: s.premio,
     participantes: s.participantes,
