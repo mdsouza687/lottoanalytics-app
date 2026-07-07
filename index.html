@@ -2971,6 +2971,34 @@ function _agRequerLogin(pendingAction){
    Só visível/utilizável por quem tem perfis.is_admin=true (checado no
    backend via RLS e na Edge Function admin-criar-usuario — os botões aqui
    são só conveniência de UI, a segurança de verdade está no banco). */
+// Limite máximo de jogos que o gerador aceita pedir de uma vez —
+// configurável na área administrativa (padrão: mantém o limite histórico
+// de 50.000). Guardado em localStorage para valer imediatamente em
+// qualquer geração, sem precisar recarregar a página nem recompilar nada.
+const MAX_JOGOS_GERACAO_PADRAO=50000;
+const MAX_JOGOS_GERACAO_MIN=1000;
+const MAX_JOGOS_GERACAO_MAX=50000;
+function _getMaxJogosGeracao(){
+  try{
+    const v=parseInt(localStorage.getItem('la_max_jogos_geracao'));
+    if(v&&v>=MAX_JOGOS_GERACAO_MIN&&v<=MAX_JOGOS_GERACAO_MAX) return v;
+  }catch(e){}
+  return MAX_JOGOS_GERACAO_PADRAO;
+}
+function adminSalvarMaxJogos(){
+  const el=document.getElementById('adm-max-jogos');
+  const msgEl=document.getElementById('adm-max-jogos-msg');
+  let v=parseInt(el?.value);
+  if(!v||isNaN(v)){ if(msgEl){msgEl.style.color='#f87171';msgEl.textContent='Informe um número válido.';} return; }
+  if(v<MAX_JOGOS_GERACAO_MIN||v>MAX_JOGOS_GERACAO_MAX){
+    v=Math.min(MAX_JOGOS_GERACAO_MAX,Math.max(MAX_JOGOS_GERACAO_MIN,v));
+    if(el) el.value=v;
+    if(msgEl){msgEl.style.color='#facc15';msgEl.textContent='Ajustado para o limite permitido ('+MAX_JOGOS_GERACAO_MIN.toLocaleString('pt-BR')+' a '+MAX_JOGOS_GERACAO_MAX.toLocaleString('pt-BR')+').';}
+  } else if(msgEl){ msgEl.style.color='#4ade80'; msgEl.textContent='✓ Salvo — vale a partir de agora.'; }
+  try{ localStorage.setItem('la_max_jogos_geracao', String(v)); }catch(e){}
+  const qtyEl=document.getElementById('jogo-qty');
+  if(qtyEl) qtyEl.max=v;
+}
 async function abrirPainelAdmin(){
   if(!window._usuarioAtual||!window._usuarioAtual.isAdmin){ toast('Acesso restrito ao administrador.'); return; }
   await renderPainelAdmin();
@@ -2997,6 +3025,15 @@ async function renderPainelAdmin(msg,msgTipo){
     </tr>`;
   }).join('');
   body.innerHTML=`
+    <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px">🎲 Limite de Geração de Jogos</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Quantidade máxima de jogos que o gerador permite pedir de uma vez (1.000 a 50.000). Vale imediatamente para toda geração, sem precisar recarregar a página.</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input id="adm-max-jogos" type="number" min="1000" max="50000" step="1" value="${_getMaxJogosGeracao()}" style="width:140px;padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <button class="ag-btn" onclick="adminSalvarMaxJogos()">Salvar</button>
+        <span id="adm-max-jogos-msg" style="font-size:11px;color:#4ade80"></span>
+      </div>
+    </div>
     <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ Criar usuário de teste (já confirmado, sem precisar clicar em link de e-mail)</div>
       ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
@@ -7898,7 +7935,8 @@ async function gerarJogos(tipo,modo){
     const qtyEl=document.getElementById(tipo==='fech'?'fech-qty':tipo==='bolao'?'bolao-qty':'jogo-qty');
     let qty=parseInt(qtyEl?.value)||0;
     if(qty<1){toast('Informe a quantidade de jogos.');return;}
-    if(qty>50000){qty=50000;qtyEl.value=50000;}
+    const _maxQtyGer=_getMaxJogosGeracao();
+    if(qty>_maxQtyGer){ toast('Limite máximo de '+_maxQtyGer.toLocaleString('pt-BR')+' jogos por geração (configurável no Painel de Administração).'); qty=_maxQtyGer; qtyEl.value=_maxQtyGer; }
 
     // wrapId: 'bolao' usa o mesmo 'jogo-dez-wrap' que a geração individual
     // (não existe elemento HTML próprio 'bolao-dez-wrap' — confirmado em
@@ -9152,13 +9190,24 @@ function buildPrintRow(jogo, d, sorteadas, idx, valor, fixosSet, nomeJogo, res){
   }
   return out;
 }
-function imprimirConferir(){
+async function imprimirConferir(){
+  try{
+    await _imprimirConferirImpl();
+  } finally{
+    _genProgHide();
+  }
+}
+async function _imprimirConferirImpl(){
   const d=CFG[currentKey];
   const res=resultados[currentKey];
   if(!res){toast('Carregue o resultado primeiro.');return;}
   const pad=n=>String(n).padStart(2,'0');
   const TURQUESA='#00BCD4';
   const bxc=d.bolaExtraCor||TURQUESA;
+  // Usado só para colorir diferente as bolinhas que bateram com o
+  // resultado oficial em buildPrintRow — cálculo de acertos/prêmio em si
+  // já vem de _calcPremioJogo logo abaixo (fonte única de verdade).
+  const sorteadas=new Set(res.dezenas.map(n=>parseInt(n)));
   // Lê a opção escolhida no modal (todos os jogos conferidos, ou só os
   // premiados) — antes o relatório sempre mostrava só os premiados, sem
   // dar a opção de ver a lista completa.
@@ -9166,13 +9215,22 @@ function imprimirConferir(){
   const soPremiados=filtroSel?filtroSel.value==='premiados':false;
 
   // Delega para _calcPremioJogo (fonte única de verdade — ver
-  // conferirJogosSalvos) em vez de reimplementar a lógica de faixas aqui.
-  const todos=jogosGerados.map((jogo,i)=>{
+  // conferirJogosSalvos), processando em lotes que cedem o controle ao
+  // navegador periodicamente (mesmo padrão do relatório do bolão) — com
+  // até 50.000 jogos conferidos de uma vez, calcular tudo de forma
+  // síncrona travava a aba sem nenhum sinal visível de progresso.
+  const todos=[];
+  for(let i=0;i<jogosGerados.length;i++){
+    const jogo=jogosGerados[i];
     const info=_calcPremioJogo(currentKey, jogo, res.concurso);
-    const acertos=info?info.acertos:0;
-    const valor=info?info.valor:0;
-    return{jogo,acertos,valor,idx:i};
-  }).sort((a,b)=>b.valor-a.valor||b.acertos-a.acertos);
+    todos.push({jogo,acertos:info?info.acertos:0,valor:info?info.valor:0,idx:i});
+    if(i%500===0){
+      setDot('loading','Conferindo... '+i+'/'+jogosGerados.length+' jogos');
+      _genProgShow(i,jogosGerados.length);
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }
+  todos.sort((a,b)=>b.valor-a.valor||b.acertos-a.acertos);
 
   const premiados=todos.filter(r=>r.valor>0);
   const somaTotal=premiados.reduce((a,r)=>a+r.valor,0);
@@ -9201,11 +9259,23 @@ function imprimirConferir(){
 
   if(listaImpressa.length){
     html+=`<div class="section-label">${soPremiados?'🏆 Jogos Premiados':'🎲 Jogos Conferidos'}</div>`;
-    html+=listaImpressa.map(r=>buildPrintRow(r.jogo,d,sorteadas,r.idx,r.valor,null,null,res)).join('');
+    const linhasConf=[];
+    for(let i=0;i<listaImpressa.length;i++){
+      const r=listaImpressa[i];
+      linhasConf.push(buildPrintRow(r.jogo,d,sorteadas,r.idx,r.valor,null,null,res));
+      if(i%500===0){
+        setDot('loading','Montando relatório... '+i+'/'+listaImpressa.length);
+        _genProgShow(i,listaImpressa.length);
+        await new Promise(r2=>setTimeout(r2,0));
+      }
+    }
+    html+=linhasConf.join('');
   } else {
     html+=`<div class="nenhum">${soPremiados?'Nenhum jogo premiado neste concurso.':'Nenhum jogo conferido.'}</div>`;
   }
 
+  _genProgHide();
+  setDot('ok','');
   abrirJanelaImpressao(titulo, html);
 }
 
@@ -9392,7 +9462,12 @@ async function openModalSalvar(escopo){
     const trevos=jogo._trevos&&jogo._trevos.length
       ?`<span style="font-size:10px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${cfg.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${pad(t)}</span>`).join('')}`
       :'';
-    return `<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${main}${extra}${trevos}</div>`;
+    // Mês da Sorte (Dia de Sorte) / Time do Coração (Timemania) — faltavam
+    // aqui na tela "Jogos Salvos" (mesmo padrão já usado no restante do
+    // app via mesTimeHtml), deixando a aposta exibida incompleta para
+    // essas duas modalidades.
+    const mesTime=(typeof mesTimeHtml==='function')?mesTimeHtml(jogo,cfg):'';
+    return `<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${main}${extra}${trevos}${mesTime}</div>`;
   }
   // ── Card de um conjunto salvo ──
   function cardConjunto(item){
@@ -10661,7 +10736,8 @@ async function gerarFechamento(){
   const qtyEl=document.getElementById('jogo-qty');
   let qty=parseInt(qtyEl.value);
   if(!qty||qty<1){toast('Informe a quantidade de jogos do fechamento.');return;}
-  if(qty>50000){qty=50000;qtyEl.value=50000;}
+  const _maxQtyFech=_getMaxJogosGeracao();
+  if(qty>_maxQtyFech){ toast('Limite máximo de '+_maxQtyFech.toLocaleString('pt-BR')+' jogos por geração (configurável no Painel de Administração).'); qty=_maxQtyFech; qtyEl.value=_maxQtyFech; }
   // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
   // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
   // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não gerar N pares
@@ -11849,7 +11925,8 @@ function usarJogosIA(){
       const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${trc};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${trc};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}</div></div></div></div></div>`;
+      const espMesTimeIA=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
+      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeIA}</div></div></div></div></div>`;
     }
     return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
   }).join('');
@@ -16188,6 +16265,17 @@ function confirmarImpressaoBolao(){
   imprimirBolao(soPremiados);
 }
 async function imprimirBolao(soPremiados){
+  try{
+    await _imprimirBolaoImpl(soPremiados);
+  } finally{
+    // Rede de segurança: garante que o indicador de progresso nunca fique
+    // preso na tela mesmo se algo no meio do relatório lançar um erro
+    // inesperado — sem isso, um erro no meio do processamento deixava o
+    // cartão de progresso visível para sempre, parecendo travado de novo.
+    _genProgHide();
+  }
+}
+async function _imprimirBolaoImpl(soPremiados){
   var s=_boloesState;
   if(!s.participantes.length){ toast('Adicione participantes antes de imprimir.'); return; }
   var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo';});
@@ -16640,6 +16728,11 @@ async function imprimirBolao(soPremiados){
   } else {
     jogosHtml='<div style="margin-top:18px;padding:10px;border:1px dashed #ccc;border-radius:8px;color:#999;font-size:11px;text-align:center">Nenhum jogo vinculado a este bolão. Vincule jogos pelo Gerador ou por "Inserir Jogos".</div>';
   }
+  // Encerra o indicador de progresso — todo o processamento pesado (cálculo
+  // de prêmio por jogo) já terminou neste ponto; o restante do relatório
+  // (histórico, gastos) é leve e não precisa de indicador.
+  _genProgHide();
+  setDot('ok','');
   // Histórico de Rodadas + Gastos Diários — mesma lógica e mesma fonte de
   // dados (s.concursos[]) já usada no Controle Semanal da tela, replicada
   // aqui para o relatório impresso. Sempre posicionado DEPOIS dos jogos
