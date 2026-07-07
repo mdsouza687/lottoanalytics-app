@@ -3008,11 +3008,57 @@ async function adminRodarDiagnostico(){
   el.innerHTML=[
     `<div style="color:var(--text-muted);margin-bottom:4px">${r.totalJogosSalvos} jogo(s) salvo(s) · ${r.totalBoloes} bolão(ões)</div>`,
     linha(r.orfaos.length===0, r.orfaos.length===0?'Nenhum jogo salvo órfão.':r.orfaos.length+' jogo(s) salvo(s) vinculado(s) a um bolão que não existe mais: '+r.orfaos.map(o=>'#'+o.id+' "'+_esc(o.nome)+'"').join(', ')),
-    linha(r.boloesDuplicados===0, r.boloesDuplicados===0?'Nenhum bolão duplicado.':r.boloesDuplicados+' bolão(ões) duplicado(s) — rode "Limpar Bolões Duplicados" no console ou aguarde a limpeza automática no próximo carregamento.'),
-    linha(r.jogosSalvosDuplicados===0, r.jogosSalvosDuplicados===0?'Nenhum jogo salvo duplicado.':r.jogosSalvosDuplicados+' jogo(s) salvo(s) duplicado(s).'),
+    // Duplicados NUNCA são apagados automaticamente (ver comentário no boot,
+    // linha ~12789) — só com o admin clicando aqui, vendo a lista exata do
+    // que seria removido, e confirmando.
+    linha(r.boloesDuplicados===0, r.boloesDuplicados===0?'Nenhum bolão duplicado.':r.boloesDuplicados+' bolão(ões) duplicado(s). <button class="btn-sm" onclick="adminLimparBoloesDuplicados()">Revisar e limpar</button>'),
+    linha(r.jogosSalvosDuplicados===0, r.jogosSalvosDuplicados===0?'Nenhum jogo salvo duplicado.':r.jogosSalvosDuplicados+' jogo(s) salvo(s) duplicado(s). <button class="btn-sm" onclick="adminLimparJogosSalvosDuplicados()">Revisar e limpar</button>'),
     linha(r.concursosSemVinculoId===0, r.concursosSemVinculoId===0?'Todos os concursos de bolão têm identificador único.':r.concursosSemVinculoId+' concurso(s) de bolão sem identificador único (registros antigos, anteriores a esta atualização — continuam funcionando normalmente).'),
     linha(r.jogosSalvosSemUuid===0, r.jogosSalvosSemUuid===0?'Todos os jogos salvos têm identificador único.':r.jogosSalvosSemUuid+' jogo(s) salvo(s) sem identificador único (registros antigos — continuam funcionando normalmente).'),
   ].join('');
+}
+// Wrappers que tornam a limpeza de duplicados uma ação EXPLÍCITA do admin,
+// com lista exata do que será removido antes de confirmar — nunca mais
+// automática no boot (ver comentário no carregamento do app).
+async function adminLimparBoloesDuplicados(){
+  const todos=await dbAll('boloes_v2').catch(()=>[]);
+  const grupos=new Map();
+  todos.forEach(b=>{ const k=_bolaoAssinatura(b); if(!grupos.has(k)) grupos.set(k,[]); grupos.get(k).push(b); });
+  const aRemover=[];
+  for(const grupo of grupos.values()){
+    if(grupo.length<2) continue;
+    grupo.sort((a,b)=>(a.savedAt||0)-(b.savedAt||0));
+    aRemover.push(...grupo.slice(1));
+  }
+  if(!aRemover.length){ toast('Nenhum bolão duplicado encontrado.'); return; }
+  const lista=aRemover.map(b=>'#'+b.id+' "'+(b.nome||'(sem nome)')+'"').join('\n');
+  if(!confirm('Isto vai APAGAR permanentemente '+aRemover.length+' bolão(ões) considerado(s) duplicado(s) (mantém o mais antigo de cada grupo):\n\n'+lista+'\n\nConfirma?')) return;
+  const n=await limparBoloesDuplicados();
+  toast('✓ '+n+' bolão(ões) duplicado(s) removido(s).');
+  if(typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
+  if(typeof popularDropdownManualBolao==='function') popularDropdownManualBolao();
+  adminRodarDiagnostico();
+}
+async function adminLimparJogosSalvosDuplicados(){
+  const todos=await dbAll('jogos_salvos').catch(()=>[]);
+  const grupos=new Map();
+  todos.forEach(item=>{ const k=_jogoSalvoAssinatura(item); if(!grupos.has(k)) grupos.set(k,[]); grupos.get(k).push(item); });
+  const aRemover=[];
+  for(const grupo of grupos.values()){
+    if(grupo.length<2) continue;
+    const vinculados=grupo.filter(x=>x.vinculadoBolao), soltos=grupo.filter(x=>!x.vinculadoBolao);
+    for(const sub of [vinculados,soltos]){
+      if(sub.length<2) continue;
+      sub.sort((a,b)=>(a.savedAt||0)-(b.savedAt||0));
+      aRemover.push(...sub.slice(1));
+    }
+  }
+  if(!aRemover.length){ toast('Nenhum jogo salvo duplicado encontrado.'); return; }
+  const lista=aRemover.map(j=>'#'+j.id+' "'+(j.nome||'(sem nome)')+'"').join('\n');
+  if(!confirm('Isto vai APAGAR permanentemente '+aRemover.length+' jogo(s) salvo(s) considerado(s) duplicado(s) (mantém o mais antigo de cada grupo):\n\n'+lista+'\n\nConfirma?')) return;
+  const n=await limparJogosSalvosDuplicados();
+  toast('✓ '+n+' jogo(s) salvo(s) duplicado(s) removido(s).');
+  adminRodarDiagnostico();
 }
 async function abrirPainelAdmin(){
   if(!window._usuarioAtual||!window._usuarioAtual.isAdmin){ toast('Acesso restrito ao administrador.'); return; }
@@ -12786,21 +12832,16 @@ async function _bootApp(){
   setDot('ok',`✓ Pronto — ${new Date().toLocaleTimeString('pt-BR')}`);
   // Atualiza em background
   setTimeout(()=>atualizarTodas(true), 500);
-  // Remove bolões duplicados de sessões anteriores (bug de duplo-clique já
-  // corrigido em salvarBolao) — roda uma vez, em segundo plano, sem travar
-  // o carregamento do app.
-  setTimeout(async()=>{
-    const n=await limparBoloesDuplicados();
-    if(n>0 && typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
-    if(n>0 && typeof popularDropdownManualBolao==='function') popularDropdownManualBolao();
-  }, 1500);
-  // Mesma limpeza automática, agora para "jogos_salvos" — bugs de clique
-  // duplo em salvarJogos()/salvarJogosManuais() (já corrigidos) deixaram
-  // um acúmulo de conjuntos idênticos salvos várias vezes; roda sozinho
-  // em segundo plano a cada carregamento, sem exigir nenhuma ação manual.
-  setTimeout(async()=>{
-    await limparJogosSalvosDuplicados();
-  }, 1600);
+  // IMPORTANTE (incidente de integridade de dados): limparBoloesDuplicados()
+  // e limparJogosSalvosDuplicados() NÃO rodam mais sozinhas a cada
+  // carregamento do app. Apagar dados do usuário automaticamente, sem
+  // confirmação, todo santo carregamento, é perigoso demais — um ambiente
+  // de teste/preview que compartilhe o mesmo backend (mesmo Supabase) pode
+  // disparar essas rotinas repetidamente e apagar registros legítimos que
+  // só "parecem" duplicados (mesmo nome de bolão vinculado várias vezes,
+  // por exemplo). Agora essas duas rotinas só rodam via ação explícita do
+  // usuário, com relatório e confirmação antes — ver
+  // adminRodarDiagnostico()/_diagnosticoIntegridade() no painel admin.
   // Aviso periódico de backup (após o app carregar)
   setTimeout(verificarAvisoBackup, 4000);
   // Backup automático 1x/dia: dispara sozinho (sem precisar do usuário
