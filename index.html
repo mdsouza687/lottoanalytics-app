@@ -3201,6 +3201,16 @@ function initDB(){
 const dbOp=(store,mode,fn)=>new Promise((res,rej)=>{if(!db)return rej(new Error('DB não inicializado'));try{const s=db.transaction(store,mode).objectStore(store);const req=fn(s);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e.target.error);}catch(e){rej(e);}});
 const dbGet=(s,k)=>dbOp(s,'readonly',st=>st.get(k));
 const dbAll=(s)=>dbOp(s,'readonly',st=>st.getAll());
+// Camada de repositório (auditoria, Fase 3.1) — nomes de domínio para o
+// acesso às duas stores mais tocadas do app. getBolao/getJogoSalvo usam
+// dbGet (busca direta por chave) em vez do padrão anterior, espalhado por
+// ~60 pontos do arquivo, de "dbAll da store inteira + .filter(x=>x.id===id)"
+// — que recarrega TODOS os bolões/jogos salvos do usuário só para achar 1
+// registro. Aditivas: nada muda até uma função passar a chamá-las.
+const getBolao=(id)=>dbGet('boloes_v2',id);
+const listarBoloes=()=>dbAll('boloes_v2');
+const getJogoSalvo=(id)=>dbGet('jogos_salvos',id);
+const listarJogosSalvos=()=>dbAll('jogos_salvos');
 // Grava vários registros em stores DIFERENTES dentro de UMA ÚNICA transação
 // IndexedDB — se qualquer put falhar, a transação inteira reverte (nenhuma
 // escrita parcial fica persistida). Usado pelo vincular de jogo↔bolão, que
@@ -3220,6 +3230,7 @@ const dbPutMulti=(itens)=>new Promise((res,rej)=>{
     };
     itens.forEach((it,i)=>{
       try{
+        if(SUPABASE_SYNC_STORES.includes(it.store)) it.valor._updatedAt=Date.now();
         const req=tx.objectStore(it.store).put(it.valor);
         req.onsuccess=e=>{ resultados[i]=e.target.result; };
         // Um put() individual falhando (ex.: violação de constraint) não
@@ -3328,10 +3339,19 @@ async function _supabaseSyncBidirectional(store){
   try{ const locais=await dbAll(store); for(const item of locais){ await _supabaseSyncPut(store,item); } }catch(e){}
   try{
     const remotos=await _supabaseSyncPullAll(store);
-    for(const item of remotos){ await dbOp(store,'readwrite',st=>st.put(item)); }
+    for(const item of remotos){
+      // Antes de sobrescrever, checa se o local é mais novo que o remoto
+      // (só quando os dois lados já têm o carimbo _updatedAt — registros
+      // legados sem o campo mantêm o comportamento antigo, remoto sempre
+      // vence, evitando regressão de dado pré-existente).
+      const local=await dbGet(store,item.id);
+      if(local && local._updatedAt!=null && item._updatedAt!=null && local._updatedAt>item._updatedAt) continue;
+      await dbOp(store,'readwrite',st=>st.put(item));
+    }
   }catch(e){}
 }
 const dbPut=async(s,d)=>{
+  if(SUPABASE_SYNC_STORES.includes(s)){ d._updatedAt=Date.now(); }
   const id=await dbOp(s,'readwrite',st=>st.put(d));
   if(SUPABASE_SYNC_STORES.includes(s)){ _supabaseSyncPut(s,{...d,id}); }
   return id;
@@ -4795,8 +4815,7 @@ async function resolverConcursoDoItem(item){
   if(item.concurso) return String(item.concurso);
   if(item.vinculadoBolao && item.bolaoId){
     try{
-      const boloes=await dbAll('boloes_v2');
-      const g=boloes.find(b=>b.id===item.bolaoId);
+      const g=await getBolao(item.bolaoId);
       if(g && g.concurso) return String(g.concurso);
     }catch(e){}
   }
@@ -10158,8 +10177,7 @@ async function salvarEdicaoConjunto(id){
   var novoNome=inpNome?inpNome.value.trim():'';
   if(!novoNome){ toast('O nome não pode ficar vazio.'); return; }
   try{
-    var todos=await dbAll('jogos_salvos');
-    var item=todos.filter(function(x){return x.id===id;})[0];
+    var item=await getJogoSalvo(id);
     if(!item){ toast('Conjunto não encontrado.'); return; }
     if(item.vinculadoBolao){ toast('Este conjunto está vinculado a um bolão e não pode ser renomeado.'); return; }
     item.nome=novoNome;
@@ -17405,16 +17423,16 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
   var bolaoId=bolaoIdOverride||(sel?parseInt(sel.value)||0:0);
   if(!bolaoId){ toast('Selecione um bolão para vincular.'); return; }
   try{
-    var salvos=await dbAll('jogos_salvos');
-    var item=salvos.filter(function(x){return x.id===itemId;})[0];
+    // Auditoria Fase 3.2: getJogoSalvo busca direto por chave em vez de
+    // recarregar toda a store e filtrar (mesmo padrão em toda a função).
+    var item=await getJogoSalvo(itemId);
     if(!item){ toast('Conjunto não encontrado.'); return; }
     hidratarJogosSalvos(item);
     // Garante currentKey coerente com a loteria do conjunto (para numDez/concurso)
     var loteriaItem=item.loteria;
     var jogos=(item.jogos||[]).map(function(j){ var a=j.slice(); if(j._extra!=null)a._extra=j._extra; if(j._trevos)a._trevos=j._trevos.slice(); if(j._isEspelho)a._isEspelho=true; if(j._ssCols)a._ssCols=j._ssCols; if(j._teimosinhaConcursos)a._teimosinhaConcursos=j._teimosinhaConcursos.slice(); return a; });
     if(!jogos.length){ toast('Este conjunto não tem jogos.'); return; }
-    var todosB=await dbAll('boloes_v2');
-    var g=todosB.filter(function(x){return x.id===bolaoId;})[0];
+    var g=await getBolao(bolaoId);
     if(!g){ toast('Bolão não encontrado.'); return; }
     if(!g.concursos) g.concursos=[];
     // Migrar jogos legados para concursos[] se ainda não migrado
@@ -17725,8 +17743,7 @@ async function excluirRodadaDoBolao(concursoIdxExibido){
 
   var d=CFG[s.loteria||currentKey]||CFG[currentKey];
   try{
-    var todos=await dbAll('boloes_v2');
-    var g=todos.filter(function(x){return x.id===s.editId;})[0];
+    var g=await getBolao(s.editId);
     if(!g){ toast('Bolão não encontrado no banco.'); return; }
     var idxOriginal=-1;
     for(var i=0;i<(g.concursos||[]).length;i++){
@@ -17801,8 +17818,7 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
 
   var d=CFG[s.loteria||currentKey]||CFG[currentKey];
   try{
-    var todos=await dbAll('boloes_v2');
-    var g=todos.filter(function(x){return x.id===s.editId;})[0];
+    var g=await getBolao(s.editId);
     if(!g){ toast('Bolão não encontrado no banco.'); return; }
     // Localiza o MESMO concurso no array original (não invertido) pelo número + savedAt
     var idxOriginal=-1;
@@ -18241,8 +18257,7 @@ async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
 }
 async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride){
   try{
-    var todos=await dbAll('boloes_v2');
-    var g=todos.filter(function(x){return x.id===bolaoId;})[0];
+    var g=await getBolao(bolaoId);
     if(!g){ toast('Bolão não encontrado.'); return; }
     // loteriaKey: a loteria REAL destes jogos especificamente — usa
     // loteriaOverride quando fornecido (ex.: chamada vinda do modal
