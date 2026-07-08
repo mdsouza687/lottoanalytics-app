@@ -15919,6 +15919,36 @@ function _atualizarValoresDerivadosUI(){
     elFooter.innerHTML=_gerarResumoFooterHtml(s,pagantesAtivos,d.cotasAdmin,d.nPagantes,d.valorRateioPorPart,d.valorCota);
   }
 }
+// Prêmio Estim. por participante: antes mostrava um único valor (s.premio),
+// que só fazia sentido pra bolão de 1 loteria só — um bolão Multi-Loteria
+// tem jackpot diferente por loteria vinculada. Retorna UM item por loteria
+// que ainda tem pelo menos um concurso VIGENTE (aguardando sorteio); assim
+// que TODOS os concursos vinculados de uma loteria já foram sorteados, ela
+// some da lista — a estimativa deixa de fazer sentido depois do sorteio (o
+// que importa então é o prêmio REAL apurado, já mostrado à parte no
+// relatório impresso).
+function _premiosEstimVigentesPorLoteria(s){
+  var porLot={};
+  var concursosBase=(s.concursos&&s.concursos.length)?s.concursos:(s.concurso?[{loteria:s.loteria||currentKey,num:s.concurso}]:[]);
+  concursosBase.forEach(function(cc){
+    var lk=cc.loteria||(s.loteria||currentKey);
+    if(!porLot[lk]) porLot[lk]=[];
+    var lista=(cc.teimosinhaTodos&&cc.teimosinhaTodos.length)?cc.teimosinhaTodos:[cc.num];
+    lista.forEach(function(n){ if(n!=null) porLot[lk].push(n); });
+  });
+  var out=[];
+  Object.keys(porLot).forEach(function(lk){
+    var nums=porLot[lk];
+    if(!nums.length) return;
+    var algumVigente=nums.some(function(n){ return !_concursoJaRealizado(lk,n); });
+    if(!algumVigente) return;
+    var dL=CFG[lk]||{};
+    var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
+    var premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    out.push({loteria:lk,nome:dL.nome||lk,cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,cfg:dL});
+  });
+  return out;
+}
 function renderParticipantesBoloes(){
   var box=document.getElementById('boloes-part-lista'); if(!box) return;
   var s=_boloesState;
@@ -15978,7 +16008,12 @@ function renderParticipantesBoloes(){
         return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:9px;padding:2px 6px;border-radius:999px;background:'+cc.cor+'22;color:'+corMarca(cc)+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:3px">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
       }).join('')+'</div>'
     : '<span style="color:var(--text-muted)">—</span>';
-  var premioTopoFmt=s.premio>0?_bMoney(s.premio):'—';
+  var _premiosVigentes=_premiosEstimVigentesPorLoteria(s);
+  var premioTopoFmt = _premiosVigentes.length
+    ? _premiosVigentes.map(function(pl){
+        return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+corMarca(pl)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span></div>';
+      }).join('')
+    : '<span style="color:var(--text-muted)">—</span>';
   // Coluna "Concurso(s)" removida daqui — antes cada linha repetia a MESMA
   // lista completa de concursos do bolão (não é uma informação específica
   // do participante), empilhada verticalmente e deixando as linhas muito
