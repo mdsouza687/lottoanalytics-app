@@ -13333,12 +13333,18 @@ function renderResultados(body,d,hist,freq){
     const isDupla=extraInfo&&extraInfo.tipo==='dezenas2';
     const sorteio1LblHtml=isDupla?`<span class="dt-xsep">1° SORTEIO</span>`:'';
     const sorteio2LblHtml=isDupla?`<span class="dt-xsep">2° SORTEIO</span>`:'';
-    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${sorteio2LblHtml}${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}</div>`:'';
+    // Mesma correção da grade principal (hitColorExtra) aplicada aqui — esta
+    // lista de bolinhas da coluna "#" (modo Bolas/Tudo) é um render TOTALMENTE
+    // separado da grade de matriz, com sua própria classe CSS ".b.e" presa no
+    // mesmo dourado genérico fixo (--dt-hit-extra), então precisa do mesmo
+    // ajuste de cor por loteria (d.bolaExtraCor/d.trevoCor), senão continua
+    // errado aqui mesmo com a grade já corrigida.
+    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${sorteio2LblHtml}${extraSorted.map(n=>`<div class="b e" style="background:${d.corD||d.cor}">${n}</div>`).join('')}</div>`:'';
     let ballsHtml;
     if(isDupla){
       ballsHtml=`<div class="dt-balls">${sorteio1LblHtml}${ball1InlineHtml}</div>`+ball2RowHtml;
     } else {
-      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e">${n}</div>`).join('')}`:''}</div>`;
+      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e" style="background:${hitColorExtra()}">${n}</div>`).join('')}`:''}</div>`;
     }
     if(view.info===0){
       infoHtml=isDupla
@@ -16655,7 +16661,13 @@ async function editarBolao(id){
     g.concursos=_concursos;
     try{ await dbPut('boloes_v2', g); }catch(eClean){ console.warn('[editarBolao] limpeza:',eClean.message); }
   }
-  var _todosJogos=_concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]); 
+  // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
+  // paralelos de cada concurso ANTES de espalhar esses jogos pelo resto do
+  // estado do bolão (_boloesState) — ponto central usado por várias telas
+  // (participantes, jogos do bolão, impressão, conferência); ver
+  // _hidratarConcursoJogos para o motivo dessas propriedades sumirem.
+  _concursos.forEach(_hidratarConcursoJogos);
+  var _todosJogos=_concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]);
   _boloesState={ nome:g.nome, admin:Object.assign({pixTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0},g.admin), modalidade:g.modalidade, cotas:g.cotas, premio:g.premio||0, sorteio:g.sorteio||'normal', concurso:g.concurso||'', participantes:g.participantes, editId:g.id,
     loteria:g.loteria||currentKey, numDezBolao:g.numDez||0,
     jogosVinculados:_todosJogos, concursos:_concursos,
@@ -16748,6 +16760,12 @@ async function _imprimirBolaoImpl(soPremiados){
   // loteria (resultados[loteria]), não um prêmio único genérico do bolão.
   var porLoteriaImp={};
   (gImp&&gImp.concursos||[]).forEach(function(cc){
+    // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos
+    // arrays paralelos do concurso — sem isso, jogos de Dia de
+    // Sorte/Timemania/+Milionária/Powerball/Mega Millions/Super Sete
+    // vinculados a um bolão perdiam essa informação no relatório impresso
+    // (ver comentário completo em _hidratarConcursoJogos).
+    _hidratarConcursoJogos(cc);
     var lk=cc.loteria||(s.loteria||currentKey);
     if(!porLoteriaImp[lk]) porLoteriaImp[lk]={loteria:lk,concursos:[],jogos:[],custo:0};
     // Cada item de "concursos" agora é {num, teimosinhaTodos}: para uma
@@ -17447,10 +17465,10 @@ async function _vincularSalvoAoBolaoImpl(itemId){
         // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
         // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
         // continua existindo só para ordenação cronológica.
-        g.concursos.push({num:numT,data:idxT===0?_dataSorteioS:'',jogos:_clonarJogosComExtras(jogos),custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now()+idxT,loteria:loteriaItem,teimosinhaOrigem:_teimosinhaListaS[0],vinculoId:_novoId()});
+        g.concursos.push(Object.assign({num:numT,data:idxT===0?_dataSorteioS:'',jogos:_clonarJogosComExtras(jogos),custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now()+idxT,loteria:loteriaItem,teimosinhaOrigem:_teimosinhaListaS[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
       });
     } else {
-      g.concursos.push({num:_novoNumS,data:_dataSorteioS,jogos:jogos,custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now(),loteria:loteriaItem,vinculoId:_novoId()});
+      g.concursos.push(Object.assign({num:_novoNumS,data:_dataSorteioS,jogos:jogos,custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now(),loteria:loteriaItem,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
     }
     g.jogos=jogos; // backward compat — aponta para jogos do último concurso
     g.concurso=_novoNumS;
@@ -17870,6 +17888,13 @@ async function verJogosVinculados(){
     }catch(eL){ console.warn('[verJogosVinculados] limpeza:',eL.message); }
   }
   var concursos=(s.concursos||[]).slice().reverse(); // mais recente primeiro
+  // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
+  // paralelos de cada concurso (ver _hidratarConcursoJogos) — sem isso,
+  // este modal mostrava jogos de Dia de Sorte/Timemania/+Milionária/
+  // Powerball/Mega Millions/Super Sete sem o Mês/Time/Bola extra/Trevos/
+  // Colunas, porque essas propriedades não sobrevivem à sincronização
+  // com o Supabase (só arrays paralelos de verdade sobrevivem).
+  concursos.forEach(_hidratarConcursoJogos);
   // Item 2 do documento de correções: a identidade visual deste modal segue
   // a cor exclusiva do Multi-Loteria, já que o bolão pode reunir várias
   // loterias — cada jogo individual ainda usa sua própria cor de origem
@@ -18046,6 +18071,49 @@ function _confirmarDuplicadosOuFiltrar(g, jogosNovos, loteriaKey){
 // NÃO preserva essas propriedades customizadas (só copia os índices numéricos)
 // — por isso os Trevos da +Milionária e a Bola Extra das loterias americanas
 // se perdiam ao vincular jogos a um bolão (item 8/9 do documento de upgrade).
+// Mês da Sorte / Time do Coração / Powerball-Mega Ball / Trevos / Super
+// Sete / Teimosinha são guardados como PROPRIEDADES extras no array de
+// cada jogo (jogo._mes, jogo._time, etc.) — isso sobrevive normalmente
+// no IndexedDB local (structured clone preserva propriedades extras em
+// arrays), mas é APAGADO sempre que esse jogo passa pela sincronização
+// com o Supabase, porque JSON.stringify() só serializa os índices
+// numéricos de um array, descartando qualquer propriedade nomeada. Como
+// TODO jogo de bolão (g.concursos[].jogos) passa por essa sincronização,
+// o Mês/Time/Bola-extra sumia permanentemente do relatório e da tela
+// assim que o bolão sincronizava — bug relatado repetidamente. A correção
+// definitiva é NUNCA depender de propriedades de array sobreviverem à
+// serialização: cada concurso agora também guarda esses valores em
+// arrays PARALELOS de verdade (mesmo padrão já usado em "jogos_salvos" —
+// ver item.mes/item.extras/item.trevos em salvarJogos()), e
+// _hidratarConcursoJogos() reconstrói jogo._mes etc a partir deles toda
+// vez que os jogos de um concurso são lidos para exibição.
+function _extrasArraysDeJogos(jogos){
+  return {
+    mesArr:(jogos||[]).map(function(j){return j&&j._mes!=null?j._mes:null;}),
+    timeArr:(jogos||[]).map(function(j){return j&&j._time!=null?j._time:null;}),
+    extraArr:(jogos||[]).map(function(j){return j&&j._extra!=null?j._extra:null;}),
+    trevosArr:(jogos||[]).map(function(j){return j&&Array.isArray(j._trevos)?j._trevos.slice():null;}),
+    ssColsArr:(jogos||[]).map(function(j){return j&&Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null;}),
+  };
+}
+// Reanexa jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
+// paralelos do concurso (c.mesArr etc.) — idempotente e seguro chamar
+// várias vezes; não faz nada se o concurso não tiver os arrays paralelos
+// (registros antigos, gravados antes desta correção — nesse caso a
+// informação já foi perdida e não há como recuperar sem o espelho em
+// jogos_salvos, se ainda existir).
+function _hidratarConcursoJogos(c){
+  if(!c||!Array.isArray(c.jogos)) return c;
+  c.jogos.forEach(function(j,i){
+    if(!Array.isArray(j)) return;
+    if(j._mes===undefined && c.mesArr && c.mesArr[i]!=null) j._mes=c.mesArr[i];
+    if(j._time===undefined && c.timeArr && c.timeArr[i]!=null) j._time=c.timeArr[i];
+    if(j._extra===undefined && c.extraArr && c.extraArr[i]!=null) j._extra=c.extraArr[i];
+    if(j._trevos===undefined && c.trevosArr && c.trevosArr[i]) j._trevos=c.trevosArr[i].slice();
+    if(j._ssCols===undefined && c.ssColsArr && c.ssColsArr[i]) j._ssCols=c.ssColsArr[i].map(function(col){return col.slice();});
+  });
+  return c;
+}
 function _clonarJogosComExtras(jogos){
   return (jogos||[]).map(function(j){
     var a=Array.isArray(j)?j.slice():j;
@@ -18151,10 +18219,10 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
         // compartilhados entre as entradas).
         // vinculoId: UUID real por concurso (Doc 2, item 1) — ver mesma
         // explicação em _vincularSalvoAoBolaoImpl.
-        g.concursos.push({num:numT,data:idxT===0?_dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now()+idxT,loteria:loteriaKey,teimosinhaOrigem:_teimosinhaListaG[0],vinculoId:_novoId()});
+        g.concursos.push(Object.assign({num:numT,data:idxT===0?_dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now()+idxT,loteria:loteriaKey,teimosinhaOrigem:_teimosinhaListaG[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
       });
     } else {
-      g.concursos.push({num:_novoNum,data:_dataSorteio,jogos:jogos,custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now(),loteria:loteriaKey,vinculoId:_novoId()});
+      g.concursos.push(Object.assign({num:_novoNum,data:_dataSorteio,jogos:jogos,custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now(),loteria:loteriaKey,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
     }
     g.jogos=jogos; // backward compat
     g.concurso=_novoNum;
