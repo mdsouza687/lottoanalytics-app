@@ -16804,6 +16804,16 @@ async function _imprimirBolaoImpl(soPremiados){
     });
     return {total:total,qtdPremiados:qtdPremiados,algumConferido:algumConferido};
   }
+  // Força um refresh de cada loteria vinculada ANTES de ler resultados[lk]
+  // abaixo — sem isso, "Prêmio estimado" ficava preso ao que já estava em
+  // cache antes do último sorteio (ex.: concurso 3028 já finalizado, mas a
+  // estimativa exibida continuava sendo o jackpot de 3028 em vez do de
+  // 3029, o concurso seguinte/vigente, porque nada tinha forçado a
+  // atualização — a existência de um concurso já sorteado no grupo não
+  // implicava que o cache de resultados[lk] tivesse avançado sozinho).
+  if(typeof atualizarLoteria==='function'){
+    await Promise.all(Object.keys(porLoteriaImp).map(function(lk){ return atualizarLoteria(lk).catch(function(){}); }));
+  }
   var loteriasImp=Object.keys(porLoteriaImp).map(function(lk){
     var dL=CFG[lk]||{};
     var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
