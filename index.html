@@ -3008,8 +3008,17 @@ function adminSalvarMaxJogos(){
     if(msgEl){msgEl.style.color='#facc15';msgEl.textContent='Ajustado para o limite permitido ('+MAX_JOGOS_GERACAO_MIN.toLocaleString('pt-BR')+' a '+MAX_JOGOS_GERACAO_MAX.toLocaleString('pt-BR')+').';}
   } else if(msgEl){ msgEl.style.color='#4ade80'; msgEl.textContent='✓ Salvo — vale a partir de agora.'; }
   try{ localStorage.setItem('la_max_jogos_geracao', String(v)); }catch(e){}
+  _aplicarMaxJogosGeracaoNaUI();
+}
+// Aplica o limite atual (localStorage, via _getMaxJogosGeracao) no campo
+// "Qtd. de jogos" — tanto o atributo max (validação do navegador) quanto o
+// placeholder (o texto "máx N" visível quando o campo está vazio), que
+// antes ficava sempre travado no "máx 50000" do HTML estático, mesmo após
+// salvar um novo limite no admin ou recarregar a página.
+function _aplicarMaxJogosGeracaoNaUI(){
+  const v=_getMaxJogosGeracao();
   const qtyEl=document.getElementById('jogo-qty');
-  if(qtyEl) qtyEl.max=v;
+  if(qtyEl){ qtyEl.max=v; qtyEl.placeholder='máx '+v.toLocaleString('pt-BR'); }
 }
 async function adminRodarDiagnostico(){
   const el=document.getElementById('adm-diagnostico-resultado');
@@ -12802,6 +12811,7 @@ async function _removerDuplicatasJogosSalvos(){
 }
 async function _bootApp(){
   buildDash();
+  _aplicarMaxJogosGeracaoNaUI();
   // Abre o banco ANTES de iniciar a home — garante que laCarregarHistCache()
   // encontre o IndexedDB aberto e carregue os dados reais desde o primeiro render.
   try{ await initDB(); }catch(e){ console.warn('IndexedDB indisponível:', e.message); }
@@ -13253,6 +13263,19 @@ function renderResultados(body,d,hist,freq){
     if(pct>0.25) return temColorAcc('#00c97a');
     return temColorAcc('#4A9BE0');
   }
+  // Coluna extra (Powerball/Mega Ball/Trevos/2º sorteio da Dupla Sena):
+  // a marcação sempre usava a cor fixa --dt-hit-extra (um dourado genérico)
+  // pra QUALQUER loteria, ignorando a identidade visual própria de cada
+  // uma (a mesma usada no card Previsão) — Doc 1 pede consistência de cor
+  // em todo o app, então aqui passa a usar exatamente a mesma cor que
+  // Previsão usa pra essa bola (d.bolaExtraCor / d.trevoCor conforme o
+  // tipo do campo extra desta loteria).
+  function hitColorExtra(){
+    if(!extraInfo) return 'var(--dt-hit-extra)';
+    if(extraInfo.tipo==='trevos') return d.trevoCor||'var(--dt-hit-extra)';
+    if(extraInfo.tipo==='dezenas2') return d.cor||'var(--dt-hit-extra)';
+    return d.bolaExtraCor||'var(--dt-hit-extra)';
+  }
 
   // ── Cabeçalho de colunas: números principais 1..universe (a partir de d.start) ──
   const mainCols=[]; for(let i=d.start;i<d.start+d.universe;i++) mainCols.push(i);
@@ -13338,7 +13361,7 @@ function renderResultados(body,d,hist,freq){
       extraTds='<td class="dt-sep"></td>'+extraCols.map(n=>{
         const hit=extraVals.includes(n);
         const val=view.mode==='posicoes'?(hit?extraPosMap[n]:''):n;
-        return `<td><div class="fc2${hit?' he':''}">${hit?val:n}</div></td>`;
+        return `<td><div class="fc2${hit?' he':''}"${hit?` style="background:${hitColorExtra()}"`:''}>${hit?val:n}</div></td>`;
       }).join('');
     }
 
