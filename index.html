@@ -14631,6 +14631,14 @@ function _concursoJaRealizado(loteriaKey,concursoNum){
   if(!c1||!c2) return false;
   if(c1<c2) return true;
   if(c1>c2) return false;
+  // c1===c2: o concurso do bolão é EXATAMENTE o último resultado conhecido
+  // pelo app. Se esse resultado já tem as dezenas sorteadas preenchidas, o
+  // sorteio JÁ ACONTECEU de verdade — não importa se ainda é "hoje" ou não.
+  // Antes disso exigia "hoje > data do sorteio" (um dia inteiro depois),
+  // então um concurso sorteado hoje de manhã continuava marcado como
+  // "vigente" o dia inteiro, mesmo com o resultado oficial já disponível e
+  // conferido no app.
+  if(res.dezenas&&res.dezenas.length) return true;
   var dataSorteio=_parseDataBR(res.data);
   if(!dataSorteio) return true;
   var hoje=new Date(); hoje.setHours(0,0,0,0);
