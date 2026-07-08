@@ -3211,14 +3211,31 @@ const dbPutMulti=(itens)=>new Promise((res,rej)=>{
     const stores=[...new Set(itens.map(it=>it.store))];
     const tx=db.transaction(stores,'readwrite');
     const resultados=[];
-    tx.onerror=e=>rej(e.target.error);
+    let abortando=false;
+    tx.onerror=e=>{ e.preventDefault&&e.preventDefault(); };
+    tx.onabort=()=>rej(tx.error||new Error('Transação abortada'));
     tx.oncomplete=()=>{
       itens.forEach((it,i)=>{ if(SUPABASE_SYNC_STORES.includes(it.store)) _supabaseSyncPut(it.store,{...it.valor,id:resultados[i]}); });
       res(resultados);
     };
     itens.forEach((it,i)=>{
-      const req=tx.objectStore(it.store).put(it.valor);
-      req.onsuccess=e=>{ resultados[i]=e.target.result; };
+      try{
+        const req=tx.objectStore(it.store).put(it.valor);
+        req.onsuccess=e=>{ resultados[i]=e.target.result; };
+        // Um put() individual falhando (ex.: violação de constraint) não
+        // aborta a transação sozinho no IndexedDB — sem isso, os OUTROS
+        // puts já enfileirados continuariam e seriam persistidos parcial
+        // e silenciosamente, quebrando a garantia de atomicidade que esta
+        // função promete (auditoria, achado durante a Fase 2.2).
+        req.onerror=e=>{ e.preventDefault&&e.preventDefault(); if(!abortando){ abortando=true; try{ tx.abort(); }catch(_){} } };
+      }catch(putErr){
+        // put() pode lançar de forma SÍNCRONA (ex.: DataCloneError, valor
+        // não serializável) — sem abortar aqui, os puts anteriores deste
+        // mesmo forEach já enfileirados na transação seriam persistidos
+        // mesmo assim, e só este item específico falharia.
+        if(!abortando){ abortando=true; try{ tx.abort(); }catch(_){} }
+        rej(putErr);
+      }
     });
   }catch(e){ rej(e); }
 });
@@ -17468,26 +17485,10 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // Teimosinha: se os jogos deste conjunto têm uma lista de concursos
     // consecutivos (jogo._teimosinhaConcursos, vinda da seleção feita ao
     // gerar/salvar), CADA concurso vira sua PRÓPRIA entrada em g.concursos[]
-    // — aposta separada por sorteio, com custo e status independentes (ver
-    // explicação completa em vincularJogosAoBolao).
-    var _teimosinhaListaS=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
-    if(_teimosinhaListaS&&_teimosinhaListaS.length>1){
-      _teimosinhaListaS.forEach(function(numT,idxT){
-        // _clonarJogosComExtras() — cada concurso precisa de sua PRÓPRIA cópia
-        // PROFUNDA (array externo E cada jogo individual, com _extra/_trevos/
-        // etc.), não só jogos.slice() (que só copia o array externo — os
-        // jogos internos continuariam sendo os MESMOS objetos, então marcar
-        // jogo._concursoOrigem no relatório de um concurso sobrescreveria o
-        // dos outros concursos da sequência, e excluir um jogo removeria dos
-        // demais também).
-        // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
-        // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
-        // continua existindo só para ordenação cronológica.
-        g.concursos.push(Object.assign({num:numT,data:idxT===0?_dataSorteioS:'',jogos:_clonarJogosComExtras(jogos),custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now()+idxT,loteria:loteriaItem,teimosinhaOrigem:_teimosinhaListaS[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
-      });
-    } else {
-      g.concursos.push(Object.assign({num:_novoNumS,data:_dataSorteioS,jogos:jogos,custo:_custoS,status:'Aguardando',semana:_semLabelS,savedAt:Date.now(),loteria:loteriaItem,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
-    }
+    // — aposta separada por sorteio, com custo e status independentes.
+    // Auditoria Fase 2.1: bloco extraído para _pushConcursoEntry (era
+    // duplicado idêntico aqui e em vincularJogosAoBolao).
+    _pushConcursoEntry(g, jogos, {loteria:loteriaItem, custo:_custoS, semana:_semLabelS, dataSorteio:_dataSorteioS, num:_novoNumS});
     g.jogos=jogos; // backward compat — aponta para jogos do último concurso
     g.concurso=_novoNumS;
     g.numDez=item.numDez||(jogos[0]&&jogos[0].length)||0;
@@ -18146,6 +18147,33 @@ function _extrasArraysDeJogos(jogos){
     ssColsArr:(jogos||[]).map(function(j){return j&&Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null;}),
   };
 }
+// Insere 1 concurso no bolão — ou N, um por concurso da sequência, se o
+// jogo tiver Teimosinha (jogo._teimosinhaConcursos com 2+ itens). Extraído
+// da auditoria (Fase 2.1): esse bloco era duplicado, campo a campo,
+// idêntico em _vincularSalvoAoBolaoImpl e _vincularJogosAoBolaoImpl — só
+// as variáveis capturadas no fechamento mudavam de nome (_dataSorteioS vs
+// _dataSorteio etc.). Agora é uma função só, chamada pelos dois.
+function _pushConcursoEntry(g, jogos, opts){
+  var loteria=opts.loteria, custo=opts.custo, semana=opts.semana, dataSorteio=opts.dataSorteio, num=opts.num;
+  var teimosinhaLista=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
+  if(teimosinhaLista&&teimosinhaLista.length>1){
+    teimosinhaLista.forEach(function(numT,idxT){
+      // _clonarJogosComExtras() — cada concurso precisa de sua PRÓPRIA cópia
+      // PROFUNDA (array externo E cada jogo individual, com _extra/_trevos/
+      // etc.), não só jogos.slice() (que só copia o array externo — os
+      // jogos internos continuariam sendo os MESMOS objetos, então marcar
+      // jogo._concursoOrigem no relatório de um concurso sobrescreveria o
+      // dos outros concursos da sequência, e excluir um jogo removeria dos
+      // demais também).
+      // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
+      // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
+      // continua existindo só para ordenação cronológica.
+      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
+    });
+  } else {
+    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
+  }
+}
 // Reanexa jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
 // paralelos do concurso (c.mesArr etc.) — idempotente e seguro chamar
 // várias vezes; não faz nada se o concurso não tiver os arrays paralelos
@@ -18259,25 +18287,9 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // Teimosinha: CADA concurso da sequência (jogo._teimosinhaConcursos) vira
     // sua PRÓPRIA entrada em g.concursos[], com custo e status independentes
     // — é uma aposta separada por sorteio, não uma única aposta "estendida".
-    // Isso permite controle individual (status Aguardando/Finalizado por
-    // concurso), cálculo correto do custo total (N concursos = N custos) e
-    // relatórios/conferência corretos por concurso. Sem Teimosinha, cria a
-    // única entrada de sempre.
-    var _teimosinhaListaG=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
-    if(_teimosinhaListaG&&_teimosinhaListaG.length>1){
-      _teimosinhaListaG.forEach(function(numT,idxT){
-        // _clonarJogosComExtras() — cópia PROFUNDA própria por concurso (ver
-        // comentário em vincularSalvoAoBolao); senão excluir um jogo de um
-        // concurso removeria dos demais, e jogo._concursoOrigem de um
-        // concurso sobrescreveria o dos outros (mesmos objetos de jogo
-        // compartilhados entre as entradas).
-        // vinculoId: UUID real por concurso (Doc 2, item 1) — ver mesma
-        // explicação em _vincularSalvoAoBolaoImpl.
-        g.concursos.push(Object.assign({num:numT,data:idxT===0?_dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now()+idxT,loteria:loteriaKey,teimosinhaOrigem:_teimosinhaListaG[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
-      });
-    } else {
-      g.concursos.push(Object.assign({num:_novoNum,data:_dataSorteio,jogos:jogos,custo:_custoG,status:'Aguardando',semana:_semLabel,savedAt:Date.now(),loteria:loteriaKey,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
-    }
+    // Auditoria Fase 2.1: bloco extraído para _pushConcursoEntry (era
+    // duplicado idêntico aqui e em vincularSalvoAoBolao).
+    _pushConcursoEntry(g, jogos, {loteria:loteriaKey, custo:_custoG, semana:_semLabel, dataSorteio:_dataSorteio, num:_novoNum});
     g.jogos=jogos; // backward compat
     g.concurso=_novoNum;
     g.numDez=getDezWrap(wrapId, d?d.min:6);
@@ -18357,8 +18369,6 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       g.arrecadacaoTotal=g.arrecadacaoTotal||_boloesState.arrecadacaoTotal||0;
     }
     g.jogosSavedAt=Date.now();
-    await dbPut('boloes_v2', g);
-    _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
     // Também salva/atualiza o conjunto em "Jogos Salvos" com o NOME DO BOLÃO
     try{
       var nomeBolao='Bolão: '+(g.nome||'(sem nome)');
@@ -18392,8 +18402,14 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
         times: jogos.map(function(j){return j._time!=null?j._time:null;}),
         espelhoFlags: jogos.map(function(j){return j._isEspelho?1:0;})
       };
-      await dbPut('jogos_salvos', itemBolao);
-    }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); }
+      // Auditoria Fase 2.2: bolão + espelho gravados numa ÚNICA transação
+      // (dbPutMulti) — antes eram dois dbPut separados; se o segundo
+      // falhasse, o bolão já ficava com o concurso novo mas sem o espelho
+      // correspondente em Jogos Salvos, um estado inconsistente e
+      // silencioso. Mesmo padrão que vincularSalvoAoBolao já usa.
+      await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:itemBolao}]);
+      _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
+    }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
     await popularDropdownsVinculo();
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
     if(_boloesState && _boloesState.editId===bolaoId){
