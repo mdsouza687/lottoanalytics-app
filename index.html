@@ -2700,6 +2700,11 @@ const CFG = {
   powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26},
   megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#FFB800',corD:'#cc9200',orb:[255,184,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25},
 };
+// Cor dourada de destaque usada em toda a UI para "especial/premiado"
+// (ex.: Mega da Virada, análise de concursos especiais) — mesma cor da
+// Dia de Sorte (auditoria Fase 5.2: antes repetida como literal '#C8A800'
+// em ~17 lugares, dessincronizada de CFG.diasorte.cor se a marca mudasse).
+const COR_OURO=CFG.diasorte.cor;
 
 /* ════ IDs DE CONCURSOS ESPECIAIS ════ */
 const CONCURSOS_ESPECIAIS = {
@@ -4901,7 +4906,7 @@ function abrirRelatorioAtualizacao(relatorio,ok,erros,duracao){
   relatorio.forEach(r=>{
     if(r.ok){
       const status=r.acumulou?`<span style="color:#F08020;font-weight:700">Acumulou</span>`:`<span style="color:#3A9B4E;font-weight:700">${r.ganhadores} ganh.</span>`;
-      html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-flex">${iconLoteria(CFG[r.key],16)}</span><div><div style="font-size:12px;font-weight:700;color:#fff">${r.nome}</div><div style="font-size:10px;color:var(--text-dim)">Concurso ${r.concurso} · ${r.data}${r.special?` · <span style="color:#C8A800">${r.special}</span>`:''}</div></div></div><div style="text-align:right">${status}</div></div>`;
+      html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-flex">${iconLoteria(CFG[r.key],16)}</span><div><div style="font-size:12px;font-weight:700;color:#fff">${r.nome}</div><div style="font-size:10px;color:var(--text-dim)">Concurso ${r.concurso} · ${r.data}${r.special?` · <span style="color:${COR_OURO}">${r.special}</span>`:''}</div></div></div><div style="text-align:right">${status}</div></div>`;
     } else {
       html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(155,36,72,.08);border:1px solid rgba(155,36,72,.3);border-radius:var(--radius-sm);margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-flex">${iconLoteria(CFG[r.key],16)}</span><div><div style="font-size:12px;font-weight:700;color:#fff">${r.nome}</div><div style="font-size:10px;color:var(--text-dim)">${r.erro||'Erro de conexão'}</div></div></div><span style="font-size:11px;color:#9B2448;font-weight:700">✗ Falha</span></div>`;
     }
@@ -4983,7 +4988,7 @@ function setDot(s,t){
    base num tom, laterais no tom claro). */
 function trevoSVG(d, tamanho){
   tamanho = tamanho||28;
-  const corA = (d&&d.cor)||'#00AB67';
+  const corA = (d&&d.cor)||CFG.megasena.cor;
   const corB = (d&&d.corClara)||corA;
   const petala = 'M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
   return `<svg viewBox="0 0 64 64" width="${tamanho}" height="${tamanho}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)"><path d="${petala}" fill="${corA}"/><path d="${petala}" fill="${corB}" transform="rotate(90)"/><path d="${petala}" fill="${corA}" transform="rotate(180)"/><path d="${petala}" fill="${corB}" transform="rotate(270)"/></g></svg>`;
@@ -4995,7 +5000,7 @@ function trevoSVG(d, tamanho){
 // Timemania, cujo amarelo oficial ficaria invisível sobre amarelo.
 function trevoSVGSobreFundo(d, tamanho){
   tamanho = tamanho||28;
-  const base = corTextoSobre((d&&d.cor)||'#00AB67');
+  const base = corTextoSobre((d&&d.cor)||CFG.megasena.cor);
   const corA = base, corB = base==='#fff'?'rgba(255,255,255,.55)':'rgba(0,0,0,.45)';
   const petala = 'M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
   return `<svg viewBox="0 0 64 64" width="${tamanho}" height="${tamanho}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)"><path d="${petala}" fill="${corA}"/><path d="${petala}" fill="${corB}" transform="rotate(90)"/><path d="${petala}" fill="${corA}" transform="rotate(180)"/><path d="${petala}" fill="${corB}" transform="rotate(270)"/></g></svg>`;
@@ -5707,10 +5712,10 @@ async function abrirEspecialIndependente(key){
   const historico = await garantirHistorico(key, 3000, true);
   const est = calcEstatisticas(historico);
   if(!est || !historico.length){
-    document.getElementById('body-estatisticas').innerHTML = `<div style="text-align:center;padding:32px"><div style="font-size:32px;margin-bottom:10px">⭐</div><div style="font-size:14px;font-weight:800;color:#C8A800;margin-bottom:8px">${d.specialLabel}</div><div style="font-size:12px;color:var(--text-dim)">Histórico dos concursos especiais ainda não identificado.</div></div>`;
+    document.getElementById('body-estatisticas').innerHTML = `<div style="text-align:center;padding:32px"><div style="font-size:32px;margin-bottom:10px">⭐</div><div style="font-size:14px;font-weight:800;color:${COR_OURO};margin-bottom:8px">${d.specialLabel}</div><div style="font-size:12px;color:var(--text-dim)">Histórico dos concursos especiais ainda não identificado.</div></div>`;
     return;
   }
-  const G = '#C8A800';
+  const G = COR_OURO;
   const pad = n => String(n).padStart(2,'0');
   const sorted = Object.entries(est.freq).sort((a,b)=>b[1]-a[1]);
   const total = sorted.length;
@@ -5719,10 +5724,10 @@ async function abrirEspecialIndependente(key){
   const limF = Math.ceil(total * 0.67);
   let html = `<div style="background:rgba(200,168,0,.1);border:1px solid rgba(200,168,0,.3);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:14px;text-align:center"><div style="font-size:14px;font-weight:800;color:${G}">${d.specialLabel}</div><div style="font-size:11px;color:var(--text-dim);margin-top:3px">${est.n} concurso${est.n!==1?'s':''} · ${d.nome}</div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px">${[{l:'Pares/jogo',v:est.avgPares,icon:'⚖'},{l:'Ímpares/jogo',v:est.avgImpares,icon:'🔢'},{l:'Soma média',v:est.avgSoma,icon:'∑'},{l:'Mín / Máx',v:`${est.minSoma} / ${est.maxSoma}`,icon:'📈'}].map(i=>`<div style="padding:9px 6px;background:rgba(200,168,0,.08);border:1px solid rgba(200,168,0,.2);border-radius:var(--radius-md);text-align:center"><div style="font-size:13px;margin-bottom:2px">${i.icon}</div><div style="font-size:14px;font-weight:900;color:${G}">${i.v}</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">${i.l}</div></div>`).join('')}</div>`;
   html += `<div style="font-size:10px;font-weight:700;color:${G};letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">🔢 Frequência dos Números</div>`;
-  const grupos = [{label:'🔥 Quentes', cor:'#F08020', bg:'rgba(240,128,32,.1)', border:'rgba(240,128,32,.3)', itens: sorted.slice(0, limQ)},{label:'🌡 Médios', cor:'#C8A800', bg:'rgba(200,168,0,.08)', border:'rgba(200,168,0,.25)', itens: sorted.slice(limQ, limF)},{label:'❄ Frios', cor:'#4A9BE0', bg:'rgba(74,155,224,.08)', border:'rgba(74,155,224,.3)', itens: sorted.slice(limF)}];
+  const grupos = [{label:'🔥 Quentes', cor:'#F08020', bg:'rgba(240,128,32,.1)', border:'rgba(240,128,32,.3)', itens: sorted.slice(0, limQ)},{label:'🌡 Médios', cor:COR_OURO, bg:'rgba(200,168,0,.08)', border:'rgba(200,168,0,.25)', itens: sorted.slice(limQ, limF)},{label:'❄ Frios', cor:'#4A9BE0', bg:'rgba(74,155,224,.08)', border:'rgba(74,155,224,.3)', itens: sorted.slice(limF)}];
   grupos.forEach(({label,cor,bg,border,itens})=>{ if(!itens.length) return;
     html += `<div style="background:${bg};border:1px solid ${border};border-radius:var(--radius-md);padding:8px 10px;margin-bottom:10px"><div style="font-size:11px;font-weight:800;color:${cor};margin-bottom:7px">${label}</div><div style="overflow-x:auto"><table class="stat-table" style="min-width:340px"><thead><tr><th style="text-align:center">Nº</th><th>Saídas</th><th>%</th><th>Rank</th><th style="width:26%">Dist.</th></tr></thead><tbody>`;
-    itens.forEach(([num,f],idx)=>{ const pct = ((f/est.n)*100).toFixed(2); const rankGlobal = sorted.findIndex(([n])=>n===num)+1; html += `<tr><td style="text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${cor};color:${cor==='#C8A800'?'#000':'#fff'};font-weight:800;font-size:10px">${pad(parseInt(num))}</span></td><td style="font-weight:700">${f}×</td><td style="color:${cor};font-weight:700">${pct}%</td><td style="color:var(--text-dim)">${rankGlobal}°</td><td><div class="stat-bar"><div class="stat-bar-fill" style="width:${(f/maxF*100).toFixed(1)}%;background:${cor}"></div></div></td></tr>`; });
+    itens.forEach(([num,f],idx)=>{ const pct = ((f/est.n)*100).toFixed(2); const rankGlobal = sorted.findIndex(([n])=>n===num)+1; html += `<tr><td style="text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${cor};color:${cor===COR_OURO?'#000':'#fff'};font-weight:800;font-size:10px">${pad(parseInt(num))}</span></td><td style="font-weight:700">${f}×</td><td style="color:${cor};font-weight:700">${pct}%</td><td style="color:var(--text-dim)">${rankGlobal}°</td><td><div class="stat-bar"><div class="stat-bar-fill" style="width:${(f/maxF*100).toFixed(1)}%;background:${cor}"></div></div></td></tr>`; });
     html += `</tbody></table></div></div>`;
   });
   document.getElementById('body-estatisticas').innerHTML = html;
@@ -8736,7 +8741,7 @@ async function conferirTodos(){
   let html=`<div class="conf-summary">
     <div class="conf-stats-row">
       <div class="conf-stat"><div class="conf-stat-val" style="color:${corMarca(d)}">${fmtPremio(somaTotal)}</div><div class="conf-stat-lbl">Total ganho</div></div>
-      <div class="conf-stat"><div class="conf-stat-val" style="color:#C8A800">${premiados.length}</div><div class="conf-stat-lbl">Premiado${premiados.length!==1?'s':''}</div></div>
+      <div class="conf-stat"><div class="conf-stat-val" style="color:${COR_OURO}">${premiados.length}</div><div class="conf-stat-lbl">Premiado${premiados.length!==1?'s':''}</div></div>
       <div class="conf-stat"><div class="conf-stat-val" style="color:var(--text-muted)">${todosOsJogos.length}</div><div class="conf-stat-lbl">Conferidos</div></div>
     </div>
     <div class="conf-total-meta"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span><strong>${d.nome}</strong> · Concurso #${res.concurso} · ${res.data}<br>${fontes.join(' + ')}</div>
@@ -8757,7 +8762,7 @@ async function conferirTodos(){
 
   // ── PREMIADOS ──
   if(premiados.length>0){
-    html+=`<div class="conf-section-title" style="color:#C8A800">🏆 Premiados (${premiados.length})</div>`;
+    html+=`<div class="conf-section-title" style="color:${COR_OURO}">🏆 Premiados (${premiados.length})</div>`;
     premiados.forEach(r=>{
       const corAc=d.cor;
       html+=`<div class="conf-game premiado" style="--conf-cor:${d.cor};--conf-orb:${d.orb.join(',')}">
@@ -8772,7 +8777,7 @@ async function conferirTodos(){
         </div>
       </div>`;
     });
-    html+=`<div class="conf-subtotal"><span style="font-size:11px;font-weight:700;color:#C8A800">${premiados.length} premiado${premiados.length!==1?'s':''}</span><span style="font-size:16px;font-weight:900;color:#C8A800">${fmtPremio(somaTotal)}</span></div>`;
+    html+=`<div class="conf-subtotal"><span style="font-size:11px;font-weight:700;color:${COR_OURO}">${premiados.length} premiado${premiados.length!==1?'s':''}</span><span style="font-size:16px;font-weight:900;color:${COR_OURO}">${fmtPremio(somaTotal)}</span></div>`;
   } else {
     html+=`<div style="text-align:center;padding:20px;color:var(--text-dim);background:rgba(255,255,255,.02);border:1px solid var(--glass-border);border-radius:12px;margin-bottom:14px;font-style:italic">Nenhum jogo premiado neste concurso.</div>`;
   }
@@ -10212,7 +10217,7 @@ async function abrirEstatisticas(){
   const sorted=Object.entries(est.freq).sort((a,b)=>b[1]-a[1]);
   const maxF=sorted[0]?.[1]||1;
   const mediaFreq=Object.values(est.freq).reduce((a,b)=>a+b,0)/Object.keys(est.freq).length||0;
-  const corBase=isEsp?'#C8A800':d.cor;
+  const corBase=isEsp?COR_OURO:d.cor;
   const tituloBase=isEsp?`⭐ ${d.specialLabel||'Especial'}`:`Concursos Regulares — ${getPeríodoLabel(periodo)}`;
   const ultN=Math.min(est.n,100);
   const freqUlt={};
@@ -10222,7 +10227,7 @@ async function abrirEstatisticas(){
   html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px">${[{l:'Pares/jogo (média)',v:est.avgPares,icon:'⚖'},{l:'Ímpares/jogo (média)',v:est.avgImpares,icon:'🔢'},{l:'Soma média por jogo',v:est.avgSoma,icon:'∑'}].map(item=>`<div style="padding:9px 6px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:var(--radius-md);text-align:center"><div style="font-size:14px;margin-bottom:2px">${item.icon}</div><div style="font-size:15px;font-weight:900;color:${corBase}">${item.v}</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">${item.l}</div></div>`).join('')}</div>`;
   html+=`<div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px">FREQUÊNCIA DOS NÚMEROS — ${tituloBase}</div>`;
   html+=`<div style="overflow-x:auto"><table class="stat-table" style="min-width:480px"><thead><tr><th style="text-align:center">Nº</th><th>Freq.</th><th>%Hist.</th><th>Situação</th><th>Rank</th><th>Últ.${ultN}</th><th style="width:20%">Dist.</th></tr></thead><tbody>`;
-  sorted.forEach(([num,f],i)=>{ const pct=((f/est.n)*100).toFixed(2); const fUlt=freqUlt[parseInt(num)]||0; const quente=f>=mediaFreq; const atr=est.atraso[parseInt(num)]??'—'; const corAtr=atr!=='—'&&atr>est.n*0.15?'#F08020':atr!=='—'&&atr>est.n*0.08?'#C8A800':'var(--text-muted)'; html+=`<tr><td style="text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${corBase};color:#fff;font-weight:800;font-size:10px">${pad(parseInt(num))}</span></td><td style="font-weight:700">${f}</td><td style="color:${corBase};font-weight:700">${pct}%</td><td><span style="color:${quente?'#F08020':'#4A9BE0'};font-size:11px;font-weight:700">${quente?'🔥 Quente':'❄ Frio'}</span></td><td style="font-weight:700;color:${i<3?corBase:'var(--text)'}">${i+1}°</td><td style="color:${corAtr};font-weight:700">${fUlt}</td><td><div class="stat-bar"><div class="stat-bar-fill" style="width:${(f/maxF*100).toFixed(1)}%;background:${corBase}"></div></div></td></tr>`; });
+  sorted.forEach(([num,f],i)=>{ const pct=((f/est.n)*100).toFixed(2); const fUlt=freqUlt[parseInt(num)]||0; const quente=f>=mediaFreq; const atr=est.atraso[parseInt(num)]??'—'; const corAtr=atr!=='—'&&atr>est.n*0.15?'#F08020':atr!=='—'&&atr>est.n*0.08?COR_OURO:'var(--text-muted)'; html+=`<tr><td style="text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${corBase};color:#fff;font-weight:800;font-size:10px">${pad(parseInt(num))}</span></td><td style="font-weight:700">${f}</td><td style="color:${corBase};font-weight:700">${pct}%</td><td><span style="color:${quente?'#F08020':'#4A9BE0'};font-size:11px;font-weight:700">${quente?'🔥 Quente':'❄ Frio'}</span></td><td style="font-weight:700;color:${i<3?corBase:'var(--text)'}">${i+1}°</td><td style="color:${corAtr};font-weight:700">${fUlt}</td><td><div class="stat-bar"><div class="stat-bar-fill" style="width:${(f/maxF*100).toFixed(1)}%;background:${corBase}"></div></div></td></tr>`; });
   html+=`</tbody></table></div>`;
   html+=`<div style="margin-top:8px;font-size:10px;color:var(--text-dim)">🔥 Quente = acima de ${mediaFreq.toFixed(1)} ocorrências &nbsp;·&nbsp; ❄ Frio = abaixo da média${d.dupla?'<br>★ 1º sorteio da Dupla Sena':''}</div>`;
   document.getElementById('body-estatisticas').innerHTML=html;
@@ -10240,7 +10245,7 @@ async function abrirNumsSorteados(){
   if(!est){document.getElementById('body-nums').innerHTML=noDataHtml();return;}
   const pad=n=>String(n).padStart(2,'0');
   const sorted=Object.entries(est.freq).sort((a,b)=>b[1]-a[1]);
-  const corBase=isEsp?'#C8A800':d.cor;
+  const corBase=isEsp?COR_OURO:d.cor;
   const mediaFreq=Object.values(est.freq).reduce((a,b)=>a+b,0)/Object.keys(est.freq).length||0;
   const tituloBase=isEsp?`⭐ ${d.specialLabel||'Especial'}`:`Regulares — ${getPeríodoLabel(periodo)}`;
   let html=periodBar(periodo,d,'nums');
@@ -10303,9 +10308,9 @@ async function abrirPadroes(){
   let html=periodBar(periodo,d,'padroes');
   html+=`<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;font-style:italic">${est.n} concursos${d.dupla?' · 1º sorteio':''}${!usaQuadrantes?' · Padrões por faixa':''}</div>`;
   const tituloTabela=isEsp?`⭐ ${d.specialLabel||'Especial'} — Base Histórica`:`📊 Concursos Regulares — ${periodoLabel}`;
-  const corTabela=isEsp?'#C8A800':d.cor;
+  const corTabela=isEsp?COR_OURO:d.cor;
   html+=blocoPatterns(historico, est, tituloTabela, corTabela);
-  if(hasSpecial && !isEsp){ html+=`<div style="height:1px;background:var(--glass-border);margin:16px 0"></div>`; const histEspecial=await garantirHistorico(currentKey,3000,true); const estEspecial=calcEstatisticas(histEspecial); if(estEspecial && histEspecial.length>0){ html+=blocoPatterns(histEspecial,estEspecial,`⭐ ${d.specialLabel} — Concursos Especiais`,'#C8A800'); } else { html+=`<div style="font-size:11px;color:var(--text-dim);font-style:italic;padding:8px 0">⭐ ${d.specialLabel}: dados não disponíveis ainda. Os IDs especiais serão identificados conforme o histórico for baixado.</div>`; } }
+  if(hasSpecial && !isEsp){ html+=`<div style="height:1px;background:var(--glass-border);margin:16px 0"></div>`; const histEspecial=await garantirHistorico(currentKey,3000,true); const estEspecial=calcEstatisticas(histEspecial); if(estEspecial && histEspecial.length>0){ html+=blocoPatterns(histEspecial,estEspecial,`⭐ ${d.specialLabel} — Concursos Especiais`,COR_OURO); } else { html+=`<div style="font-size:11px;color:var(--text-dim);font-style:italic;padding:8px 0">⭐ ${d.specialLabel}: dados não disponíveis ainda. Os IDs especiais serão identificados conforme o histórico for baixado.</div>`; } }
   document.getElementById('body-padroes').innerHTML=html;
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -12922,8 +12927,8 @@ function switchAnaliseTab(tab){
 function toggleAnaliseEspecial(){
   _analiseEspecial=!_analiseEspecial;
   const btn=document.getElementById('btn-analise-especial');
-  btn.style.background=_analiseEspecial?'#C8A800':'transparent';
-  btn.style.color=_analiseEspecial?'#000':'#C8A800';
+  btn.style.background=_analiseEspecial?COR_OURO:'transparent';
+  btn.style.color=_analiseEspecial?'#000':COR_OURO;
   renderAnalise();
 }
 
@@ -12941,7 +12946,7 @@ async function abrirAnaliseCompleta(){
   if(wrapEsp) wrapEsp.style.display=CONCURSOS_ESPECIAIS[currentKey]?'block':'none';
   _analiseEspecial=false;
   const btn=document.getElementById('btn-analise-especial');
-  if(btn){btn.style.background='transparent';btn.style.color='#C8A800';}
+  if(btn){btn.style.background='transparent';btn.style.color=COR_OURO;}
   _analiseTab='frequencias';
   document.querySelectorAll('.analise-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='frequencias'));
   document.getElementById('body-analise').innerHTML=loadingHtml();
