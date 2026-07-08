@@ -10091,29 +10091,16 @@ async function _salvarJogosImpl(){
   // ainda não tinha sido atualizado com o resultado mais recente.
   const concursoVigente=calcConcursoVigente(res).concursoNum||'';
   const nomeEscolhido=nomeInput&&nomeInput.value.trim()||`${d.nome} #${concursoVigente||'?'} · ${new Date().toLocaleDateString('pt-BR')}`;
-  // Teimosinha: todos os jogos do mesmo lote recebem a mesma marcação (ver
-  // aplicarTeimosinhaResultado) — salva a lista de concursos abrangidos
-  // no nível do ITEM (não por jogo individual), já que se aplica
-  // igualmente a todos os jogos selecionados deste salvamento.
-  const teimosinhaAtiva=jogosFinais.length&&jogosFinais[0]&&jogosFinais[0]._teimosinhaConcursos;
-  // Doc 2 (item 1): UUID estável por item salvo e por jogo individual —
-  // identidade não depende mais só do id autoIncrement (local ao banco) ou
-  // da assinatura de conteúdo (dezenas). jogoIds acompanha jogosFinais na
-  // mesma ordem/índice, no mesmo padrão de extras/trevos/mes/times acima.
-  jogosFinais.forEach(j=>{ if(!j._jogoId) j._jogoId=_novoId(); });
-  const itemSalvar={loteria:currentKey,nome:nomeEscolhido,jogos:jogosFinais,numDez,savedAt:Date.now(),
-    uuid:_novoId(),
-    concurso:concursoVigente,
-    fixos:getFixos('jogo'),
-    extras:jogosFinais.map(j=>j._extra||null),
-    trevos:jogosFinais.map(j=>Array.isArray(j._trevos)?[...j._trevos]:null),
-    mes:jogosFinais.map(j=>j._mes!=null?j._mes:null),
-    times:jogosFinais.map(j=>j._time!=null?j._time:null),
-    espelhoFlags:jogosFinais.map(j=>j._isEspelho?1:0),
-    jogoIds:jogosFinais.map(j=>j._jogoId),
-    temEspelho:temEspelho,
-    teimosinhaConcursos:teimosinhaAtiva?jogosFinais[0]._teimosinhaConcursos.slice():null,
-    custoTotal:typeof calcCustoTotal==='function'?calcCustoTotal(jogosFinais,d):null};
+  // Teimosinha (todos os jogos do lote recebem a mesma marcação, ver
+  // aplicarTeimosinhaResultado) e temEspelho agora são calculados DENTRO de
+  // _criarItemJogoSalvo, a partir de jogosFinais — não precisam mais ser
+  // recalculados aqui antes de montar o item.
+  // Auditoria Fase 2.3: monta o item via _criarItemJogoSalvo (fábrica
+  // única), em vez de um literal próprio — mesmos campos de sempre, só
+  // centraliza o formato do registro entre os 3 pontos que criam
+  // jogos_salvos (aqui, inserção manual, e espelho de vincular direto).
+  const itemSalvar=_criarItemJogoSalvo({loteria:currentKey,nome:nomeEscolhido,jogos:jogosFinais,numDez,
+    concurso:concursoVigente,fixos:getFixos('jogo')});
   const novoId=await dbPut('jogos_salvos',itemSalvar);
   _registrarAuditoria('criar_jogo_salvo',{jogoId:itemSalvar.uuid,detalhes:`${jogosFinais.length} jogo(s) de ${d.nome}, id=${novoId}`});
   window._salvarNomeSugerido=null;
@@ -10179,6 +10166,7 @@ async function salvarEdicaoConjunto(id){
     // Número do concurso não é editável manualmente — é sempre o valor gravado
     // automaticamente da API no momento em que os jogos foram salvos.
     await dbPut('jogos_salvos',item);
+    _registrarAuditoria('editar_jogo_salvo',{jogoId:item.uuid||id,detalhes:'renomeado para "'+novoNome+'"'});
     toast('✓ Nome atualizado');
     openModalSalvar();
   }catch(e){ toast('Erro ao salvar: '+e.message); }
@@ -12744,25 +12732,14 @@ async function _salvarJogosManuaisImpl(){
   const nomeDefault=`Manual ${d.nome} · ${new Date().toLocaleDateString('pt-BR')}`;
   const nome=prompt('Nome para este conjunto de jogos:',nomeDefault)||nomeDefault;
 
-  const item={
-    loteria:key,
-    nome,
-    jogos:_manualJogos,
-    numDez:Math.max(..._manualJogos.map(j=>j.length)),
-    savedAt:Date.now(),
-    extras:_manualJogos.map(j=>j._extra||null),
-    trevos:_manualJogos.map(j=>Array.isArray(j._trevos)?[...j._trevos]:null),
-    ssCols:_manualJogos.map(j=>Array.isArray(j._ssCols)?j._ssCols.map(c=>[...c]):null),
-    mes:_manualJogos.map(j=>j._mes??null),
-    times:_manualJogos.map(j=>j._time??null),
-    // Teimosinha: mesmo padrão de salvarJogos() — a lista de concursos é a
-    // mesma para todos os jogos do lote, então fica só uma vez no item
-    // (não por jogo), e hidratarJogosSalvos() reanexa a cada jogo ao ler.
-    teimosinhaConcursos:_manualJogos[0]&&_manualJogos[0]._teimosinhaConcursos?_manualJogos[0]._teimosinhaConcursos.slice():null,
-    manual:true
-  };
+  // Auditoria Fase 2.3: usa a mesma fábrica _criarItemJogoSalvo do fluxo
+  // do Gerador — antes este item não tinha uuid/jogoIds (jogo inserido
+  // manualmente nunca podia ser referenciado de forma estável); agora tem,
+  // igual a qualquer outro jogo salvo.
+  const item=_criarItemJogoSalvo({loteria:key,nome,jogos:_manualJogos,numDez:Math.max(..._manualJogos.map(j=>j.length)),manual:true});
   try{
     var novoId=await dbPut('jogos_salvos',item);
+    _registrarAuditoria('criar_jogo_salvo',{jogoId:item.uuid,detalhes:`${_manualJogos.length} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
     var vincSel=document.getElementById('manual-vinculo-sel');
     var vincId=vincSel?parseInt(vincSel.value)||0:0;
     if(vincId && typeof vincularSalvoAoBolao==='function'){
@@ -17792,6 +17769,7 @@ async function excluirRodadaDoBolao(concursoIdxExibido){
         _itemR.vinculadoBolao=false;
         _itemR.bolaoId=null;
         await dbPut('jogos_salvos', _itemR);
+        _registrarAuditoria('desvincular_jogo',{jogoId:_itemR.uuid||_itemR.id,bolaoId:g.id,detalhes:'rodada excluída'});
       }
     }catch(eR){ console.warn('[excluirRodadaDoBolao] desvínculo:',eR.message); }
 
@@ -17880,6 +17858,7 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
           _itemD.vinculadoBolao=false;
           _itemD.bolaoId=null;
           await dbPut('jogos_salvos', _itemD);
+          _registrarAuditoria('desvincular_jogo',{jogoId:_itemD.uuid||_itemD.id,bolaoId:g.id,detalhes:'concurso ficou vazio'});
         }
       }catch(eD){ console.warn('[excluirJogoDoBolao] desvínculo:',eD.message); }
       // Remove o concurso vazio da lista (não deixa registro residual)
@@ -18138,6 +18117,43 @@ function jogoConcursoOrigem(j){ return j&&j._concursoOrigem!=null?j._concursoOri
 // ver item.mes/item.extras/item.trevos em salvarJogos()), e
 // _hidratarConcursoJogos() reconstrói jogo._mes etc a partir deles toda
 // vez que os jogos de um concurso são lidos para exibição.
+// Fábrica única do registro "jogos_salvos" (auditoria, Fase 2.3). Antes
+// existiam 3 formatos reais e divergentes: o jogo salvo "normal" tinha
+// uuid/jogoIds/fixos/temEspelho/custoTotal; o inserido manualmente NÃO
+// tinha uuid nem jogoIds (não dava pra referenciar de forma estável); e o
+// "espelho" criado ao vincular direto do Gerador também não tinha
+// uuid/concurso. Essa função monta o objeto SEMPRE completo — campos não
+// aplicáveis a um caminho específico ficam null/false, nunca ausentes.
+function _criarItemJogoSalvo(opts){
+  var jogos=opts.jogos||[];
+  jogos.forEach(function(j){ if(j&&!j._jogoId) j._jogoId=_novoId(); });
+  var temEspelho=jogos.some(function(j){ return j&&j._isEspelho; });
+  var teimosinhaAtiva=jogos.length&&jogos[0]&&jogos[0]._teimosinhaConcursos;
+  var d=(typeof CFG!=='undefined')?CFG[opts.loteria]:null;
+  return {
+    loteria:opts.loteria,
+    nome:opts.nome,
+    jogos:jogos,
+    numDez:opts.numDez,
+    savedAt:Date.now(),
+    uuid:_novoId(),
+    concurso:opts.concurso!=null?opts.concurso:null,
+    fixos:opts.fixos||null,
+    extras:jogos.map(function(j){return j&&j._extra!=null?j._extra:null;}),
+    trevos:jogos.map(function(j){return j&&Array.isArray(j._trevos)?j._trevos.slice():null;}),
+    mes:jogos.map(function(j){return j&&j._mes!=null?j._mes:null;}),
+    times:jogos.map(function(j){return j&&j._time!=null?j._time:null;}),
+    ssCols:jogos.map(function(j){return j&&Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null;}),
+    espelhoFlags:jogos.map(function(j){return j&&j._isEspelho?1:0;}),
+    jogoIds:jogos.map(function(j){return j&&j._jogoId;}),
+    temEspelho:temEspelho,
+    teimosinhaConcursos:teimosinhaAtiva?jogos[0]._teimosinhaConcursos.slice():null,
+    custoTotal:(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):null,
+    manual:!!opts.manual,
+    bolaoId:opts.bolaoId!=null?opts.bolaoId:null,
+    vinculadoBolao:!!opts.vinculadoBolao,
+  };
+}
 function _extrasArraysDeJogos(jogos){
   return {
     mesArr:(jogos||[]).map(function(j){return j&&j._mes!=null?j._mes:null;}),
@@ -18388,20 +18404,10 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
         var it=todosSalvos[si];
         if(it && it.bolaoId===bolaoId && it.loteria===loteriaKey){ try{ await dbOp('jogos_salvos','readwrite',function(st){return st.delete(it.id);}); }catch(_){} }
       }
-      var itemBolao={
-        loteria: loteriaKey,
-        nome: nomeBolao,
-        jogos: jogos,
-        numDez: g.numDez,
-        savedAt: Date.now(),
-        bolaoId: bolaoId,
-        vinculadoBolao: true,
-        extras: jogos.map(function(j){return j._extra||null;}),
-        trevos: jogos.map(function(j){return Array.isArray(j._trevos)?j._trevos.slice():null;}),
-        mes: jogos.map(function(j){return j._mes!=null?j._mes:null;}),
-        times: jogos.map(function(j){return j._time!=null?j._time:null;}),
-        espelhoFlags: jogos.map(function(j){return j._isEspelho?1:0;})
-      };
+      // Auditoria Fase 2.3: usa _criarItemJogoSalvo — antes este espelho não
+      // tinha uuid/concurso/jogoIds/fixos/teimosinhaConcursos/ssCols.
+      var itemBolao=_criarItemJogoSalvo({loteria:loteriaKey,nome:nomeBolao,jogos:jogos,numDez:g.numDez,
+        concurso:_novoNum,bolaoId:bolaoId,vinculadoBolao:true});
       // Auditoria Fase 2.2: bolão + espelho gravados numa ÚNICA transação
       // (dbPutMulti) — antes eram dois dbPut separados; se o segundo
       // falhasse, o bolão já ficava com o concurso novo mas sem o espelho
