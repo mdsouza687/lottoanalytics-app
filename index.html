@@ -16835,7 +16835,19 @@ async function _imprimirBolaoImpl(soPremiados){
       _vistoNum[c.num]=true;
       return true;
     });
-    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),premioRealNum:_real.total,qtdPremiados:_real.qtdPremiados,algumConferido:_real.algumConferido});
+    // Loteria com concursos MISTOS (alguns já sorteados, outro ainda
+    // vigente — comum quando o mesmo grupo de loteria tem uma rodada
+    // finalizada e outra em aberto) precisa saber se ainda RESTA algum
+    // concurso vigente, além de saber se algum já foi conferido — as duas
+    // coisas podem ser true ao mesmo tempo, e o "Prêmio" por participante
+    // (ver _celPremioImp) prioriza mostrar a estimativa do vigente nesse
+    // caso, em vez de esconder atrás do apurado (R$ 0,00) do concurso já
+    // encerrado.
+    var algumVigente=_concursosDedup.some(function(c){
+      var lista=(c.teimosinhaTodos&&c.teimosinhaTodos.length)?c.teimosinhaTodos:[c.num];
+      return lista.some(function(n){ return n!=null && !_concursoJaRealizado(lk,n); });
+    });
+    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),premioRealNum:_real.total,qtdPremiados:_real.qtdPremiados,algumConferido:_real.algumConferido,algumVigente:algumVigente});
   });
   // Saldo restante do bolão: arrecadação DERIVADA (soma das Contribuições
   // de quem já pagou, não o campo arrecadacaoTotal armazenado cru) menos o
@@ -16966,16 +16978,22 @@ async function _imprimirBolaoImpl(soPremiados){
     return partes.join(', ');
   }
   var tabelasPorLoteriaHtml = loteriasImp.length ? loteriasImp.map(function(L){
-    // "Prêmio" nesta tabela é o valor REAL apurado (premioRealNum) dividido
-    // por cota depois do sorteio — mas ANTES do sorteio (L.algumConferido
-    // ainda false), em vez de deixar todo mundo sem nenhum número até lá,
-    // mostra a parte de cada um na ESTIMATIVA (L.premioNum), em itálico e
-    // com "est." no final, pra nunca ser confundida com o valor real já
-    // apurado. Só cai em "aguardando" puro se nem estimativa existir.
+    // "Prêmio" nesta tabela mostra o valor REAL apurado (premioRealNum) de
+    // concursos JÁ sorteados dividido por cota, e SEPARADAMENTE a parte de
+    // cada um na ESTIMATIVA (L.premioNum) enquanto ainda restar concurso
+    // vigente no mesmo grupo — as duas linhas podem aparecer juntas (ex.:
+    // Mega-Sena com um concurso já sorteado sem prêmio E outro concurso
+    // ainda vigente vinculado no mesmo bolão): antes, bastava QUALQUER
+    // concurso do grupo já ter sido conferido pra esconder a estimativa do
+    // vigente atrás de um R$ 0,00 apurado, escondendo o que ainda está em
+    // jogo. Só cai em "aguardando" puro se não houver nem apurado nem
+    // estimativa (nenhum concurso do grupo tem dados suficientes ainda).
     function _celPremioImp(pct){
-      if(L.algumConferido) return _bMoney(L.premioRealNum*pct/100);
-      if(L.premioNum>0) return '<span style="color:#888;font-style:italic" title="Estimativa — sorteio ainda não ocorreu">'+_bMoney(L.premioNum*pct/100)+' est.</span>';
-      return '<span style="color:#999;font-style:italic">aguardando</span>';
+      var partes=[];
+      if(L.algumConferido) partes.push(_bMoney(L.premioRealNum*pct/100));
+      if(L.algumVigente && L.premioNum>0) partes.push('<span style="color:#888;font-style:italic" title="Estimativa — sorteio ainda não ocorreu">'+_bMoney(L.premioNum*pct/100)+' est.</span>');
+      if(!partes.length) return '<span style="color:#999;font-style:italic">aguardando</span>';
+      return partes.join('<br>');
     }
     var linhasL=(cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right">'+_celPremioImp(pctAdmin)+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>'):'')+
       pagosImp.map(function(p){
