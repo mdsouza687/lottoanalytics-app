@@ -10007,13 +10007,10 @@ async function _salvarComEscolha(){
     if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
     var novoId=await salvarJogos();
     if(novoId==null) return; // salvarJogos() já mostrou o toast do motivo (nada gerado/selecionado)
-    // salvarJogos() dispara openModalSalvar() internamente SEM aguardar
-    // (fire-and-forget) — sem este await extra, o <select> "vinc-sel-{id}"
-    // do item recém-criado pode ainda não existir no DOM no momento abaixo.
-    await openModalSalvar();
-    var selVinc=document.getElementById('vinc-sel-'+novoId);
-    if(selVinc){ selVinc.value=String(bolaoId); }
-    await vincularSalvoAoBolao(novoId);
+    // bolaoIdOverride evita depender do <select> "vinc-sel-{id}" existir no
+    // DOM (que só apareceria depois de openModalSalvar() re-renderizar a
+    // lista) — passa o bolão direto, sem esse round-trip.
+    await vincularSalvoAoBolao(novoId, bolaoId);
   } else {
     await salvarJogos();
   }
@@ -12748,18 +12745,19 @@ async function _salvarJogosManuaisImpl(){
     manual:true
   };
   try{
-    await dbPut('jogos_salvos',item);
+    var novoId=await dbPut('jogos_salvos',item);
     var vincSel=document.getElementById('manual-vinculo-sel');
     var vincId=vincSel?parseInt(vincSel.value)||0:0;
-    if(vincId && typeof vincularJogosAoBolao==='function'){
-      // Passa "key" (a loteria selecionada NESTE MODAL) como loteriaOverride
-      // — sem isso, vincularJogosAoBolao usava a variável global currentKey,
-      // que reflete a tela de FUNDO ainda aberta (ex.: Mega-Sena), não a
-      // loteria escolhida aqui dentro do modal "Inserir Jogos" — causava
-      // jogos corretos (ex.: 15 dezenas da Lotomania) serem gravados sob o
-      // rótulo errado de loteria (Mega-Sena), gerando duas entradas
-      // conflitantes nos jogos vinculados ao bolão.
-      await vincularJogosAoBolao(vincId, _clonarJogosComExtras(_manualJogos), null, key);
+    if(vincId && typeof vincularSalvoAoBolao==='function'){
+      // Antes chamava vincularJogosAoBolao(), que cria um espelho NOVO e
+      // independente em Jogos Salvos — o item recém-criado acima (dbPut)
+      // ficava esquecido, "solto" (nunca marcado como vinculado), enquanto
+      // um segundo registro idêntico ("Bolão: ...") também existia. Isso
+      // duplicava toda inserção manual vinculada a um bolão. Agora usa
+      // vincularSalvoAoBolao(), que RENOMEIA/marca o MESMO registro já
+      // criado — um único jogo, um único registro, exatamente como o
+      // fluxo do Gerador de Jogos (_salvarComEscolha) já faz.
+      await vincularSalvoAoBolao(novoId, vincId);
       toast(`✅ ${_manualJogos.length} jogo(s) salvos e vinculados ao bolão`);
     } else {
       toast(`✅ ${_manualJogos.length} jogo${_manualJogos.length!==1?'s':''} manual${_manualJogos.length!==1?'is':''} salvos como "${nome}"`);
@@ -17393,12 +17391,18 @@ function _enfileirarEscritaBolao(fn){
   _boloesEscritaFila=p.catch(function(){});
   return p;
 }
-async function vincularSalvoAoBolao(itemId){
-  return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId); });
+// bolaoIdOverride: usado por quem já sabe o bolão de destino sem depender
+// do <select> "vinc-sel-{itemId}" existir no DOM (ex.: inserção manual,
+// que vincula logo após salvar, antes da lista de Jogos Salvos ter sido
+// re-renderizada) — sem isso, cada fluxo de vincular-após-salvar tinha que
+// duplicar a própria lógica de gravação em vez de reusar esta função,
+// que já é a correta (RENOMEIA o registro existente, não cria um novo).
+async function vincularSalvoAoBolao(itemId, bolaoIdOverride){
+  return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride); });
 }
-async function _vincularSalvoAoBolaoImpl(itemId){
+async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
   var sel=document.getElementById('vinc-sel-'+itemId);
-  var bolaoId=sel?parseInt(sel.value)||0:0;
+  var bolaoId=bolaoIdOverride||(sel?parseInt(sel.value)||0:0);
   if(!bolaoId){ toast('Selecione um bolão para vincular.'); return; }
   try{
     var salvos=await dbAll('jogos_salvos');
@@ -18317,12 +18321,23 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     try{
       var nomeBolao='Bolão: '+(g.nome||'(sem nome)');
       var todosSalvos=await dbAll('jogos_salvos');
+      // Só substitui o espelho da MESMA loteria deste vínculo — um bolão
+      // Multi-Loteria pode ter jogos de várias loterias diferentes
+      // vinculados (ex.: Mega-Sena E Lotofácil no mesmo bolão), cada uma
+      // precisa do seu PRÓPRIO espelho em Jogos Salvos, com sua própria
+      // cor/dezenas corretas. Antes isto apagava QUALQUER espelho com o
+      // mesmo bolaoId (de qualquer loteria), então vincular uma segunda
+      // loteria apagava o espelho da primeira — e o que sobrava usava
+      // g.loteria (a loteria do bolão, um campo cada vez mais vestigial
+      // agora que bolões nascem "virgens", ver correção anterior de hoje)
+      // em vez da loteria REAL do jogo recém-vinculado, pintando os jogos
+      // com a cor errada.
       for(var si=0; si<todosSalvos.length; si++){
         var it=todosSalvos[si];
-        if(it && it.bolaoId===bolaoId){ try{ await dbOp('jogos_salvos','readwrite',function(st){return st.delete(it.id);}); }catch(_){} }
+        if(it && it.bolaoId===bolaoId && it.loteria===loteriaKey){ try{ await dbOp('jogos_salvos','readwrite',function(st){return st.delete(it.id);}); }catch(_){} }
       }
       var itemBolao={
-        loteria: g.loteria||loteriaKey,
+        loteria: loteriaKey,
         nome: nomeBolao,
         jogos: jogos,
         numDez: g.numDez,
