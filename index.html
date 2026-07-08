@@ -15875,6 +15875,7 @@ function _atualizarValoresDerivadosUI(){
   var elArrec=document.getElementById('bol-arrec-main')||document.getElementById('bol-arrec');
   if(elArrec) elArrec.value=arrec?arrec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
   var d=_calcDadosFinanceirosBolao(s);
+  var _premiosVigentes=_premiosEstimVigentesPorLoteria(s);
   var elCota=document.getElementById('bol-cota');
   if(elCota){
     if(d.valorCota){
@@ -15902,11 +15903,10 @@ function _atualizarValoresDerivadosUI(){
     var elCotaPart=document.getElementById('np-cota-'+i);
     if(elCotaPart) elCotaPart.textContent=_bMoney(ativoPago?d.valorCota:0);
     var pctCota=ativoPago?d.pctPorCotaPaga:0;
-    var premioCota=ativoPago?d.premioPorCotaPaga:0;
     var elPct=document.getElementById('np-pct-'+i);
     if(elPct) elPct.textContent=pctCota.toFixed(2)+'%';
     var elPremio=document.getElementById('np-premio-'+i);
-    if(elPremio) elPremio.textContent=_bMoney(premioCota);
+    if(elPremio) elPremio.innerHTML=_fmtPremioPorLoteriaHtml(_premiosVigentes,pctCota);
   });
   // Atualiza o resumo do rodapé (Arrecadação/Custo/Saldo geral e por
   // loteria) substituindo SÓ o innerHTML do bloco isolado #np-footer-resumo
@@ -15945,9 +15945,22 @@ function _premiosEstimVigentesPorLoteria(s){
     var dL=CFG[lk]||{};
     var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
     var premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
-    out.push({loteria:lk,nome:dL.nome||lk,cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,cfg:dL});
+    out.push({loteria:lk,nome:dL.nome||lk,cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),cfg:dL});
   });
   return out;
+}
+// Coluna "Prêmio" (parte que cabe a cada participante/cota): mesmo
+// raciocínio da função acima — antes multiplicava um único s.premio pelo
+// %, misturando jackpots de loterias diferentes num valor só. Agora
+// devolve o mesmo HTML empilhado por loteria (ícone + cor), cada linha já
+// multiplicada pelo % (pct) recebido — reaproveita a lista de loterias
+// vigentes já calculada uma vez por render (premiosVigentes).
+function _fmtPremioPorLoteriaHtml(premiosVigentes,pct){
+  if(!pct||pct<=0||!premiosVigentes.length) return '<span style="color:var(--text-muted)">—</span>';
+  return premiosVigentes.map(function(pl){
+    var valor=(pl.premioNum||0)*pct/100;
+    return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+corMarca(pl)+';font-weight:700">'+_bMoney(valor)+'</span></div>';
+  }).join('');
 }
 function renderParticipantesBoloes(){
   var box=document.getElementById('boloes-part-lista'); if(!box) return;
@@ -16028,7 +16041,6 @@ function renderParticipantesBoloes(){
   // Linha do administrador: aparece se ele tem cotas isentas (modelo antigo)
   // OU se está no modo de orçamento fixo (modelo novo).
   var pctAdmin=cotasPagas>0?((cotasAdmin/cotasPagas)*100):0;
-  var premioAdmin=s.premio>0?(s.premio*pctAdmin/100):0;
   var mostrarLinhaAdmin=cotasAdmin>0||(tipoOrg==='fixo'&&(s.admin.valorFixoOrganizacao||0)>0);
   var linhaAdmin=mostrarLinhaAdmin?('<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:7px 8px;align-items:center;border-bottom:1px solid var(--glass-border);background:rgba(245,192,48,.08)">'+
     '<span style="font-size:13px;text-align:center">⭐</span>'+
@@ -16044,7 +16056,7 @@ function renderParticipantesBoloes(){
     '<span style="font-size:11px;color:#f5a800;font-weight:700">Administrador</span>'+
     '<span style="font-size:11px;color:#f5a800;font-weight:800">ISENTO</span>'+
     '<span style="font-size:11px;color:var(--text-muted);text-align:center">'+(tipoOrg==='fixo'?'—':(cotasPagas>0?(100/cotasPagas).toFixed(2)+'%':'—'))+'</span>'+
-    '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'?'—':_bMoney(premioAdmin))+'</span>'+
+    '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'?'—':_fmtPremioPorLoteriaHtml(_premiosVigentes,pctAdmin))+'</span>'+
     '<span></span></div>'):'';
 
   var refSeq=0; // numeração sequencial global (conta cada cota/linha)
@@ -16059,7 +16071,6 @@ function renderParticipantesBoloes(){
     var partColor=inativo?'#dc2626':'#16a34a';
     // Valores por COTA — só têm valor se ativo E pago; senão, zero
     var pctCota=ativoPago?pctPorCotaPaga:0;
-    var premioCota=ativoPago?premioPorCotaPaga:0;
     var taxaAdminRateio=ativoPago?(valorRateioPorPart/qtd):0;
     var contribuicao=p.valorCota||0;
     var meuSaldo=meuSaldoInfo.porIndice[i]!=null?meuSaldoInfo.porIndice[i]:0;
@@ -16138,7 +16149,7 @@ function renderParticipantesBoloes(){
         '<span id="np-cota-'+i+'" style="font-size:11px;color:var(--text);font-weight:600" data-tt="Valor de referência de 1 cota\n(Arrecadação Total ÷ total de cotas)">'+_bMoney(ativoPago?valorCota:0)+'</span>'+
         colPart+colParticipacao+colPag+
         '<span id="np-pct-'+i+'" style="font-size:11px;color:var(--text-muted);text-align:center">'+pctCota.toFixed(2)+'%</span>'+
-        '<span id="np-premio-'+i+'" style="font-size:11px;color:var(--text-muted)">'+_bMoney(premioCota)+'</span>'+
+        '<span id="np-premio-'+i+'" style="font-size:11px;color:var(--text-muted)">'+_fmtPremioPorLoteriaHtml(_premiosVigentes,pctCota)+'</span>'+
         colRem+
       '</div>';
     }
@@ -16934,18 +16945,24 @@ async function _imprimirBolaoImpl(soPremiados){
     return partes.join(', ');
   }
   var tabelasPorLoteriaHtml = loteriasImp.length ? loteriasImp.map(function(L){
-    // "Prêmio" nesta tabela é sempre o valor REAL apurado (premioRealNum),
-    // dividido por cota — nunca a estimativa do jackpot. Quando o concurso
-    // ainda não foi conferido (nenhum resultado sincronizado bate com ele),
-    // mostra "Aguardando sorteio" em vez de R$ 0,00 — que poderia ser
-    // confundido com "conferido e não ganhou nada".
-    var linhasL=(cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right">'+(L.algumConferido?_bMoney(L.premioRealNum*pctAdmin/100):'<span style="color:#999;font-style:italic">aguardando</span>')+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>'):'')+
+    // "Prêmio" nesta tabela é o valor REAL apurado (premioRealNum) dividido
+    // por cota depois do sorteio — mas ANTES do sorteio (L.algumConferido
+    // ainda false), em vez de deixar todo mundo sem nenhum número até lá,
+    // mostra a parte de cada um na ESTIMATIVA (L.premioNum), em itálico e
+    // com "est." no final, pra nunca ser confundida com o valor real já
+    // apurado. Só cai em "aguardando" puro se nem estimativa existir.
+    function _celPremioImp(pct){
+      if(L.algumConferido) return _bMoney(L.premioRealNum*pct/100);
+      if(L.premioNum>0) return '<span style="color:#888;font-style:italic" title="Estimativa — sorteio ainda não ocorreu">'+_bMoney(L.premioNum*pct/100)+' est.</span>';
+      return '<span style="color:#999;font-style:italic">aguardando</span>';
+    }
+    var linhasL=(cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right">'+_celPremioImp(pctAdmin)+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>'):'')+
       pagosImp.map(function(p){
         // % efetivo do participante = % de 1 cota × quantas cotas ele tem
         // (antes era sempre o valor de 1 cota, subestimando quem tem mais
         // de uma — a divisão "por cota quando necessário" depende disso).
         var pctCotaP=pctPorCota*Math.max(1,p.cotas||1);
-        return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right">'+(L.algumConferido?_bMoney(L.premioRealNum*pctCotaP/100):'<span style="color:#999;font-style:italic">aguardando</span>')+'</td><td style="text-align:center;color:#16a34a;font-weight:700">PAGO</td></tr>';
+        return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right">'+_celPremioImp(pctCotaP)+'</td><td style="text-align:center;color:#16a34a;font-weight:700">PAGO</td></tr>';
       }).join('');
     // Cada concurso da loteria mostra seu PRÓPRIO símbolo de status (ver
     // _concursosComStatusHtml acima) — uma loteria com concursos 2973
