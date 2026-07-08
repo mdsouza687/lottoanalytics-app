@@ -1902,7 +1902,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
         var lista=document.getElementById('bolao-participantes-lista'); if(!lista)return;
         lista.innerHTML=_bolaoParticipantes.map(function(p,i){
           return '<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid var(--glass-border)">'+
-            '<span style="flex:1;font-size:10px;font-weight:600;color:var(--text)">'+p.nome+'</span>'+
+            '<span style="flex:1;font-size:10px;font-weight:600;color:var(--text)">'+_esc(p.nome)+'</span>'+
             '<span style="font-size:9px;color:var(--text-dim)">'+p.cotas+' cota'+(p.cotas>1?'s':'')+'</span>'+
             '<button onclick="removeParticipanteBolao('+i+')" style="border:none;background:transparent;color:rgba(255,80,80,.6);cursor:pointer;font-size:11px;padding:0 2px">✕</button>'+
           '</div>';
@@ -1945,7 +1945,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
         var lista=document.getElementById('fech-participantes-lista'); if(!lista)return;
         lista.innerHTML=_fechParticipantes.map(function(p,i){
           return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid var(--glass-border)">'+
-            '<span style="flex:1;font-size:11px;font-weight:600;color:var(--text)">'+p.nome+'</span>'+
+            '<span style="flex:1;font-size:11px;font-weight:600;color:var(--text)">'+_esc(p.nome)+'</span>'+
             '<span style="font-size:10px;color:var(--text-dim)">'+p.cotas+' cota'+(p.cotas>1?'s':'')+'</span>'+
             '<button onclick="removeParticipanteFechamento('+i+')" style="border:none;background:transparent;color:rgba(255,80,80,.6);cursor:pointer;font-size:12px;padding:0 2px">✕</button>'+
           '</div>';
@@ -1999,7 +1999,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
         var linhas=partic.map(function(p,i){
           var pctCota=totalCotas>0?Math.round((1/totalCotas)*10000)/100:0;
           return '<tr style="border-bottom:1px solid var(--glass-border)">'+
-            '<td style="padding:7px 10px;font-weight:700">'+(i+1)+'. '+p.nome+(p.isAdmin?' <span style="color:#f5c030;font-size:9px">⭐ Admin</span>':'')+'</td>'+
+            '<td style="padding:7px 10px;font-weight:700">'+(i+1)+'. '+_esc(p.nome)+(p.isAdmin?' <span style="color:#f5c030;font-size:9px">⭐ Admin</span>':'')+'</td>'+
             '<td style="padding:7px 10px;text-align:center">'+p.cotas+'</td>'+
             '<td style="padding:7px 10px;text-align:center;color:'+(p.isento?'rgba(245,192,48,.8)':ac)+';font-weight:700">'+(p.isento?'Isento':(p.pct||0)+'%')+'</td>'+
             '<td style="padding:7px 10px;text-align:center;color:var(--text-muted)">'+(p.isento?'—':pctCota.toFixed(2)+'%')+'</td>'+
@@ -9710,7 +9710,7 @@ function buildPrintRelatorioParticipantes(grupo){
     const premioRecebido=temPremio&&!p.isento?_brl(cotasEf*valorCota):(p.isento?'—':(temPremio?'—':'—'));
     html+=`<tr style="border-bottom:1px solid #eee">
       <td style="padding:6px 8px;border:1px solid #ddd">${i+1}</td>
-      <td style="padding:6px 8px;font-weight:700;border:1px solid #ddd">${p.nome}${p.isAdmin?' ⭐':''}</td>
+      <td style="padding:6px 8px;font-weight:700;border:1px solid #ddd">${_esc(p.nome)}${p.isAdmin?' ⭐':''}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.cotas}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'Isento':(p.pct||'—')+'%'}</td>
       <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'<b>ISENTO</b>':'—'}</td>
@@ -9884,7 +9884,7 @@ async function openModalSalvar(escopo){
             '<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">⭐ Admin: '+adminNome+(grupo.cotasIsentas?' · '+grupo.cotasIsentas+' cota(s) isenta(s)':'')+'</div>'+
             '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+
               partic.slice(0,5).map(function(p){
-                return '<span style="padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);font-size:9px;font-weight:600;color:var(--text-muted)">'+p.nome+' ('+p.cotas+')'+(p.isento?' 🎟':'')+'</span>';
+                return '<span style="padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);font-size:9px;font-weight:600;color:var(--text-muted)">'+_esc(p.nome)+' ('+p.cotas+')'+(p.isento?' 🎟':'')+'</span>';
               }).join('')+
               (partic.length>5?'<span style="font-size:9px;color:var(--text-dim)"> +'+( partic.length-5)+' mais</span>':'')+
             '</div>'+
@@ -17104,13 +17104,19 @@ async function _imprimirBolaoImpl(soPremiados){
               return '<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+bgN+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px">'+pad(n)+'</span>';
             }).join('');
           }
+          // Migrado pra usar os acessores jogoExtra/jogoTrevos/jogoMes/jogoTime
+          // (auditoria, Fase 1.1a) em vez de ler jogo._extra/_trevos/_mes/_time
+          // direto — mesmo comportamento, só centraliza o ponto de leitura.
+          // Este é exatamente o trecho que já causou perda de Mês/Trevos em
+          // bolões nesta sessão (ver comentário de _hidratarConcursoJogos).
+          var jExtra=jogoExtra(jogo), jTrevos=jogoTrevos(jogo), jMes=jogoMes(jogo), jTime=jogoTime(jogo);
           var extraCor=dJogo.bolaExtraCor||'#00BCD4';
-          var extra=jogo._extra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+extraCor+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jogo._extra)+'</span>':'';
+          var extra=jExtra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+extraCor+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jExtra)+'</span>':'';
           var trevoCor=dJogo.trevoCor||'#0fae8a';
-          var trevos=jogo._trevos?' <span style="font-size:8px;color:#888">T:</span>'+jogo._trevos.map(function(t){return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+trevoCor+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';}).join(''):'';
+          var trevos=jTrevos?' <span style="font-size:8px;color:#888">T:</span>'+jTrevos.map(function(t){return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+trevoCor+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';}).join(''):'';
           var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-          var mesHtmlB=jogo._mes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jogo._mes-1]||'')+'</span>':'';
-          var timeHtmlB=jogo._time!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'')+'</span>':'';
+          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
+          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
           var tag=ehEsp?'<span style="font-size:8px;color:'+corEsp+';font-weight:800">🪞 </span>':'';
           // Status individual deste jogo específico. Três casos possíveis:
           // 1) Jogo PREMIADO: já sorteado e bateu a faixa mínima premiável
@@ -17772,7 +17778,15 @@ async function excluirRodadaDoBolao(concursoIdxExibido){
     try{
       var _salvosR=await dbAll('jogos_salvos');
       var _candidatosR=_salvosR.filter(function(x){return x.bolaoId===g.id && x.vinculadoBolao;});
-      var _itemR=_candidatosR.length===1?_candidatosR[0]:_candidatosR.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
+      // Correspondência por LOTERIA em primeiro lugar — desde a correção de
+      // hoje, só existe UM espelho por (bolão, loteria) (ver
+      // vincularJogosAoBolao), então x.loteria===c.loteria já resolve
+      // exatamente o registro certo sem depender de coincidência de horário.
+      // A heurística por savedAt (<2s) fica só como fallback para registros
+      // legados sem essa garantia.
+      var _itemR=_candidatosR.length===1?_candidatosR[0]
+        :_candidatosR.filter(function(x){return x.loteria===c.loteria;})[0]
+        ||_candidatosR.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
       if(_itemR){
         _itemR.vinculadoBolao=false;
         _itemR.bolaoId=null;
@@ -17852,11 +17866,15 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
     if(concursoFicouVazio){
       try{
         var _salvosD=await dbAll('jogos_salvos');
-        // Correspondência por bolaoId + savedAt mais próximo do concurso removido,
-        // para não desvincular o conjunto errado quando há vários conjuntos
-        // vinculados ao mesmo bolão.
+        // Correspondência por LOTERIA em primeiro lugar (mesmo raciocínio de
+        // excluirRodadaDoBolao, acima) — só existe UM espelho por (bolão,
+        // loteria), então isso identifica o registro certo com precisão, sem
+        // depender de coincidência de horário. Heurística por savedAt (<2s)
+        // fica só como fallback para registros legados.
         var _candidatosD=_salvosD.filter(function(x){return x.bolaoId===g.id && x.vinculadoBolao;});
-        var _itemD=_candidatosD.length===1?_candidatosD[0]:_candidatosD.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
+        var _itemD=_candidatosD.length===1?_candidatosD[0]
+          :_candidatosD.filter(function(x){return x.loteria===c.loteria;})[0]
+          ||_candidatosD.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
         if(_itemD){
           _itemD.vinculadoBolao=false;
           _itemD.bolaoId=null;
@@ -18080,6 +18098,26 @@ function _confirmarDuplicadosOuFiltrar(g, jogosNovos, loteriaKey){
 }
 // Clona um array de jogos preservando as propriedades extras anexadas a cada
 // jogo (j._trevos, j._extra, j._isEspelho, j._ssCols). Array.prototype.slice()
+// Acessores de jogo (auditoria, Fase 1.1a) — hoje um "jogo" ainda é um array
+// puro de números com propriedades soltas penduradas nele (jogo._mes,
+// jogo._extra, etc. — ver explicação completa abaixo, no comentário de
+// _extrasArraysDeJogos). Esses acessores leem exatamente essa mesma
+// estrutura hoje, então não mudam nenhum comportamento — só criam um único
+// ponto de leitura, em vez de cada função acessar a propriedade direto.
+// Isso é preparação para uma migração futura (Fase 1.1b, fora deste plano)
+// que troca a estrutura interna para um objeto de verdade {dezenas, mes,
+// time, ...} — quando isso acontecer, só estes acessores precisam mudar,
+// não os ~centenas de pontos de leitura espalhados pelo arquivo.
+function jogoDezenas(j){ return Array.isArray(j)?j:[]; }
+function jogoMes(j){ return j&&j._mes!=null?j._mes:null; }
+function jogoTime(j){ return j&&j._time!=null?j._time:null; }
+function jogoExtra(j){ return j&&j._extra!=null?j._extra:null; }
+function jogoTrevos(j){ return j&&Array.isArray(j._trevos)?j._trevos:null; }
+function jogoSsCols(j){ return j&&Array.isArray(j._ssCols)?j._ssCols:null; }
+function jogoTeimosinhaConcursos(j){ return j&&Array.isArray(j._teimosinhaConcursos)?j._teimosinhaConcursos:null; }
+function jogoIsEspelho(j){ return !!(j&&j._isEspelho); }
+function jogoConcursoOrigem(j){ return j&&j._concursoOrigem!=null?j._concursoOrigem:null; }
+
 // NÃO preserva essas propriedades customizadas (só copia os índices numéricos)
 // — por isso os Trevos da +Milionária e a Bola Extra das loterias americanas
 // se perdiam ao vincular jogos a um bolão (item 8/9 do documento de upgrade).
@@ -18127,20 +18165,24 @@ function _hidratarConcursoJogos(c){
   return c;
 }
 function _clonarJogosComExtras(jogos){
+  // Migrado pra usar os acessores (auditoria, Fase 1.1a) — mesmo
+  // comportamento, ponto de leitura centralizado. Este é o clone usado por
+  // TODO caminho de vincular jogo a bolão, então é um dos pontos mais
+  // sensíveis a essa migração.
   return (jogos||[]).map(function(j){
     var a=Array.isArray(j)?j.slice():j;
-    if(j&&j._trevos) a._trevos=j._trevos.slice();
-    if(j&&j._extra!=null) a._extra=j._extra;
-    if(j&&j._mes!=null) a._mes=j._mes;
-    if(j&&j._time!=null) a._time=j._time;
-    if(j&&j._isEspelho) a._isEspelho=true;
-    if(j&&j._ssCols) a._ssCols=j._ssCols;
+    var trevos=jogoTrevos(j); if(trevos) a._trevos=trevos.slice();
+    var extra=jogoExtra(j); if(extra!=null) a._extra=extra;
+    var mes=jogoMes(j); if(mes!=null) a._mes=mes;
+    var time=jogoTime(j); if(time!=null) a._time=time;
+    if(jogoIsEspelho(j)) a._isEspelho=true;
+    var ssCols=jogoSsCols(j); if(ssCols) a._ssCols=ssCols;
     // _teimosinhaConcursos: SEM isso, vincularJogosAoBolao() nunca via a
     // lista de concursos (ela lê jogos[0]._teimosinhaConcursos do array
     // JÁ CLONADO que recebe) e a Teimosinha era silenciosamente ignorada
     // ao vincular — o bolão recebia uma única entrada normal, sem dividir
     // por concurso nem cobrar o custo de cada um.
-    if(j&&j._teimosinhaConcursos) a._teimosinhaConcursos=j._teimosinhaConcursos.slice();
+    var teim=jogoTeimosinhaConcursos(j); if(teim) a._teimosinhaConcursos=teim.slice();
     return a;
   });
 }
