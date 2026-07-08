@@ -1844,115 +1844,16 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
          Compartilhado entre o módulo Bolão e o Fechamento com Bolão
       ═══════════════════════════════════════════════════════════ */
 
-      var _fechModo = 'individual';
-      var _fechParticipantes = [];   // participantes do Fechamento com Bolão
-      var _bolaoParticipantes = [];  // participantes do módulo Bolão
-      window._bolaoGrupoAtual = null; // referência do grupo ativo para impressão
-
       /* ── Helpers compartilhados ── */
       function _brl(v){ return 'R$ ' + (v||0).toFixed(2).replace('.',','); }
-      function _pad(n){ return String(n).padStart(2,'0'); }
-
-      function _calcParticipantes(todos, cotasIsentas) {
-        var totalCotas = todos.reduce(function(a,p){ return a+p.cotas; }, 0);
-        var naoPagantes = todos.filter(function(p){return !p.isAdmin;}).length;
-        var cotasAMais = (cotasIsentas > 0 && naoPagantes > 0) ? cotasIsentas / naoPagantes : 0;
-        return todos.map(function(p) {
-          var cotasEf = p.isento ? 0 : (p.cotas + (p.isAdmin ? 0 : cotasAMais));
-          var pct = totalCotas>0 && !p.isento ? Math.round((cotasEf / totalCotas) * 1000) / 10 : 0;
-          return Object.assign({}, p, { cotasEfetivas: cotasEf, pct: pct });
-        });
-      }
 
       /* ── Persistência no IndexedDB ── */
-      async function salvarGrupoBolao(grupo) {
-        try { return await dbPut('bolao_grupos', grupo); }
-        catch(e) { console.warn('Erro ao salvar grupo bolão:', e); return null; }
-      }
-
       async function carregarGruposBolao(loteria) {
         try {
           var todos = await dbAll('bolao_grupos');
           return todos.filter(function(g){ return g.loteria===loteria; })
             .sort(function(a,b){ return b.savedAt-a.savedAt; });
         } catch(e) { return []; }
-      }
-
-      /* ═══════════════════════════════════════
-         MÓDULO BOLÃO (gen-card de Bolão)
-      ═══════════════════════════════════════ */
-
-      function addParticipanteBolao() {
-        var nomeEl=document.getElementById('bolao-part-nome');
-        var cotasEl=document.getElementById('bolao-part-cotas');
-        var nome=(nomeEl&&nomeEl.value||'').trim();
-        var cotas=parseInt(cotasEl&&cotasEl.value)||1;
-        if(!nome){ toast('Informe o nome do participante.'); return; }
-        _bolaoParticipantes.push({ nome:nome, cotas:cotas, isAdmin:false, isento:false });
-        if(nomeEl)nomeEl.value=''; if(cotasEl)cotasEl.value='';
-        renderParticipantesBolao();
-      }
-
-      function removeParticipanteBolao(idx) {
-        _bolaoParticipantes.splice(idx,1);
-        renderParticipantesBolao();
-      }
-
-      function renderParticipantesBolao() {
-        var lista=document.getElementById('bolao-participantes-lista'); if(!lista)return;
-        lista.innerHTML=_bolaoParticipantes.map(function(p,i){
-          return '<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid var(--glass-border)">'+
-            '<span style="flex:1;font-size:10px;font-weight:600;color:var(--text)">'+_esc(p.nome)+'</span>'+
-            '<span style="font-size:9px;color:var(--text-dim)">'+p.cotas+' cota'+(p.cotas>1?'s':'')+'</span>'+
-            '<button onclick="removeParticipanteBolao('+i+')" style="border:none;background:transparent;color:rgba(255,80,80,.6);cursor:pointer;font-size:11px;padding:0 2px">✕</button>'+
-          '</div>';
-        }).join('')||'<div style="font-size:10px;color:var(--text-dim);font-style:italic;padding:3px 0">Nenhum participante</div>';
-        var totalCotas=_bolaoParticipantes.reduce(function(a,p){return a+p.cotas;},0);
-        var ep=document.getElementById('bolao-total-partic'); if(ep)ep.textContent=_bolaoParticipantes.length;
-        var ec=document.getElementById('bolao-total-cotas'); if(ec)ec.textContent=totalCotas;
-      }
-
-      async function gerarJogosBolao() {
-        var vincId=parseInt(document.getElementById('bolao-vinculo-sel')&&document.getElementById('bolao-vinculo-sel').value)||0;
-        if(!vincId){ toast('Selecione um bolão para vincular (ou crie em "Novo").'); return; }
-        await gerarJogos('bolao');
-        if(!jogosGerados||!jogosGerados.length) return;
-        jogosGeradosBolao=jogosGerados.slice();
-        await vincularJogosAoBolao(vincId, _clonarJogosComExtras(jogosGeradosBolao), 'bolao-dez-wrap');
-      }
-
-      /* ═══════════════════════════════════════
-         MÓDULO FECHAMENTO COM BOLÃO
-      ═══════════════════════════════════════ */
-
-      function addParticipanteFechamento() {
-        var nomeEl=document.getElementById('fech-part-nome');
-        var cotasEl=document.getElementById('fech-part-cotas');
-        var nome=(nomeEl&&nomeEl.value||'').trim();
-        var cotas=parseInt(cotasEl&&cotasEl.value)||1;
-        if(!nome){ toast('Informe o nome do participante.'); return; }
-        _fechParticipantes.push({nome:nome,cotas:cotas,isAdmin:false,isento:false});
-        if(nomeEl)nomeEl.value=''; if(cotasEl)cotasEl.value='';
-        renderParticipantesFechamento();
-      }
-
-      function removeParticipanteFechamento(idx) {
-        _fechParticipantes.splice(idx,1);
-        renderParticipantesFechamento();
-      }
-
-      function renderParticipantesFechamento() {
-        var lista=document.getElementById('fech-participantes-lista'); if(!lista)return;
-        lista.innerHTML=_fechParticipantes.map(function(p,i){
-          return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid var(--glass-border)">'+
-            '<span style="flex:1;font-size:11px;font-weight:600;color:var(--text)">'+_esc(p.nome)+'</span>'+
-            '<span style="font-size:10px;color:var(--text-dim)">'+p.cotas+' cota'+(p.cotas>1?'s':'')+'</span>'+
-            '<button onclick="removeParticipanteFechamento('+i+')" style="border:none;background:transparent;color:rgba(255,80,80,.6);cursor:pointer;font-size:12px;padding:0 2px">✕</button>'+
-          '</div>';
-        }).join('')||'<div style="font-size:10px;color:var(--text-dim);font-style:italic;padding:4px 0">Nenhum participante adicionado</div>';
-        var totalCotas=_fechParticipantes.reduce(function(a,p){return a+p.cotas;},0);
-        var ep=document.getElementById('fech-total-partic'); if(ep)ep.textContent=_fechParticipantes.length;
-        var ec=document.getElementById('fech-total-cotas'); if(ec)ec.textContent=totalCotas;
       }
 
       /* ═══════════════════════════════════════
@@ -9716,10 +9617,6 @@ function doPrint(destino){
       html+=leg;
     }
     html+=jogosGeradosBolao.map((jogo,i)=>buildPrintRow(jogo,d,null,i,0,fixosBolao)).join('');
-    // Adiciona relatório de participantes se existir
-    if(window._bolaoGrupoAtual && window._bolaoGrupoAtual.participantes && window._bolaoGrupoAtual.participantes.length){
-      html+=buildPrintRelatorioParticipantes(window._bolaoGrupoAtual);
-    }
   }
 
   if(!html){toast('Nenhum jogo para imprimir com a seleção atual.');return;}
