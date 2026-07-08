@@ -2405,7 +2405,15 @@ garantida entre os jogos">⭐ Score</button>
        junto). O modal #modal-analise nunca tem nenhum botão que o abra na
        UI atual (abrirAnaliseCompleta() existe mas não é chamada por nada) —
        fica como está, sem o conflito de id, já que este painel aparece
-       primeiro no DOM e passa a ser o destino real do getElementById. -->
+       primeiro no DOM e passa a ser o destino real do getElementById.
+
+       MESMO PADRÃO em #btn-analise-especial (08/07/2026): existe também
+       duplicado aqui (linha ~2418, ativo) e dentro do #modal-analise morto
+       (linha ~18399). toggleAnaliseEspecial()/abrirAnaliseCompleta() usam
+       getElementById('btn-analise-especial'), que sempre pega ESTE botão
+       por ser o primeiro no DOM — o botão do modal nunca é atualizado, mas
+       como o modal nunca abre, não há bug visível. Não renomear/deduplicar
+       sem antes remover o #modal-analise inteiro (fora de escopo aqui). -->
   <div id="analise-panel">
     <div class="ap-header">
       <div class="ap-header-left">
@@ -3187,6 +3195,22 @@ async function _supabaseSyncPut(store,item){
     });
   }catch(e){ console.warn('[SUPABASE SYNC]',store,e.message); }
 }
+// Envia vários registros da mesma store numa ÚNICA request (upsert em
+// lote do PostgREST) em vez de 1 POST por item — usado pelo push do sync
+// bidirecional (auditoria Fase 5.4). Mesmo formato de linha que
+// _supabaseSyncPut usa por item, só que como array no corpo.
+async function _supabaseSyncPutBatch(store,itens){
+  if(!supabaseAtivo()||!itens||!itens.length) return;
+  try{
+    const body=itens.filter(it=>it&&it.id!=null).map(it=>({id:it.id, loteria:it.loteria||null, nome:it.nome||null, dados:it}));
+    if(!body.length) return;
+    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?on_conflict=id`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify(body)
+    });
+  }catch(e){ console.warn('[SUPABASE SYNC BATCH]',store,e.message); }
+}
 async function _supabaseSyncDel(store,id){
   if(!supabaseAtivo()||id==null) return;
   try{
@@ -3242,7 +3266,7 @@ async function _syncHistoricoDoSupabase(){
 // (recupera dados salvos em outro navegador/dispositivo/domínio).
 async function _supabaseSyncBidirectional(store){
   if(!supabaseAtivo()) return;
-  try{ const locais=await dbAll(store); for(const item of locais){ await _supabaseSyncPut(store,item); } }catch(e){}
+  try{ const locais=await dbAll(store); await _supabaseSyncPutBatch(store,locais); }catch(e){}
   try{
     const remotos=await _supabaseSyncPullAll(store);
     for(const item of remotos){
@@ -18379,6 +18403,11 @@ function gerarJogosParaBolao(bolaoId){
     <div class="modal-hdr" id="hdr-analise">
       <span class="modal-title">📈 Análise Completa</span>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <!-- id duplicado com o botão de #analise-panel (linha ~2418) —
+             intencional/documentado ali, ver comentário no topo de
+             #analise-panel. Este botão está dentro do #modal-analise, que
+             nunca é aberto na UI atual, então nunca reflete o estado do
+             toggle — inofensivo pois é inalcançável. -->
         <div id="analise-especial-wrap" style="display:none">
           <button id="btn-analise-especial" onclick="toggleAnaliseEspecial()" style="border:1px solid #C8A800;border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;background:transparent;color:#C8A800;transition:all .15s">⭐ Especial</button>
         </div>
