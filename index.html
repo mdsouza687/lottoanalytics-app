@@ -14334,8 +14334,12 @@ function abrirPaginaBoloes(){
   '</div>'+
   '<div id="boloes-conteudo"></div>';
   renderFormBolao();
-  // Preenche concurso e prêmio automaticamente para o sorteio atual
-  if(!_boloesState.editId){ _atualizarConcursoPremio().then(function(){ renderFormBolao(); }); }
+  // _atualizarConcursoPremio() NÃO roda mais automaticamente aqui: ela
+  // amarrava concurso/prêmio à loteria ativa no topo do app (currentKey)
+  // antes mesmo de qualquer jogo ser vinculado — contrariando "bolão nasce
+  // virgem" (Doc 2). Continua rodando quando o usuário escolhe um sorteio
+  // especial explicitamente (_setSorteioBolao) ou quando jogos são
+  // vinculados (vincularSalvoAoBolao/vincularJogosAoBolao).
   // Verifica se há bolões no formato antigo a migrar (1x, com confirmação do usuário)
   if(typeof verificarMigracaoBoloes==='function') verificarMigracaoBoloes();
 }
@@ -14427,8 +14431,12 @@ function novoBolao(){
     mesReferencia:_mesAtual, semanas:_calcSemanasDoMes(_mesAtual), dataSorteio:'',
     concursos:[], jogosVinculados:[], numDezBolao:0, loteria:currentKey };
   renderFormBolao();
-  // Preencher concurso, data do sorteio e prêmio automaticamente ao criar
-  _atualizarConcursoPremio().then(function(){ renderFormBolao(); });
+  // Bolão nasce virgem (Doc 2): NÃO chama mais _atualizarConcursoPremio()
+  // aqui — isso amarrava concurso/prêmio à loteria ativa no topo do app
+  // (currentKey) antes de qualquer jogo ser vinculado. O primeiro vínculo
+  // real só deve vir de um sorteio especial escolhido explicitamente
+  // (_setSorteioBolao) ou de um jogo vinculado (vincularSalvoAoBolao/
+  // vincularJogosAoBolao), que populam s.concursos[] por loteria.
 }
 
 
@@ -15294,8 +15302,14 @@ function renderFormBolao(){
     '</div>'+
     '<div style="margin-top:-2px;margin-bottom:10px;font-size:10px;color:'+MULTI_LOTERIA_COR+';font-style:italic">🌐 Bolão Multi-Loteria — pode reunir jogos de diferentes loterias. Cada jogo vinculado mantém o registro e a cor da sua loteria de origem.</div>'+
 
-    // Linha 3: Arrecadação | Valor da cota | Prêmio estimado
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">'+
+    // Linha 3: Arrecadação | Valor da cota
+    // "Prêmio estimado" foi removido daqui — bolão nasce virgem, sem
+    // vínculo a nenhuma loteria (Doc 2); o primeiro vínculo só deve
+    // acontecer quando um jogo é vinculado, não na criação. O prêmio
+    // estimado por loteria agora só aparece na tabela de Participantes,
+    // já filtrado às loterias com concurso vigente vinculado (ver
+    // _premiosEstimVigentesPorLoteria).
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
       '<div><label style="'+lbl+'">Arrecadação total <span style="font-size:9px;color:var(--text-dim);font-weight:400;font-style:italic">(soma das contribuições)</span></label>'+
         '<div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);pointer-events:none">R$</span>'+
         '<input id="bol-arrec-main" type="text" readonly style="'+inp+';padding-left:30px;font-weight:800;color:#4ade80;border-color:rgba(74,222,128,.35);opacity:.85;cursor:not-allowed" value="'+arrecFmtMain+'" placeholder="0,00" title="Calculado automaticamente a partir da Contribuição de cada participante"/></div></div>'+
@@ -15311,9 +15325,6 @@ function renderFormBolao(){
           return '<input id="bol-cota" type="text" style="'+inp+';padding-left:30px;opacity:.75;cursor:not-allowed'+(!vc?';font-style:italic':'')+'" value="'+valTxt+'" placeholder="'+placeholderTxt+'" readonly title="Calculado automaticamente: arrecadação total ÷ total de cotas (ativas + admin)"/>';
         })()+
         '</div></div>'+
-      '<div><label style="'+lbl+'">Prêmio estimado <span style="font-size:9px;color:var(--text-muted)">(automático · API Caixa)</span></label>'+
-        '<div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);pointer-events:none">R$</span>'+
-        '<input id="bol-premio" type="text" style="'+inp+';padding-left:30px;opacity:.75;cursor:not-allowed" value="'+(s.premio?s.premio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0,00" readonly title="Vinculado ao concurso vigente — não editável"/></div></div>'+
     '</div>'+
 
   '</div>'+
