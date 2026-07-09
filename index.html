@@ -4786,7 +4786,13 @@ async function conferirJogosSalvos(){
   if(_conferirJogosSalvosEmAndamento) return [];
   _conferirJogosSalvosEmAndamento=true;
   try{
-    const todosSalvos = await dbAll('jogos_salvos');
+    // Doc 2: em DEV, itens salvos no schema novo (JogosCommon.ativo()) só
+    // existem no Supabase, não no IndexedDB local — sem isso eles nunca
+    // seriam conferidos contra os resultados. Mesmo adaptador já usado pra
+    // renderizar a tela "Jogos Salvos" (_carregarConjuntosDualComoAntigo).
+    const todosSalvosAntigo = await dbAll('jogos_salvos');
+    const todosSalvosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.ativo())?await _carregarConjuntosDualComoAntigo():[];
+    const todosSalvos = todosSalvosAntigo.concat(todosSalvosNovo);
     if(!todosSalvos.length) return [];
     const premios = [];
     for(const item of todosSalvos){
@@ -9742,7 +9748,7 @@ async function _carregarConjuntosDualComoAntigo(){
       loteria:primeiro.loteria, jogos:jogosReconstruidos,
       savedAt:new Date(primeiro.created_at).getTime(),
       numDez:jogosReconstruidos[0]?jogosReconstruidos[0].length:0,
-      fixos:null, concurso:null, vinculadoBolao:false
+      fixos:null, concurso:primeiro.concurso_ref!=null?String(primeiro.concurso_ref):null, vinculadoBolao:false
     };
   });
 }
