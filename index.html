@@ -9817,17 +9817,12 @@ async function openModalSalvar(escopo){
     // Fase 4 (Doc 2): item.id agora pode ser um uuid (schema novo, lote_id)
     // em vez de número (schema antigo) — precisa vir entre aspas no onclick
     // gerado, senão o HTML quebra (um uuid sem aspas vira subtração inválida
-    // em JS: "28d9-61d0" não é um número). Itens do schema novo também
-    // ainda não têm editar-nome/vincular religados aqui (só no painel de
-    // teste) — mostram um aviso em vez do controle, pra não expor um botão
-    // que chamaria a função errada com o id errado.
+    // em JS: "28d9-61d0" não é um número). Editar/vincular já religados
+    // pros dois formatos (salvarEdicaoConjunto/vincularSalvoAoBolao
+    // ramificam por typeof id).
     const idLit=typeof item.id==='string'?`'${item.id}'`:item.id;
-    const acoesTopo=item._novoSchema
-      ? `<span title="Editar/vincular deste conjunto ainda só no painel de teste (abrirPainelSchemaNovo)" style="font-size:9px;color:#facc15;padding:3px 6px">🧪 novo</span>
-         <button onclick="deletarSalvo(${idLit})" title="Excluir conjunto"
-           style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:6px;color:rgba(255,90,90,.9);cursor:pointer;font-size:12px;font-weight:700;padding:3px 8px;line-height:1.4"
-           onmouseover="this.style.background='rgba(255,60,60,.28)'" onmouseout="this.style.background='rgba(255,60,60,.12)'">✕</button>`
-      : `${item.vinculadoBolao?'':`<button onclick="toggleEditarSalvo(${idLit})" title="Editar nome"
+    const badgeNovo=item._novoSchema?'<span title="Schema novo (Doc 2)" style="font-size:9px;color:#facc15;padding:3px 4px">🧪</span>':'';
+    const acoesTopo=`${badgeNovo}${item.vinculadoBolao?'':`<button onclick="toggleEditarSalvo(${idLit})" title="Editar nome"
           style="background:rgba(255,255,255,.08);border:1px solid var(--glass-border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px;padding:3px 8px;line-height:1.4">✏️</button>`}
         <button onclick="deletarSalvo(${idLit})" title="Excluir conjunto"
           style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:6px;color:rgba(255,90,90,.9);cursor:pointer;font-size:12px;font-weight:700;padding:3px 8px;line-height:1.4"
@@ -9841,8 +9836,7 @@ async function openModalSalvar(escopo){
           </div>
           <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">${acoesTopo}</div>
         </div>
-        ${item._novoSchema?'':`
-        <div id="edit-salvo-${idLit}" style="display:none;padding:10px 12px;border-bottom:1px solid var(--glass-border);background:rgba(255,255,255,.03)">
+        <div id="edit-salvo-${item.id}" style="display:none;padding:10px 12px;border-bottom:1px solid var(--glass-border);background:rgba(255,255,255,.03)">
           <div style="font-size:9px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">✏️ Editar nome</div>
           <div style="display:flex;flex-direction:column;gap:7px">
             <div style="display:flex;gap:6px;align-items:center">
@@ -9861,9 +9855,9 @@ async function openModalSalvar(escopo){
         </div>
         <div style="padding:6px 12px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <span style="font-size:9px;color:var(--text-dim);font-weight:700">${item.vinculadoBolao?'🔗 Vinculado a bolão':'Vincular a um bolão:'}</span>
-          <select id="vinc-sel-${item.id}" style="flex:1;min-width:130px;background:rgba(255,255,255,.06);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:11px;padding:4px 6px;cursor:pointer"><option value="">— Selecione um bolão —</option></select>
+          <select id="vinc-sel-${item.id}" data-novo-schema="${!!item._novoSchema}" style="flex:1;min-width:130px;background:rgba(255,255,255,.06);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:11px;padding:4px 6px;cursor:pointer"><option value="">— Selecione um bolão —</option></select>
           <button onclick="vincularSalvoAoBolao(${idLit})" style="background:${cfg.cor};border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;white-space:nowrap">🔗 Vincular</button>
-        </div>`}
+        </div>
         <div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px">
           ${previewJogos.map((j,i)=>`
             <div style="display:flex;align-items:center;gap:6px">
@@ -9957,9 +9951,17 @@ async function openModalSalvar(escopo){
     // primeira vinculação (checado em vincularJogosAoBolao, não aqui na
     // lista) — isso é o que de fato preserva o significado de "Único".
     var _vinculaveisV=_todosBoloesV.slice();
+    // Fase 4 (Doc 2): bolões do schema novo (uuid) pra popular os selects
+    // dos itens migrados — busca só uma vez, fora do forEach.
+    var _boloesNovoV=(paraInd.some(function(it){return it._novoSchema;})&&typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
     paraInd.forEach(function(item){
       var sel=document.getElementById('vinc-sel-'+item.id);
       if(!sel) return;
+      if(item._novoSchema){
+        var optsNovo='<option value="">— Selecione um bolão —</option>'+_boloesNovoV.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+        sel.innerHTML=optsNovo;
+        return;
+      }
       var linhaVinc=sel.closest('div');
       // Bolões Multi-Loteria não pertencem a 1 loteria fixa — listamos TODOS
       // os bolões elegíveis juntos (ordenados por mais recente), sem filtrar
@@ -10180,6 +10182,19 @@ async function salvarEdicaoConjunto(id){
   var inpNome=document.getElementById('edit-nome-'+id);
   var novoNome=inpNome?inpNome.value.trim():'';
   if(!novoNome){ toast('O nome não pode ficar vazio.'); return; }
+  // Fase 4 (Doc 2): id em formato uuid = lote do schema novo — renomeia
+  // TODOS os jogos do lote (mesmo nome compartilhado, já é assim na
+  // criação — ver JogosSalvosRepo.salvarDual).
+  if(typeof id==='string'){
+    try{
+      var listaR=await JogosSalvosRepo.listarDual();
+      var doLoteR=(listaR||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
+      for(var ri=0;ri<doLoteR.length;ri++){ await JogosCommon.renomearDual(doLoteR[ri].id,novoNome); }
+      toast('✓ Nome atualizado');
+      openModalSalvar();
+    }catch(e){ toast('Erro ao salvar: '+e.message); }
+    return;
+  }
   try{
     var item=await getJogoSalvo(id);
     if(!item){ toast('Conjunto não encontrado.'); return; }
@@ -17610,6 +17625,20 @@ function _enfileirarEscritaBolao(fn){
 // duplicar a própria lógica de gravação em vez de reusar esta função,
 // que já é a correta (RENOMEIA o registro existente, não cria um novo).
 async function vincularSalvoAoBolao(itemId, bolaoIdOverride){
+  // Fase 4 (Doc 2): itemId em formato uuid = lote do schema novo — vincula
+  // CADA jogo do lote via moverParaBolaoDual (RPC própria, fora da fila
+  // de escrita do bolão antigo, que não se aplica ao schema novo).
+  if(typeof itemId==='string'){
+    var selN=document.getElementById('vinc-sel-'+itemId);
+    var bolaoIdN=bolaoIdOverride||(selN&&selN.value);
+    if(!bolaoIdN){ toast('Selecione um bolão para vincular.'); return; }
+    var listaN=await JogosSalvosRepo.listarDual();
+    var doLoteN=(listaN||[]).filter(function(j){ return (j.lote_id||j.id)===itemId; });
+    for(var ni=0;ni<doLoteN.length;ni++){ await JogosCommon.moverParaBolaoDual(doLoteN[ni].id,bolaoIdN); }
+    toast('✓ Jogos vinculados ao bolão');
+    openModalSalvar();
+    return;
+  }
   return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride); });
 }
 async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
