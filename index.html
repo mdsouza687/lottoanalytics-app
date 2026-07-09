@@ -3214,7 +3214,21 @@ async function _supabaseSyncPutBatch(store,itens){
 async function _supabaseSyncDel(store,id){
   if(!supabaseAtivo()||id==null) return;
   try{
-    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
+    // Lápide (tombstone) em vez de DELETE físico: um dispositivo com
+    // cópia local desatualizada (que ainda não tinha recebido esta
+    // exclusão) fazia o push do seu próprio registro "vivo" de volta pro
+    // Supabase no boot seguinte — sem nenhum sinal de "isto foi excluído"
+    // sobrevivendo no servidor, o sync bidirecional não tinha como
+    // diferenciar "nunca existiu aqui" de "existiu e foi apagado em outro
+    // aparelho", e a exclusão ressuscitava a cada sync desse dispositivo
+    // atrasado. Agora a exclusão vira um registro-lápide (id + _deleted +
+    // _updatedAt) que _supabaseSyncBidirectional propaga como exclusão
+    // local em qualquer outro dispositivo que ainda tiver a cópia antiga.
+    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?on_conflict=id`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify({id, loteria:null, nome:null, dados:{id, _deleted:true, _updatedAt:Date.now()}})
+    });
   }catch(e){ console.warn('[SUPABASE SYNC DEL]',store,e.message); }
 }
 async function _supabaseSyncPullAll(store){
@@ -3266,19 +3280,33 @@ async function _syncHistoricoDoSupabase(){
 // (recupera dados salvos em outro navegador/dispositivo/domínio).
 async function _supabaseSyncBidirectional(store){
   if(!supabaseAtivo()) return;
-  try{ const locais=await dbAll(store); await _supabaseSyncPutBatch(store,locais); }catch(e){}
+  // Ordem IMPORTA: primeiro baixa e aplica o que vem do Supabase
+  // (inclusive lápides de exclusão — ver _supabaseSyncDel) ANTES de subir
+  // o que existe localmente. Antes era o contrário (sobe tudo, depois
+  // baixa): um dispositivo com uma cópia local desatualizada de algo já
+  // excluído em OUTRO dispositivo fazia o push dessa cópia "viva" de
+  // volta pro Supabase antes de, no mesmo ciclo, ter a chance de aprender
+  // que aquele registro deveria ter sido apagado — ressuscitando bolões/
+  // jogos já excluídos toda vez que esse dispositivo atrasado sincronizava
+  // de novo. Baixando primeiro, a exclusão é aplicada localmente antes do
+  // push, então o registro já não existe mais quando a hora de subir chega.
   try{
     const remotos=await _supabaseSyncPullAll(store);
     for(const item of remotos){
-      // Antes de sobrescrever, checa se o local é mais novo que o remoto
-      // (só quando os dois lados já têm o carimbo _updatedAt — registros
+      // Antes de aplicar, checa se o local é mais novo que o remoto (só
+      // quando os dois lados já têm o carimbo _updatedAt — registros
       // legados sem o campo mantêm o comportamento antigo, remoto sempre
       // vence, evitando regressão de dado pré-existente).
       const local=await dbGet(store,item.id);
       if(local && local._updatedAt!=null && item._updatedAt!=null && local._updatedAt>item._updatedAt) continue;
+      if(item._deleted){
+        if(local) await dbOp(store,'readwrite',st=>st.delete(item.id));
+        continue;
+      }
       await dbOp(store,'readwrite',st=>st.put(item));
     }
   }catch(e){}
+  try{ const locais=await dbAll(store); await _supabaseSyncPutBatch(store,locais); }catch(e){}
 }
 const dbPut=async(s,d)=>{
   if(SUPABASE_SYNC_STORES.includes(s)){ d._updatedAt=Date.now(); }
