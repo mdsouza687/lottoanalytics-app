@@ -17844,8 +17844,11 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // em jogos_salvos continua sem o vínculo marcado, ou vice-versa).
     await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:item}]);
     _registrarAuditoria('vincular_jogo_salvo',{jogoId:item.uuid||itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
-    // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV.
-    BolaoJogosRepo.vincularDual(loteriaItem,jogos);
+    // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV. Usa o
+    // uuid real espelhado deste bolão (g._novoSchemaId), não um bolão de
+    // teste compartilhado — sem isso os jogos de bolões diferentes se
+    // misturariam todos no mesmo bolão fantasma no schema novo.
+    BolaoJogosRepo.vincularDual(loteriaItem,jogos,g._novoSchemaId);
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
@@ -18661,14 +18664,19 @@ var BolaoJogosRepo = {
     if(ins.data&&ins.data.id){ this._bolaoTesteId=ins.data.id; return ins.data.id; }
     return null;
   },
-  vincularDual: async function(loteria,jogosFinais){
+  // bolaoIdNovo: uuid real do bolão espelhado (g._novoSchemaId), vindo de
+  // espelharBolaoDual(). Sem ele, os jogos ficariam todos amontoados no
+  // bolão de teste compartilhado (__dual_write_fase2__) independente de a
+  // qual bolão real pertencem — só usa o de teste como último recurso
+  // (chamada avulsa sem contexto de bolão real, ex.: painel de teste).
+  vincularDual: async function(loteria,jogosFinais,bolaoIdNovo){
     if(!JogosCommon.ativo()) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
-      var bolaoTeste=await this._obterBolaoTeste(sb);
-      if(!bolaoTeste) return;
+      var bolaoAlvo=bolaoIdNovo||await this._obterBolaoTeste(sb);
+      if(!bolaoAlvo) return;
       var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; return p; });
-      var {data,error}=await sb.rpc('rpc_vincular_jogos_bolao',{p_jogos:payload,p_bolao_id:bolaoTeste,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+      var {data,error}=await sb.rpc('rpc_vincular_jogos_bolao',{p_jogos:payload,p_bolao_id:bolaoAlvo,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
       if(error) console.warn('[BolaoJogosRepo.vincularDual]',error.message);
       else console.info('[BolaoJogosRepo.vincularDual] ok, '+(data?data.length:0)+' linha(s) no schema novo');
     }catch(e){ console.warn('[BolaoJogosRepo.vincularDual]',e.message); }
@@ -19211,8 +19219,9 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       // silencioso. Mesmo padrão que vincularSalvoAoBolao já usa.
       await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:itemBolao}]);
       _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
-      // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV.
-      BolaoJogosRepo.vincularDual(loteriaKey,jogos);
+      // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV. Usa
+      // o uuid real espelhado deste bolão (g._novoSchemaId).
+      BolaoJogosRepo.vincularDual(loteriaKey,jogos,g._novoSchemaId);
     }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
     await popularDropdownsVinculo();
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
