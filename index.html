@@ -17834,7 +17834,14 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     hidratarJogosSalvos(item);
     // Garante currentKey coerente com a loteria do conjunto (para numDez/concurso)
     var loteriaItem=item.loteria;
-    var jogos=(item.jogos||[]).map(function(j){ var a=j.slice(); if(j._extra!=null)a._extra=j._extra; if(j._trevos)a._trevos=j._trevos.slice(); if(j._isEspelho)a._isEspelho=true; if(j._ssCols)a._ssCols=j._ssCols; if(j._teimosinhaConcursos)a._teimosinhaConcursos=j._teimosinhaConcursos.slice(); return a; });
+    // Usa a mesma clonagem centralizada de todo outro caminho de vincular
+    // jogo a bolão (_clonarJogosComExtras) em vez de uma cópia própria só
+    // deste fluxo — a cópia própria que existia aqui esquecia de repassar
+    // Mês da Sorte (_mes) e Time do Coração (_time), então um jogo de Dia de
+    // Sorte/Timemania vinculado a um bolão via "Inserir Jogos para
+    // Conferência" perdia essa informação (ficava sem o chip Mês/Time no
+    // relatório, mesmo já tendo sido salvo corretamente em "Jogos Salvos").
+    var jogos=_clonarJogosComExtras(item.jogos||[]);
     if(!jogos.length){ toast('Este conjunto não tem jogos.'); return; }
     var g=await getBolao(bolaoId);
     if(!g){ toast('Bolão não encontrado.'); return; }
