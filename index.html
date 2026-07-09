@@ -16869,23 +16869,64 @@ async function _anexarBoloesSchemaNovo(c){
 }
 
 async function _verJogosBolaoNovo(bolaoId,nome){
-  var jogos=await BolaoJogosRepo.listarPorBolaoDual(bolaoId)||[];
+  window._painelBolaoNovoAtual={id:bolaoId,nome:nome};
   var overlay=document.getElementById('painel-ver-jogos-bolao-novo');
-  if(overlay) overlay.remove();
-  overlay=document.createElement('div');
-  overlay.id='painel-ver-jogos-bolao-novo';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99997;display:flex;align-items:center;justify-content:center';
-  var lista=jogos.length?jogos.map(function(j){
-    return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px">'+
-      (j.is_espelho?'🪞 ':'')+_esc(j.loteria||'')+' · '+_esc((j.numeros||[]).join(', '))+
-      (j.trevos&&j.trevos.length?' · trevos '+_esc(j.trevos.join(',')):'')+'</div>';
-  }).join(''):'<div style="font-size:12px;color:rgba(255,255,255,.6)">Nenhum jogo vinculado.</div>';
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='painel-ver-jogos-bolao-novo';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99997;display:flex;align-items:center;justify-content:center';
+    document.body.appendChild(overlay);
+  }
   overlay.innerHTML='<div style="background:#12151f;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:18px;width:480px;max-width:92vw;max-height:80vh;overflow:auto;color:#fff;font-family:sans-serif">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-    '<b style="font-size:14px">🧪 '+_esc(nome)+' — jogos (só leitura)</b>'+
+    '<b style="font-size:14px">🧪 '+_esc(nome)+'</b>'+
     '<button onclick="document.getElementById(\'painel-ver-jogos-bolao-novo\').remove()" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">✕</button></div>'+
-    lista+'</div>';
-  document.body.appendChild(overlay);
+    '<div id="painel-bolao-novo-jogos" style="font-size:12px;margin-bottom:14px">Carregando jogos...</div>'+
+    '<div style="border-top:1px solid rgba(255,255,255,.15);padding-top:10px">'+
+    '<b style="font-size:13px">Participantes (teste, schema novo)</b>'+
+    '<div id="painel-bolao-novo-partic" style="font-size:12px;margin:8px 0">Carregando participantes...</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+
+      '<input id="pbn-nome" placeholder="Nome" style="flex:1;min-width:100px;padding:5px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:12px"/>'+
+      '<input id="pbn-cotas" type="number" min="1" value="1" placeholder="Cotas" style="width:60px;padding:5px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:12px"/>'+
+      '<button onclick="_pbnAdicionarParticipante()" style="background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:11px;padding:5px 10px;cursor:pointer">+ Adicionar</button>'+
+    '</div></div></div>';
+  await _renderPainelBolaoNovo();
+}
+async function _renderPainelBolaoNovo(){
+  var ctx=window._painelBolaoNovoAtual; if(!ctx) return;
+  var jogosEl=document.getElementById('painel-bolao-novo-jogos');
+  var particEl=document.getElementById('painel-bolao-novo-partic');
+  var jogos=await BolaoJogosRepo.listarPorBolaoDual(ctx.id)||[];
+  if(jogosEl){
+    jogosEl.innerHTML=jogos.length?jogos.map(function(j){
+      return '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)">'+
+        (j.is_espelho?'🪞 ':'')+_esc(j.loteria||'')+' · '+_esc((j.numeros||[]).join(', '))+
+        (j.trevos&&j.trevos.length?' · trevos '+_esc(j.trevos.join(',')):'')+'</div>';
+    }).join(''):'<div style="color:rgba(255,255,255,.6)">Nenhum jogo vinculado.</div>';
+  }
+  var partic=await BolaoJogosRepo.listarParticipantesDual(ctx.id)||[];
+  if(particEl){
+    particEl.innerHTML=partic.length?partic.map(function(p){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)">'+
+        '<span>'+(p.is_admin?'⭐ ':'')+_esc(p.nome)+' ('+p.cotas+' cota'+(p.cotas!==1?'s':'')+')'+(p.isento?' 🎟':'')+'</span>'+
+        '<button onclick="_pbnRemoverParticipante(\''+p.id+'\')" style="background:rgba(255,60,60,.15);border:none;border-radius:5px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer">✕</button></div>';
+    }).join(''):'<div style="color:rgba(255,255,255,.6)">Nenhum participante ainda.</div>';
+  }
+}
+async function _pbnAdicionarParticipante(){
+  var ctx=window._painelBolaoNovoAtual; if(!ctx) return;
+  var nome=(document.getElementById('pbn-nome').value||'').trim();
+  var cotas=parseInt(document.getElementById('pbn-cotas').value)||1;
+  if(!nome){ toast('Informe o nome do participante.'); return; }
+  var r=await BolaoJogosRepo.adicionarParticipanteDual(ctx.id,nome,cotas,false,false);
+  if(!r){ toast('Erro ao adicionar participante.'); return; }
+  document.getElementById('pbn-nome').value='';
+  document.getElementById('pbn-cotas').value='1';
+  await _renderPainelBolaoNovo();
+}
+async function _pbnRemoverParticipante(participanteId){
+  await BolaoJogosRepo.removerParticipanteDual(participanteId);
+  await _renderPainelBolaoNovo();
 }
 
 async function editarBolao(id){
@@ -18637,6 +18678,34 @@ var BolaoJogosRepo = {
       if(error){ console.warn('[BolaoJogosRepo.listarBoloesDual]',error.message); return null; }
       return data;
     }catch(e){ console.warn('[BolaoJogosRepo.listarBoloesDual]',e.message); return null; }
+  },
+  // Participantes (schema novo) — painel de teste só, ainda não usado pela
+  // tela real de Bolões (que não tem como criar bolão nesse schema ainda).
+  listarParticipantesDual: async function(bolaoIdNovo){
+    if(!JogosCommon.ativo()||!bolaoIdNovo) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.from('bolao_participantes').select('*').eq('bolao_id',bolaoIdNovo).is('deleted_at',null).order('created_at',{ascending:true});
+      if(error){ console.warn('[BolaoJogosRepo.listarParticipantesDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.listarParticipantesDual]',e.message); return null; }
+  },
+  adicionarParticipanteDual: async function(bolaoIdNovo,nome,cotas,isAdmin,isento){
+    if(!JogosCommon.ativo()) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.rpc('rpc_add_participante_bolao',{p_bolao_id:bolaoIdNovo,p_nome:nome,p_cotas:cotas,p_is_admin:!!isAdmin,p_isento:!!isento});
+      if(error){ console.warn('[BolaoJogosRepo.adicionarParticipanteDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.adicionarParticipanteDual]',e.message); return null; }
+  },
+  removerParticipanteDual: async function(participanteId){
+    if(!JogosCommon.ativo()) return;
+    try{
+      var sb=_getSbClient(); if(!sb) return;
+      var {error}=await sb.rpc('rpc_remover_participante_bolao',{p_participante_id:participanteId});
+      if(error) console.warn('[BolaoJogosRepo.removerParticipanteDual]',error.message);
+    }catch(e){ console.warn('[BolaoJogosRepo.removerParticipanteDual]',e.message); }
   }
 };
 
