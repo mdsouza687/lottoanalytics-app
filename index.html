@@ -16788,12 +16788,28 @@ async function _salvarBolaoImpl(){
     savedAt: Date.now()
   };
   if(s.editId) registro.id=s.editId;
+  // Preserva o mapeamento id-antigo→uuid-novo através de edições — sem isso,
+  // cada save recriaria um bolão novo no schema novo (registro é montado do
+  // zero aqui, não herda campos do existente automaticamente).
+  if(existente&&existente._novoSchemaId) registro._novoSchemaId=existente._novoSchemaId;
   try{
     var id=await dbPut('boloes_v2', registro);
     _boloesState.editId=id;
     _boloesState.concursos=concursosFrescos;
     _registrarAuditoria(s.editId?'editar_bolao':'criar_bolao',{bolaoId:id});
     toast('✓ Bolão salvo');
+    // Dual-write (Doc 2, DEV only): espelha nome/loteria no schema novo,
+    // nunca bloqueia nem desfaz o save real acima se falhar.
+    if(typeof BolaoJogosRepo!=='undefined'&&typeof JogosCommon!=='undefined'&&JogosCommon.ativo()){
+      try{
+        registro.id=id;
+        var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
+        if(novoId&&registro._novoSchemaId!==novoId){
+          registro._novoSchemaId=novoId;
+          await dbPut('boloes_v2',registro);
+        }
+      }catch(eDual){ console.warn('[salvarBolao dual-write]',eDual.message); }
+    }
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
 }
 
@@ -18706,6 +18722,29 @@ var BolaoJogosRepo = {
       var {error}=await sb.rpc('rpc_remover_participante_bolao',{p_participante_id:participanteId});
       if(error) console.warn('[BolaoJogosRepo.removerParticipanteDual]',error.message);
     }catch(e){ console.warn('[BolaoJogosRepo.removerParticipanteDual]',e.message); }
+  },
+  // Dual-write do bolão em si (só nome/loteria — participantes/cotas/jogos
+  // continuam só no schema antigo por enquanto). Chamado depois que o save
+  // antigo já teve sucesso, nunca bloqueia nem desfaz o save real se falhar.
+  // registro._novoSchemaId guarda o mapeamento id-antigo→uuid-novo, gravado
+  // de volta no próprio registro (boloes_v2) pra reaproveitar no próximo save
+  // em vez de criar um bolão novo no schema novo a cada edição.
+  espelharBolaoDual: async function(registro){
+    if(!JogosCommon.ativo()) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      if(registro._novoSchemaId){
+        var upd=await sb.from('boloes').update({nome:registro.nome,loteria:registro.loteria||null,updated_at:new Date().toISOString()}).eq('id',registro._novoSchemaId);
+        if(upd.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',upd.error.message); return null; }
+        return registro._novoSchemaId;
+      }
+      var _u=await sb.auth.getUser();
+      var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+      if(!_uid) return null;
+      var ins=await sb.from('boloes').insert({nome:registro.nome,loteria:registro.loteria||null,user_id:_uid}).select('id').single();
+      if(ins.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',ins.error.message); return null; }
+      return ins.data?ins.data.id:null;
+    }catch(e){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',e.message); return null; }
   }
 };
 
