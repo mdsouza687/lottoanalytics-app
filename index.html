@@ -9710,6 +9710,42 @@ function buildPrintRelatorioParticipantes(grupo){
   html+=`</tbody></table></div>`;
   return html;
 }
+// Fase 4 (Doc 2): adapta a leitura do schema novo (jogos independentes,
+// agrupados só visualmente por lote_id) pro mesmo formato que cardConjunto()
+// já sabe desenhar (item.jogos[], item.nome, item.savedAt...) — permite
+// religar a tela REAL sem reescrever o desenho do cartão. item.id aqui é
+// o lote_id (uuid), não mais um número — deletarSalvo() já sabe tratar os
+// dois formatos (ver abaixo).
+async function _carregarConjuntosDualComoAntigo(){
+  var lista=await JogosSalvosRepo.listarDual();
+  if(!lista) return [];
+  var grupos={},ordem=[];
+  lista.forEach(function(j){
+    var chave=j.lote_id||j.id;
+    if(!grupos[chave]){ grupos[chave]=[]; ordem.push(chave); }
+    grupos[chave].push(j);
+  });
+  return ordem.map(function(chave){
+    var rows=grupos[chave];
+    var primeiro=rows[0];
+    var jogosReconstruidos=rows.map(function(r){
+      var a=r.numeros.slice();
+      if(r.trevos&&r.trevos.length) a._trevos=r.trevos.slice();
+      if(r.extras){ if(r.extras.extra!=null)a._extra=r.extras.extra; if(r.extras.mes!=null)a._mes=r.extras.mes; if(r.extras.time!=null)a._time=r.extras.time; }
+      if(r.is_espelho) a._isEspelho=true;
+      a._jogoId=r.id;
+      return a;
+    });
+    return {
+      id:chave, _novoSchema:true,
+      nome:primeiro.nome||(CFG[primeiro.loteria]?CFG[primeiro.loteria].nome:primeiro.loteria)+' · '+new Date(primeiro.created_at).toLocaleDateString('pt-BR'),
+      loteria:primeiro.loteria, jogos:jogosReconstruidos,
+      savedAt:new Date(primeiro.created_at).getTime(),
+      numDez:jogosReconstruidos[0]?jogosReconstruidos[0].length:0,
+      fixos:null, concurso:null, vinculadoBolao:false
+    };
+  });
+}
 async function openModalSalvar(escopo){
   /* escopo: 'atual' (loteria selecionada) | 'todas' (todas as loterias).
      Sem argumento, reutiliza o último escopo (recarga após salvar/excluir). */
@@ -9723,7 +9759,10 @@ async function openModalSalvar(escopo){
   const pad=n=>String(n).padStart(2,'0');
 
   /* ── Jogos individuais salvos ── */
-  const todosInd=await dbAll('jogos_salvos');
+  // Fase 4 (Doc 2): em DEV, a lista de Jogos Salvos já lê do schema novo
+  // (public.jogos, via listarDual) em vez de jogos_salvos — primeiro corte
+  // de leitura real na tela de produção, não mais só no painel de teste.
+  const todosInd=JogosCommon.ativo()?await _carregarConjuntosDualComoAntigo():await dbAll('jogos_salvos');
   const paraInd=(todasLot?todosInd:todosInd.filter(j=>j.loteria===currentKey)).sort((a,b)=>b.savedAt-a.savedAt);
 
   let htmlInd='';
@@ -9775,6 +9814,24 @@ async function openModalSalvar(escopo){
 
     const previewJogos=item.jogos.slice(0,3);
     const maisJogos=item.jogos.length>3?`<div style="font-size:10px;color:var(--text-dim);padding:4px 0 0 20px">+${item.jogos.length-3} jogo${item.jogos.length-3!==1?'s':''} a mais...</div>`:'';
+    // Fase 4 (Doc 2): item.id agora pode ser um uuid (schema novo, lote_id)
+    // em vez de número (schema antigo) — precisa vir entre aspas no onclick
+    // gerado, senão o HTML quebra (um uuid sem aspas vira subtração inválida
+    // em JS: "28d9-61d0" não é um número). Itens do schema novo também
+    // ainda não têm editar-nome/vincular religados aqui (só no painel de
+    // teste) — mostram um aviso em vez do controle, pra não expor um botão
+    // que chamaria a função errada com o id errado.
+    const idLit=typeof item.id==='string'?`'${item.id}'`:item.id;
+    const acoesTopo=item._novoSchema
+      ? `<span title="Editar/vincular deste conjunto ainda só no painel de teste (abrirPainelSchemaNovo)" style="font-size:9px;color:#facc15;padding:3px 6px">🧪 novo</span>
+         <button onclick="deletarSalvo(${idLit})" title="Excluir conjunto"
+           style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:6px;color:rgba(255,90,90,.9);cursor:pointer;font-size:12px;font-weight:700;padding:3px 8px;line-height:1.4"
+           onmouseover="this.style.background='rgba(255,60,60,.28)'" onmouseout="this.style.background='rgba(255,60,60,.12)'">✕</button>`
+      : `${item.vinculadoBolao?'':`<button onclick="toggleEditarSalvo(${idLit})" title="Editar nome"
+          style="background:rgba(255,255,255,.08);border:1px solid var(--glass-border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px;padding:3px 8px;line-height:1.4">✏️</button>`}
+        <button onclick="deletarSalvo(${idLit})" title="Excluir conjunto"
+          style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:6px;color:rgba(255,90,90,.9);cursor:pointer;font-size:12px;font-weight:700;padding:3px 8px;line-height:1.4"
+          onmouseover="this.style.background='rgba(255,60,60,.28)'" onmouseout="this.style.background='rgba(255,60,60,.12)'">✕</button>`;
     return `
       <div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">
         <div style="padding:10px 12px 8px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -9782,15 +9839,10 @@ async function openModalSalvar(escopo){
             <div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${todasLot?'<span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(cfg,14)+'</span>':''}${item.nome}</div>
             <div style="font-size:10px;color:var(--text-dim);margin-top:2px">${dtStr} · ${item.jogos.length} jogo${item.jogos.length!==1?'s':''} · ${item.numDez} dez${fixosInfo}${item.concurso?' · Conc. '+item.concurso:''}${_custoStr}</div>
           </div>
-          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-            ${item.vinculadoBolao?'':`<button onclick="toggleEditarSalvo(${item.id})" title="Editar nome"
-              style="background:rgba(255,255,255,.08);border:1px solid var(--glass-border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px;padding:3px 8px;line-height:1.4">✏️</button>`}
-            <button onclick="deletarSalvo(${item.id})" title="Excluir conjunto"
-              style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:6px;color:rgba(255,90,90,.9);cursor:pointer;font-size:12px;font-weight:700;padding:3px 8px;line-height:1.4"
-              onmouseover="this.style.background='rgba(255,60,60,.28)'" onmouseout="this.style.background='rgba(255,60,60,.12)'">✕</button>
-          </div>
+          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">${acoesTopo}</div>
         </div>
-        <div id="edit-salvo-${item.id}" style="display:none;padding:10px 12px;border-bottom:1px solid var(--glass-border);background:rgba(255,255,255,.03)">
+        ${item._novoSchema?'':`
+        <div id="edit-salvo-${idLit}" style="display:none;padding:10px 12px;border-bottom:1px solid var(--glass-border);background:rgba(255,255,255,.03)">
           <div style="font-size:9px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">✏️ Editar nome</div>
           <div style="display:flex;flex-direction:column;gap:7px">
             <div style="display:flex;gap:6px;align-items:center">
@@ -9800,9 +9852,9 @@ async function openModalSalvar(escopo){
                 placeholder="Ex: Mega-Sena #2801"/>
             </div>
             <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:2px">
-              <button onclick="toggleEditarSalvo(${item.id})"
+              <button onclick="toggleEditarSalvo(${idLit})"
                 style="border:1px solid var(--glass-border);border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-muted);font-family:var(--font-body)">Cancelar</button>
-              <button onclick="salvarEdicaoConjunto(${item.id})"
+              <button onclick="salvarEdicaoConjunto(${idLit})"
                 style="border:none;border-radius:6px;padding:5px 16px;font-size:11px;font-weight:700;cursor:pointer;background:${cfg.cor};color:#fff;font-family:var(--font-body)">💾 Salvar</button>
             </div>
           </div>
@@ -9810,8 +9862,8 @@ async function openModalSalvar(escopo){
         <div style="padding:6px 12px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <span style="font-size:9px;color:var(--text-dim);font-weight:700">${item.vinculadoBolao?'🔗 Vinculado a bolão':'Vincular a um bolão:'}</span>
           <select id="vinc-sel-${item.id}" style="flex:1;min-width:130px;background:rgba(255,255,255,.06);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:11px;padding:4px 6px;cursor:pointer"><option value="">— Selecione um bolão —</option></select>
-          <button onclick="vincularSalvoAoBolao(${item.id})" style="background:${cfg.cor};border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;white-space:nowrap">🔗 Vincular</button>
-        </div>
+          <button onclick="vincularSalvoAoBolao(${idLit})" style="background:${cfg.cor};border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;white-space:nowrap">🔗 Vincular</button>
+        </div>`}
         <div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px">
           ${previewJogos.map((j,i)=>`
             <div style="display:flex;align-items:center;gap:6px">
@@ -10073,6 +10125,9 @@ async function _salvarJogosImpl(){
   _registrarAuditoria('criar_jogo_salvo',{jogoId:itemSalvar.uuid,detalhes:`${jogosFinais.length} jogo(s) de ${d.nome}, id=${novoId}`});
   window._salvarNomeSugerido=null;
   supabaseSalvar(itemSalvar);
+  // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV, sem
+  // afetar o caminho acima (que continua sendo a fonte de verdade).
+  JogosSalvosRepo.salvarDual(currentKey,jogosFinais);
   toast(`✓ ${jogosFinais.length} jogo${jogosFinais.length!==1?'s':''} salvo${jogosFinais.length!==1?'s':''}${temEspelho?' (principais + espelhos)':''}`);openModalSalvar();
   return novoId;
 }
@@ -10139,7 +10194,22 @@ async function salvarEdicaoConjunto(id){
   }catch(e){ toast('Erro ao salvar: '+e.message); }
 }
 
-async function deletarSalvo(id){await dbDel('jogos_salvos',id);_registrarAuditoria('excluir_jogo_salvo',{detalhes:`id=${id}`});toast('Conjunto removido.');openModalSalvar();}
+async function deletarSalvo(id){
+  // Fase 4 (Doc 2): id em formato uuid = conjunto do schema novo (id é o
+  // lote_id) — apaga cada jogo do lote individualmente via RPC (soft
+  // delete, cada um com sua própria lápide), não um dbDel de um registro
+  // único como no schema antigo.
+  if(typeof id==='string'){
+    var lista=await JogosSalvosRepo.listarDual();
+    var doLote=(lista||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
+    for(var i=0;i<doLote.length;i++){ await JogosCommon.excluirDual(doLote[i].id); }
+    _registrarAuditoria('excluir_jogo_salvo',{detalhes:`lote=${id}, ${doLote.length} jogo(s)`});
+    toast('Conjunto removido.');
+    openModalSalvar();
+    return;
+  }
+  await dbDel('jogos_salvos',id);_registrarAuditoria('excluir_jogo_salvo',{detalhes:`id=${id}`});toast('Conjunto removido.');openModalSalvar();
+}
 function getPeríodoAtual(){return document.getElementById('jogo-estat')?.value||'12';}
 function getPeríodoLabel(v){ const d=CFG[currentKey]; return{'historica':'Histórica','6':'Últ. 6','12':'Últ. 12','24':'Últ. 24','36':'Últ. 36','48':'Últ. 48','72':'Últ. 72','96':'Últ. 96','especial':d?.specialLabel||'Especial'}[v]||v; }
 function setPeríodoEstat(v,modal){ document.getElementById('jogo-estat').value=v; document.getElementById('bolao-estat').value=v; if(modal==='estatisticas')abrirEstatisticas(); else if(modal==='nums')abrirNumsSorteados(); else if(modal==='padroes')abrirPadroes(); }
@@ -12767,6 +12837,90 @@ async function _removerDuplicatasJogosSalvos(){
     }
   }
   return removidos;
+}
+// Fase 1 da reestruturação de armazenamento (Documento 2): auditoria
+// completa, SÓ LEITURA — não apaga, não corrige, não escreve nada. Serve
+// pra dimensionar o estrago atual (jogos_salvos + boloes_v2.concursos[].jogos)
+// antes de qualquer migração pro novo schema relacional (public.jogos/
+// public.boloes no Supabase). Generaliza a mesma ideia de assinatura de
+// conteúdo já usada em _identificarDuplicatasJogosSalvos, mas cobrindo os
+// 5 tipos de inconsistência que o documento pede que a migração detecte:
+// duplicatas, jogo presente em Jogos Salvos E dentro de um bolão ao mesmo
+// tempo (viola o isolamento exigido), bolaoId órfão, espelho ainda
+// aninhado (não expandido em registro próprio) e jogo sem _jogoId (não
+// dá pra migrar pra um UUID estável sem essa referência).
+function _hashConteudoJogo(loteria,numeros,trevos){
+  var n=(numeros||[]).slice().sort(function(a,b){return a-b;}).join(',');
+  var t=trevos?trevos.slice().sort(function(a,b){return a-b;}).join(','):'';
+  return loteria+'|'+n+'|'+t;
+}
+async function _auditarIntegridadeCompleta(){
+  var jogosSalvos=[],boloes=[];
+  try{ jogosSalvos=await dbAll('jogos_salvos'); }catch(e){}
+  try{ boloes=await dbAll('boloes_v2'); }catch(e){}
+
+  var duplicatasPorHash=[], jogoEmDoisLugares=[], bolaoIdOrfao=[], espelhoNaoExpandido=[], jogoIdAusente=[];
+
+  // 1) Duplicatas por conteúdo dentro de Jogos Salvos (mesma loteria+dezenas+trevos)
+  var porHash={};
+  jogosSalvos.forEach(function(item){
+    (item.jogos||[]).forEach(function(j,idx){
+      var h=_hashConteudoJogo(item.loteria,j,j&&j._trevos);
+      (porHash[h]=porHash[h]||[]).push({itemId:item.id,itemNome:item.nome,jogoIdx:idx,jogoId:j&&j._jogoId});
+    });
+  });
+  Object.keys(porHash).forEach(function(h){ if(porHash[h].length>1) duplicatasPorHash.push({hash:h,ocorrencias:porHash[h]}); });
+
+  // 2) Jogo com o MESMO conteúdo existindo em Jogos Salvos E dentro de um bolão
+  //    ao mesmo tempo — viola o isolamento exigido pelo documento (item 1).
+  var hashesEmBolao={};
+  boloes.forEach(function(b){
+    (b.concursos||[]).forEach(function(cc){
+      (cc.jogos||[]).forEach(function(j){
+        var h=_hashConteudoJogo(cc.loteria||b.loteria,j,j&&j._trevos);
+        (hashesEmBolao[h]=hashesEmBolao[h]||[]).push({bolaoId:b.id,bolaoNome:b.nome,concursoNum:cc.num});
+      });
+    });
+  });
+  jogosSalvos.forEach(function(item){
+    if(item.vinculadoBolao) return; // já sabidamente uma cópia vinculada, não é o caso buscado aqui
+    (item.jogos||[]).forEach(function(j){
+      var h=_hashConteudoJogo(item.loteria,j,j&&j._trevos);
+      if(hashesEmBolao[h]) jogoEmDoisLugares.push({itemId:item.id,itemNome:item.nome,tambemEm:hashesEmBolao[h]});
+    });
+  });
+
+  // 3) bolaoId apontando pra um bolão que não existe (mais)
+  var boloesIds={}; boloes.forEach(function(b){ boloesIds[b.id]=true; });
+  jogosSalvos.forEach(function(item){
+    if(item.bolaoId!=null && !boloesIds[item.bolaoId]) bolaoIdOrfao.push({itemId:item.id,itemNome:item.nome,bolaoIdApontado:item.bolaoId});
+  });
+
+  // 4) Espelho ainda aninhado (jogo._espelho), nunca expandido em registro próprio
+  jogosSalvos.forEach(function(item){
+    (item.jogos||[]).forEach(function(j,idx){ if(j&&j._espelho) espelhoNaoExpandido.push({origem:'jogos_salvos',itemId:item.id,itemNome:item.nome,jogoIdx:idx}); });
+  });
+  boloes.forEach(function(b){
+    (b.concursos||[]).forEach(function(cc){
+      (cc.jogos||[]).forEach(function(j,idx){ if(j&&j._espelho) espelhoNaoExpandido.push({origem:'boloes_v2',bolaoId:b.id,bolaoNome:b.nome,concursoNum:cc.num,jogoIdx:idx}); });
+    });
+  });
+
+  // 5) Jogo sem _jogoId — não dá pra migrar pra um UUID estável sem essa referência
+  jogosSalvos.forEach(function(item){
+    (item.jogos||[]).forEach(function(j,idx){ if(j&&!j._jogoId) jogoIdAusente.push({itemId:item.id,itemNome:item.nome,jogoIdx:idx}); });
+  });
+
+  return {
+    resumo:{
+      totalJogosSalvos:jogosSalvos.length, totalBoloes:boloes.length,
+      duplicatas:duplicatasPorHash.length, emDoisLugares:jogoEmDoisLugares.length,
+      orfaos:bolaoIdOrfao.length, espelhosNaoExpandidos:espelhoNaoExpandido.length,
+      semJogoId:jogoIdAusente.length
+    },
+    duplicatasPorHash:duplicatasPorHash, jogoEmDoisLugares:jogoEmDoisLugares,
+    bolaoIdOrfao:bolaoIdOrfao, espelhoNaoExpandido:espelhoNaoExpandido, jogoIdAusente:jogoIdAusente
+  };
 }
 async function _bootApp(){
   buildDash();
@@ -17545,6 +17699,8 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // em jogos_salvos continua sem o vínculo marcado, ou vice-versa).
     await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:item}]);
     _registrarAuditoria('vincular_jogo_salvo',{jogoId:item.uuid||itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
+    // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV.
+    BolaoJogosRepo.vincularDual(loteriaItem,jogos);
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
@@ -18210,6 +18366,351 @@ function _criarItemJogoSalvo(opts){
     vinculadoBolao:!!opts.vinculadoBolao,
   };
 }
+
+/* ════════════════════════════════════════════════════════
+   Fase 2 da reestruturação de armazenamento (Documento 2) — camada NOVA
+   rodando em PARALELO à antiga (dual-write), só no projeto Supabase de
+   DEV (as RPCs só existem lá ainda). NÃO substitui jogos_salvos/boloes_v2
+   como fonte de verdade — só grava também no schema relacional novo
+   (public.jogos/public.boloes) via as RPCs, e registra no console se
+   algo deu errado, pra validar a camada nova sem risco pro que já
+   funciona. JogosSalvosRepo e BolaoJogosRepo nunca leem lista um do
+   outro — isolamento do item 8 do documento, garantido por não existir
+   nenhuma variável de lista compartilhada entre os dois.
+   ════════════════════════════════════════════════════════ */
+var JogosCommon = {
+  ativo: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
+  novaIdempotencyKey: function(){
+    return (crypto&&crypto.randomUUID)?crypto.randomUUID():_novoId()+'-'+Math.random().toString(36).slice(2);
+  },
+  // Fase 4 (Doc 2): as 3 operações que faltavam pra fechar o CRUD do
+  // schema novo — soft-delete, desvincular (volta a ser Jogo Salvo) e
+  // mover pra outro bolão. Vivem aqui (não em JogosSalvosRepo/BolaoJogosRepo
+  // separadamente) porque as RPCs por trás operam em public.jogos por
+  // UUID direto, sem precisar saber se a origem era "salvo" ou "bolao".
+  excluirDual: async function(jogoId){
+    if(!JogosCommon.ativo()||!jogoId) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.rpc('rpc_excluir_jogo',{p_jogo_id:jogoId});
+      if(error){ console.warn('[JogosCommon.excluirDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[JogosCommon.excluirDual]',e.message); return null; }
+  },
+  desvincularDual: async function(jogoId){
+    if(!JogosCommon.ativo()||!jogoId) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.rpc('rpc_desvincular_jogo',{p_jogo_id:jogoId});
+      if(error){ console.warn('[JogosCommon.desvincularDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[JogosCommon.desvincularDual]',e.message); return null; }
+  },
+  moverParaBolaoDual: async function(jogoId,bolaoIdNovo){
+    if(!JogosCommon.ativo()||!jogoId||!bolaoIdNovo) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.rpc('rpc_mover_jogo_para_bolao',{p_jogo_id:jogoId,p_bolao_id:bolaoIdNovo});
+      if(error){ console.warn('[JogosCommon.moverParaBolaoDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[JogosCommon.moverParaBolaoDual]',e.message); return null; }
+  },
+  // Renomear é edição de campo simples (não precisa de RPC/transação) —
+  // update direto, protegido pela mesma RLS (auth.uid()=user_id) das
+  // demais tabelas. IMPORTANTE: no schema antigo "nome" era do CONJUNTO
+  // inteiro salvo numa mesma ação (podia agrupar vários jogos); no schema
+  // novo cada jogo é uma linha própria e independente (Doc 2, item 1), então
+  // "nome" aqui é por JOGO individual — não existe mais o conceito de
+  // "conjunto nomeado". Isso é uma mudança real de UX, não só de código;
+  // sinalizado ao usuário, não decidido sozinho.
+  renomearDual: async function(jogoId,novoNome){
+    if(!JogosCommon.ativo()||!jogoId) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.from('jogos').update({nome:novoNome,updated_at:new Date().toISOString()}).eq('id',jogoId).select().single();
+      if(error){ console.warn('[JogosCommon.renomearDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[JogosCommon.renomearDual]',e.message); return null; }
+  },
+  // Achata um jogo (array de dezenas + propriedades _extra/_trevos/_isEspelho)
+  // pro formato que as RPCs esperam — mesmo shape já produzido por
+  // _clonarJogosComExtras, só remapeado pros nomes de campo do schema novo.
+  jogoParaPayload: function(j){
+    if(!j) return null;
+    return {
+      loteria: j._loteriaOrigem||null, // preenchido pelo chamador quando necessário
+      numeros: Array.isArray(j)?j.slice():[],
+      trevos: Array.isArray(j._trevos)?j._trevos.slice():null,
+      extras: { extra:j._extra!=null?j._extra:null, mes:j._mes!=null?j._mes:null, time:j._time!=null?j._time:null },
+      is_espelho: !!j._isEspelho,
+      concurso_ref: j._concursoOrigem!=null?parseInt(j._concursoOrigem)||null:null
+    };
+  }
+};
+var JogosSalvosRepo = {
+  // Dual-write: chamado a partir de _salvarJogosImpl, nunca lê nada de
+  // BolaoJogosRepo nem aceita bolaoId — só existe pra jogos SEM bolão.
+  // nomeLote (opcional): rótulo aplicado a TODOS os jogos desta chamada —
+  // preserva a UX de "salvar N jogos de uma vez com um nome" do schema
+  // antigo, mas cada jogo continua sendo uma linha independente (a RPC
+  // gera um lote_id compartilhado só pra agrupar na exibição).
+  salvarDual: async function(loteria,jogosFinais,nomeLote){
+    if(!JogosCommon.ativo()) return;
+    try{
+      var sb=_getSbClient(); if(!sb) return;
+      var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; if(nomeLote) p.nome=nomeLote; return p; });
+      var {data,error}=await sb.rpc('rpc_salvar_jogos_salvos',{p_jogos:payload,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+      if(error) console.warn('[JogosSalvosRepo.salvarDual]',error.message);
+      else console.info('[JogosSalvosRepo.salvarDual] ok, '+(data?data.length:0)+' linha(s) no schema novo');
+    }catch(e){ console.warn('[JogosSalvosRepo.salvarDual]',e.message); }
+  },
+  // Fase 4 (Doc 2): leitura do schema novo — só jogos com destino='salvo'
+  // (nunca lê nada que esteja vinculado a bolão, mesmo isolamento aplicado
+  // na escrita). Não é chamado por nenhuma tela ainda; existe pra validar
+  // que o schema novo responde corretamente antes de religar a UI a ele.
+  listarDual: async function(){
+    if(!JogosCommon.ativo()) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.from('jogos').select('*').eq('destino','salvo').is('deleted_at',null).order('created_at',{ascending:false});
+      if(error){ console.warn('[JogosSalvosRepo.listarDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[JogosSalvosRepo.listarDual]',e.message); return null; }
+  }
+};
+// Fase 4 (Doc 2): compara o que o schema NOVO tem contra o que o dual-write
+// deveria ter gravado desde que ficou ativo — validação de leitura, sem
+// religar nenhuma tela real (a tela "Jogos Salvos" continua 100% no
+// caminho antigo; só os jogos criados DEPOIS do dual-write entrar no ar
+// são esperados no schema novo, não o histórico inteiro).
+async function _compararSchemaNovoDual(){
+  if(!JogosCommon.ativo()) return {erro:'Só roda em DEV.'};
+  var novo=await JogosSalvosRepo.listarDual();
+  if(novo===null) return {erro:'Falha ao ler o schema novo — ver console.'};
+  return {
+    totalNoSchemaNovo:novo.length,
+    amostra:novo.slice(0,5).map(function(j){ return {loteria:j.loteria,numeros:j.numeros,destino:j.destino,criadoEm:j.created_at}; })
+  };
+}
+var BolaoJogosRepo = {
+  // Dual-write: chamado a partir de vincularJogosAoBolao/vincularSalvoAoBolao,
+  // nunca lê nada de JogosSalvosRepo. bolaoId aqui é o id NUMÉRICO local
+  // (boloes_v2) — nesta fase ainda não existe mapeamento pro uuid de
+  // public.boloes, então o dual-write só valida a RPC de vincular em si
+  // (usa um bolão de teste dedicado no DEV, não tenta casar IDs ainda —
+  // isso fica pra Fase 3, quando a migração real for desenhada).
+  _bolaoTesteId: null,
+  _obterBolaoTeste: async function(sb){
+    if(this._bolaoTesteId) return this._bolaoTesteId;
+    var {data}=await sb.from('boloes').select('id').eq('nome','__dual_write_fase2__').maybeSingle();
+    if(data&&data.id){ this._bolaoTesteId=data.id; return data.id; }
+    // RLS exige user_id explícito no insert (não há default/trigger que
+    // preencha sozinho a partir de auth.uid()) — sem isso, o insert batia
+    // em "new row violates row-level security policy" e vincularDual()
+    // falhava em silêncio (engolido pelo try/catch), nunca criando o
+    // bolão de teste nem gravando nada em public.jogos.
+    var _u=await sb.auth.getUser();
+    var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+    if(!_uid) return null;
+    var ins=await sb.from('boloes').insert({nome:'__dual_write_fase2__',user_id:_uid}).select('id').single();
+    if(ins.data&&ins.data.id){ this._bolaoTesteId=ins.data.id; return ins.data.id; }
+    return null;
+  },
+  vincularDual: async function(loteria,jogosFinais){
+    if(!JogosCommon.ativo()) return;
+    try{
+      var sb=_getSbClient(); if(!sb) return;
+      var bolaoTeste=await this._obterBolaoTeste(sb);
+      if(!bolaoTeste) return;
+      var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; return p; });
+      var {data,error}=await sb.rpc('rpc_vincular_jogos_bolao',{p_jogos:payload,p_bolao_id:bolaoTeste,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+      if(error) console.warn('[BolaoJogosRepo.vincularDual]',error.message);
+      else console.info('[BolaoJogosRepo.vincularDual] ok, '+(data?data.length:0)+' linha(s) no schema novo');
+    }catch(e){ console.warn('[BolaoJogosRepo.vincularDual]',e.message); }
+  },
+  // Fase 4 (Doc 2): leitura do schema novo — só jogos daquele bolão
+  // específico (destino='bolao'), nunca lê nada de Jogos Salvos. Mesmo
+  // propósito de validação que JogosSalvosRepo.listarDual, sem religar UI.
+  listarPorBolaoDual: async function(bolaoIdNovo){
+    if(!JogosCommon.ativo()||!bolaoIdNovo) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.from('jogos').select('*').eq('bolao_id',bolaoIdNovo).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:false});
+      if(error){ console.warn('[BolaoJogosRepo.listarPorBolaoDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.listarPorBolaoDual]',e.message); return null; }
+  },
+  // Fase 4 (Doc 2): lista os bolões do usuário no schema novo — usado pro
+  // dropdown "Vincular a um bolão" do painel de teste.
+  listarBoloesDual: async function(){
+    if(!JogosCommon.ativo()) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.from('boloes').select('id,nome').is('deleted_at',null).order('created_at',{ascending:false});
+      if(error){ console.warn('[BolaoJogosRepo.listarBoloesDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.listarBoloesDual]',e.message); return null; }
+  }
+};
+
+// Fase 4 (Doc 2): painel de teste — primeira tela de verdade operando
+// 100% no schema novo (listar/excluir/desvincular via as RPCs já
+// validadas). Só existe em DEV, não substitui nem interfere na tela real
+// "Jogos Salvos" (que continua inteira no caminho antigo) — o objetivo é
+// provar o ciclo completo tela→ação→schema novo funcionando, antes de
+// arriscar religar a tela grande de produção a isso.
+async function abrirPainelSchemaNovo(){
+  if(!JogosCommon.ativo()){ toast('Painel de teste só existe em DEV.'); return; }
+  var overlay=document.getElementById('painel-schema-novo');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='painel-schema-novo';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99997;display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML='<div style="background:#12151f;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:18px;width:520px;max-width:92vw;max-height:80vh;overflow:auto;color:#fff;font-family:sans-serif">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<b style="font-size:14px">🧪 Painel de teste — schema novo (Doc 2, DEV)</b>'+
+      '<button onclick="document.getElementById(\'painel-schema-novo\').remove()" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">✕</button></div>'+
+      '<div id="painel-schema-novo-lista" style="font-size:12px">Carregando...</div></div>';
+    document.body.appendChild(overlay);
+  }
+  await _renderPainelSchemaNovo();
+}
+async function _painelSchemaNovoVincular(jogoId){
+  var sel=document.getElementById('painel-vinc-'+jogoId);
+  var bolaoId=sel&&sel.value;
+  if(!bolaoId){ toast('Selecione um bolão.'); return; }
+  await JogosCommon.moverParaBolaoDual(jogoId,bolaoId);
+  await _renderPainelSchemaNovo();
+}
+async function _painelSchemaNovoRenomear(jogoId){
+  var input=document.getElementById('painel-nome-'+jogoId);
+  await JogosCommon.renomearDual(jogoId,(input&&input.value||'').trim()||null);
+  await _renderPainelSchemaNovo();
+}
+async function _renderPainelSchemaNovo(){
+  var box=document.getElementById('painel-schema-novo-lista'); if(!box) return;
+  box.innerHTML='Carregando...';
+  var lista=await JogosSalvosRepo.listarDual();
+  var boloes=await BolaoJogosRepo.listarBoloesDual();
+  if(lista===null){ box.innerHTML='<span style="color:#f87171">Falha ao ler — ver console.</span>'; return; }
+  if(!lista.length){ box.innerHTML='<span style="color:#888;font-style:italic">Nenhum jogo salvo no schema novo ainda.</span>'; return; }
+  var opcoesBolao='<option value="">— Selecione um bolão —</option>'+(boloes||[]).map(function(b){ return '<option value="'+b.id+'">'+_esc(b.nome)+'</option>'; }).join('');
+  // Agrupa por lote_id só pra EXIBIÇÃO (cartão único por "compra") — cada
+  // jogo dentro do cartão continua com seus próprios botões, porque a
+  // ação (excluir/vincular/renomear) sempre opera na linha individual,
+  // nunca no lote inteiro. Jogos sem lote_id (registros antigos/soltos)
+  // viram um cartão de 1 item só.
+  var grupos={}, ordem=[];
+  lista.forEach(function(j){
+    var chave=j.lote_id||('solo-'+j.id);
+    if(!grupos[chave]){ grupos[chave]=[]; ordem.push(chave); }
+    grupos[chave].push(j);
+  });
+  function linhaJogo(j){
+    return '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:6px;margin-top:6px">'+
+      '<div>'+j.numeros.join(', ')+(j.nome?' <span style="color:#facc15">"'+_esc(j.nome)+'"</span>':'')+' <span style="color:#555;font-size:9px">'+j.id.slice(0,8)+'…</span></div>'+
+      '<div style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+      '<input id="painel-nome-'+j.id+'" value="'+_esc(j.nome||'')+'" placeholder="nome (opcional)" style="background:#1a1d2a;border:1px solid rgba(255,255,255,.15);border-radius:5px;color:#fff;font-size:10px;padding:3px 6px;width:110px"/>'+
+      '<button onclick="_painelSchemaNovoRenomear(\''+j.id+'\')" style="background:#f5a623;border:none;border-radius:5px;color:#000;font-size:10px;padding:3px 8px;cursor:pointer">✏️</button>'+
+      '<select id="painel-vinc-'+j.id+'" style="background:#1a1d2a;border:1px solid rgba(255,255,255,.15);border-radius:5px;color:#fff;font-size:10px;padding:3px 6px">'+opcoesBolao+'</select>'+
+      '<button onclick="_painelSchemaNovoVincular(\''+j.id+'\')" style="background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:10px;padding:3px 8px;cursor:pointer">🔗</button>'+
+      '<button onclick="JogosCommon.excluirDual(\''+j.id+'\').then(_renderPainelSchemaNovo)" style="background:#dc2626;border:none;border-radius:5px;color:#fff;font-size:10px;padding:3px 8px;cursor:pointer">✕</button>'+
+      '</div></div>';
+  }
+  box.innerHTML=ordem.map(function(chave){
+    var jogos=grupos[chave];
+    var primeiro=jogos[0];
+    return '<div style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;margin-bottom:8px">'+
+      '<div><b>'+_esc(primeiro.loteria)+'</b> — '+jogos.length+' jogo'+(jogos.length!==1?'s':'')+(primeiro.nome?' · <span style="color:#facc15">"'+_esc(primeiro.nome)+'"</span>':'')+'</div>'+
+      '<div style="color:#888;font-size:10px">criado '+new Date(primeiro.created_at).toLocaleString('pt-BR')+'</div>'+
+      jogos.map(linhaJogo).join('')+
+      '</div>';
+  }).join('');
+}
+
+// Fase 3 (Doc 2): script de migração — converte jogos_salvos/boloes_v2
+// pro schema relacional novo (public.boloes/public.jogos), passando por
+// cima das mesmas RPCs que Fase 2 já valida (garante que a migração
+// respeita as MESMAS constraints do schema novo, não um caminho
+// separado). Roda em modo dryRun por padrão (só conta, não grava nada —
+// seguro chamar quantas vezes quiser) e é IDEMPOTENTE em modo real: as
+// RPCs rejeitam content_hash duplicado, então rodar duas vezes não
+// duplica nada, só ignora o que já foi migrado (ver duplicatasIgnoradas).
+async function _migrarParaJogosTable(opts){
+  opts=opts||{};
+  var dryRun=opts.dryRun!==false; // default true — precisa passar {dryRun:false} explicitamente pra gravar
+  var relatorio={dryRun:dryRun,boloesMigrados:0,boloesJaExistentes:0,jogosSalvosMigrados:0,jogosBolaoMigrados:0,duplicatasIgnoradas:0,erros:[]};
+  if(!JogosCommon.ativo()){ relatorio.erros.push('Ambiente não é DEV ou Supabase indisponível — migração só roda em DEV.'); return relatorio; }
+  var sb=_getSbClient(); if(!sb){ relatorio.erros.push('Cliente Supabase indisponível.'); return relatorio; }
+
+  var boloes=await dbAll('boloes_v2');
+  var jogosSalvos=await dbAll('jogos_salvos');
+  var mapaBolaoIdNovo={}; // id numérico antigo (boloes_v2) -> uuid novo (public.boloes)
+
+  function ehDuplicado(msg){ return /duplicate key|unique|content_hash/i.test(msg||''); }
+
+  // 1) Bolões — casados por nome (não existe outro identificador estável
+  // entre os dois esquemas ainda); se já existe um bolão com esse nome no
+  // schema novo, reaproveita o id em vez de criar outro.
+  // RLS exige user_id explícito no insert (mesmo bug já corrigido em
+  // BolaoJogosRepo._obterBolaoTeste — não há default/trigger que preencha
+  // sozinho a partir de auth.uid()).
+  var _uMig=await sb.auth.getUser();
+  var _uidMig=_uMig&&_uMig.data&&_uMig.data.user?_uMig.data.user.id:null;
+  for(var bi=0;bi<boloes.length;bi++){
+    var b=boloes[bi];
+    if(dryRun){ relatorio.boloesMigrados++; continue; }
+    if(!_uidMig){ relatorio.erros.push('bolão id='+b.id+': sem usuário autenticado'); continue; }
+    try{
+      var {data:existente}=await sb.from('boloes').select('id').eq('nome',b.nome).is('deleted_at',null).maybeSingle();
+      if(existente&&existente.id){ mapaBolaoIdNovo[b.id]=existente.id; relatorio.boloesJaExistentes++; continue; }
+      var {data:novo,error:errB}=await sb.from('boloes').insert({nome:b.nome,loteria:b.loteria||null,user_id:_uidMig}).select('id').single();
+      if(errB){ relatorio.erros.push('bolão id='+b.id+' ('+b.nome+'): '+errB.message); continue; }
+      mapaBolaoIdNovo[b.id]=novo.id;
+      relatorio.boloesMigrados++;
+    }catch(e){ relatorio.erros.push('bolão id='+b.id+': '+e.message); }
+  }
+
+  // 2) Jogos Salvos puros — NUNCA os que já estão vinculadoBolao (esses
+  // são cópia do que existe dentro do bolão; migrar os dois seria
+  // recriar exatamente a duplicação física que este projeto inteiro
+  // existe pra eliminar — ver item 1 do Documento 2).
+  for(var ji=0;ji<jogosSalvos.length;ji++){
+    var item=jogosSalvos[ji];
+    if(item.vinculadoBolao) continue;
+    var expandidos=_clonarJogosComExtras(item.jogos||[]);
+    if(!expandidos.length) continue;
+    if(dryRun){ relatorio.jogosSalvosMigrados+=expandidos.length; continue; }
+    try{
+      var payloadS=expandidos.map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=item.loteria; return p; });
+      var {data:dataS,error:errS}=await sb.rpc('rpc_salvar_jogos_salvos',{p_jogos:payloadS,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+      if(errS){ if(ehDuplicado(errS.message)) relatorio.duplicatasIgnoradas++; else relatorio.erros.push('jogos_salvos id='+item.id+': '+errS.message); }
+      else relatorio.jogosSalvosMigrados+=(dataS?dataS.length:0);
+    }catch(e){ relatorio.erros.push('jogos_salvos id='+item.id+': '+e.message); }
+  }
+
+  // 3) Jogos dentro de cada bolão (boloes_v2.concursos[].jogos)
+  for(var bj=0;bj<boloes.length;bj++){
+    var bo=boloes[bj];
+    var bolaoNovoId=mapaBolaoIdNovo[bo.id];
+    var concursos=bo.concursos||[];
+    for(var ci=0;ci<concursos.length;ci++){
+      var cc=concursos[ci];
+      var expBolao=_clonarJogosComExtras(cc.jogos||[]);
+      if(!expBolao.length) continue;
+      if(dryRun){ relatorio.jogosBolaoMigrados+=expBolao.length; continue; }
+      if(!bolaoNovoId){ relatorio.erros.push('bolão id='+bo.id+' sem mapeamento novo — concurso '+cc.num+' não migrado'); continue; }
+      try{
+        var payloadB=expBolao.map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=cc.loteria||bo.loteria; p.concurso_ref=cc.num!=null?parseInt(cc.num)||null:null; return p; });
+        var {data:dataB,error:errB2}=await sb.rpc('rpc_vincular_jogos_bolao',{p_jogos:payloadB,p_bolao_id:bolaoNovoId,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+        if(errB2){ if(ehDuplicado(errB2.message)) relatorio.duplicatasIgnoradas++; else relatorio.erros.push('bolão id='+bo.id+' concurso '+cc.num+': '+errB2.message); }
+        else relatorio.jogosBolaoMigrados+=(dataB?dataB.length:0);
+      }catch(e){ relatorio.erros.push('bolão id='+bo.id+' concurso '+cc.num+': '+e.message); }
+    }
+  }
+
+  return relatorio;
+}
 function _extrasArraysDeJogos(jogos){
   return {
     mesArr:(jogos||[]).map(function(j){return j&&j._mes!=null?j._mes:null;}),
@@ -18489,6 +18990,8 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       // silencioso. Mesmo padrão que vincularSalvoAoBolao já usa.
       await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:itemBolao}]);
       _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
+      // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV.
+      BolaoJogosRepo.vincularDual(loteriaKey,jogos);
     }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
     await popularDropdownsVinculo();
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
