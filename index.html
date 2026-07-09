@@ -16933,8 +16933,9 @@ async function _renderPainelBolaoNovo(){
 async function _pbnAdicionarParticipante(){
   var ctx=window._painelBolaoNovoAtual; if(!ctx) return;
   var nome=(document.getElementById('pbn-nome').value||'').trim();
-  var cotas=parseInt(document.getElementById('pbn-cotas').value)||1;
+  var cotas=parseInt(document.getElementById('pbn-cotas').value);
   if(!nome){ toast('Informe o nome do participante.'); return; }
+  if(!cotas||cotas<1){ toast('Cotas deve ser um número maior ou igual a 1.'); return; }
   var r=await BolaoJogosRepo.adicionarParticipanteDual(ctx.id,nome,cotas,false,false);
   if(!r){ toast('Erro ao adicionar participante.'); return; }
   document.getElementById('pbn-nome').value='';
@@ -18743,9 +18744,16 @@ var BolaoJogosRepo = {
     try{
       var sb=_getSbClient(); if(!sb) return null;
       if(registro._novoSchemaId){
-        var upd=await sb.from('boloes').update({nome:registro.nome,loteria:registro.loteria||null,updated_at:new Date().toISOString()}).eq('id',registro._novoSchemaId);
+        // .select('id') no update pra saber se alguma linha foi de fato
+        // afetada — update() não gera erro quando 0 linhas casam o filtro
+        // (ex.: id espelhado antigo cujo bolão foi removido fora do app).
+        // Sem essa checagem, um _novoSchemaId "morto" seria devolvido como
+        // válido pra sempre, e o próximo passo (participantes) falharia por
+        // violação de chave estrangeira sem nunca se autocorrigir.
+        var upd=await sb.from('boloes').update({nome:registro.nome,loteria:registro.loteria||null,updated_at:new Date().toISOString()}).eq('id',registro._novoSchemaId).select('id');
         if(upd.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',upd.error.message); return null; }
-        return registro._novoSchemaId;
+        if(upd.data&&upd.data.length) return registro._novoSchemaId;
+        console.warn('[BolaoJogosRepo.espelharBolaoDual] _novoSchemaId '+registro._novoSchemaId+' não existe mais — recriando');
       }
       var _u=await sb.auth.getUser();
       var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
@@ -18769,15 +18777,27 @@ var BolaoJogosRepo = {
       var _u=await sb.auth.getUser();
       var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
       if(!_uid) return;
-      var del=await sb.from('bolao_participantes').delete().eq('bolao_id',bolaoIdNovo);
-      if(del.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message); return; }
-      if(!participantesArr||!participantesArr.length) return;
-      var rows=participantesArr.map(function(p){
-        return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
-          is_admin:!!p.isAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo' };
-      });
-      var ins=await sb.from('bolao_participantes').insert(rows);
-      if(ins.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert',ins.error.message);
+      // Insere os participantes NOVOS antes de apagar os antigos (nunca o
+      // contrário) — se o insert falhar no meio do caminho (rede, RLS), a
+      // réplica antiga fica intacta em vez de ficar com 0 participantes.
+      // A remoção dos antigos é feita por id explícito, não por um DELETE
+      // genérico "de tudo desse bolão" (que também apagaria as linhas recém
+      // inseridas).
+      var existentes=await sb.from('bolao_participantes').select('id').eq('bolao_id',bolaoIdNovo);
+      if(existentes.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] select',existentes.error.message); return; }
+      var idsAntigos=(existentes.data||[]).map(function(r){return r.id;});
+      if(participantesArr&&participantesArr.length){
+        var rows=participantesArr.map(function(p){
+          return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
+            is_admin:!!p.isAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo' };
+        });
+        var ins=await sb.from('bolao_participantes').insert(rows);
+        if(ins.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert',ins.error.message); return; }
+      }
+      if(idsAntigos.length){
+        var del=await sb.from('bolao_participantes').delete().in('id',idsAntigos);
+        if(del.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message);
+      }
     }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); }
   }
 };
