@@ -16828,6 +16828,58 @@ async function listarBoloesSalvos(){
       }catch(e){ return '<div style="padding:8px;color:#f87171;font-size:11px">Erro ao ler bolão '+_esc(g.nome||'?')+'</div>'; }
     }).join('')+
   '</div>';
+  await _anexarBoloesSchemaNovo(c);
+}
+
+// Fase 4 (Doc 2), leitura adicional: mostra (só-leitura) os bolões que já
+// existem no schema novo (public.boloes), pra nenhum jogo vinculado por lá
+// ficar invisível nesta tela. Não mexe na criação/edição/cotas/geração de
+// jogos, que continuam 100% no caminho antigo (boloes_v2) — só evita que um
+// bolão do schema novo "suma" da visão do usuário. Inerte fora do DEV
+// (JogosCommon.ativo()==false em produção).
+async function _anexarBoloesSchemaNovo(c){
+  try{
+    if(typeof JogosCommon==='undefined'||!JogosCommon.ativo()||typeof BolaoJogosRepo==='undefined') return;
+    var boloesNovo=await BolaoJogosRepo.listarBoloesDual();
+    if(!boloesNovo||!boloesNovo.length) return;
+    var cardStyle='background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;margin-bottom:14px';
+    var linhas=[];
+    for(var i=0;i<boloesNovo.length;i++){
+      var b=boloesNovo[i];
+      var jogos=await BolaoJogosRepo.listarPorBolaoDual(b.id);
+      var qtd=jogos?jogos.length:0;
+      linhas.push('<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--glass-border);gap:10px;flex-wrap:wrap">'+
+        '<div><div style="font-weight:800;color:var(--text);font-size:13px">🧪 '+_esc(b.nome||'Bolão')+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted)">'+qtd+' jogo'+(qtd!==1?'s':'')+' · schema novo (DEV), só leitura</div></div>'+
+        '<button onclick="_verJogosBolaoNovo(\''+b.id+'\',\''+_esc(b.nome||'Bolão').replace(/'/g,"\\'")+'\')" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 11px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">👁 Ver jogos</button>'+
+        '</div>');
+    }
+    if(!linhas.length) return;
+    c.innerHTML+='<div style="'+cardStyle+'">'+
+      '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:#16a34a;margin-bottom:10px">🧪 Bolões (schema novo) — '+boloesNovo.length+'</div>'+
+      linhas.join('')+
+    '</div>';
+  }catch(e){ console.warn('[_anexarBoloesSchemaNovo]',e.message); }
+}
+
+async function _verJogosBolaoNovo(bolaoId,nome){
+  var jogos=await BolaoJogosRepo.listarPorBolaoDual(bolaoId)||[];
+  var overlay=document.getElementById('painel-ver-jogos-bolao-novo');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='painel-ver-jogos-bolao-novo';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99997;display:flex;align-items:center;justify-content:center';
+  var lista=jogos.length?jogos.map(function(j){
+    return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px">'+
+      (j.is_espelho?'🪞 ':'')+_esc(j.loteria||'')+' · '+_esc((j.numeros||[]).join(', '))+
+      (j.trevos&&j.trevos.length?' · trevos '+_esc(j.trevos.join(',')):'')+'</div>';
+  }).join(''):'<div style="font-size:12px;color:rgba(255,255,255,.6)">Nenhum jogo vinculado.</div>';
+  overlay.innerHTML='<div style="background:#12151f;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:18px;width:480px;max-width:92vw;max-height:80vh;overflow:auto;color:#fff;font-family:sans-serif">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+    '<b style="font-size:14px">🧪 '+_esc(nome)+' — jogos (só leitura)</b>'+
+    '<button onclick="document.getElementById(\'painel-ver-jogos-bolao-novo\').remove()" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">✕</button></div>'+
+    lista+'</div>';
+  document.body.appendChild(overlay);
 }
 
 async function editarBolao(id){
