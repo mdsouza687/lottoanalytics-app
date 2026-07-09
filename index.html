@@ -9992,19 +9992,14 @@ async function _salvarJogosImpl(){
   const selIdx=getJogosSelecionados();
   if(!selIdx.length){toast('Selecione ao menos um jogo para salvar.');return null;}
   const jogosSel=selIdx.map(i=>jogosGerados[i]);
-  // Aposta Espelho: expande cada jogo em principal + espelho (salvos separadamente)
-  let jogosFinais=[];
-  jogosSel.forEach(j=>{
-    jogosFinais.push(j);
-    if(j._espelho){
-      const esp=j._espelho.slice();
-      esp._isEspelho=true;          // marca para cor diferenciada na conferência
-      if(j._espExtra!=null) esp._extra=j._espExtra;
-      if(j._espTrevos) esp._trevos=j._espTrevos.slice();
-      jogosFinais.push(esp);
-    }
-  });
-  const temEspelho=jogosSel.some(j=>j._espelho);
+  // Aposta Espelho: expande cada jogo em principal + espelho, cada um como
+  // aposta própria e independente (mesma dezenas/valor/ciclo de vida que
+  // qualquer outra aposta) — reaproveita _clonarJogosComExtras, o mesmo
+  // ponto central usado por todo caminho de vincular jogo a bolão, em vez
+  // de uma expansão própria e divergente aqui (que não levava Mês/Time do
+  // lado espelho, só extra/trevos).
+  const jogosFinais=_clonarJogosComExtras(jogosSel);
+  const temEspelho=jogosFinais.some(j=>j._isEspelho);
   const d=CFG[currentKey];
   const todos=await dbAll('jogos_salvos');
   const paraCurr=todos.filter(j=>j.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
@@ -18246,7 +18241,8 @@ function _clonarJogosComExtras(jogos){
   // comportamento, ponto de leitura centralizado. Este é o clone usado por
   // TODO caminho de vincular jogo a bolão, então é um dos pontos mais
   // sensíveis a essa migração.
-  return (jogos||[]).map(function(j){
+  var out=[];
+  (jogos||[]).forEach(function(j){
     var a=Array.isArray(j)?j.slice():j;
     var trevos=jogoTrevos(j); if(trevos) a._trevos=trevos.slice();
     var extra=jogoExtra(j); if(extra!=null) a._extra=extra;
@@ -18260,8 +18256,26 @@ function _clonarJogosComExtras(jogos){
     // ao vincular — o bolão recebia uma única entrada normal, sem dividir
     // por concurso nem cobrar o custo de cada um.
     var teim=jogoTeimosinhaConcursos(j); if(teim) a._teimosinhaConcursos=teim.slice();
-    return a;
+    out.push(a);
+    // Aposta Espelho: o espelho é uma aposta própria e independente, não
+    // uma extensão da principal — mesma expansão já usada em
+    // _salvarJogosImpl (que também reaproveita esta função agora). Sem
+    // isso, vincular jogos direto ao bolão (Individual/Fechamento por
+    // Score/IA) descartava o espelho em silêncio: ele nunca virava uma
+    // entrada própria no concurso, então nunca entrava no custo, nunca
+    // era conferido contra o resultado e nunca aparecia no relatório —
+    // apesar de ter sido gerado, mostrado e "pago" junto com a principal.
+    if(j&&j._espelho){
+      var esp=j._espelho.slice();
+      esp._isEspelho=true;
+      if(j._espExtra!=null) esp._extra=j._espExtra;
+      if(j._espTrevos) esp._trevos=j._espTrevos.slice();
+      if(j._espMes!=null) esp._mes=j._espMes;
+      if(j._espTime!=null) esp._time=j._espTime;
+      out.push(esp);
+    }
   });
+  return out;
 }
 // Mesma proteção de salvarBolao(), agora via fila compartilhada
 // _enfileirarEscritaBolao (ver comentário completo acima de
