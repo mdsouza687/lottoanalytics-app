@@ -16808,6 +16808,7 @@ async function _salvarBolaoImpl(){
           registro._novoSchemaId=novoId;
           await dbPut('boloes_v2',registro);
         }
+        if(novoId) await BolaoJogosRepo.sincronizarParticipantesDual(novoId,registro.participantes);
       }catch(eDual){ console.warn('[salvarBolao dual-write]',eDual.message); }
     }
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
@@ -18745,6 +18746,31 @@ var BolaoJogosRepo = {
       if(ins.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',ins.error.message); return null; }
       return ins.data?ins.data.id:null;
     }catch(e){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',e.message); return null; }
+  },
+  // Espelha a lista de participantes inteira (substituição total: apaga e
+  // recria) a cada save do bolão. Participantes não têm id próprio no schema
+  // antigo (são só objetos dentro de um array em memória até o Salvar) — não
+  // dá pra "casar" edição/remoção de forma confiável por nome, então a
+  // réplica sempre reflete o estado atual completo em vez de tentar um diff
+  // incremental arriscado. É só espelho (DEV) — o antigo continua sendo a
+  // fonte de verdade real dos participantes.
+  sincronizarParticipantesDual: async function(bolaoIdNovo,participantesArr){
+    if(!JogosCommon.ativo()||!bolaoIdNovo) return;
+    try{
+      var sb=_getSbClient(); if(!sb) return;
+      var _u=await sb.auth.getUser();
+      var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+      if(!_uid) return;
+      var del=await sb.from('bolao_participantes').delete().eq('bolao_id',bolaoIdNovo);
+      if(del.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message); return; }
+      if(!participantesArr||!participantesArr.length) return;
+      var rows=participantesArr.map(function(p){
+        return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
+          is_admin:!!p.isAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo' };
+      });
+      var ins=await sb.from('bolao_participantes').insert(rows);
+      if(ins.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert',ins.error.message);
+    }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); }
   }
 };
 
