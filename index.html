@@ -4561,7 +4561,17 @@ async function fetchCaixaOficial(apiKey, ms=8000){
     data: raw.dataApuracao,
     dezenas: raw.listaDezenas,
     dezenasSegundoSorteio: raw.listaDezenasSegundoSorteio,
-    trevos: raw.listaTrevos||null,
+    trevos: raw.listaTrevos||raw.trevos||null,
+    // Mês da sorte (Dia de Sorte) / time do coração (Timemania) — faltavam
+    // aqui, então resultados[key] ficava sempre sem esses campos quando o
+    // dado vinha da API oficial (em vez das intermediárias), deixando a
+    // 1ª linha do card "Histórico de Sorteios" incompleta mesmo com o
+    // sorteio já divulgado. Mesmo nome de campo alternativo já usado no
+    // backfill de histórico (garantirHistorico) pra essa mesma API — a API
+    // oficial devolve um único campo ambíguo (nomeTimeCoracaoMesSorte) cujo
+    // significado depende da loteria, por isso a checagem de apiKey aqui.
+    mesSorte: apiKey==='diadesorte'?(raw.mesSorte||raw.nomeTimeCoracaoMesSorte||null):null,
+    timeCoracao: apiKey==='timemania'?(raw.timeCoracao||raw.nomeTimeCoracaoMesSorte||null):null,
     local: raw.localSorteio,
     acumulou: raw.acumulado,
     proximoConcurso: raw.numeroConcursoProximo,
@@ -5377,10 +5387,22 @@ function renderLaHist(d,key){
   const real=resultados[key];
   const _sameDate=(a,b)=>{const da=laParseDataBR(a),db=laParseDataBR(b);return da&&db&&da.getTime()===db.getTime();};
   if(real&&real.dezenas&&real.dezenas.length){
-    // Remove qualquer entrada do cache com a mesma data do resultado em memória
+    // O resultado "ao vivo" (resultados[key]) às vezes vem incompleto — a
+    // API oficial da Caixa, usada como fonte alternativa, não repassa
+    // mês da sorte (Dia de Sorte) nem time do coração (Timemania), e o
+    // cache do Supabase pode estar com trevos/mês/time desatualizados. O
+    // cache local (histórico) frequentemente já tem esses campos completos
+    // pro MESMO concurso — antes essa entrada completa era descartada e
+    // substituída pela incompleta. Agora mescla: só usa o campo do "real"
+    // quando ele não é o mais completo, preservando o vivo do cache.
+    const cacheDoMesmoDia=candidatos.find(c=>_sameDate(c.label,real.data));
     candidatos=candidatos.filter(c=>!_sameDate(c.label,real.data));
-    const realItem={label:real.data,nums:real.dezenas,extra:real.bolaExtra,
-      trevos:real.trevos,nums2:real.dezenas2,mes:real.mes||null,time:real.timeCoracao||null};
+    const realItem={label:real.data,nums:real.dezenas,
+      extra:real.bolaExtra??cacheDoMesmoDia?.extra??null,
+      trevos:(real.trevos&&real.trevos.length)?real.trevos:(cacheDoMesmoDia?.trevos||null),
+      nums2:(real.dezenas2&&real.dezenas2.length)?real.dezenas2:(cacheDoMesmoDia?.nums2||null),
+      mes:real.mes||cacheDoMesmoDia?.mes||null,
+      time:real.timeCoracao||cacheDoMesmoDia?.time||null};
     // Insere na posição cronológica correta (não necessariamente no topo)
     const realDt=laParseDataBR(real.data);
     const idx=candidatos.findIndex(c=>{const dt=laParseDataBR(c.label);return dt&&realDt&&dt.getTime()<realDt.getTime();});
@@ -14883,8 +14905,8 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
     var faixaM=FAIXAS_MILIONARIA.find(function(f){return f.dez===acertosM&&acertosTrevo>=f.trevoMin&&acertosTrevo<=f.trevoMax;});
     var premiacaoM=faixaM?(res.premiacoes||[]).find(function(p){return faixaM.re.test(p.descricao);}):null;
     var valorM=premiacaoM?(premiacaoM.valorPremio||0):0;
-    if(!faixaM||valorM<=0) return {premiado:false,acertos:acertosM,valor:0,dezenasAcertadas:dezenasAcertadasM};
-    return {premiado:true,acertos:acertosM,valor:valorM,dezenasAcertadas:dezenasAcertadasM};
+    if(!faixaM||valorM<=0) return {premiado:false,acertos:acertosM,valor:0,dezenasAcertadas:dezenasAcertadasM,trevosAcertados:trevosAcertados};
+    return {premiado:true,acertos:acertosM,valor:valorM,dezenasAcertadas:dezenasAcertadasM,trevosAcertados:trevosAcertados};
   }
   // DUPLA SENA: dois sorteios INDEPENDENTES no mesmo concurso — o mesmo
   // bilhete concorre aos dois, e pode ganhar em nenhum, um ou ambos (nesse
@@ -14910,6 +14932,28 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
     // aparecer destacada, mesmo que o 1º sorteio não tenha acertado nada.
     var uniaoDS=new Set([...r1.dezenasAcertadas,...r2.dezenasAcertadas]);
     return {premiado:true,acertos:Math.max(r1.acertos,r2.acertos),valor:somaValorDS,dezenasAcertadas:uniaoDS};
+  }
+  // POWERBALL / MEGA MILLIONS: igual à +Milionária, a tabela de prêmios tem
+  // faixas combinadas ("5 + PowerBall") que valem muito mais que a faixa só
+  // de dezenas ("5 acertos") — usar só "N acertos" pra achar a faixa (como o
+  // cálculo genérico abaixo faz) ignorava por completo se a bola extra
+  // bateu, escolhendo sempre a faixa mais baixa mesmo quando o jogo também
+  // tinha acertado a PowerBall/Mega Ball (prêmio ficava sistematicamente
+  // errado pra baixo) — e por isso a bolinha da bola extra também nunca
+  // destacava, já que não havia nenhuma informação de acerto pra usar.
+  if(d.americano&&d.bolaExtra){
+    var sorteadasUS=new Set(res.dezenas.map(function(n){return parseInt(n);}));
+    var dezenasAcertadasUS=new Set((jogo||[]).filter(function(n){return sorteadasUS.has(parseInt(n));}).map(function(n){return parseInt(n);}));
+    var acertosUS=dezenasAcertadasUS.size;
+    var extraSorteadoUS=res.bolaExtra!=null?parseInt(res.bolaExtra):null;
+    var extraJogoUS=jogo._extra!=null?parseInt(jogo._extra):null;
+    var bolaExtraAcertou=extraSorteadoUS!=null&&extraJogoUS!=null&&extraSorteadoUS===extraJogoUS;
+    var nomeExtraUS=(d.bolaExtraNome||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var faixaUS=bolaExtraAcertou?(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertosUS+'[^0-9]*\\+[^0-9]*'+nomeExtraUS,'i').test(p.descricao);}):null;
+    if(!faixaUS) faixaUS=(res.premiacoes||[]).find(function(p){return new RegExp('(^|\\s)'+acertosUS+'\\s*acerto','i').test(p.descricao);});
+    var valorUS=faixaUS?(faixaUS.valorPremio||0):0;
+    if(valorUS<=0) return {premiado:false,acertos:acertosUS,valor:0,dezenasAcertadas:dezenasAcertadasUS,bolaExtraAcertou:bolaExtraAcertou};
+    return {premiado:true,acertos:acertosUS,valor:valorUS,dezenasAcertadas:dezenasAcertadasUS,bolaExtraAcertou:bolaExtraAcertou};
   }
   var sorteadas=new Set(res.dezenas.map(function(n){return parseInt(n);}));
   var dezenasAcertadas=new Set((jogo||[]).filter(function(n){return sorteadas.has(parseInt(n));}).map(function(n){return parseInt(n);}));
@@ -14945,9 +14989,16 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
   // especial independente das dezenas — premia mesmo com poucos acertos,
   // e pode somar com o prêmio das dezenas se o jogo ganhar nas duas ao
   // mesmo tempo (regra oficial confirmada na tabela de premiação).
+  // timeAcertou/mesAcertou: expostos pro chamador poder destacar visualmente
+  // o chip de Time do Coração / Mês da Sorte quando bateu — antes só o
+  // VALOR do prêmio somava essa informação, sem nenhum jeito do relatório
+  // saber se aquele acerto específico tinha acontecido (o chip nunca mudava
+  // de cor mesmo quando o time/mês do jogo batia com o sorteio).
+  var timeAcertou=false, mesAcertou=false;
   if(loteriaKey==='timemania'&&jogo._time!=null&&res.timeCoracao){
     var nomeTimeJogo=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jogo._time]||'':'');
     if(nomeTimeJogo&&_normNomeCompat(nomeTimeJogo)===_normNomeCompat(res.timeCoracao)){
+      timeAcertou=true;
       var faixaTime=(res.premiacoes||[]).find(function(p){return /time/i.test(p.descricao);});
       if(faixaTime&&faixaTime.valorPremio) valor+=faixaTime.valorPremio;
     }
@@ -14956,12 +15007,13 @@ function _calcPremioJogo(loteriaKey,jogo,concursoNum){
     var _mNPremio=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     var nomeMesJogo=_mNPremio[jogo._mes-1]||'';
     if(nomeMesJogo&&_normNomeCompat(nomeMesJogo)===_normNomeCompat(res.mes)){
+      mesAcertou=true;
       var faixaMes=(res.premiacoes||[]).find(function(p){return /m[eê]s/i.test(p.descricao);});
       if(faixaMes&&faixaMes.valorPremio) valor+=faixaMes.valorPremio;
     }
   }
-  if(!elegivelLotomania||(acertos<minPremiavel&&valor<=0)||valor<=0) return {premiado:false,acertos:acertos,valor:0,dezenasAcertadas:dezenasAcertadas};
-  return {premiado:true,acertos:acertos,valor:valor,dezenasAcertadas:dezenasAcertadas};
+  if(!elegivelLotomania||(acertos<minPremiavel&&valor<=0)||valor<=0) return {premiado:false,acertos:acertos,valor:0,dezenasAcertadas:dezenasAcertadas,timeAcertou:timeAcertou,mesAcertou:mesAcertou};
+  return {premiado:true,acertos:acertos,valor:valor,dezenasAcertadas:dezenasAcertadas,timeAcertou:timeAcertou,mesAcertou:mesAcertou};
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -17449,12 +17501,24 @@ async function _imprimirBolaoImpl(soPremiados){
           // bolões nesta sessão (ver comentário de _hidratarConcursoJogos).
           var jExtra=jogoExtra(jogo), jTrevos=jogoTrevos(jogo), jMes=jogoMes(jogo), jTime=jogoTime(jogo);
           var extraCor=dJogo.bolaExtraCor||'#00BCD4';
-          var extra=jExtra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+extraCor+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jExtra)+'</span>':'';
+          var extraBateu=infoPremioJ&&infoPremioJ.bolaExtraAcertou;
+          var extra=jExtra?'<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+(extraBateu?corPremiado:extraCor)+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px 1px 1px 5px">'+pad(jExtra)+'</span>':'';
           var trevoCor=dJogo.trevoCor||'#0fae8a';
-          var trevos=jTrevos?' <span style="font-size:8px;color:#888">T:</span>'+jTrevos.map(function(t){return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+trevoCor+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';}).join(''):'';
+          // Trevo/Mês/Time acertados ficam dourados (mesma cor de destaque
+          // usada nas dezenas), igual ao padrão que já existia pras bolas
+          // principais — antes esses três chips usavam sempre a mesma cor
+          // fixa, mesmo quando o trevo/mês/time do jogo batia com o sorteio
+          // oficial (ex.: +Milionária com trevo 4 sorteado não destacava).
+          var trevosAcertadosJ=infoPremioJ&&infoPremioJ.trevosAcertados;
+          var trevos=jTrevos?' <span style="font-size:8px;color:#888">T:</span>'+jTrevos.map(function(t){
+            var tBateu=trevosAcertadosJ&&trevosAcertadosJ.has(parseInt(t));
+            return '<span style="display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;background:'+(tBateu?corPremiado:trevoCor)+';color:#fff;border-radius:50%;font-size:9px;font-weight:700;margin:1px">'+pad(t)+'</span>';
+          }).join(''):'';
           var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
-          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+cBase+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
+          var mesBateu=infoPremioJ&&infoPremioJ.mesAcertou;
+          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(mesBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
+          var timeBateu=infoPremioJ&&infoPremioJ.timeAcertou;
+          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(timeBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
           var tag=ehEsp?'<span style="font-size:8px;color:'+corEsp+';font-weight:800">🪞 </span>':'';
           // Status individual deste jogo específico. Três casos possíveis:
           // 1) Jogo PREMIADO: já sorteado e bateu a faixa mínima premiável
@@ -18314,14 +18378,21 @@ async function verJogosVinculados(){
       var extrasHtml='';
       if(j&&j._trevos&&j._trevos.length){
         var trevoCor=(dConcExtra&&dConcExtra.trevoCor)||'#0fae8a';
+        // Trevo acertado fica dourado, igual às dezenas — antes ficava
+        // sempre na cor fixa da loteria mesmo quando batia com o sorteio.
+        var trevosAcertadosTela=infoPremioTela&&infoPremioTela.trevosAcertados;
         extrasHtml+=' <span style="font-size:8px;color:'+trevoCor+';font-weight:800;margin-left:4px">TREVO</span>'+
-          j._trevos.map(function(t){return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+trevoCor+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(t).padStart(2,'0')+'</span>';}).join('');
+          j._trevos.map(function(t){
+            var tBateuTela=trevosAcertadosTela&&trevosAcertadosTela.has(parseInt(t));
+            return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+(tBateuTela?corPremiadoTela:trevoCor)+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(t).padStart(2,'0')+'</span>';
+          }).join('');
       }
       if(j&&j._extra!=null){
         var extraCor=(dConcExtra&&dConcExtra.bolaExtraCor)||'#00BCD4';
         var extraNome=(dConcExtra&&dConcExtra.bolaExtraNome)||'Extra';
+        var extraBateuTela=infoPremioTela&&infoPremioTela.bolaExtraAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+extraCor+';font-weight:800;margin-left:4px">'+extraNome.toUpperCase()+'</span>'+
-          '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+extraCor+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(j._extra).padStart(2,'0')+'</span>';
+          '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+(extraBateuTela?corPremiadoTela:extraCor)+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(j._extra).padStart(2,'0')+'</span>';
       }
       // Mês da Sorte (Dia de Sorte) e Time do Coração (Timemania) — mesmos
       // campos já exibidos na impressão do relatório (mesHtmlB/timeHtmlB),
@@ -18330,13 +18401,15 @@ async function verJogosVinculados(){
       // que também vale prêmio).
       if(j&&j._mes!=null){
         var _mNVinc=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        var mesBateuTela=infoPremioTela&&infoPremioTela.mesAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+corConcurso+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
       }
       if(j&&j._time!=null){
         var _timeNomeVinc=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':'');
+        var timeBateuTela=infoPremioTela&&infoPremioTela.timeAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+corConcurso+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
       }
       var esp=j._isEspelho?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">🪞</span>':'';
       // Status individual deste jogo na TELA — mesma lógica de 3 estados
