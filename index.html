@@ -17091,6 +17091,26 @@ async function editarBolao(id){
   var todos=await dbAll('boloes_v2');
   var g=todos.filter(function(x){return x.id===id;})[0];
   if(!g){ toast('Bolão não encontrado.'); return; }
+  // Corte de LEITURA (Doc 2): em DEV, se este bolão já tem espelho no
+  // schema novo, tenta montar a tela a partir de lá. Se QUALQUER coisa
+  // falhar ou vier incompleta, cai pro caminho antigo abaixo sem nenhum
+  // efeito colateral — o antigo continua sendo gravado normalmente em
+  // TODO save (salvarBolao usa s.editId, que aqui é sempre o id antigo,
+  // então a escrita nunca muda, só a leitura inicial). Reversível: um
+  // problema aqui nunca perde nem corrompe dado, só deixa de usar o atalho.
+  if(typeof JogosCommon!=='undefined'&&JogosCommon.ativo()&&g._novoSchemaId){
+    try{
+      var _viaNovo=await _carregarBolaoDoSchemaNovoParaEstado(id);
+      if(_viaNovo&&_viaNovo.ok){
+        _boloesState=_viaNovo.estado;
+        _ordenarParticipantes();
+        renderFormBolao();
+        console.info('[editarBolao] carregado do schema novo (DEV)');
+        return;
+      }
+      console.warn('[editarBolao] leitura do schema novo falhou/incompleta, usando caminho antigo:',_viaNovo&&_viaNovo.erro);
+    }catch(eNovo){ console.warn('[editarBolao] erro ao tentar schema novo, usando caminho antigo:',eNovo.message); }
+  }
   var semDef=_calcSemanaAtual();
   var _mesRef=g.mesReferencia||new Date().toISOString().slice(0,7);
   // Migrar jogos legados (g.jogos) para g.concursos se ainda não foram migrados
@@ -17182,6 +17202,20 @@ async function _imprimirBolaoImpl(soPremiados){
     var todosB=await dbAll('boloes_v2');
     if(s.editId){ gImp=todosB.filter(function(x){return x.id===s.editId;})[0]; }
     if(!gImp && s.nome){ gImp=todosB.filter(function(x){return x.nome===s.nome;}).sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);})[0]; }
+    // Corte de leitura (DEV): tenta reconstruir gImp a partir do schema
+    // novo (mesmo formato), caindo pro gImp do schema antigo já carregado
+    // acima em qualquer erro/incompletude — nunca interrompe a impressão.
+    if(gImp&&typeof JogosCommon!=='undefined'&&JogosCommon.ativo()&&gImp._novoSchemaId){
+      try{
+        var _rImp=await _carregarRegistroBolaoDoSchemaNovo(gImp.id);
+        if(_rImp&&_rImp.ok&&_rImp.gImp&&_rImp.gImp.concursos&&_rImp.gImp.concursos.length){
+          gImp=_rImp.gImp;
+          console.info('[IMPR-BOLAO] gImp carregado do schema novo (DEV)');
+        }else{
+          console.warn('[IMPR-BOLAO] leitura do schema novo falhou/incompleta, usando antigo:',_rImp&&_rImp.erro);
+        }
+      }catch(eNovo){ console.warn('[IMPR-BOLAO] erro ao tentar schema novo, usando antigo:',eNovo.message); }
+    }
     if(gImp&&gImp.concursos&&gImp.concursos.length){
       gImp.concursos.forEach(function(cc){
         (cc.jogos||[]).forEach(function(j){
@@ -18029,7 +18063,14 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // uuid real espelhado deste bolão (g._novoSchemaId), não um bolão de
     // teste compartilhado — sem isso os jogos de bolões diferentes se
     // misturariam todos no mesmo bolão fantasma no schema novo.
+    // _concursoOrigem precisa estar marcado ANTES daqui — JogosCommon.
+    // jogoParaPayload lê esse campo pra preencher concurso_ref; sem isso
+    // (era só marcado depois, na hora de imprimir o relatório) todo jogo
+    // vinculado ficava com concurso_ref NULL no schema novo, quebrando
+    // qualquer leitor que precise agrupar jogos por concurso.
+    jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=_novoNumS; });
     BolaoJogosRepo.vincularDual(loteriaItem,jogos,g._novoSchemaId);
+    BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:_novoNumS,loteria:loteriaItem,data:_dataSorteioS,custo:_custoS,semana:_semLabelS});
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
@@ -18792,7 +18833,8 @@ var JogosCommon = {
       loteria: j._loteriaOrigem||null, // preenchido pelo chamador quando necessário
       numeros: Array.isArray(j)?j.slice():[],
       trevos: Array.isArray(j._trevos)?j._trevos.slice():null,
-      extras: { extra:j._extra!=null?j._extra:null, mes:j._mes!=null?j._mes:null, time:j._time!=null?j._time:null },
+      extras: { extra:j._extra!=null?j._extra:null, mes:j._mes!=null?j._mes:null, time:j._time!=null?j._time:null,
+        ssCols:(Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null) },
       is_espelho: !!j._isEspelho,
       concurso_ref: j._concursoOrigem!=null?parseInt(j._concursoOrigem)||null:null
     };
@@ -18893,6 +18935,98 @@ async function _auditarParidadeBolao(bolaoIdAntigo){
     emParidade:divergencias.length===0,
     divergencias:divergencias
   };
+}
+// Reconstrói o mesmo formato de _boloesState que editarBolao() monta hoje
+// a partir do schema ANTIGO, mas lendo tudo do schema NOVO — bolão,
+// participantes e concursos/jogos. Só leitura, não grava nada, não
+// substitui editarBolao() (que continua sendo o caminho real). Serve pra
+// testar a tela de verdade (renderFormBolao/renderParticipantesBoloes)
+// alimentada pelo schema novo, lado a lado com o caminho antigo, antes de
+// qualquer decisão de trocar a fonte de leitura de vez.
+async function _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo){
+  if(!JogosCommon.ativo()) return {erro:'Só roda em DEV.'};
+  var todos=await dbAll('boloes_v2');
+  var antigo=todos.find(function(x){return x.id===bolaoIdAntigo;});
+  if(!antigo||!antigo._novoSchemaId) return {erro:'Bolão sem espelho no schema novo — salve o bolão de novo primeiro.'};
+  var novoId=antigo._novoSchemaId;
+  var sb=_getSbClient();
+  var bRes=await sb.from('boloes').select('*').eq('id',novoId).maybeSingle();
+  if(bRes.error||!bRes.data) return {erro:'Bolão não encontrado no schema novo — '+(bRes.error&&bRes.error.message)};
+  var b=bRes.data;
+  var particRes=await sb.from('bolao_participantes').select('*').eq('bolao_id',novoId).is('deleted_at',null);
+  var participantesNovo=particRes.data||[];
+  var concRes=await sb.from('bolao_concursos').select('*').eq('bolao_id',novoId);
+  var concursosMeta=concRes.data||[];
+  var jogosRes=await sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true});
+  var jogosNovo=jogosRes.data||[];
+
+  var participantes=participantesNovo.map(function(p){
+    return { nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
+      valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status };
+  });
+
+  // Agrupa jogos por (concurso_ref, loteria) — mesma chave usada em
+  // bolao_concursos — pra reconstruir cada "concurso" com seus jogos e
+  // metadados juntos, igual ao formato de g.concursos[] do schema antigo.
+  var porChave={};
+  jogosNovo.forEach(function(j){
+    var chave=(j.concurso_ref||'?')+'|'+j.loteria;
+    if(!porChave[chave]) porChave[chave]=[];
+    var arr=(j.numeros||[]).slice();
+    if(j.trevos&&j.trevos.length) arr._trevos=j.trevos.slice();
+    if(j.extras){ if(j.extras.extra!=null)arr._extra=j.extras.extra; if(j.extras.mes!=null)arr._mes=j.extras.mes; if(j.extras.time!=null)arr._time=j.extras.time;
+      if(Array.isArray(j.extras.ssCols)&&j.extras.ssCols.length) arr._ssCols=j.extras.ssCols.map(function(c){return c.slice();}); }
+    if(j.is_espelho) arr._isEspelho=true;
+    porChave[chave].push(arr);
+  });
+  var concursos=concursosMeta.map(function(c){
+    var chave=c.concurso_ref+'|'+c.loteria;
+    return { num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
+      status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
+      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:c.teimosinha_origem||null };
+  });
+
+  var estado={
+    nome:b.nome,
+    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf',
+      cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0) },
+    modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
+    concurso:b.concurso||'', participantes:participantes, editId:antigo.id, loteria:b.loteria||currentKey,
+    numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
+    concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
+    arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
+    mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||''
+  };
+  estado.semanas=_calcSemanasDoMes(estado.mesReferencia);
+  return {ok:true, estado:estado};
+}
+// Mesma leitura de _carregarBolaoDoSchemaNovoParaEstado, mas devolvendo o
+// formato do registro ANTIGO ({id,nome,loteria,concursos,jogos}, cada
+// concurso com {num,data,jogos,custo,status,semana,teimosinhaTodos}) — o
+// formato que _imprimirBolaoImpl/verJogosVinculados já sabem consumir
+// (gImp), pra reaproveitar toda a lógica de agrupamento por loteria/prêmio
+// sem duplicá-la. Só usado como tentativa inicial, sempre com fallback pro
+// dbAll('boloes_v2') normal se faltar qualquer coisa.
+async function _carregarRegistroBolaoDoSchemaNovo(bolaoIdAntigo){
+  var r=await _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo);
+  if(r.erro) return {erro:r.erro};
+  var e=r.estado;
+  return {ok:true, gImp:{ id:bolaoIdAntigo, nome:e.nome, loteria:e.loteria,
+    concursos:e.concursos, jogos:e.jogosVinculados }};
+}
+// Abre a tela REAL de Bolões (mesmo renderFormBolao de sempre), mas
+// alimentada pelo estado lido do schema NOVO em vez do antigo — pra
+// comparar visualmente lado a lado com "Abrir" (schema antigo) no mesmo
+// bolão. Não altera editarBolao() nem nada do fluxo real; é só uma porta
+// de entrada alternativa pra teste, chamada a partir do botão de teste na
+// seção "🧪 Bolões (schema novo)".
+async function _abrirBolaoDoSchemaNovo(bolaoIdAntigo){
+  var r=await _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo);
+  if(r.erro){ toast(r.erro); return; }
+  _boloesState=r.estado;
+  _ordenarParticipantes();
+  renderFormBolao();
+  toast('🧪 Aberto a partir do schema novo — compare com "Abrir" (antigo).');
 }
 var BolaoJogosRepo = {
   // Dual-write: chamado a partir de vincularJogosAoBolao/vincularSalvoAoBolao,
@@ -19003,16 +19137,36 @@ var BolaoJogosRepo = {
       if(error) console.warn('[BolaoJogosRepo.removerParticipanteDual]',error.message);
     }catch(e){ console.warn('[BolaoJogosRepo.removerParticipanteDual]',e.message); }
   },
-  // Dual-write do bolão em si (só nome/loteria — participantes/cotas/jogos
-  // continuam só no schema antigo por enquanto). Chamado depois que o save
-  // antigo já teve sucesso, nunca bloqueia nem desfaz o save real se falhar.
-  // registro._novoSchemaId guarda o mapeamento id-antigo→uuid-novo, gravado
-  // de volta no próprio registro (boloes_v2) pra reaproveitar no próximo save
-  // em vez de criar um bolão novo no schema novo a cada edição.
+  // Dual-write do bolão em si — TODOS os campos que a tela real usa (não
+  // só nome/loteria como antes), pra que um leitor do schema novo consiga
+  // reconstruir o mesmo _boloesState que a tela real monta hoje a partir
+  // do antigo. Chamado depois que o save antigo já teve sucesso, nunca
+  // bloqueia nem desfaz o save real se falhar. registro._novoSchemaId
+  // guarda o mapeamento id-antigo→uuid-novo, gravado de volta no próprio
+  // registro (boloes_v2) pra reaproveitar no próximo save em vez de criar
+  // um bolão novo no schema novo a cada edição.
+  _camposBolaoParaLinha: function(registro){
+    var adm=registro.admin||{};
+    return {
+      nome: registro.nome, loteria: registro.loteria||null,
+      admin_nome: adm.nome||null, admin_telefone: adm.telefone||null,
+      admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null,
+      admin_cotas: adm.cotasAdmin||1, admin_paga: !!adm.adminPaga,
+      tipo_organizacao: adm.tipoOrganizacao||null, valor_fixo_organizacao: adm.valorFixoOrganizacao||0,
+      modalidade: registro.modalidade||null, sorteio: registro.sorteio||null,
+      concurso: registro.concurso!=null?String(registro.concurso):null,
+      cotas: registro.cotas||{}, premio: registro.premio||0,
+      arrecadacao_total: registro.arrecadacaoTotal||0, mes_referencia: registro.mesReferencia||null,
+      data_sorteio: registro.dataSorteio||null, semana_inicio: registro.semanaInicio||null,
+      semana_fim: registro.semanaFim||null, rodadas: registro.rodadas||[],
+      num_dez: registro.numDez||0, updated_at: new Date().toISOString()
+    };
+  },
   espelharBolaoDual: async function(registro){
     if(!JogosCommon.ativo()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
+      var linha=this._camposBolaoParaLinha(registro);
       if(registro._novoSchemaId){
         // .select('id') no update pra saber se alguma linha foi de fato
         // afetada — update() não gera erro quando 0 linhas casam o filtro
@@ -19020,7 +19174,7 @@ var BolaoJogosRepo = {
         // Sem essa checagem, um _novoSchemaId "morto" seria devolvido como
         // válido pra sempre, e o próximo passo (participantes) falharia por
         // violação de chave estrangeira sem nunca se autocorrigir.
-        var upd=await sb.from('boloes').update({nome:registro.nome,loteria:registro.loteria||null,updated_at:new Date().toISOString()}).eq('id',registro._novoSchemaId).select('id');
+        var upd=await sb.from('boloes').update(linha).eq('id',registro._novoSchemaId).select('id');
         if(upd.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',upd.error.message); return null; }
         if(upd.data&&upd.data.length) return registro._novoSchemaId;
         console.warn('[BolaoJogosRepo.espelharBolaoDual] _novoSchemaId '+registro._novoSchemaId+' não existe mais — recriando');
@@ -19028,7 +19182,8 @@ var BolaoJogosRepo = {
       var _u=await sb.auth.getUser();
       var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
       if(!_uid) return null;
-      var ins=await sb.from('boloes').insert({nome:registro.nome,loteria:registro.loteria||null,user_id:_uid}).select('id').single();
+      linha.user_id=_uid;
+      var ins=await sb.from('boloes').insert(linha).select('id').single();
       if(ins.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',ins.error.message); return null; }
       return ins.data?ins.data.id:null;
     }catch(e){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',e.message); return null; }
@@ -19078,6 +19233,29 @@ var BolaoJogosRepo = {
         if(del.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message);
       }
     }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); }
+  },
+  // Metadados de um concurso vinculado (status/custo/data/semana) — sem
+  // isso, o schema novo tinha os JOGOS de cada concurso mas nenhuma das
+  // informações que a tela real usa pra reconstruir a lista de rodadas
+  // (Histórico de Rodadas, impressão, cálculo de custo por semana). Uma
+  // linha por (bolão, concurso, loteria) — chamado toda vez que uma
+  // vinculação de jogos é feita, faz upsert (cria ou atualiza).
+  sincronizarConcursoDual: async function(bolaoIdNovo,opts){
+    if(!JogosCommon.ativo()||!bolaoIdNovo||!opts||opts.concursoRef==null) return;
+    try{
+      var sb=_getSbClient(); if(!sb) return;
+      var _u=await sb.auth.getUser();
+      var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+      if(!_uid) return;
+      var linha={
+        bolao_id:bolaoIdNovo, user_id:_uid, concurso_ref:parseInt(opts.concursoRef), loteria:opts.loteria||'',
+        data:opts.data||null, status:opts.status||'Aguardando', custo:opts.custo||0,
+        semana:opts.semana||null, vinculo_id:opts.vinculoId||null, teimosinha_origem:opts.teimosinhaOrigem||null,
+        updated_at:new Date().toISOString()
+      };
+      var {error}=await sb.from('bolao_concursos').upsert(linha,{onConflict:'bolao_id,concurso_ref,loteria'});
+      if(error) console.warn('[BolaoJogosRepo.sincronizarConcursoDual]',error.message);
+    }catch(e){ console.warn('[BolaoJogosRepo.sincronizarConcursoDual]',e.message); }
   }
 };
 
@@ -19519,8 +19697,11 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:itemBolao}]);
       _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
       // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV. Usa
-      // o uuid real espelhado deste bolão (g._novoSchemaId).
+      // o uuid real espelhado deste bolão (g._novoSchemaId). Mesma correção
+      // de _concursoOrigem explicada em _vincularSalvoAoBolaoImpl.
+      jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=_novoNum; });
       BolaoJogosRepo.vincularDual(loteriaKey,jogos,g._novoSchemaId);
+      BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:_novoNum,loteria:loteriaKey,data:_dataSorteio,custo:_custoG,semana:_semLabel});
     }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
     await popularDropdownsVinculo();
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
