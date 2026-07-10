@@ -1245,10 +1245,10 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-variant{display:flex;flex-direction:column;gap:4px;padding-bottom:6px;border-bottom:1px solid var(--glass-border)}
 .la-variant:last-child{border-bottom:none;padding-bottom:0}
 .la-variant .la-vh{display:flex;align-items:baseline;gap:6px}
-.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:8.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
-.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:6.7px;font-weight:700;color:var(--text-dim)}
+.la-variant .la-vh .la-vname{font-family:var(--font-head);font-weight:800;font-size:9.8px;letter-spacing:.3px;text-transform:uppercase;color:var(--la-vc,var(--text))}
+.la-variant .la-vh .la-vbadge{font-family:var(--font-mono);font-size:7.7px;font-weight:700;color:var(--text-dim)}
 .la-balls{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
-.la-ball{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:7.5px;color:#fff;
+.la-ball{width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.6px;color:#fff;
   background:var(--ac);box-shadow:0 2px 6px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.3);
   opacity:0;transform:scale(.3) translateY(6px);animation:laPop .36s cubic-bezier(.2,1.4,.4,1) forwards}
 .la-ball.extra{background:var(--la-xc,#00BCD4);border:2px solid rgba(255,255,255,.3)}
@@ -15551,7 +15551,7 @@ function renderFormBolao(){
             var nJogosM=(cc.jogos||[]).length;
             return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
               '<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+_ordinals[cc._semanaIdx]+'</span>'+
-              '<span style="color:'+(dCcM?dCcM.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCcM?iconLoteria(dCcM,14):'')+'</span>'+_esc(dCcM?dCcM.nome:cc.loteria)+'</span>'+
+              '<span style="color:'+(dCcM?corMarca(dCcM):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCcM?iconLoteria(dCcM,14):'')+'</span>'+_esc(dCcM?dCcM.nome:cc.loteria)+'</span>'+
               '<span>'+nJogosM+' jogo'+(nJogosM!==1?'s':'')+'</span>'+
               '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
               (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -15717,7 +15717,7 @@ function renderFormBolao(){
           var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
           var nJogos=(cc.jogos||[]).length;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?dCc.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
+            '<span style="color:'+(dCc?corMarca(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -15834,7 +15834,7 @@ function renderFormBolao(){
           var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
           var nJogos=(cc.jogos||[]).length;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?dCc.cor:'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
+            '<span style="color:'+(dCc?corMarca(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -17384,7 +17384,13 @@ async function _imprimirBolaoImpl(soPremiados){
       var lista=(c.teimosinhaTodos&&c.teimosinhaTodos.length)?c.teimosinhaTodos:[c.num];
       return lista.some(function(n){ return n!=null && !_concursoJaRealizado(lk,n); });
     });
-    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),premioRealNum:_real.total,qtdPremiados:_real.qtdPremiados,algumConferido:_real.algumConferido,algumVigente:algumVigente});
+    // corTexto copiado de dL (CFG) — sem isso, corMarca(L) nos títulos
+    // (linha ~17550) e no resumo compacto (~17918) nunca via a cor de
+    // marca da Timemania (verde), só a de fundo (amarelo), enquanto o
+    // título da seção "Jogos do Bolão" (que lê CFG direto) já mostrava
+    // certo — a mesma loteria aparecia com 2 cores diferentes no mesmo
+    // relatório.
+    return Object.assign(porLoteriaImp[lk],{concursos:_concursosDedup,nome:dL.nome||lk,emoji:dL.emoji||'',cor:dL.cor||MULTI_LOTERIA_COR,corTexto:dL.corTexto,premio:premioL,premioNum:_parseBRL(premioL),premioRealNum:_real.total,qtdPremiados:_real.qtdPremiados,algumConferido:_real.algumConferido,algumVigente:algumVigente});
   });
   // Saldo restante do bolão: arrecadação DERIVADA (soma das Contribuições
   // de quem já pagou, não o campo arrecadacaoTotal armazenado cru) menos o
@@ -17627,11 +17633,12 @@ async function _imprimirBolaoImpl(soPremiados){
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
       jogosHtml+='<div class="lot-block">'+
-        // Título da seção: só a Timemania segue o padrão oficial CEF
-        // (wordmark verde sobre fundo amarelo) — as demais loterias
-        // (Lotomania inclusa) usam a própria cor de marca (dJogo.cor),
-        // mesmo tendo corTexto definido pras bolinhas.
-        '<div style="font-weight:700;font-size:12px;color:'+(dJogo.apiKey==='timemania'?corTextoJogo:dJogo.cor)+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        // Título da seção usa corTextoJogo (=corMarca(dJogo), prefere
+        // corTexto quando definido) — regra única aplicada em qualquer
+        // lugar que mostre o nome da loteria: só a Timemania tem corTexto
+        // definido hoje (verde, padrão oficial CEF), as demais caem no
+        // próprio d.cor automaticamente.
+        '<div style="font-weight:700;font-size:12px;color:'+corTextoJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
@@ -17811,7 +17818,7 @@ async function _imprimirBolaoImpl(soPremiados){
         var vinculadoFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):'—';
         var dataSorteioFmt=cc.data||'—';
         var nJogos=(cc.jogos||[]).length;
-        return '<tr><td style="color:'+(dCc?dCc.cor:'#333')+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCc?iconLoteria(dCc,12):'')+'</span>'+_esc(nomeLot)+'</td>'+
+        return '<tr><td style="color:'+(dCc?corMarca(dCc):'#333')+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCc?iconLoteria(dCc,12):'')+'</span>'+_esc(nomeLot)+'</td>'+
           '<td style="text-align:center">'+_esc(String(cc.num||'—'))+'</td>'+
           '<td style="text-align:center">'+nJogos+'</td>'+
           '<td style="text-align:right;color:#fb923c;font-weight:700">'+_bMoney(cc.custo||0)+'</td>'+
@@ -18671,10 +18678,9 @@ async function verJogosVinculados(){
     // Timemania sair com fundo amarelo e texto verde — duas cores no mesmo
     // elemento, diferente de todas as outras loterias (que não têm corTexto
     // e por isso já saíam com fundo e texto no mesmo tom).
-    // Texto do chip: só a Timemania usa corTexto (verde, padrão oficial
-    // CEF) — as demais loterias (Lotomania inclusa) usam a própria cor de
-    // marca, mesmo tendo corTexto definido pras bolinhas.
-    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+(dConcurso.apiKey==='timemania'?corMarca(dConcurso):(dConcurso.cor||'#888'))+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
+    // Texto do chip: mesma regra única de corMarca (prefere corTexto) —
+    // só a Timemania tem corTexto hoje, as demais caem no próprio cor.
+    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
     return '<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);flex-wrap:wrap;gap:8px">'+
         '<div>'+
