@@ -15302,7 +15302,7 @@ function _recalcularArrecadacao(){
   var total=ativos.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0);
   if(_tipoOrg(s)==='fixo'){
     total+=(s.admin.valorFixoOrganizacao||0);
-  } else {
+  } else if(_tipoOrg(s)==='cotas'){
     var cotasAdmin=(s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0;
     total+=cotasAdmin*valorCota;
   }
@@ -17353,7 +17353,7 @@ async function _imprimirBolaoImpl(soPremiados){
   var arrecadacaoImp=_calcArrecadacaoPorContribuicoes(gImp||s);
   var saldoRestanteImp=arrecadacaoImp-valorTotalJogosImp;
   var tipoOrgImp=_tipoOrg(s);
-  var cotasAdmin=(tipoOrgImp==='fixo')?0:((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0);
+  var cotasAdmin=(tipoOrgImp==='cotas')?((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0):0;
   var totalCotasImp=ativos.reduce(function(a,p){return a+(p.cotas||0);},0)+(cotasAdmin>0?cotasAdmin:0);
   // Valor/Cota: MESMA função já corrigida usada na tela
   // (_calcValorCotaAuto) — divide o custo real das apostas pelas cotas de
