@@ -10111,9 +10111,23 @@ async function _salvarJogosImpl(){
   const jogosFinais=_clonarJogosComExtras(jogosSel);
   const temEspelho=jogosFinais.some(j=>j._isEspelho);
   const d=CFG[currentKey];
-  const todos=await dbAll('jogos_salvos');
-  const paraCurr=todos.filter(j=>j.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
-  if(paraCurr.length>=10)await dbDel('jogos_salvos',paraCurr[0].id);
+  // Limite de 10 conjuntos salvos por loteria: em DEV a tela "Jogos Salvos"
+  // já lê do schema novo (_carregarConjuntosDualComoAntigo), então o limite
+  // precisa ser contado contra a MESMA fonte que aparece na tela — contar
+  // contra o schema antigo (dbAll) deixava o limite sem efeito prático ali
+  // (o schema antigo continua recebendo gravações em paralelo, mas não é
+  // mais o que o usuário vê nem o que deveria ser podado).
+  if(JogosCommon.ativo()){
+    const conjuntosNovo=(await _carregarConjuntosDualComoAntigo()).filter(c=>c.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
+    if(conjuntosNovo.length>=10){
+      const maisAntigo=conjuntosNovo[0];
+      for(const j of (maisAntigo.jogos||[])){ if(j._jogoId) await JogosCommon.excluirDual(j._jogoId); }
+    }
+  } else {
+    const todos=await dbAll('jogos_salvos');
+    const paraCurr=todos.filter(j=>j.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
+    if(paraCurr.length>=10)await dbDel('jogos_salvos',paraCurr[0].id);
+  }
   // Garante que o resultado usado para calcular o concurso vigente está
   // razoavelmente atualizado, e não num cache antigo. Sem isso, um jogo
   // salvo pouco depois de um sorteio (antes do cache local ter sido
@@ -12314,6 +12328,11 @@ function usarJogosIA(){
       j._scoreJogo=jogo._scoreJogo;
       if(jogo._extra!=null) j._extra=jogo._extra;
       if(jogo._trevos) j._trevos=jogo._trevos.slice();
+      // Mês da Sorte / Time do Coração — faltavam aqui (mesmo bug já achado
+      // em _vincularSalvoAoBolaoImpl hoje): um jogo IA de Dia de
+      // Sorte/Timemania escolhido "só principal" perdia o mês/time.
+      if(jogo._mes!=null) j._mes=jogo._mes;
+      if(jogo._time!=null) j._time=jogo._time;
       if(jogo._teimosinhaConcursos) j._teimosinhaConcursos=jogo._teimosinhaConcursos.slice();
       // _espelho NÃO é copiado — renderiza como jogo individual
       return j;
@@ -12322,6 +12341,8 @@ function usarJogosIA(){
       const e=jogo.slice();
       if(orig._espExtra!=null) e._extra=orig._espExtra;
       if(orig._espTrevos) e._trevos=orig._espTrevos.slice();
+      if(orig._espMes!=null) e._mes=orig._espMes;
+      if(orig._espTime!=null) e._time=orig._espTime;
       if(orig._teimosinhaConcursos) e._teimosinhaConcursos=orig._teimosinhaConcursos.slice();
       e._isEspelho=true;
       return e;
@@ -17420,6 +17441,13 @@ async function _imprimirBolaoImpl(soPremiados){
       var L=loteriasImp[_Li];
       var dJogo=CFG[L.loteria]||d;
       var corJogo=dJogo.cor||cor;
+      // Cor de TEXTO padronizada (corMarca = corTexto quando existe, senão
+      // a cor da loteria) — a mesma usada em qualquer outro lugar do app
+      // pra rótulo/fonte dessa loteria (ex.: Timemania: fundo amarelo nas
+      // bolinhas, mas texto/rótulo sempre verde). Antes o cabeçalho e os
+      // rótulos "Mês:"/"Time:" usavam corJogo (a cor de FUNDO das bolinhas)
+      // também como cor de texto, fugindo do padrão usado no resto do app.
+      var corTextoJogo=corMarca(dJogo);
       // Filtro "Só premiados": se nenhum jogo desta loteria bateu prêmio,
       // pula o bloco INTEIRO (título + jogos) — sem isso, ficaria um
       // título de loteria solto, sem nenhum jogo embaixo, quando todos os
@@ -17444,7 +17472,7 @@ async function _imprimirBolaoImpl(soPremiados){
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
       jogosHtml+='<div class="lot-block">'+
-        '<div style="font-weight:700;font-size:12px;color:'+corJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        '<div style="font-weight:700;font-size:12px;color:'+corTextoJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
@@ -17452,6 +17480,9 @@ async function _imprimirBolaoImpl(soPremiados){
         var _linhaJ=(function(jogo,i){
           var ehEsp=jogo._isEspelho;
           var cBase=ehEsp?corEsp:corJogo;
+          // Cor de rótulo (texto "Mês:"/"Time:") — padronizada, igual ao
+          // cabeçalho acima; a bolinha/pílula de fundo continua com cBase.
+          var corLabelJogo=ehEsp?corEsp:corTextoJogo;
           // Calcula o prêmio deste jogo específico ANTES de montar as
           // bolinhas, para poder colorir diferente as dezenas que
           // efetivamente bateram com o resultado oficial. concursoDoJogoP
@@ -17516,9 +17547,9 @@ async function _imprimirBolaoImpl(soPremiados){
           }).join(''):'';
           var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
           var mesBateu=infoPremioJ&&infoPremioJ.mesAcertou;
-          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(mesBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
+          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(mesBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
           var timeBateu=infoPremioJ&&infoPremioJ.timeAcertou;
-          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+cBase+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(timeBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
+          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(timeBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
           var tag=ehEsp?'<span style="font-size:8px;color:'+corEsp+';font-weight:800">🪞 </span>':'';
           // Status individual deste jogo específico. Três casos possíveis:
           // 1) Jogo PREMIADO: já sorteado e bateu a faixa mínima premiável
@@ -18351,6 +18382,12 @@ async function verJogosVinculados(){
     // bolão — senão jogos de loterias diferentes apareciam todos na mesma cor.
     var dConcurso=(c.loteria&&CFG[c.loteria])?CFG[c.loteria]:(CFG[currentKey]||null);
     var corConcurso=(dConcurso&&dConcurso.cor)||cor;
+    // Cor de TEXTO padronizada (mesmo padrão usado no resto do app e agora
+    // também na impressão do relatório) — os rótulos "MÊS"/"TIME" usavam
+    // corConcurso (a cor de FUNDO das bolinhas) como cor de texto também,
+    // então Timemania (fundo amarelo) aparecia com rótulo amarelo em vez do
+    // verde padrão da marca (dConcurso.corTexto).
+    var corTextoConcurso=corMarca(dConcurso);
     var custo=c.custo||(dConcurso&&typeof calcCustoTotal==='function'?calcCustoTotal(jogos,dConcurso)||0:0);
     var stCor=statusCor[c.status]||statusCor['Aguardando'];
     // Rodadas com milhares/dezenas de milhares de jogos travariam o navegador
@@ -18409,13 +18446,13 @@ async function verJogosVinculados(){
       if(j&&j._mes!=null){
         var _mNVinc=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         var mesBateuTela=infoPremioTela&&infoPremioTela.mesAcertou;
-        extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
+        extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
           '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
       }
       if(j&&j._time!=null){
         var _timeNomeVinc=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':'');
         var timeBateuTela=infoPremioTela&&infoPremioTela.timeAcertou;
-        extrasHtml+=' <span style="font-size:8px;color:'+corConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
+        extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
           '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
       }
       var esp=j._isEspelho?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">🪞</span>':'';
