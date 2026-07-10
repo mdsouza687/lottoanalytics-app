@@ -13796,7 +13796,15 @@ function renderPrevisao(body,d,hist,freq,atraso,mediaFreq){
       const trevPool=Array.from({length:trevUni},(_,i)=>i+1);
       trevos=gerarTrevosPadrao(trevQty,trevUni);
     }
-    return {jogo,extra,trevos};
+    // Mês da Sorte (Dia de Sorte) / Time do Coração (Timemania) — faltavam
+    // aqui: esta função (aba Previsão) nunca sorteava esses dois campos,
+    // então os jogos gerados/salvos por aqui ficavam incompletos (mesmo
+    // padrão de bola extra/trevos acima, só que pras duas loterias que
+    // apostam mês/time em vez de números extras).
+    let mes=null,time=null;
+    if(d.apiKey==='diadesorte') mes=1+Math.floor(Math.random()*12);
+    if(d.apiKey==='timemania') time=Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length);
+    return {jogo,extra,trevos,mes,time};
   }
 
   // Gerar 3 variantes × 5 combinações
@@ -13851,6 +13859,7 @@ function renderPrevisao(body,d,hist,freq,atraso,mediaFreq){
               ${c.jogo.map(n=>renderBall(n,d.cor)).join('')}
               ${c.extra?renderExtra(c.extra,d):''}
               ${c.trevos?renderTrevos(c.trevos,d):''}
+              ${(c.mes!=null||c.time!=null)?mesTimeHtml({_mes:c.mes,_time:c.time},d,20):''}
             </div>
           </div>
         </div>
@@ -13924,6 +13933,8 @@ function prevMaisVariantes(vi){
     const pool=Array.from({length:uni},(_,i)=>i+1);
     return pool.sort(()=>Math.random()-.5).slice(0,qty).sort((a,b)=>a-b);
   }
+  function novoMes(){ return d.apiKey==='diadesorte'?(1+Math.floor(Math.random()*12)):null; }
+  function novoTime(){ return d.apiKey==='timemania'?Math.floor(Math.random()*LA_TIMEMANIA_TIMES.length):null; }
 
   // Para cada grupo de categoria, adicionar linha "2." abaixo da existente
   const grupos=card.querySelectorAll('.pred-combo-group');
@@ -13936,6 +13947,8 @@ function prevMaisVariantes(vi){
     // Gerar novo jogo
     const jogo=novoJogo();
     const extra=novoExtra();
+    const mesNovo=novoMes();
+    const timeNovo=novoTime();
 
     const novaLinha=document.createElement('div');
     novaLinha.className='pred-combo-line';
@@ -13948,6 +13961,7 @@ function prevMaisVariantes(vi){
         jogo.map(n=>`<span class="pred-ball" style="color:${corMarca(d)};border-color:${corMarca(d)};font-family:var(--font-mono)">${pad(n)}</span>`).join('')+
         (extra?`<span class="pred-plus">+</span><span class="pred-ball pred-ball-extra" style="color:${d.bolaExtraCor||'#e8a800'};border-color:${d.bolaExtraCor||'#e8a800'};font-family:var(--font-mono)">${pad(extra)}</span>`:'')+
         (trevosNovos?`<span class="pred-plus" style="color:${trevCor};font-size:9px;font-weight:700">TREVO</span>`+trevosNovos.map(t=>`<span class="pred-ball pred-ball-extra" style="color:${trevCor};border-color:${trevCor};font-family:var(--font-mono)">${pad(t)}</span>`).join(''):'')+
+        ((mesNovo!=null||timeNovo!=null)?mesTimeHtml({_mes:mesNovo,_time:timeNovo},d,20):'')+
       `</div>`;
 
     const linesContainer=grupo.querySelector('.pred-combo-lines');
@@ -13984,8 +13998,19 @@ function prevSalvar(vi){
   const d=window._prevD||CFG[currentKey];
   const res=resultados[currentKey];
   const prox=res?(res.proximoConcursoNum||String(parseInt(res.concurso)+1)):'?';
-  // Salvar todas as combinações da variante como um conjunto
-  const jogosSalvar=v.combos.map(c=>c.extra?Object.assign(c.jogo.slice(),{_extra:c.extra}):c.jogo.slice());
+  // Salvar todas as combinações da variante como um conjunto — precisa
+  // carregar TODOS os campos extras (_extra, _trevos, _mes, _time), não só
+  // _extra, senão os jogos de Dia de Sorte/Timemania/+Milionária salvos por
+  // aqui perdiam mês/time/trevos (o resto do app confere prêmio usando
+  // exatamente esses campos).
+  const jogosSalvar=v.combos.map(c=>{
+    const j=c.jogo.slice();
+    if(c.extra!=null) j._extra=c.extra;
+    if(c.trevos) j._trevos=c.trevos.slice();
+    if(c.mes!=null) j._mes=c.mes;
+    if(c.time!=null) j._time=c.time;
+    return j;
+  });
   jogosGerados=jogosSalvar.map(j=>Array.isArray(j)?j:Array.from(j));
   // Escopo 'atual' SEMPRE: abre a tela de salvar da loteria ativa (com campo de
   // nome + botão Salvar), independentemente do escopo usado por último no modal.
@@ -16913,7 +16938,7 @@ async function _salvarBolaoImpl(){
     toast('✓ Bolão salvo');
     // Dual-write (Doc 2, DEV only): espelha nome/loteria no schema novo,
     // nunca bloqueia nem desfaz o save real acima se falhar.
-    if(typeof BolaoJogosRepo!=='undefined'&&typeof JogosCommon!=='undefined'&&JogosCommon.ativo()){
+    if(typeof BolaoJogosRepo!=='undefined'&&typeof JogosCommon!=='undefined'&&JogosCommon.escritaNovoSchemaAtiva()){
       try{
         registro.id=id;
         var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
@@ -17584,7 +17609,11 @@ async function _imprimirBolaoImpl(soPremiados){
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
       jogosHtml+='<div class="lot-block">'+
-        '<div style="font-weight:700;font-size:12px;color:'+corTextoJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        // Título da seção usa a cor de MARCA (dJogo.cor), igual às outras
+        // loterias — não corTextoJogo/corMarca (que prefere corTexto,
+        // pensado pra texto sobre fundo colorido, não pra identificar a
+        // loteria). Mesma razão do badgeLoteria no modal "Jogos do Bolão".
+        '<div style="font-weight:700;font-size:12px;color:'+(dJogo.cor||corTextoJogo)+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
@@ -18603,7 +18632,14 @@ async function verJogosVinculados(){
     }).join('')+
     (jogosOcultos>0?'<div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted);font-style:italic">+ '+jogosOcultos+' jogo'+(jogosOcultos!==1?'s':'')+' não exibido'+(jogosOcultos!==1?'s':'')+' (use "Excluir toda a rodada" acima para remover todos de uma vez)</div>':'');
     var idSel='conc-status-'+ci+'-'+Date.now();
-    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
+    // Chip de identidade da loteria: fundo E texto usam a mesma cor de MARCA
+    // (dConcurso.cor), nunca corTexto — corTexto existe só pra texto que
+    // fica SOBRE um fundo sólido daquela cor (contraste), não pra identificar
+    // a loteria. Usar corMarca() aqui (que prefere corTexto) fazia o chip da
+    // Timemania sair com fundo amarelo e texto verde — duas cores no mesmo
+    // elemento, diferente de todas as outras loterias (que não têm corTexto
+    // e por isso já saíam com fundo e texto no mesmo tom).
+    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+(dConcurso.cor||'#888')+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
     return '<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);flex-wrap:wrap;gap:8px">'+
         '<div>'+
@@ -18772,18 +18808,32 @@ function _criarItemJogoSalvo(opts){
    ════════════════════════════════════════════════════════ */
 var JogosCommon = {
   ativo: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
-  // REVERTIDO EM PRODUÇÃO (2026-07-10, mesmo dia): liberar isto em produção
-  // causou um bug real — "Private Club 2° semana Julho" (um dos 7 bolões
-  // com espelho) recebeu 6 jogos novos (Quina/Mega-Sena/Lotomania) que
-  // foram gravados só no schema ANTIGO (a escrita/dual-write nunca foi
-  // ligada em produção). Como a leitura passou a preferir o espelho quando
-  // ele existe e "parece" válido (só checava concursos.length>0, não se
-  // estava atualizado), o relatório impresso ficou mostrando a versão
-  // desatualizada do bolão, sem os 6 jogos novos. Sem escrita ativa em
-  // produção, o espelho SEMPRE fica defasado assim que o bolão é usado de
-  // verdade — não dá pra confiar na leitura até a escrita também estar
-  // ligada. Voltando a gate a ser DEV-only (igual ativo()) até lá.
-  leituraNovoSchemaAtiva: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
+  // RELIGADO EM PRODUÇÃO (2026-07-10, mesma sessão): tinha sido revertido
+  // pra DEV-only depois de um bug real — "Private Club 2° semana Julho"
+  // ficou com o relatório mostrando dados desatualizados porque a escrita
+  // ainda não estava ligada E o leitor confiava no espelho só por ele "ter
+  // dados", sem checar se estava em dia. As duas causas foram corrigidas
+  // antes de religar: (1) escrita (dual-write) agora ativa em produção via
+  // escritaNovoSchemaAtiva(), abaixo — todo save real também espelha; (2)
+  // _carregarBolaoDoSchemaNovoParaEstado agora compara a contagem de jogos
+  // antigo×novo antes de confiar no espelho, caindo pro antigo em qualquer
+  // divergência.
+  leituraNovoSchemaAtiva: function(){ return supabaseAtivo(); },
+  // Gate de ESCRITA real em produção (2026-07-10) — controla só as ~12
+  // funções de dual-write chamadas pelas AÇÕES REAIS do usuário (salvar
+  // jogo, vincular, participante, salvar bolão). Verificado antes de
+  // habilitar: RLS de boloes/jogos/bolao_participantes/bolao_concursos
+  // exige auth.uid()=user_id em select/insert/update/delete (WITH CHECK
+  // incluso); as 9 RPCs sempre usam auth.uid() internamente (nunca um
+  // user_id vindo do cliente) e checam dono do bolão antes de inserir/
+  // alterar; advisor de segurança do Supabase sem achado novo. Nunca
+  // bloqueia nem desfaz o save real se falhar — é sempre melhor-esforço,
+  // silencioso (try/catch + console.warn). Os painéis de teste/auditoria
+  // (_anexarBoloesSchemaNovo, _compararSchemaNovoDual, _auditarParidadeBolao,
+  // listarDual/listarBoloesDual/listarParticipantesDual/listarPorBolaoDual,
+  // abrirPainelSchemaNovo, _migrarParaJogosTable) continuam em ativo()
+  // (DEV-only) de propósito — não devem rodar nem aparecer em produção.
+  escritaNovoSchemaAtiva: function(){ return supabaseAtivo(); },
   novaIdempotencyKey: function(){
     return (crypto&&crypto.randomUUID)?crypto.randomUUID():_novoId()+'-'+Math.random().toString(36).slice(2);
   },
@@ -18793,7 +18843,7 @@ var JogosCommon = {
   // separadamente) porque as RPCs por trás operam em public.jogos por
   // UUID direto, sem precisar saber se a origem era "salvo" ou "bolao".
   excluirDual: async function(jogoId){
-    if(!JogosCommon.ativo()||!jogoId) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!jogoId) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.rpc('rpc_excluir_jogo',{p_jogo_id:jogoId});
@@ -18802,7 +18852,7 @@ var JogosCommon = {
     }catch(e){ console.warn('[JogosCommon.excluirDual]',e.message); return null; }
   },
   desvincularDual: async function(jogoId){
-    if(!JogosCommon.ativo()||!jogoId) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!jogoId) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.rpc('rpc_desvincular_jogo',{p_jogo_id:jogoId});
@@ -18811,7 +18861,7 @@ var JogosCommon = {
     }catch(e){ console.warn('[JogosCommon.desvincularDual]',e.message); return null; }
   },
   moverParaBolaoDual: async function(jogoId,bolaoIdNovo){
-    if(!JogosCommon.ativo()||!jogoId||!bolaoIdNovo) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!jogoId||!bolaoIdNovo) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.rpc('rpc_mover_jogo_para_bolao',{p_jogo_id:jogoId,p_bolao_id:bolaoIdNovo});
@@ -18828,7 +18878,7 @@ var JogosCommon = {
   // "conjunto nomeado". Isso é uma mudança real de UX, não só de código;
   // sinalizado ao usuário, não decidido sozinho.
   renomearDual: async function(jogoId,novoNome){
-    if(!JogosCommon.ativo()||!jogoId) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!jogoId) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.from('jogos').update({nome:novoNome,updated_at:new Date().toISOString()}).eq('id',jogoId).select().single();
@@ -18860,7 +18910,7 @@ var JogosSalvosRepo = {
   // antigo, mas cada jogo continua sendo uma linha independente (a RPC
   // gera um lote_id compartilhado só pra agrupar na exibição).
   salvarDual: async function(loteria,jogosFinais,nomeLote){
-    if(!JogosCommon.ativo()) return;
+    if(!JogosCommon.escritaNovoSchemaAtiva()) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
       var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; if(nomeLote) p.nome=nomeLote; return p; });
@@ -18972,6 +19022,20 @@ async function _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo){
   var jogosRes=await sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true});
   var jogosNovo=jogosRes.data||[];
 
+  // Checagem de paridade (2026-07-10, pós-hotfix): antes o leitor confiava
+  // no espelho só por ele "ter dados" (concursos.length>0), sem checar se
+  // estava ATUALIZADO — causou um bug real em produção (jogos vinculados
+  // depois do último save do bolão nunca apareciam no relatório, porque a
+  // escrita ainda não estava ligada). Agora compara a contagem TOTAL de
+  // jogos do antigo (fonte de verdade) contra o novo antes de confiar nele;
+  // qualquer divergência cai pro fallback do schema antigo automaticamente.
+  // Não elimina 100% do risco (um jogo trocado por outro do mesmo total
+  // passaria despercebido), mas cobre o caso real que já aconteceu.
+  var jogosAntigosCount=(antigo.concursos||[]).reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
+  if(jogosAntigosCount!==jogosNovo.length){
+    return {erro:'Espelho desatualizado (antigo tem '+jogosAntigosCount+' jogo(s), novo tem '+jogosNovo.length+') — usando schema antigo.'};
+  }
+
   var participantes=participantesNovo.map(function(p){
     return { nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
       valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status };
@@ -19070,7 +19134,7 @@ var BolaoJogosRepo = {
   // qual bolão real pertencem — só usa o de teste como último recurso
   // (chamada avulsa sem contexto de bolão real, ex.: painel de teste).
   vincularDual: async function(loteria,jogosFinais,bolaoIdNovo){
-    if(!JogosCommon.ativo()) return;
+    if(!JogosCommon.escritaNovoSchemaAtiva()) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
       var bolaoAlvo=bolaoIdNovo||await this._obterBolaoTeste(sb);
@@ -19116,7 +19180,7 @@ var BolaoJogosRepo = {
     }catch(e){ console.warn('[BolaoJogosRepo.listarParticipantesDual]',e.message); return null; }
   },
   adicionarParticipanteDual: async function(bolaoIdNovo,nome,cotas,isAdmin,isento,valorCota,statusPag){
-    if(!JogosCommon.ativo()) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.rpc('rpc_add_participante_bolao',{p_bolao_id:bolaoIdNovo,p_nome:nome,p_cotas:cotas,p_is_admin:!!isAdmin,p_isento:!!isento,p_valor_cota:valorCota||0,p_status_pag:statusPag==='pago'?'pago':'naopagou'});
@@ -19125,7 +19189,7 @@ var BolaoJogosRepo = {
     }catch(e){ console.warn('[BolaoJogosRepo.adicionarParticipanteDual]',e.message); return null; }
   },
   editarParticipanteDual: async function(participanteId,opts){
-    if(!JogosCommon.ativo()||!participanteId) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!participanteId) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       opts=opts||{};
@@ -19142,7 +19206,7 @@ var BolaoJogosRepo = {
     }catch(e){ console.warn('[BolaoJogosRepo.editarParticipanteDual]',e.message); return null; }
   },
   removerParticipanteDual: async function(participanteId){
-    if(!JogosCommon.ativo()) return;
+    if(!JogosCommon.escritaNovoSchemaAtiva()) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
       var {error}=await sb.rpc('rpc_remover_participante_bolao',{p_participante_id:participanteId});
@@ -19175,7 +19239,7 @@ var BolaoJogosRepo = {
     };
   },
   espelharBolaoDual: async function(registro){
-    if(!JogosCommon.ativo()) return null;
+    if(!JogosCommon.escritaNovoSchemaAtiva()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var linha=this._camposBolaoParaLinha(registro);
@@ -19208,7 +19272,7 @@ var BolaoJogosRepo = {
   // incremental arriscado. É só espelho (DEV) — o antigo continua sendo a
   // fonte de verdade real dos participantes.
   sincronizarParticipantesDual: async function(bolaoIdNovo,participantesArr){
-    if(!JogosCommon.ativo()||!bolaoIdNovo) return;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!bolaoIdNovo) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
       var _u=await sb.auth.getUser();
@@ -19253,7 +19317,7 @@ var BolaoJogosRepo = {
   // linha por (bolão, concurso, loteria) — chamado toda vez que uma
   // vinculação de jogos é feita, faz upsert (cria ou atualiza).
   sincronizarConcursoDual: async function(bolaoIdNovo,opts){
-    if(!JogosCommon.ativo()||!bolaoIdNovo||!opts||opts.concursoRef==null) return;
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!bolaoIdNovo||!opts||opts.concursoRef==null) return;
     try{
       var sb=_getSbClient(); if(!sb) return;
       var _u=await sb.auth.getUser();
