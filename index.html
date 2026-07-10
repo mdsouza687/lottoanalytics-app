@@ -15472,8 +15472,15 @@ function renderFormBolao(){
       if(!cc.savedAt||!cc.jogos||!cc.jogos.length||!cc.loteria) return;
       var wi=_semanaIdxDeData(cc.savedAt);
       if(wi<0) return;
+      // Exigir que resultados[loteria].concurso bata exatamente com cc.num
+      // (como era antes) fazia o prêmio de um concurso já passado sumir
+      // dessa soma assim que a loteria avançava — _calcPremioJogo já sabe
+      // resolver isso sozinho (consulta _historicoConcursoCache quando o
+      // concurso pedido não é mais o mais recente, mesma correção já feita
+      // hoje no relatório impresso); aqui só precisa garantir que exista
+      // ALGUM resultado conhecido pra essa loteria antes de tentar.
       var res=(typeof resultados!=='undefined')?resultados[cc.loteria]:null;
-      if(!res||!res.dezenas||!cc.num||parseInt(res.concurso)!==parseInt(cc.num)) return;
+      if(!res||!cc.num) return;
       cc.jogos.forEach(function(jogo){
         var info=_calcPremioJogo(cc.loteria, jogo, cc.num);
         _premioPorSemanaReal[wi]+=info?info.valor:0;
