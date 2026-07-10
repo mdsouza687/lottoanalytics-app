@@ -14861,14 +14861,47 @@ var MIN_PREMIAVEL_POR_LOTERIA={megasena:4,lotofacil:11,quina:2,timemania:3,dupla
 // dezenasAcertadas} — dezenasAcertadas é o Set das dezenas do jogo que
 // coincidem com o resultado oficial (usado para colorir diferente cada
 // bolinha do jogo que efetivamente acertou).
+// Cache em memória dos concursos HISTÓRICOS (não o mais recente) já
+// buscados do Supabase, populado por _prewarmHistoricoConcursos() antes de
+// qualquer tela chamar _calcPremioJogo em lote. Sem isso, assim que uma
+// loteria avança pro próximo concurso, TODO prêmio de concursos anteriores
+// (já pagos, reais) desaparecia do relatório/conferência — a função só
+// sabia comparar contra `resultados[key]`, que é sempre só o concurso mais
+// recente. Chave: "loteria|concurso".
+var _historicoConcursoCache={};
+async function _prewarmHistoricoConcursos(pares){
+  var sb=(typeof _getSbClient==='function')?_getSbClient():null;
+  if(!sb) return;
+  for(var i=0;i<(pares||[]).length;i++){
+    var p=pares[i];
+    if(!p||p.loteria==null||p.concurso==null) continue;
+    var concursoInt=parseInt(p.concurso);
+    if(!concursoInt) continue;
+    var atual=(typeof resultados!=='undefined')?resultados[p.loteria]:null;
+    // Já é o concurso mais recente conhecido — _calcPremioJogo usa
+    // resultados[key] direto, não precisa buscar nada pra esse caso.
+    if(atual&&String(parseInt(atual.concurso))===String(concursoInt)) continue;
+    var chave=p.loteria+'|'+concursoInt;
+    if(_historicoConcursoCache[chave]) continue;
+    try{
+      var {data,error}=await sb.from('historico').select('dados').eq('loteria',p.loteria).eq('concurso',String(concursoInt)).maybeSingle();
+      if(!error&&data&&data.dados&&data.dados.dezenas) _historicoConcursoCache[chave]=data.dados;
+    }catch(e){ console.warn('[_prewarmHistoricoConcursos]',e.message); }
+  }
+}
 function _calcPremioJogo(loteriaKey,jogo,concursoNum){
   if(!loteriaKey||!jogo) return null;
   var res=(typeof resultados!=='undefined')?resultados[loteriaKey]:null;
+  // Concurso pedido não é o mais recente conhecido (res) — tenta o cache
+  // de histórico pré-carregado (ver _prewarmHistoricoConcursos) antes de
+  // desistir. Sem isso, um jogo de um concurso já passado (mas com prêmio
+  // real e pago) parava de ser conferido assim que a loteria avançava.
+  if(concursoNum!=null && (!res||String(parseInt(concursoNum))!==String(parseInt(res.concurso)))){
+    var _chaveHist=loteriaKey+'|'+parseInt(concursoNum);
+    var _histCache=_historicoConcursoCache[_chaveHist];
+    res=(_histCache&&_histCache.dezenas&&_histCache.dezenas.length)?_histCache:null;
+  }
   if(!res||!res.dezenas||!res.dezenas.length) return null;
-  // Só confere contra o resultado se for de fato o concurso já sorteado
-  // que está armazenado em `res` — um jogo de um concurso anterior ou
-  // posterior ao último resultado conhecido não pode ser conferido aqui.
-  if(concursoNum!=null && String(parseInt(concursoNum))!==String(parseInt(res.concurso))) return null;
   var d=CFG[loteriaKey]||{};
   if(d.superSete||jogo._ssCols){
     var minPremiavel=(loteriaKey in MIN_PREMIAVEL_POR_LOTERIA)?MIN_PREMIAVEL_POR_LOTERIA[loteriaKey]:(d.min||0);
@@ -17196,6 +17229,17 @@ async function _imprimirBolaoImpl(soPremiados){
   if(typeof atualizarLoteria==='function'){
     await Promise.all(Object.keys(porLoteriaImp).map(function(lk){ return atualizarLoteria(lk).catch(function(){}); }));
   }
+  // Pré-carrega os concursos que NÃO são mais o mais recente conhecido de
+  // cada loteria — sem isso, um jogo premiado de um concurso já superado
+  // (a loteria avançou pro próximo sorteio) parava de ser conferido aqui,
+  // fazendo o prêmio real sumir do relatório mesmo já tendo sido pago.
+  if(typeof _prewarmHistoricoConcursos==='function'){
+    var _paresHist=[];
+    Object.keys(porLoteriaImp).forEach(function(lk){
+      porLoteriaImp[lk].concursos.forEach(function(c){ _paresHist.push({loteria:lk,concurso:c.num}); });
+    });
+    await _prewarmHistoricoConcursos(_paresHist);
+  }
   var loteriasImp=Object.keys(porLoteriaImp).map(function(lk){
     var dL=CFG[lk]||{};
     var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
@@ -18368,6 +18412,13 @@ async function verJogosVinculados(){
   // Colunas, porque essas propriedades não sobrevivem à sincronização
   // com o Supabase (só arrays paralelos de verdade sobrevivem).
   concursos.forEach(_hidratarConcursoJogos);
+  // Pré-carrega concursos que já não são mais o mais recente conhecido de
+  // cada loteria (ver _prewarmHistoricoConcursos) — mesmo motivo da
+  // impressão: sem isso, um jogo premiado de um concurso já superado parava
+  // de mostrar o troféu/valor assim que a loteria avançava pro próximo.
+  if(typeof _prewarmHistoricoConcursos==='function'){
+    await _prewarmHistoricoConcursos(concursos.map(function(c){return {loteria:c.loteria,concurso:c.num};}));
+  }
   // Item 2 do documento de correções: a identidade visual deste modal segue
   // a cor exclusiva do Multi-Loteria, já que o bolão pode reunir várias
   // loterias — cada jogo individual ainda usa sua própria cor de origem
