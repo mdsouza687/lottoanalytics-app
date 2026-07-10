@@ -18772,14 +18772,18 @@ function _criarItemJogoSalvo(opts){
    ════════════════════════════════════════════════════════ */
 var JogosCommon = {
   ativo: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
-  // Gate independente do dual-write: controla só a LEITURA do schema novo
-  // (editarBolao/impressão), liberada também em produção — a escrita
-  // (ativo(), acima) continua travada em DEV. Produção só tem bolões com
-  // _novoSchemaId nos 7 que já foram migrados/backfilled manualmente; todo
-  // resto (e qualquer falha de leitura) cai no fallback pro schema antigo
-  // automaticamente, então habilitar isto não arrisca dado nenhum — só
-  // decide de onde a tela LÊ quando o espelho já existe e está correto.
-  leituraNovoSchemaAtiva: function(){ return supabaseAtivo(); },
+  // REVERTIDO EM PRODUÇÃO (2026-07-10, mesmo dia): liberar isto em produção
+  // causou um bug real — "Private Club 2° semana Julho" (um dos 7 bolões
+  // com espelho) recebeu 6 jogos novos (Quina/Mega-Sena/Lotomania) que
+  // foram gravados só no schema ANTIGO (a escrita/dual-write nunca foi
+  // ligada em produção). Como a leitura passou a preferir o espelho quando
+  // ele existe e "parece" válido (só checava concursos.length>0, não se
+  // estava atualizado), o relatório impresso ficou mostrando a versão
+  // desatualizada do bolão, sem os 6 jogos novos. Sem escrita ativa em
+  // produção, o espelho SEMPRE fica defasado assim que o bolão é usado de
+  // verdade — não dá pra confiar na leitura até a escrita também estar
+  // ligada. Voltando a gate a ser DEV-only (igual ativo()) até lá.
+  leituraNovoSchemaAtiva: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
   novaIdempotencyKey: function(){
     return (crypto&&crypto.randomUUID)?crypto.randomUUID():_novoId()+'-'+Math.random().toString(36).slice(2);
   },
