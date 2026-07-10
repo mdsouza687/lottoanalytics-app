@@ -17098,14 +17098,14 @@ async function editarBolao(id){
   // TODO save (salvarBolao usa s.editId, que aqui é sempre o id antigo,
   // então a escrita nunca muda, só a leitura inicial). Reversível: um
   // problema aqui nunca perde nem corrompe dado, só deixa de usar o atalho.
-  if(typeof JogosCommon!=='undefined'&&JogosCommon.ativo()&&g._novoSchemaId){
+  if(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva()&&g._novoSchemaId){
     try{
       var _viaNovo=await _carregarBolaoDoSchemaNovoParaEstado(id);
       if(_viaNovo&&_viaNovo.ok){
         _boloesState=_viaNovo.estado;
         _ordenarParticipantes();
         renderFormBolao();
-        console.info('[editarBolao] carregado do schema novo (DEV)');
+        console.info('[editarBolao] carregado do schema novo');
         return;
       }
       console.warn('[editarBolao] leitura do schema novo falhou/incompleta, usando caminho antigo:',_viaNovo&&_viaNovo.erro);
@@ -17205,12 +17205,12 @@ async function _imprimirBolaoImpl(soPremiados){
     // Corte de leitura (DEV): tenta reconstruir gImp a partir do schema
     // novo (mesmo formato), caindo pro gImp do schema antigo já carregado
     // acima em qualquer erro/incompletude — nunca interrompe a impressão.
-    if(gImp&&typeof JogosCommon!=='undefined'&&JogosCommon.ativo()&&gImp._novoSchemaId){
+    if(gImp&&typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva()&&gImp._novoSchemaId){
       try{
         var _rImp=await _carregarRegistroBolaoDoSchemaNovo(gImp.id);
         if(_rImp&&_rImp.ok&&_rImp.gImp&&_rImp.gImp.concursos&&_rImp.gImp.concursos.length){
           gImp=_rImp.gImp;
-          console.info('[IMPR-BOLAO] gImp carregado do schema novo (DEV)');
+          console.info('[IMPR-BOLAO] gImp carregado do schema novo');
         }else{
           console.warn('[IMPR-BOLAO] leitura do schema novo falhou/incompleta, usando antigo:',_rImp&&_rImp.erro);
         }
@@ -18772,6 +18772,14 @@ function _criarItemJogoSalvo(opts){
    ════════════════════════════════════════════════════════ */
 var JogosCommon = {
   ativo: function(){ return typeof _SUPABASE_EH_DEV!=='undefined' && _SUPABASE_EH_DEV && supabaseAtivo(); },
+  // Gate independente do dual-write: controla só a LEITURA do schema novo
+  // (editarBolao/impressão), liberada também em produção — a escrita
+  // (ativo(), acima) continua travada em DEV. Produção só tem bolões com
+  // _novoSchemaId nos 7 que já foram migrados/backfilled manualmente; todo
+  // resto (e qualquer falha de leitura) cai no fallback pro schema antigo
+  // automaticamente, então habilitar isto não arrisca dado nenhum — só
+  // decide de onde a tela LÊ quando o espelho já existe e está correto.
+  leituraNovoSchemaAtiva: function(){ return supabaseAtivo(); },
   novaIdempotencyKey: function(){
     return (crypto&&crypto.randomUUID)?crypto.randomUUID():_novoId()+'-'+Math.random().toString(36).slice(2);
   },
@@ -18944,7 +18952,7 @@ async function _auditarParidadeBolao(bolaoIdAntigo){
 // alimentada pelo schema novo, lado a lado com o caminho antigo, antes de
 // qualquer decisão de trocar a fonte de leitura de vez.
 async function _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo){
-  if(!JogosCommon.ativo()) return {erro:'Só roda em DEV.'};
+  if(!JogosCommon.leituraNovoSchemaAtiva()) return {erro:'Supabase indisponível.'};
   var todos=await dbAll('boloes_v2');
   var antigo=todos.find(function(x){return x.id===bolaoIdAntigo;});
   if(!antigo||!antigo._novoSchemaId) return {erro:'Bolão sem espelho no schema novo — salve o bolão de novo primeiro.'};
