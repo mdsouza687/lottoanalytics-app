@@ -17037,9 +17037,23 @@ async function _renderPainelBolaoNovo(){
   var partic=await BolaoJogosRepo.listarParticipantesDual(ctx.id)||[];
   if(particEl){
     particEl.innerHTML=partic.length?partic.map(function(p){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)">'+
-        '<span>'+(p.is_admin?'⭐ ':'')+_esc(p.nome)+' ('+p.cotas+' cota'+(p.cotas!==1?'s':'')+')'+(p.isento?' 🎟':'')+'</span>'+
-        '<button onclick="_pbnRemoverParticipante(\''+p.id+'\')" style="background:rgba(255,60,60,.15);border:none;border-radius:5px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer">✕</button></div>';
+      var linhaTop='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">'+
+        '<span>'+(p.is_admin?'⭐ ':'')+_esc(p.nome)+' ('+p.cotas+' cota'+(p.cotas!==1?'s':'')+')'+(p.isento?' 🎟':'')+
+        ' · '+_bMoney(p.valor_cota||0)+' · '+(p.status_pag==='pago'?'✅ pago':'⏳ não pago')+'</span>'+
+        '<span style="display:flex;gap:4px">'+
+        '<button onclick="_pbnEditarParticipante(\''+p.id+'\')" style="background:rgba(59,159,255,.15);border:none;border-radius:5px;color:#3b9fff;font-size:10px;padding:3px 7px;cursor:pointer">✏️</button>'+
+        '<button onclick="_pbnRemoverParticipante(\''+p.id+'\')" style="background:rgba(255,60,60,.15);border:none;border-radius:5px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer">✕</button>'+
+        '</span></div>';
+      var formEdit='<div id="pbn-edit-'+p.id+'" style="display:none;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);gap:6px;flex-wrap:wrap">'+
+        '<input id="pbn-e-cotas-'+p.id+'" type="number" min="1" value="'+p.cotas+'" placeholder="Cotas" style="width:55px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px"/>'+
+        '<input id="pbn-e-valor-'+p.id+'" type="number" min="0" step="0.01" value="'+(p.valor_cota||0)+'" placeholder="Valor cota" style="width:80px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px"/>'+
+        '<select id="pbn-e-pag-'+p.id+'" style="padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px">'+
+          '<option value="naopagou"'+(p.status_pag!=='pago'?' selected':'')+'>Não pago</option>'+
+          '<option value="pago"'+(p.status_pag==='pago'?' selected':'')+'>Pago</option>'+
+        '</select>'+
+        '<button onclick="_pbnSalvarEdicaoParticipante(\''+p.id+'\')" style="background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:10px;padding:4px 8px;cursor:pointer">Salvar</button>'+
+        '</div>';
+      return linhaTop+formEdit;
     }).join(''):'<div style="color:rgba(255,255,255,.6)">Nenhum participante ainda.</div>';
   }
 }
@@ -17049,7 +17063,7 @@ async function _pbnAdicionarParticipante(){
   var cotas=parseInt(document.getElementById('pbn-cotas').value);
   if(!nome){ toast('Informe o nome do participante.'); return; }
   if(!cotas||cotas<1){ toast('Cotas deve ser um número maior ou igual a 1.'); return; }
-  var r=await BolaoJogosRepo.adicionarParticipanteDual(ctx.id,nome,cotas,false,false);
+  var r=await BolaoJogosRepo.adicionarParticipanteDual(ctx.id,nome,cotas,false,false,0,'naopagou');
   if(!r){ toast('Erro ao adicionar participante.'); return; }
   document.getElementById('pbn-nome').value='';
   document.getElementById('pbn-cotas').value='1';
@@ -17057,6 +17071,19 @@ async function _pbnAdicionarParticipante(){
 }
 async function _pbnRemoverParticipante(participanteId){
   await BolaoJogosRepo.removerParticipanteDual(participanteId);
+  await _renderPainelBolaoNovo();
+}
+function _pbnEditarParticipante(participanteId){
+  var el=document.getElementById('pbn-edit-'+participanteId);
+  if(el) el.style.display=el.style.display==='none'?'flex':'none';
+}
+async function _pbnSalvarEdicaoParticipante(participanteId){
+  var cotas=parseInt(document.getElementById('pbn-e-cotas-'+participanteId).value);
+  var valorCota=parseFloat(document.getElementById('pbn-e-valor-'+participanteId).value)||0;
+  var statusPag=document.getElementById('pbn-e-pag-'+participanteId).value;
+  if(!cotas||cotas<1){ toast('Cotas deve ser um número maior ou igual a 1.'); return; }
+  var r=await BolaoJogosRepo.editarParticipanteDual(participanteId,{cotas:cotas,valorCota:valorCota,statusPag:statusPag});
+  if(!r){ toast('Erro ao salvar participante.'); return; }
   await _renderPainelBolaoNovo();
 }
 
@@ -18891,14 +18918,31 @@ var BolaoJogosRepo = {
       return data;
     }catch(e){ console.warn('[BolaoJogosRepo.listarParticipantesDual]',e.message); return null; }
   },
-  adicionarParticipanteDual: async function(bolaoIdNovo,nome,cotas,isAdmin,isento){
+  adicionarParticipanteDual: async function(bolaoIdNovo,nome,cotas,isAdmin,isento,valorCota,statusPag){
     if(!JogosCommon.ativo()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
-      var {data,error}=await sb.rpc('rpc_add_participante_bolao',{p_bolao_id:bolaoIdNovo,p_nome:nome,p_cotas:cotas,p_is_admin:!!isAdmin,p_isento:!!isento});
+      var {data,error}=await sb.rpc('rpc_add_participante_bolao',{p_bolao_id:bolaoIdNovo,p_nome:nome,p_cotas:cotas,p_is_admin:!!isAdmin,p_isento:!!isento,p_valor_cota:valorCota||0,p_status_pag:statusPag==='pago'?'pago':'naopagou'});
       if(error){ console.warn('[BolaoJogosRepo.adicionarParticipanteDual]',error.message); return null; }
       return data;
     }catch(e){ console.warn('[BolaoJogosRepo.adicionarParticipanteDual]',e.message); return null; }
+  },
+  editarParticipanteDual: async function(participanteId,opts){
+    if(!JogosCommon.ativo()||!participanteId) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      opts=opts||{};
+      var params={p_participante_id:participanteId};
+      if(opts.nome!=null) params.p_nome=opts.nome;
+      if(opts.cotas!=null) params.p_cotas=opts.cotas;
+      if(opts.isento!=null) params.p_isento=!!opts.isento;
+      if(opts.status!=null) params.p_status=opts.status;
+      if(opts.valorCota!=null) params.p_valor_cota=opts.valorCota;
+      if(opts.statusPag!=null) params.p_status_pag=opts.statusPag==='pago'?'pago':'naopagou';
+      var {data,error}=await sb.rpc('rpc_editar_participante_bolao',params);
+      if(error){ console.warn('[BolaoJogosRepo.editarParticipanteDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.editarParticipanteDual]',e.message); return null; }
   },
   removerParticipanteDual: async function(participanteId){
     if(!JogosCommon.ativo()) return;
@@ -18963,8 +19007,17 @@ var BolaoJogosRepo = {
       var idsAntigos=(existentes.data||[]).map(function(r){return r.id;});
       if(participantesArr&&participantesArr.length){
         var rows=participantesArr.map(function(p){
+          // is_admin: o schema antigo não tem um booleano próprio — cada
+          // participante carrega o NOME do admin em p.admin, igual em todas
+          // as linhas do bolão; é admin quem tem p.nome===p.admin. Usar
+          // p.isAdmin (que nunca existiu nos dados reais) fazia todo
+          // participante ser gravado como não-admin no schema novo, mesmo o
+          // admin de verdade — mesmo bug de "campo que não existe" já visto
+          // hoje em _vincularSalvoAoBolaoImpl (mês/time).
+          var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
           return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
-            is_admin:!!p.isAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo' };
+            is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
+            valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou' };
         });
         var ins=await sb.from('bolao_participantes').insert(rows);
         if(ins.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert',ins.error.message); return; }
