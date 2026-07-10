@@ -2600,7 +2600,7 @@ const CFG = {
   megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00AB67',corD:'#009B63',corClara:'#6BCEA7',orb:[0,171,103],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
   lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#803594',corD:'#702A82',corClara:'#B58AC1',orb:[128,53,148],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
   quina:         {nome:'QUINA',        emoji:'💜',cor:'#005DA4',corD:'#00508F',corClara:'#6BA1CA',orb:[0,93,164],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
-  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',corTexto:'#00AB67',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFDD00',corD:'#FFEB95',corClara:'#FFEB6B',corTexto:'#00AB67',orb:[255,221,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
   duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A62A52',corD:'#90214A',corClara:'#CB839B',orb:[166,42,82],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
@@ -17627,11 +17627,11 @@ async function _imprimirBolaoImpl(soPremiados){
       // para ficar claro em qualquer um deles isoladamente.
       var concursosStatusJ=_concursosComStatusHtml(L.loteria,L.concursos);
       jogosHtml+='<div class="lot-block">'+
-        // Título da seção usa a cor de MARCA (dJogo.cor), igual às outras
-        // loterias — não corTextoJogo/corMarca (que prefere corTexto,
-        // pensado pra texto sobre fundo colorido, não pra identificar a
-        // loteria). Mesma razão do badgeLoteria no modal "Jogos do Bolão".
-        '<div style="font-weight:700;font-size:12px;color:'+(dJogo.cor||corTextoJogo)+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        // Título da seção: só a Timemania segue o padrão oficial CEF
+        // (wordmark verde sobre fundo amarelo) — as demais loterias
+        // (Lotomania inclusa) usam a própria cor de marca (dJogo.cor),
+        // mesmo tendo corTexto definido pras bolinhas.
+        '<div style="font-weight:700;font-size:12px;color:'+(dJogo.apiKey==='timemania'?corTextoJogo:dJogo.cor)+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
@@ -18671,7 +18671,10 @@ async function verJogosVinculados(){
     // Timemania sair com fundo amarelo e texto verde — duas cores no mesmo
     // elemento, diferente de todas as outras loterias (que não têm corTexto
     // e por isso já saíam com fundo e texto no mesmo tom).
-    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+(dConcurso.cor||'#888')+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
+    // Texto do chip: só a Timemania usa corTexto (verde, padrão oficial
+    // CEF) — as demais loterias (Lotomania inclusa) usam a própria cor de
+    // marca, mesmo tendo corTexto definido pras bolinhas.
+    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+(dConcurso.apiKey==='timemania'?corMarca(dConcurso):(dConcurso.cor||'#888'))+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
     return '<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);flex-wrap:wrap;gap:8px">'+
         '<div>'+
