@@ -2600,7 +2600,7 @@ const CFG = {
   megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00AB67',corD:'#009B63',corClara:'#6BCEA7',orb:[0,171,103],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
   lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#803594',corD:'#702A82',corClara:'#B58AC1',orb:[128,53,148],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
   quina:         {nome:'QUINA',        emoji:'💜',cor:'#005DA4',corD:'#00508F',corClara:'#6BA1CA',orb:[0,93,164],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
-  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',corTexto:'#00AB67',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFDD00',corD:'#FFEB95',corClara:'#FFEB6B',corTexto:'#00AB67',orb:[255,221,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
   duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A62A52',corD:'#90214A',corClara:'#CB839B',orb:[166,42,82],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
@@ -8504,7 +8504,7 @@ async function gerarJogos(tipo,modo){
       if(jogo._ssCols){
         const _fxC=Array.from({length:7},()=>new Set());
         getFixos(tipo).forEach(v=>{const c=Math.floor(v/10);if(c>=0&&c<7)_fxC[c].add(v%10);});
-        balls=jogo._ssCols.map((c,ci)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:8px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=_fxC[ci].has(dg);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff;min-width:24px;height:24px">${dg}</div>`;}).join('')}</div>`).join('');
+        balls=jogo._ssCols.map((c,ci)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:8px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=_fxC[ci].has(dg);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)};min-width:24px;height:24px">${dg}</div>`;}).join('')}</div>`).join('');
       } else {
         balls=jogo.slice(0,numDez).map(n=>{
           const isFix=fixoSet.has(n);
@@ -11334,7 +11334,7 @@ async function gerarFechamento(){
   document.getElementById('result-sub').textContent=`${numDez} dez/jogo${exclusoes.length>0?' · '+exclusoes.length+' dezena(s) excluída(s)':''}`;
   const _fixSetF=new Set(getFixos('jogo'));
   document.getElementById('result-body').innerHTML=jogos.map((jogo,i)=>{
-    const mainBalls=jogo.slice(0,numDez).map(n=>{const fx=_fixSetF.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
+    const mainBalls=jogo.slice(0,numDez).map(n=>{const fx=_fixSetF.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;}).join('');
     const extraHtml=jogo._extra
       ?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`
       :'';
@@ -17670,7 +17670,12 @@ async function _imprimirBolaoImpl(soPremiados){
             nums=jogo._ssCols.map(function(c,ci){
               var colBateu=infoPremioJ&&infoPremioJ.colsAcertadas&&infoPremioJ.colsAcertadas.indexOf(ci)>=0;
               var bgCol=colBateu?corPremiado:cBase;
-              return c.map(function(d){return '<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+bgCol+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px">'+d+'</span>';}).join('');
+              // Texto branco só quando premiado (fundo dourado) ou espelho
+              // (fundo roxo fixo) — no fundo normal da loteria, usa a cor de
+              // marca (corBolaTexto), senão Timemania/Lotomania ficavam com
+              // número branco sobre amarelo/laranja, ilegível.
+              var txtCol=(colBateu||ehEsp)?'#fff':corBolaTexto(dJogo);
+              return c.map(function(d){return '<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+bgCol+';color:'+txtCol+';border-radius:50%;font-size:10px;font-weight:700;margin:1px">'+d+'</span>';}).join('');
             }).join(' ');
           }
           else {
@@ -17681,7 +17686,8 @@ async function _imprimirBolaoImpl(soPremiados){
             nums=jogo.slice(0,ndLot||jogo.length).map(function(n){
               var acertouN=infoPremioJ&&infoPremioJ.dezenasAcertadas&&infoPremioJ.dezenasAcertadas.has(parseInt(n));
               var bgN=acertouN?corPremiado:cBase;
-              return '<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+bgN+';color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin:1px">'+pad(n)+'</span>';
+              var txtColN=(acertouN||ehEsp)?'#fff':corBolaTexto(dJogo);
+              return '<span style="display:inline-block;min-width:20px;height:20px;line-height:20px;text-align:center;background:'+bgN+';color:'+txtColN+';border-radius:50%;font-size:10px;font-weight:700;margin:1px">'+pad(n)+'</span>';
             }).join('');
           }
           // Migrado pra usar os acessores jogoExtra/jogoTrevos/jogoMes/jogoTime
@@ -17706,9 +17712,9 @@ async function _imprimirBolaoImpl(soPremiados){
           }).join(''):'';
           var _mN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
           var mesBateu=infoPremioJ&&infoPremioJ.mesAcertou;
-          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(mesBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
+          var mesHtmlB=jMes!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Mês:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(mesBateu?corPremiado:cBase)+';color:'+(mesBateu||ehEsp?'#fff':corBolaTexto(dJogo))+';font-size:9px;font-weight:700;margin:1px">'+(_mN[jMes-1]||'')+'</span>':'';
           var timeBateu=infoPremioJ&&infoPremioJ.timeAcertou;
-          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(timeBateu?corPremiado:cBase)+';color:#fff;font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
+          var timeHtmlB=jTime!=null?' <span style="font-size:8px;color:'+corLabelJogo+';font-weight:700">Time:</span><span style="display:inline-block;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:'+(timeBateu?corPremiado:cBase)+';color:'+(timeBateu||ehEsp?'#fff':corBolaTexto(dJogo))+';font-size:9px;font-weight:700;margin:1px">'+(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[jTime]||'':'')+'</span>':'';
           var tag=ehEsp?'<span style="font-size:8px;color:'+corEsp+';font-weight:800">🪞 </span>':'';
           // Status individual deste jogo específico. Três casos possíveis:
           // 1) Jogo PREMIADO: já sorteado e bateu a faixa mínima premiável
@@ -17929,6 +17935,13 @@ async function _imprimirBolaoImpl(soPremiados){
     // que arrecadou dos pagantes.
     _tfootHtmlImp+
     '</table>'+tabelasPorLoteriaHtml+somatorioHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml+'</body></html>';
+  // Aviso pra rodadas grandes: o contador de progresso acima (_genProgShow)
+  // já cobre a montagem do HTML aqui no app, mas a etapa seguinte —
+  // "Carregando visualização..." do diálogo NATIVO de impressão do
+  // navegador renderizando milhares de bolinhas — é controlada pelo
+  // Chrome, não pelo app, e não dá pra colocar uma barra de progresso
+  // dentro dela. Só avisa antes, pra não parecer travado.
+  if(_totalPrint>300){ toast('Relatório grande ('+_totalPrint+' jogos) — a visualização de impressão pode demorar alguns segundos.'); }
   var w=window.open('','_blank');
   if(!w){ toast('Permita pop-ups para imprimir.'); return; }
   w.document.write(html); w.document.close();
@@ -18585,7 +18598,8 @@ async function verJogosVinculados(){
       var balls=dezenas.map(function(n){
         var acertouTela=infoPremioTela&&infoPremioTela.dezenasAcertadas&&infoPremioTela.dezenasAcertadas.has(parseInt(n));
         var bgTela=acertouTela?corPremiadoTela:corConcurso;
-        return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bgTela+';color:#fff;font-size:11px;font-weight:800;margin:1px">'+String(n).padStart(2,'0')+'</span>';
+        var txtTela=(acertouTela||j._isEspelho)?'#fff':corBolaTexto(dConcurso);
+        return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bgTela+';color:'+txtTela+';font-size:11px;font-weight:800;margin:1px">'+String(n).padStart(2,'0')+'</span>';
       }).join('');
       // Campos complementares (item 9 do documento de upgrade): Trevos da
       // +Milionária (j._trevos) e Bola Extra de loterias americanas (j._extra)
@@ -18620,13 +18634,13 @@ async function verJogosVinculados(){
         var _mNVinc=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         var mesBateuTela=infoPremioTela&&infoPremioTela.mesAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corConcurso)+';color:'+(mesBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
       }
       if(j&&j._time!=null){
         var _timeNomeVinc=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':'');
         var timeBateuTela=infoPremioTela&&infoPremioTela.timeAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corConcurso)+';color:#fff;font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corConcurso)+';color:'+(timeBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
       }
       var esp=j._isEspelho?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">🪞</span>':'';
       // Status individual deste jogo na TELA — mesma lógica de 3 estados
