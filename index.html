@@ -18843,6 +18843,57 @@ async function _compararSchemaNovoDual(){
     amostra:novo.slice(0,5).map(function(j){ return {loteria:j.loteria,numeros:j.numeros,destino:j.destino,criadoEm:j.created_at}; })
   };
 }
+// Auditoria de PARIDADE de um bolão específico: compara o registro antigo
+// (boloes_v2, fonte de verdade real) contra o espelho no schema novo
+// (public.boloes + bolao_participantes + public.jogos), sem alterar nada
+// dos dois lados. Serve pra dar confiança ANTES de considerar religar a
+// leitura da tela real pro schema novo — mesmo padrão de "auditar antes de
+// confiar" já usado nas fases anteriores desta reestruturação (Fase 1).
+async function _auditarParidadeBolao(bolaoIdAntigo){
+  if(!JogosCommon.ativo()) return {erro:'Só roda em DEV.'};
+  var divergencias=[];
+  var todos=await dbAll('boloes_v2');
+  var antigo=todos.find(function(x){return x.id===bolaoIdAntigo;});
+  if(!antigo) return {erro:'Bolão antigo não encontrado (id '+bolaoIdAntigo+').'};
+  if(!antigo._novoSchemaId) return {erro:'Este bolão nunca foi salvo desde que o dual-write existe — sem _novoSchemaId, nada pra comparar. Abra e salve o bolão de novo pra criar o espelho.'};
+  var sb=_getSbClient();
+  var novoBolaoRes=await sb.from('boloes').select('nome,loteria,deleted_at').eq('id',antigo._novoSchemaId).maybeSingle();
+  if(novoBolaoRes.error||!novoBolaoRes.data) return {erro:'Bolão não encontrado no schema novo (id '+antigo._novoSchemaId+') — '+(novoBolaoRes.error&&novoBolaoRes.error.message)};
+  var novoBolao=novoBolaoRes.data;
+  if(novoBolao.deleted_at) divergencias.push('Bolão está com lápide de exclusão no schema novo, mas existe no antigo.');
+  if((antigo.nome||'')!==(novoBolao.nome||'')) divergencias.push('Nome diverge: antigo="'+antigo.nome+'" novo="'+novoBolao.nome+'"');
+
+  // Participantes: compara por nome (não tem id estável no schema antigo)
+  var participantesAntigos=antigo.participantes||[];
+  var particNovoRes=await sb.from('bolao_participantes').select('nome,cotas,is_admin,isento,status,valor_cota,status_pag').eq('bolao_id',antigo._novoSchemaId).is('deleted_at',null);
+  var participantesNovos=particNovoRes.data||[];
+  if(participantesAntigos.length!==participantesNovos.length){
+    divergencias.push('Quantidade de participantes diverge: antigo='+participantesAntigos.length+' novo='+participantesNovos.length);
+  }
+  participantesAntigos.forEach(function(pAntigo){
+    var pNovo=participantesNovos.find(function(x){return x.nome===(pAntigo.nome||'').trim();});
+    if(!pNovo){ divergencias.push('Participante "'+pAntigo.nome+'" existe no antigo mas não no novo.'); return; }
+    var ehAdminAntigo=!!(pAntigo.admin&&pAntigo.nome&&pAntigo.admin===pAntigo.nome);
+    if((pAntigo.cotas||1)!==pNovo.cotas) divergencias.push('Cotas de "'+pAntigo.nome+'" divergem: antigo='+pAntigo.cotas+' novo='+pNovo.cotas);
+    if(ehAdminAntigo!==pNovo.is_admin) divergencias.push('is_admin de "'+pAntigo.nome+'" diverge: antigo='+ehAdminAntigo+' novo='+pNovo.is_admin);
+    if(Math.abs((pAntigo.valorCota||0)-parseFloat(pNovo.valor_cota||0))>0.01) divergencias.push('valor_cota de "'+pAntigo.nome+'" diverge: antigo='+pAntigo.valorCota+' novo='+pNovo.valor_cota);
+    var statusPagAntigo=pAntigo.statusPag==='pago'?'pago':'naopagou';
+    if(statusPagAntigo!==pNovo.status_pag) divergencias.push('status_pag de "'+pAntigo.nome+'" diverge: antigo='+statusPagAntigo+' novo='+pNovo.status_pag);
+  });
+
+  // Jogos: compara contagem total (por concurso é mais frágil de casar 1:1
+  // sem vinculoId em todos os registros antigos, então soma geral primeiro)
+  var jogosAntigos=(antigo.concursos||[]).reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
+  var jogosNovoRes=await sb.from('jogos').select('id',{count:'exact',head:true}).eq('bolao_id',antigo._novoSchemaId).eq('destino','bolao').is('deleted_at',null);
+  var jogosNovo=jogosNovoRes.count||0;
+  if(jogosAntigos!==jogosNovo) divergencias.push('Quantidade de jogos diverge: antigo='+jogosAntigos+' novo='+jogosNovo);
+
+  return {
+    bolao:antigo.nome, novoSchemaId:antigo._novoSchemaId,
+    emParidade:divergencias.length===0,
+    divergencias:divergencias
+  };
+}
 var BolaoJogosRepo = {
   // Dual-write: chamado a partir de vincularJogosAoBolao/vincularSalvoAoBolao,
   // nunca lê nada de JogosSalvosRepo. bolaoId aqui é o id NUMÉRICO local
