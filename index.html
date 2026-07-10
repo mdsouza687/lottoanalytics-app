@@ -2837,6 +2837,19 @@ async function _agAposLogin(user){
     return;
   }
   window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin)};
+  // Item 4 (2026-07-10): _supabaseSyncPut/_supabaseSyncPullAll agora exigem
+  // window._usuarioAtual (sessão autenticada, RLS restrita por user_id) —
+  // a sincronização de bolões/jogos salvos que antes rodava só uma vez no
+  // BOOT (antes do login existir) precisa rodar de novo aqui, senão um
+  // navegador/dispositivo novo nunca puxaria o dado da nuvem depois de
+  // logar. Não bloqueia o login se falhar (melhor-esforço, mesmo padrão
+  // de todo o resto do dual-write).
+  if(typeof supabaseAtivo==='function'&&supabaseAtivo()){
+    (async()=>{
+      try{ await _supabaseSyncBidirectional('boloes_v2'); }catch(e){}
+      try{ await _supabaseSyncBidirectional('jogos_salvos'); }catch(e){}
+    })();
+  }
   closeModal('auth-gate');
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
@@ -3185,14 +3198,21 @@ function _registrarAuditoria(operacao,detalhes){
 // resolve o problema de bolões/jogos salvos "sumirem" ao trocar de domínio
 // (IndexedDB é isolado por origem; o Supabase não é).
 const SUPABASE_SYNC_STORES=['boloes_v2','jogos_salvos'];
+// Item 4 (2026-07-10, correção de segurança): as 4 funções abaixo usavam
+// fetch() cru com a anon key como Bearer token — nunca carregavam a sessão
+// do usuário logado, então user_id nunca era preenchido nessas duas
+// tabelas (achado: 100% das linhas de produção tinham user_id nulo). Por
+// isso a RLS dessas tabelas precisava ficar aberta pra anon (qualquer
+// conta lia/gravava o dado de todo mundo). Agora usam o cliente Supabase
+// autenticado (_getSbClient(), que já carrega a sessão automaticamente) e
+// sempre gravam user_id explícito — pré-requisito pra restringir a RLS
+// pra auth.uid()=user_id.
 async function _supabaseSyncPut(store,item){
-  if(!supabaseAtivo()||!item||item.id==null) return;
+  var sb=_getSbClient();
+  var uid=window._usuarioAtual&&window._usuarioAtual.id;
+  if(!supabaseAtivo()||!sb||!uid||!item||item.id==null) return;
   try{
-    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?on_conflict=id`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`,'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify({id:item.id, loteria:item.loteria||null, nome:item.nome||null, dados:item})
-    });
+    await sb.from(store).upsert({id:item.id, user_id:uid, loteria:item.loteria||null, nome:item.nome||null, dados:item},{onConflict:'id'});
   }catch(e){ console.warn('[SUPABASE SYNC]',store,e.message); }
 }
 // Envia vários registros da mesma store numa ÚNICA request (upsert em
@@ -3200,19 +3220,19 @@ async function _supabaseSyncPut(store,item){
 // bidirecional (auditoria Fase 5.4). Mesmo formato de linha que
 // _supabaseSyncPut usa por item, só que como array no corpo.
 async function _supabaseSyncPutBatch(store,itens){
-  if(!supabaseAtivo()||!itens||!itens.length) return;
+  var sb=_getSbClient();
+  var uid=window._usuarioAtual&&window._usuarioAtual.id;
+  if(!supabaseAtivo()||!sb||!uid||!itens||!itens.length) return;
   try{
-    const body=itens.filter(it=>it&&it.id!=null).map(it=>({id:it.id, loteria:it.loteria||null, nome:it.nome||null, dados:it}));
+    const body=itens.filter(it=>it&&it.id!=null).map(it=>({id:it.id, user_id:uid, loteria:it.loteria||null, nome:it.nome||null, dados:it}));
     if(!body.length) return;
-    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?on_conflict=id`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`,'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify(body)
-    });
+    await sb.from(store).upsert(body,{onConflict:'id'});
   }catch(e){ console.warn('[SUPABASE SYNC BATCH]',store,e.message); }
 }
 async function _supabaseSyncDel(store,id){
-  if(!supabaseAtivo()||id==null) return;
+  var sb=_getSbClient();
+  var uid=window._usuarioAtual&&window._usuarioAtual.id;
+  if(!supabaseAtivo()||!sb||!uid||id==null) return;
   try{
     // Lápide (tombstone) em vez de DELETE físico: um dispositivo com
     // cópia local desatualizada (que ainda não tinha recebido esta
@@ -3224,20 +3244,16 @@ async function _supabaseSyncDel(store,id){
     // atrasado. Agora a exclusão vira um registro-lápide (id + _deleted +
     // _updatedAt) que _supabaseSyncBidirectional propaga como exclusão
     // local em qualquer outro dispositivo que ainda tiver a cópia antiga.
-    await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?on_conflict=id`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`,'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify({id, loteria:null, nome:null, dados:{id, _deleted:true, _updatedAt:Date.now()}})
-    });
+    await sb.from(store).upsert({id, user_id:uid, loteria:null, nome:null, dados:{id, _deleted:true, _updatedAt:Date.now()}},{onConflict:'id'});
   }catch(e){ console.warn('[SUPABASE SYNC DEL]',store,e.message); }
 }
 async function _supabaseSyncPullAll(store){
-  if(!supabaseAtivo()) return [];
+  var sb=_getSbClient();
+  if(!supabaseAtivo()||!sb) return [];
   try{
-    const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${store}?select=id,dados`,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
-    if(!r.ok) return [];
-    const rows=await r.json();
-    return rows.filter(r=>r.dados).map(r=>({...r.dados,id:r.id}));
+    var {data,error}=await sb.from(store).select('id,dados');
+    if(error||!data) return [];
+    return data.filter(r=>r.dados).map(r=>({...r.dados,id:r.id}));
   }catch(e){ return []; }
 }
 // Sincroniza o histórico completo do Supabase para o IndexedDB local.
@@ -4801,7 +4817,7 @@ async function conferirJogosSalvos(){
     // seriam conferidos contra os resultados. Mesmo adaptador já usado pra
     // renderizar a tela "Jogos Salvos" (_carregarConjuntosDualComoAntigo).
     const todosSalvosAntigo = await dbAll('jogos_salvos');
-    const todosSalvosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.ativo())?await _carregarConjuntosDualComoAntigo():[];
+    const todosSalvosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
     const todosSalvos = todosSalvosAntigo.concat(todosSalvosNovo);
     if(!todosSalvos.length) return [];
     const premios = [];
@@ -9794,10 +9810,12 @@ async function openModalSalvar(escopo){
   const pad=n=>String(n).padStart(2,'0');
 
   /* ── Jogos individuais salvos ── */
-  // Fase 4 (Doc 2): em DEV, a lista de Jogos Salvos já lê do schema novo
-  // (public.jogos, via listarDual) em vez de jogos_salvos — primeiro corte
-  // de leitura real na tela de produção, não mais só no painel de teste.
-  const todosInd=JogosCommon.ativo()?await _carregarConjuntosDualComoAntigo():await dbAll('jogos_salvos');
+  // Item 1 (2026-07-10): religado em produção — verificado antes que não
+  // havia lacuna real de dado (só 1 jogo avulso ativo em produção, já
+  // espelhado no schema novo; o resto das 144 linhas de jogos_salvos eram
+  // lápides de exclusão ou cópias já vinculadas a bolão, migradas por outro
+  // caminho). Mesmo padrão de troca direta já testado em DEV.
+  const todosInd=JogosCommon.leituraNovoSchemaAtiva()?await _carregarConjuntosDualComoAntigo():await dbAll('jogos_salvos');
   const paraInd=(todasLot?todosInd:todosInd.filter(j=>j.loteria===currentKey)).sort((a,b)=>b.savedAt-a.savedAt);
 
   let htmlInd='';
@@ -10124,7 +10142,7 @@ async function _salvarJogosImpl(){
   // contra o schema antigo (dbAll) deixava o limite sem efeito prático ali
   // (o schema antigo continua recebendo gravações em paralelo, mas não é
   // mais o que o usuário vê nem o que deveria ser podado).
-  if(JogosCommon.ativo()){
+  if(JogosCommon.leituraNovoSchemaAtiva()){
     const conjuntosNovo=(await _carregarConjuntosDualComoAntigo()).filter(c=>c.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
     if(conjuntosNovo.length>=10){
       const maisAntigo=conjuntosNovo[0];
