@@ -5796,6 +5796,12 @@ function _luminanciaHex(hex){
 // seu amarelo oficial não garante contraste como texto, então usa-se o
 // verde (mesma cor da Mega-Sena) — d.corTexto, quando presente.
 function corMarca(d){ return (d&&d.corTexto)||(d&&d.cor)||'#fff'; }
+// Cor do NÚMERO dentro da bolinha — diferente de corMarca(), que cai pra
+// d.cor quando não há corTexto (serviria pra rótulos, nunca pra texto
+// DENTRO de uma bolinha cujo fundo já é d.cor, ou o número ficaria
+// invisível). Só a Timemania tem corTexto definido hoje; todas as outras
+// continuam com o branco fixo que sempre usaram.
+function corBolaTexto(d){ return (d&&d.corTexto)||'#fff'; }
 const LA_MESES_NOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Gera o HTML do mês da sorte / time do coração de um jogo gerado, no
 // mesmo padrão visual de "result-ball" usado para a bola extra/trevo —
@@ -5807,11 +5813,11 @@ function mesTimeHtml(jogo, d, tamanho){
   let h = '';
   if (jogo._mes != null) {
     const nome = LA_MESES_NOMES[jogo._mes - 1] || '';
-    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
+    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="result-ball" style="background:${d.cor};color:${corBolaTexto(d)};width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
   }
   if (jogo._time != null) {
     const nome = LA_TIMEMANIA_TIMES[jogo._time] || '';
-    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
+    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="result-ball" style="background:${d.cor};color:${corBolaTexto(d)};width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
   }
   return h;
 }
@@ -6215,7 +6221,7 @@ function renderCard(res,d){
   // 1º Sorteio (ou único para loterias simples)
   if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
-  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}">${pad(n)}</div>`;});
+  res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor};color:${corBolaTexto(d)}">${pad(n)}</div>`;});
   // Bola extra americana (PowerBall / Mega Ball) — separada por linha vertical, com o nome acima da bola
   if(d.bolaExtra&&res.bolaExtra){ h+=`<div class="res-extra-sep"></div><div class="res-extra-col"><span class="res-extra-lbl" style="color:${d.bolaExtraCor||'#00BCD4'}">${d.bolaExtraNome}</span><div class="ball" style="background:${d.bolaExtraCor||'#00BCD4'}">${pad(res.bolaExtra)}</div></div>`; }
   // Trevos — +Milionária — separados por linha vertical, com "TREVO" acima
@@ -6226,7 +6232,7 @@ function renderCard(res,d){
     h+=`<div style="height:1px;background:rgba(0,0,0,.08);margin:0 16px"></div>`;
     h+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${d.corD};opacity:.9;border-left:3px solid ${d.corD};padding-left:6px">2º SORTEIO</div></div>`;
     h+=`<div class="balls-wrap" style="padding-top:4px;padding-bottom:8px">`;
-    res.dezenas2.forEach(n=>{h+=`<div class="ball" style="background:${d.corD}">${pad(n)}</div>`;});
+    res.dezenas2.forEach(n=>{h+=`<div class="ball" style="background:${d.corD};color:${corBolaTexto(d)}">${pad(n)}</div>`;});
     h+=`</div>`;
   }
   if(res.timeCoracao)h+=`<div class="badge-row">⚽ <span>Time do Coração</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.timeCoracao}</span></div>`;
@@ -8468,7 +8474,7 @@ async function gerarJogos(tipo,modo){
     let espelhoHdr='';
     if(espelhoOn && window._espelhoGrupos && !espCfg.disjunto){
       const g=window._espelhoGrupos;
-      const ballsA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
+      const ballsA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:${corBolaTexto(d)};min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
       const ballsB=g.grupoB.map(n=>`<div class="result-ball" style="background:${g.corEsp};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
       espelhoHdr=`<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.04)">`+
         `<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 Divisão da Aposta Espelho</div>`+
@@ -8708,12 +8714,12 @@ async function conferirTodos(){
     if(jogo._mes!=null){
       const nomeMes=_mesesNomes[jogo._mes-1]||'';
       const hit=!!res.mes && res.mes.trim().toLowerCase()===nomeMes.toLowerCase();
-      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeMes}</div>`;
+      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};color:${hit?corBolaTexto(d):'#fff'};font-size:9px;padding:0 6px;width:auto">${nomeMes}</div>`;
     }
     if(jogo._time!=null){
       const nomeTime=LA_TIMEMANIA_TIMES[jogo._time]||'';
       const hit=!!res.timeCoracao && res.timeCoracao.trim().toLowerCase()===nomeTime.toLowerCase();
-      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeTime}</div>`;
+      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};color:${hit?corBolaTexto(d):'#fff'};font-size:9px;padding:0 6px;width:auto">${nomeTime}</div>`;
     }
     return h;
   };
@@ -8732,12 +8738,12 @@ async function conferirTodos(){
   html+=`<div style="margin-bottom:14px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:12px">
     <div style="font-size:9px;font-weight:700;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🎯 Resultado oficial</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
-      ${res.dezenas.map(n=>`<div class="conf-ball hit" style="background:${d.cor}">${pad(parseInt(n))}</div>`).join('')}
+      ${res.dezenas.map(n=>`<div class="conf-ball hit" style="background:${d.cor};color:${corBolaTexto(d)}">${pad(parseInt(n))}</div>`).join('')}
       ${res.bolaExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;padding:0 4px">${d.bolaExtraNome}</span><div class="conf-ball hit" style="background:${d.bolaExtraCor}">${pad(res.bolaExtra)}</div>`:''}
       ${res.trevos?.length?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;padding:0 4px">TREVO</span>${res.trevos.map(t=>`<div class="conf-ball hit" style="background:${d.trevoCor||'#0fae8a'}">${pad(parseInt(t))}</div>`).join('')}`:''}
-      ${res.dezenas2?.length?`<span style="font-size:9px;color:var(--text-dim);padding:0 6px">· 2º</span>${res.dezenas2.map(n=>`<div class="conf-ball hit" style="background:${d.corD}">${pad(parseInt(n))}</div>`).join('')}`:''}
-      ${res.mes?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.mes}</div>`:''}
-      ${res.timeCoracao?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.timeCoracao}</div>`:''}
+      ${res.dezenas2?.length?`<span style="font-size:9px;color:var(--text-dim);padding:0 6px">· 2º</span>${res.dezenas2.map(n=>`<div class="conf-ball hit" style="background:${d.corD};color:${corBolaTexto(d)}">${pad(parseInt(n))}</div>`).join('')}`:''}
+      ${res.mes?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball hit" style="background:${d.cor};color:${corBolaTexto(d)};font-size:9px;padding:0 6px;width:auto">${res.mes}</div>`:''}
+      ${res.timeCoracao?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball hit" style="background:${d.cor};color:${corBolaTexto(d)};font-size:9px;padding:0 6px;width:auto">${res.timeCoracao}</div>`:''}
     </div>
   </div>`;
 
@@ -8754,7 +8760,7 @@ async function conferirTodos(){
           <span class="conf-game-prize" style="color:${corAc}">${fmtPremio(r.valor)}</span>
         </div>
         <div class="conf-balls">
-          ${r.jogo.map(n=>`<div class="conf-ball ${sorteadas.has(n)?'hit':'miss'}" style="background:${sorteadas.has(n)?(r.jogo._isEspelho?'#7c3aed':d.cor):'rgba(255,255,255,.1)'}">${pad(n)}</div>`).join('')}${extraConfHtml(r.jogo)}
+          ${r.jogo.map(n=>`<div class="conf-ball ${sorteadas.has(n)?'hit':'miss'}" style="background:${sorteadas.has(n)?(r.jogo._isEspelho?'#7c3aed':d.cor):'rgba(255,255,255,.1)'};color:${sorteadas.has(n)&&!r.jogo._isEspelho?corBolaTexto(d):'#fff'}">${pad(n)}</div>`).join('')}${extraConfHtml(r.jogo)}
         </div>
       </div>`;
     });
@@ -8775,7 +8781,7 @@ async function conferirTodos(){
           <span class="conf-game-prize" style="color:var(--text-dim)">—</span>
         </div>
         <div class="conf-balls">
-          ${r.jogo.map(n=>`<div class="conf-ball ${sorteadas.has(n)?'hit':'miss'}" style="background:${sorteadas.has(n)?(r.jogo._isEspelho?'#7c3aed':d.cor):'rgba(255,255,255,.1)'}">${pad(n)}</div>`).join('')}${extraConfHtml(r.jogo)}
+          ${r.jogo.map(n=>`<div class="conf-ball ${sorteadas.has(n)?'hit':'miss'}" style="background:${sorteadas.has(n)?(r.jogo._isEspelho?'#7c3aed':d.cor):'rgba(255,255,255,.1)'};color:${sorteadas.has(n)&&!r.jogo._isEspelho?corBolaTexto(d):'#fff'}">${pad(n)}</div>`).join('')}${extraConfHtml(r.jogo)}
         </div>
       </div>`;
     });
@@ -9468,7 +9474,8 @@ function buildPrintRow(jogo, d, sorteadas, idx, valor, fixosSet, nomeJogo, res){
     const miss=sorteadas&&!sorteadas.has(n);
     const isFixo=fixosSet&&fixosSet.has(n)&&!jogo._isEspelho;
     const bg=isFixo?FIXO_COR:corBase;
-    return `<span class="ball${miss?' miss':''}${isFixo?' fixo':''}" style="${miss?'':'background:'+bg}">${pad(n)}</span>`;
+    const txt=(!isFixo&&!jogo._isEspelho)?corBolaTexto(d):'#fff';
+    return `<span class="ball${miss?' miss':''}${isFixo?' fixo':''}" style="${miss?'':'background:'+bg+';color:'+txt}">${pad(n)}</span>`;
   }).join('');
 
   const extra=jogo._extra
@@ -9482,11 +9489,11 @@ function buildPrintRow(jogo, d, sorteadas, idx, valor, fixosSet, nomeJogo, res){
   const mesNome=jogo._mes!=null?(_mesesPrintNomes[jogo._mes-1]||''):'';
   const mesHit=!!(res && res.mes) && res.mes.trim().toLowerCase()===mesNome.toLowerCase();
   const mes=jogo._mes!=null
-    ?`<span class="ball-sep">Mês</span><span class="ball${sorteadas&&!mesHit?' miss':''}" style="width:auto;padding:0 6px;${sorteadas&&!mesHit?'':'background:'+d.cor}">${mesNome}</span>`:'';
+    ?`<span class="ball-sep">Mês</span><span class="ball${sorteadas&&!mesHit?' miss':''}" style="width:auto;padding:0 6px;${sorteadas&&!mesHit?'':'background:'+d.cor+';color:'+corBolaTexto(d)}">${mesNome}</span>`:'';
   const timeNome=jogo._time!=null?(LA_TIMEMANIA_TIMES[jogo._time]||''):'';
   const timeHit=!!(res && res.timeCoracao) && res.timeCoracao.trim().toLowerCase()===timeNome.toLowerCase();
   const time=jogo._time!=null
-    ?`<span class="ball-sep">Time</span><span class="ball${sorteadas&&!timeHit?' miss':''}" style="width:auto;padding:0 6px;${sorteadas&&!timeHit?'':'background:'+d.cor}">${timeNome}</span>`:'';
+    ?`<span class="ball-sep">Time</span><span class="ball${sorteadas&&!timeHit?' miss':''}" style="width:auto;padding:0 6px;${sorteadas&&!timeHit?'':'background:'+d.cor+';color:'+corBolaTexto(d)}">${timeNome}</span>`:'';
 
   const info=acertos!==null
     ?`<span class="badge${acertos>0?' hit':''}">${acertos} acerto${acertos!==1?'s':''}</span>${valor?`<span class="prize">${fmtPremio(valor)}</span>`:''}`
@@ -9567,11 +9574,11 @@ async function _imprimirConferirImpl(){
   const subtitulo=`Concurso ${concurso} · ${res.data} · ${todos.length} jogos conferidos · ${premiados.length} premiado${premiados.length!==1?'s':''}`+(soPremiados?' · exibindo só premiados':'');
 
   // Resultado oficial
-  const numSorteados=res.dezenas.map(n=>`<span class="ball" style="background:${d.cor}">${pad(parseInt(n))}</span>`).join('');
+  const numSorteados=res.dezenas.map(n=>`<span class="ball" style="background:${d.cor};color:${corBolaTexto(d)}">${pad(parseInt(n))}</span>`).join('');
   const bolaExtra=res.bolaExtra?`<span class="ball-sep">${d.bolaExtraNome}</span><span class="ball" style="background:${bxc}">${pad(res.bolaExtra)}</span>`:'';
-  const dezenas2=res.dezenas2?.length?`<span class="ball-sep">2º sorteio</span>${res.dezenas2.map(n=>`<span class="ball" style="background:${d.corD}">${pad(parseInt(n))}</span>`).join('')}`:'';
-  const mesPrint=res.mes?`<span class="ball-sep">Mês</span><span class="ball" style="background:${d.cor};width:auto;padding:0 6px">${res.mes}</span>`:'';
-  const timePrint=res.timeCoracao?`<span class="ball-sep">Time</span><span class="ball" style="background:${d.cor};width:auto;padding:0 6px">${res.timeCoracao}</span>`:'';
+  const dezenas2=res.dezenas2?.length?`<span class="ball-sep">2º sorteio</span>${res.dezenas2.map(n=>`<span class="ball" style="background:${d.corD};color:${corBolaTexto(d)}">${pad(parseInt(n))}</span>`).join('')}`:'';
+  const mesPrint=res.mes?`<span class="ball-sep">Mês</span><span class="ball" style="background:${d.cor};color:${corBolaTexto(d)};width:auto;padding:0 6px">${res.mes}</span>`:'';
+  const timePrint=res.timeCoracao?`<span class="ball-sep">Time</span><span class="ball" style="background:${d.cor};color:${corBolaTexto(d)};width:auto;padding:0 6px">${res.timeCoracao}</span>`:'';
 
   let html=buildPrintHeader(titulo, subtitulo, d);
   html+=`<div class="resultado-box"><div class="section-label">🎯 Resultado oficial</div><div class="jogo-balls">${numSorteados}${bolaExtra}${dezenas2}${mesPrint}${timePrint}</div></div>`;
@@ -9661,7 +9668,7 @@ function doPrint(destino){
     const _exclImp=getExcluidos('jogo');
     if(fixosAtivos.size>0||_exclImp.length){
       let leg='<div class="fixos-legend">';
-      if(fixosAtivos.size>0) leg+=`<span class="ball fixo" style="background:#1d4ed8">01</span><span>= Número fixo</span><span class="ball" style="background:${d.cor};margin-left:10px">02</span><span>= Número aleatório</span>`;
+      if(fixosAtivos.size>0) leg+=`<span class="ball fixo" style="background:#1d4ed8">01</span><span>= Número fixo</span><span class="ball" style="background:${d.cor};color:${corBolaTexto(d)};margin-left:10px">02</span><span>= Número aleatório</span>`;
       if(_exclImp.length) leg+=`<span style="margin-left:12px;color:#b91c1c;font-weight:700">🚫 Excluídos: ${_exclImp.sort((a,b)=>a-b).map(n=>String(n).padStart(2,'0')).join(', ')}</span>`;
       leg+='</div>';
       html+=leg;
@@ -9669,7 +9676,7 @@ function doPrint(destino){
     // Cabeçalho da divisão da Aposta Espelho (se aplicável)
     if(window._espelhoGrupos && jogosImp.some(j=>j._espelho)){
       const g=window._espelhoGrupos;
-      const ballsA=g.grupoA.map(n=>`<span class="ball" style="background:${g.cor}">${String(n).padStart(2,'0')}</span>`).join('');
+      const ballsA=g.grupoA.map(n=>`<span class="ball" style="background:${g.cor};color:${corBolaTexto(d)}">${String(n).padStart(2,'0')}</span>`).join('');
       const ballsB=g.grupoB.map(n=>`<span class="ball" style="background:${g.corEsp}">${String(n).padStart(2,'0')}</span>`).join('');
       html+=`<div style="border:1px solid #ddd;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:#faf8ff">`+
         `<div style="font-size:10px;font-weight:800;color:#666;text-transform:uppercase;margin-bottom:6px">🪞 Divisão da Aposta Espelho</div>`+
@@ -9691,7 +9698,7 @@ function doPrint(destino){
     const _exclBol=getExcluidos('bolao');
     if(fixosBolao.size>0||_exclBol.length){
       let leg='<div class="fixos-legend">';
-      if(fixosBolao.size>0) leg+=`<span class="ball fixo" style="background:#1d4ed8">01</span><span>= Número fixo</span><span class="ball" style="background:${d.cor};margin-left:10px">02</span><span>= Número aleatório</span>`;
+      if(fixosBolao.size>0) leg+=`<span class="ball fixo" style="background:#1d4ed8">01</span><span>= Número fixo</span><span class="ball" style="background:${d.cor};color:${corBolaTexto(d)};margin-left:10px">02</span><span>= Número aleatório</span>`;
       if(_exclBol.length) leg+=`<span style="margin-left:12px;color:#b91c1c;font-weight:700">🚫 Excluídos: ${_exclBol.sort((a,b)=>a-b).map(n=>String(n).padStart(2,'0')).join(', ')}</span>`;
       leg+='</div>';
       html+=leg;
@@ -9805,14 +9812,14 @@ async function openModalSalvar(escopo){
     if(jogo._ssCols){
       // Super Sete: dígitos agrupados por coluna
       main=jogo._ssCols.map((c,ci)=>
-        `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${corMarca(cfg)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${cfg.cor};color:#fff;font-family:var(--font-mono);font-size:9px;font-weight:800">${n}</span>`).join('')}</span>`
+        `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${corMarca(cfg)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${cfg.cor};color:${corBolaTexto(cfg)};font-family:var(--font-mono);font-size:9px;font-weight:800">${n}</span>`).join('')}</span>`
       ).join('');
     } else {
       main=jogo.map(n=>{
         const isFixo=temFixos&&fixosSet.has(n);
         const bg=isFixo?'#1d4ed8':cfg.cor;
         const contorno=isFixo?'outline:2px solid #fff;outline-offset:-2px;':'';
-        return `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:6px;background:${bg};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800;${contorno}box-shadow:0 2px 6px rgba(0,0,0,.35),inset 0 -1px 0 rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.2)">${pad(n)}</span>`;
+        return `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:6px;background:${bg};color:${isFixo?'#fff':corBolaTexto(cfg)};font-family:var(--font-mono);font-size:10px;font-weight:800;${contorno}box-shadow:0 2px 6px rgba(0,0,0,.35),inset 0 -1px 0 rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.2)">${pad(n)}</span>`;
       }).join('');
     }
     const extra=jogo._extra
@@ -11159,7 +11166,7 @@ async function gerarFechamentoPorScore(){
   let espelhoHdr='';
   if(espelhoOn&&window._espelhoGrupos){
     const g=window._espelhoGrupos;
-    const bA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
+    const bA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:${corBolaTexto(d)};min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
     const bB=g.grupoB.map(n=>`<div class="result-ball" style="background:${g.corEsp};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
     espelhoHdr=`<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.04)">
       <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 DIVISÃO DA APOSTA ESPELHO (POR SCORE)</div>
@@ -11171,7 +11178,7 @@ async function gerarFechamentoPorScore(){
   const bxcFch2=d.bolaExtraCor||'#00BCD4';
   document.getElementById('result-body').innerHTML=espelhoHdr+jogos.map((jogo,i)=>{
     const sc=Math.round(scoreCombo(jogo));
-    const mainBalls=jogo.map(n=>{const fx=_fixSetFch2.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
+    const mainBalls=jogo.map(n=>{const fx=_fixSetFch2.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;}).join('');
     const badge=`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${sc}</span>`;
     const extraHtmlFch2=jogo._extra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`:'';
     const trevosHtmlFch2=jogo._trevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
@@ -12218,7 +12225,7 @@ async function gerarComIA(tipo){
     let espelhoHdrModal='';
     if(_espOnIA && window._espelhoGrupos && !ESPELHO_CFG[currentKey]?.disjunto){
       const g=window._espelhoGrupos;
-      const bA=g.grupoA.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${g.cor};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800">${pad(n)}</span>`).join('');
+      const bA=g.grupoA.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${g.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:10px;font-weight:800">${pad(n)}</span>`).join('');
       const bB=g.grupoB.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:${g.corEsp};color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:800">${pad(n)}</span>`).join('');
       espelhoHdrModal=`<div style="border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.06)"><div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 Divisão da Aposta Espelho (por score IA)</div><div style="margin-bottom:8px"><div style="font-size:10px;font-weight:800;color:${corMarca(g)};margin-bottom:4px">PRINCIPAL — Grupo A (${g.grupoA.length} números)</div><div style="display:flex;flex-wrap:wrap;gap:3px">${bA}</div></div><div><div style="font-size:10px;font-weight:800;color:${g.corEsp};margin-bottom:4px">🪞 ESPELHO — Grupo B (${g.grupoB.length} números)</div><div style="display:flex;flex-wrap:wrap;gap:3px">${bB}</div></div></div>`;
     }
@@ -12230,7 +12237,7 @@ async function gerarComIA(tipo){
       jogosIA.map(({jogo,mode},i)=>{
         // Bolas do jogo principal
         const balls=jogo._ssCols
-          ?jogo._ssCols.map((c,ci)=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:${fixosSet.has(ci*10+dg)?'#1d4ed8':d.cor};color:#fff;font-family:var(--font-mono);font-size:11px;font-weight:800">${dg}</span>`).join('')}</span>`).join('')
+          ?jogo._ssCols.map((c,ci)=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=fixosSet.has(ci*10+dg);return `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)};font-family:var(--font-mono);font-size:11px;font-weight:800">${dg}</span>`;}).join('')}</span>`).join('')
           :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${d.cor};color:${corTextoSobre(d.cor)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
         const extra=jogo._extra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</span>`:'';
         const trevos=jogo._trevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
@@ -12382,16 +12389,16 @@ function usarJogosIA(){
   let espelhoHdrIA='';
   if(_espOnIA && window._espelhoGrupos && !ESPELHO_CFG[currentKey]?.disjunto){
     const g=window._espelhoGrupos;
-    const ballsA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
+    const ballsA=g.grupoA.map(n=>`<div class="result-ball" style="background:${g.cor};color:${corBolaTexto(d)};min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
     const ballsB=g.grupoB.map(n=>`<div class="result-ball" style="background:${g.corEsp};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
     espelhoHdrIA=`<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.04)"><div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 Divisão da Aposta Espelho</div><div style="margin-bottom:8px"><div style="font-size:10px;font-weight:800;color:${corMarca(g)};margin-bottom:4px">PRINCIPAL (${g.grupoA.length})</div><div style="display:flex;flex-wrap:wrap;gap:3px">${ballsA}</div></div><div><div style="font-size:10px;font-weight:800;color:${g.corEsp};margin-bottom:4px">🪞 ESPELHO (${g.grupoB.length})</div><div style="display:flex;flex-wrap:wrap;gap:3px">${ballsB}</div></div></div>`;
   }
   document.getElementById('result-body').innerHTML=espelhoHdrIA+jogos.map((jogo,i)=>{
     let balls;
     if(jogo._ssCols){
-      balls=jogo._ssCols.map((c,ci)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:8px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=_fixSetIA.has(ci*10+dg);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff;min-width:24px;height:24px">${dg}</div>`;}).join('')}</div>`).join('');
+      balls=jogo._ssCols.map((c,ci)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:8px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=_fixSetIA.has(ci*10+dg);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)};min-width:24px;height:24px">${dg}</div>`;}).join('')}</div>`).join('');
     } else {
-      balls=jogo.map(n=>{const fx=_fixSetIA.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:#fff">${pad(n)}</div>`;}).join('');
+      balls=jogo.map(n=>{const fx=_fixSetIA.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;}).join('');
     }
     const extra=jogo._extra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</div>`:'';
     const trevos=jogo._trevos?`<span style="font-size:9px;color:${trc};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${trc};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
@@ -12793,10 +12800,10 @@ function renderManualLista(){
     if(jogo._ssCols){
       // Super Sete: agrupar dígitos por coluna
       balls=jogo._ssCols.map((c,ci)=>
-        `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${d.cor};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${n}</span>`).join('')}</span>`
+        `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${n}</span>`).join('')}</span>`
       ).join('');
     } else {
-      balls=jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;border-radius:4px;background:${d.cor};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(n)}</span>`).join('');
+      balls=jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;border-radius:4px;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(n)}</span>`).join('');
     }
     const extra=jogo._extra?`<span style="font-size:8px;color:${d.bolaExtraCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:${d.bolaExtraCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(jogo._extra)}</span>`:'';
     const trevos=jogo._trevos?.length?`<span style="font-size:9px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${d.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(t)}</span>`).join('')}`:'';
