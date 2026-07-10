@@ -5807,11 +5807,11 @@ function mesTimeHtml(jogo, d, tamanho){
   let h = '';
   if (jogo._mes != null) {
     const nome = LA_MESES_NOMES[jogo._mes - 1] || '';
-    h += `<span style="font-size:9px;color:${d.cor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
+    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
   }
   if (jogo._time != null) {
     const nome = LA_TIMEMANIA_TIMES[jogo._time] || '';
-    h += `<span style="font-size:9px;color:${d.cor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
+    h += `<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="result-ball" style="background:${d.cor};color:#fff;width:auto;height:${tamanho}px;padding:0 8px;border-radius:${tamanho/2}px;font-size:11px">${nome}</div>`;
   }
   return h;
 }
@@ -6213,7 +6213,7 @@ function renderCard(res,d){
   const card=document.getElementById('lottery-card');let h='';
   h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
   // 1º Sorteio (ou único para loterias simples)
-  if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${d.cor};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
+  if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
   res.dezenas.forEach(n=>{h+=`<div class="ball" style="background:${d.cor}">${pad(n)}</div>`;});
   // Bola extra americana (PowerBall / Mega Ball) — separada por linha vertical, com o nome acima da bola
@@ -8708,12 +8708,12 @@ async function conferirTodos(){
     if(jogo._mes!=null){
       const nomeMes=_mesesNomes[jogo._mes-1]||'';
       const hit=!!res.mes && res.mes.trim().toLowerCase()===nomeMes.toLowerCase();
-      h+=`<span style="font-size:9px;color:${d.cor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeMes}</div>`;
+      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeMes}</div>`;
     }
     if(jogo._time!=null){
       const nomeTime=LA_TIMEMANIA_TIMES[jogo._time]||'';
       const hit=!!res.timeCoracao && res.timeCoracao.trim().toLowerCase()===nomeTime.toLowerCase();
-      h+=`<span style="font-size:9px;color:${d.cor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeTime}</div>`;
+      h+=`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball ${hit?'hit':'miss'}" style="background:${hit?d.cor:'rgba(255,255,255,.1)'};font-size:9px;padding:0 6px;width:auto">${nomeTime}</div>`;
     }
     return h;
   };
@@ -8736,8 +8736,8 @@ async function conferirTodos(){
       ${res.bolaExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;padding:0 4px">${d.bolaExtraNome}</span><div class="conf-ball hit" style="background:${d.bolaExtraCor}">${pad(res.bolaExtra)}</div>`:''}
       ${res.trevos?.length?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;padding:0 4px">TREVO</span>${res.trevos.map(t=>`<div class="conf-ball hit" style="background:${d.trevoCor||'#0fae8a'}">${pad(parseInt(t))}</div>`).join('')}`:''}
       ${res.dezenas2?.length?`<span style="font-size:9px;color:var(--text-dim);padding:0 6px">· 2º</span>${res.dezenas2.map(n=>`<div class="conf-ball hit" style="background:${d.corD}">${pad(parseInt(n))}</div>`).join('')}`:''}
-      ${res.mes?`<span style="font-size:9px;color:${d.cor};font-weight:800;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.mes}</div>`:''}
-      ${res.timeCoracao?`<span style="font-size:9px;color:${d.cor};font-weight:800;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.timeCoracao}</div>`:''}
+      ${res.mes?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Mês</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.mes}</div>`:''}
+      ${res.timeCoracao?`<span style="font-size:9px;color:${corMarca(d)};font-weight:800;padding:0 4px;text-transform:uppercase">Time</span><div class="conf-ball hit" style="background:${d.cor};font-size:9px;padding:0 6px;width:auto">${res.timeCoracao}</div>`:''}
     </div>
   </div>`;
 
