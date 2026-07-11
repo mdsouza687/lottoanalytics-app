@@ -7999,6 +7999,17 @@ function gerarJogoSimples(universe, numDez, fixos){
   const shuffled=[...pool].sort(()=>Math.random()-0.5);
   return [...fixos,...shuffled.slice(0,numDez-fixos.length)].sort((a,b)=>a-b);
 }
+// Mesma ideia de gerarJogoSimples(), mas com a fonte de aleatoriedade
+// escolhida pelo chamador (Math.random comum / CSPRNG / PRNG com seed) —
+// usada pela Aposta Espelho para não "rebaixar" silenciosamente o modo
+// escolhido (CSPRNG/Seed) para Math.random comum só porque o espelho
+// estava ligado (bug encontrado em 2026-07-12: Aposta Espelho não
+// funcionava em Aleatório Puro/CSPRNG/PRNG(Seed) justamente por isso).
+function _gerarJogoComShuffle(universe, numDez, fixos, shuffleFn){
+  const pool=universe.filter(n=>!fixos.includes(n));
+  const shuffled=shuffleFn([...pool]);
+  return [...fixos,...shuffled.slice(0,numDez-fixos.length)].sort((a,b)=>a-b);
+}
 
 // ═══════════════════════════════════════════════════════════════════
 //  PRNG CRIPTOGRÁFICO — fonte de aleatoriedade alternativa, usando a Web
@@ -8105,9 +8116,15 @@ async function gerarJogos(tipo,modo){
     let numDez=getDezWrap(wrapId,d.min);
     if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
     // ── Aposta Espelho (abas individual e bolão) ──
+    // Antes ficava desligada nos modos Aleatório Puro/CSPRNG/PRNG(Seed)
+    // (condição "!_urna") — não havia motivo técnico para isso, era só o
+    // bloco de geração do espelho (abaixo) nunca ter sido adaptado para
+    // usar a mesma fonte de aleatoriedade do modo escolhido; corrigido
+    // via _gerarJogoComShuffle()/_espelhoShuffle.
     const _espChkId = tipo==='bolao'?'bolao-espelho':tipo==='fech'?'fech-espelho':'jogo-espelho';
-    const espelhoOn = !_urna && (tipo==='jogo'||tipo==='bolao') && document.getElementById(_espChkId)?.checked && ESPELHO_CFG[currentKey];
+    const espelhoOn = (tipo==='jogo'||tipo==='bolao') && document.getElementById(_espChkId)?.checked && ESPELHO_CFG[currentKey];
     const espCfg = espelhoOn ? ESPELHO_CFG[currentKey] : null;
+    const _espelhoShuffle=_crypto?_shuffleCrypto:_seedMode?(a=>_shuffleSeeded(a,_seedRng)):(a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; });
     // Com Aposta Espelho, cada jogo base gera automaticamente um espelho —
     // então "N jogos" pedido pelo usuário deve contar PRINCIPAL+ESPELHO
     // juntos (ex.: pedir 2 = 1 principal + 1 espelho), não N pares.
@@ -8429,9 +8446,9 @@ async function gerarJogos(tipo,modo){
       while(jogos.length<qty && guard<qty*400+4000){
         guard++;
         if(guard%300===0){ setDot('loading',`Gerando... ${jogos.length}/${qty} jogos`); _genProgShow(jogos.length,qty); await new Promise(r=>setTimeout(r,0)); }
-        const principal=gerarJogoSimples(grupoA, numDez, fixos.filter(f=>grupoA.includes(f)));
+        const principal=_gerarJogoComShuffle(grupoA, numDez, fixos.filter(f=>grupoA.includes(f)), _espelhoShuffle);
         let poolB = espCfg.disjunto ? grupoB.filter(n=>!principal.includes(n)) : grupoB;
-        const espelho=gerarJogoSimples(poolB, numDez, []);
+        const espelho=_gerarJogoComShuffle(poolB, numDez, [], _espelhoShuffle);
         if(!principal||principal.length<numDez||!espelho||espelho.length<numDez) continue;
         const k=principal.slice().sort((a,b)=>a-b).join(',');
         if(typeof seen!=='undefined'){ if(seen.has(k)) continue; seen.add(k); }
@@ -8456,6 +8473,10 @@ async function gerarJogos(tipo,modo){
         jogo._scoreJogo=calcScoreJogo(jogo,filtros,d);
         if(jogo._espelho) jogo._espScoreJogo=calcScoreJogo(jogo._espelho,filtros,d);
       });
+      // Ordena do maior Score para o menor — facilita achar os jogos de
+      // melhor qualidade estatística num lote grande sem precisar caçar
+      // manualmente (pedido do usuário, 2026-07-12).
+      jogos.sort((a,b)=>(b._scoreJogo||0)-(a._scoreJogo||0));
     }
 
     jogosGerados=jogos;
@@ -11173,6 +11194,12 @@ async function gerarFechamentoPorScore(){
   // espelho (quando houver), num único passo (_aplicarExtrasEspelho).
   jogos.forEach(jogo=>_aplicarExtrasEspelho(jogo,d,'jogo'));
 
+  // Ordena do maior Score (combo) para o menor — o modo com fixos/exclusões
+  // (30% quente/40% equilibrado/30% frio) monta os jogos em ordem aleatória
+  // de sorteio, não por score; os demais modos já saem ordenados por
+  // construção, mas reordenar aqui de novo é seguro e uniformiza os 3.
+  jogos.sort((a,b)=>scoreCombo(b)-scoreCombo(a));
+
   jogosGerados=jogos;
 
   const ESP_COR='#7c3aed';
@@ -11325,6 +11352,8 @@ async function gerarFechamento(){
       jogo._scoreJogo=calcScoreJogo(jogo,_filtrosFech,d);
       if(jogo._espelho) jogo._espScoreJogo=calcScoreJogo(jogo._espelho,_filtrosFech,d);
     });
+    // Ordena do maior Score para o menor (mesmo critério do gerador Individual).
+    jogos.sort((a,b)=>(b._scoreJogo||0)-(a._scoreJogo||0));
   }
 
   jogosGerados=jogos;
@@ -17700,7 +17729,22 @@ async function _imprimirBolaoImpl(soPremiados){
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
-      for(var _ji=0;_ji<L.jogos.length;_ji++){
+      // Filtro "Só premiados": ordena do maior prêmio para o menor — sem
+      // isso, os jogos apareciam na ordem em que foram gerados/vinculados,
+      // obrigando a rolar a lista toda pra achar os prêmios maiores (pedido
+      // do usuário, 2026-07-12). Só reordena neste modo — "Todos os jogos"
+      // continua na ordem original, que é a esperada ali.
+      var _jogosOrdenadosL=L.jogos;
+      if(soPremiados){
+        _jogosOrdenadosL=L.jogos.slice().sort(function(ja,jb){
+          var cA=ja._concursoOrigem||(L.concursos&&L.concursos[0]&&L.concursos[0].num);
+          var cB=jb._concursoOrigem||(L.concursos&&L.concursos[0]&&L.concursos[0].num);
+          var vA=(_calcPremioJogo(L.loteria,ja,cA)||{}).valor||0;
+          var vB=(_calcPremioJogo(L.loteria,jb,cB)||{}).valor||0;
+          return vB-vA;
+        });
+      }
+      for(var _ji=0;_ji<_jogosOrdenadosL.length;_ji++){
         var _linhaJ=(function(jogo,i){
           var ehEsp=jogo._isEspelho;
           var cBase=ehEsp?corEsp:corJogo;
@@ -17830,7 +17874,7 @@ async function _imprimirBolaoImpl(soPremiados){
             }
           }
           return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px">'+(i+1)+'.</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
-        })(L.jogos[_ji], _ji);
+        })(_jogosOrdenadosL[_ji], _ji);
         if(_linhaJ) _linhasJogosL.push(_linhaJ);
         _processadosPrint++;
         if(_processadosPrint%300===0){
