@@ -1863,19 +1863,25 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 
       /* Soma o prêmio de todos os jogos do bolão contra o resultado oficial
          já conferido (via _calcPremioJogo, definida mais abaixo no arquivo).
-         Só produz valor quando resultados[grupo.loteria] já corresponde ao
-         mesmo concurso do bolão — senão retorna null (ainda não dá pra
-         saber se houve acerto). */
+         _calcPremioJogo já sabe resolver tanto o resultado "ao vivo"
+         (resultados[loteria]) quanto um concurso já passado (via
+         _historicoConcursoCache) — antes esta função tinha seu PRÓPRIO
+         gate exigindo bater exatamente com resultados[loteria].concurso,
+         reimplementando (de forma mais restrita e sem o fallback) uma
+         checagem que a função delegada já faz sozinha. Isso fazia esta
+         caixa "detectado automaticamente" nunca aparecer para uma rodada
+         cujo concurso já tivesse avançado, mesmo com o prêmio corretamente
+         calculável (bug real encontrado em 2026-07-12, junto com o mesmo
+         problema no somatório de "Prêmios da semana"). Mesmo padrão já
+         usado em _premioRealLoteria (relatório impresso). */
       function _calcPremioTotalGrupo(grupo){
         if(typeof _calcPremioJogo!=='function') return null;
-        var res=(typeof resultados!=='undefined')?resultados[grupo.loteria]:null;
-        if(!res||!res.dezenas||!res.dezenas.length) return null;
-        if(String(parseInt(res.concurso))!==String(parseInt(grupo.concurso))) return null;
-        var total=0, qtdPremiados=0;
+        var total=0, qtdPremiados=0, algumConferido=false;
         (grupo.jogos||[]).forEach(function(jogo){
           var r=_calcPremioJogo(grupo.loteria,jogo,grupo.concurso);
-          if(r&&r.premiado){ total+=r.valor; qtdPremiados++; }
+          if(r){ algumConferido=true; if(r.premiado){ total+=r.valor; qtdPremiados++; } }
         });
+        if(!algumConferido) return null;
         return {total:total,qtdPremiados:qtdPremiados};
       }
 
@@ -14951,6 +14957,44 @@ var _historicoConcursoCache={};
 // chave (ex.: renderFormBolao, chamado a cada tecla digitada) tentaria a
 // mesma busca de novo indefinidamente.
 var _historicoConcursoTentado={};
+// Normaliza um registro de `historico.dados` para o formato que
+// _calcPremioJogo (e o resto do app) espera — o mesmo formato que
+// normalizarResultado() produz para o resultado "ao vivo" (dezenas, mes,
+// timeCoracao, premiacoes[].descricao/valorPremio/ganhadores, etc.).
+// NECESSÁRIO porque a tabela `historico` tem DOIS formatos misturados nos
+// registros já salvos: a maioria (backfill em massa — 90%+ dos concursos
+// de TODAS as loterias, confirmado em auditoria de 2026-07-12) guarda a
+// resposta CRUA da API da Caixa (listaDezenas, listaRateioPremio com
+// descricaoFaixa/numeroDeGanhadores, nomeTimeCoracaoMesSorte, numero em
+// vez de concurso...); só os concursos mais recentes (captados pela busca
+// ao vivo do app) já vêm no formato normalizado. Sem este adaptador,
+// _calcPremioJogo simplesmente não reconhecia `data.dados.dezenas` (só
+// existe no formato normalizado) e a linha `if(...&&data.dados.dezenas)`
+// abaixo nunca cacheava o registro — qualquer conferência de um concurso
+// PASSADO (não o mais recente) ficava silenciosamente sem prêmio nenhum
+// detectado, em qualquer loteria, sempre que o registro fosse do formato
+// cru. Bug real encontrado ao investigar um bolão cujo acerto de Mês da
+// Sorte (Dia de Sorte, concurso 1241) não aparecia nem entrava no
+// somatório de prêmios da semana.
+function _normalizarDadosHistorico(raw){
+  if(!raw) return raw;
+  if(raw.dezenas) return raw; // já normalizado
+  if(!raw.listaDezenas) return raw; // formato desconhecido — devolve como veio
+  var premiacoes=(raw.listaRateioPremio||[]).map(function(f){
+    return {faixa:f.faixa,descricao:f.descricaoFaixa,valorPremio:f.valorPremio,ganhadores:f.numeroDeGanhadores};
+  });
+  return Object.assign({},raw,{
+    concurso:raw.numero!=null?String(raw.numero):raw.concurso,
+    data:raw.dataApuracao||raw.data,
+    dezenas:raw.listaDezenas,
+    dezenas2:raw.listaDezenasSegundoSorteio||null,
+    trevos:raw.trevosSorteados||null,
+    mes:raw.nomeTimeCoracaoMesSorte||null,
+    timeCoracao:raw.nomeTimeCoracaoMesSorte||null,
+    premiacoes:premiacoes,
+    acumulou:!!raw.acumulado,
+  });
+}
 async function _prewarmHistoricoConcursos(pares){
   var sb=(typeof _getSbClient==='function')?_getSbClient():null;
   if(!sb) return;
@@ -14967,7 +15011,10 @@ async function _prewarmHistoricoConcursos(pares){
     if(_historicoConcursoCache[chave]||_historicoConcursoTentado[chave]) continue;
     try{
       var {data,error}=await sb.from('historico').select('dados').eq('loteria',p.loteria).eq('concurso',String(concursoInt)).maybeSingle();
-      if(!error&&data&&data.dados&&data.dados.dezenas) _historicoConcursoCache[chave]=data.dados;
+      if(!error&&data&&data.dados){
+        var _dNorm=_normalizarDadosHistorico(data.dados);
+        if(_dNorm&&_dNorm.dezenas&&_dNorm.dezenas.length) _historicoConcursoCache[chave]=_dNorm;
+      }
     }catch(e){ console.warn('[_prewarmHistoricoConcursos]',e.message); }
     _historicoConcursoTentado[chave]=true;
   }
