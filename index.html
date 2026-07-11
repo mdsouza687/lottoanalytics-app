@@ -2374,19 +2374,6 @@ garantida entre os jogos">⭐ Score</button>
             <button class="btn-gerar" onclick="gerarComIA('jogo')" data-lotbtn style="width:100%" title="Gera jogos completos pela IA (análise dos 12 parâmetros)">🤖 Gerar com IA</button>
           </div>
 
-          <!-- SEÇÃO 5 — Vincular ao bolão (comum a todos os modos, comportamento inalterado) -->
-          <div class="gen-sec gen-sec-full">
-            <div class="gen-sec-hdr">
-              <span class="gen-sec-num">4</span>
-              <span class="gen-sec-title">👥 Vincular ao Bolão</span>
-              <span class="gen-sec-hint">Opcional</span>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <select class="f-sel" id="jogo-vinculo-sel" style="flex:1;min-width:160px"><option value="">— Selecione um bolão —</option></select>
-              <button onclick="showTab('boloes')" style="border:1px solid var(--glass-border);border-radius:var(--btn-radius);padding:var(--btn-pad-y) var(--btn-pad-x);font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-tracking);cursor:pointer;background:var(--glass-bg);color:var(--text);white-space:nowrap;transition:var(--btn-transition)">➕ Novo</button>
-            </div>
-            <div style="font-size:9px;color:var(--text-dim)">Se escolher um bolão, os jogos gerados serão vinculados a ele.</div>
-          </div>
         </div>
         </div>
       </div>
@@ -2983,7 +2970,6 @@ async function adminLimparBoloesDuplicados(){
   if(!confirm('Isto vai APAGAR permanentemente '+aRemover.length+' bolão(ões) considerado(s) duplicado(s) (mantém o mais antigo de cada grupo):\n\n'+lista+'\n\nConfirma?')) return;
   const n=await limparBoloesDuplicados();
   toast('✓ '+n+' bolão(ões) duplicado(s) removido(s).');
-  if(typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
   if(typeof popularDropdownManualBolao==='function') popularDropdownManualBolao();
   adminRodarDiagnostico();
 }
@@ -6472,8 +6458,6 @@ var _genAbaAtual = 'jogo';
 function switchGenAba(aba) {
   _genAbaAtual = aba;
   const d = CFG && CFG[currentKey];
-  // Popula os dropdowns de vínculo ao bolão (todas as colunas, sempre visíveis agora)
-  if(typeof popularDropdownsVinculo==='function') popularDropdownsVinculo();
 }
 
 function setupMods(d){
@@ -6527,12 +6511,6 @@ function setupMods(d){
   buildMesTimeSec('jogo',d);
   // Construir dropdown Top N por Score de forma dinâmica (d.min+4 a d.min+12, cap no universo)
   buildFchTopN(d);
-  // Os dropdowns de vínculo ao bolão já são populados por switchGenAba(),
-  // chamada mais acima nesta mesma função — uma segunda chamada direta
-  // aqui (removida) disparava popularDropdownsVinculo() em paralelo com
-  // aquela, sem uma aguardar a outra; como ambas são assíncronas e cada
-  // uma limpa+repopula o <select> de forma independente, o resultado eram
-  // bolões duplicados na lista toda vez que o usuário trocava de loteria.
   // Limpar cache de temperatura ao trocar de loteria (painel único — só existe 'jogo').
   window._tempPorTipo={jogo:null};
   // ── Atualizar cor de todos os botões [data-lotbtn]: contorno fino + fundo
@@ -8542,15 +8520,12 @@ async function gerarJogos(tipo,modo){
     exibirConcursoBar();
     box.scrollIntoView({behavior:'smooth',block:'nearest'});
     atualizarCustoPainel();
-
-    // Vincular ao bolão se um foi selecionado na aba Individual
-    if(tipo==='jogo'){
-      var _jvSel=document.getElementById('jogo-vinculo-sel');
-      var _jvId=_jvSel?parseInt(_jvSel.value)||0:0;
-      if(_jvId && typeof vincularJogosAoBolao==='function'){
-        await vincularJogosAoBolao(_jvId, _clonarJogosComExtras(jogos), 'jogo-dez-wrap');
-      }
-    }
+    // Vincular ao bolão: REMOVIDO daqui (era automático e vinculava TODOS
+    // os jogos gerados, ignorando qualquer seleção feita depois via
+    // checkbox — bug grave encontrado em 2026-07-11, um bolão acumulava
+    // jogos que o usuário nunca chegou a selecionar). O vínculo agora só
+    // acontece pelo botão "Salvar" → opção "Vincular a um Bolão", que já
+    // respeita corretamente getJogosSelecionados() (ver _salvarComEscolha).
 
   }catch(err){
     console.error('[GERAR ERROR]',err);
@@ -10051,21 +10026,28 @@ async function openModalSalvar(escopo){
       // só libera depois de um bolão selecionado (ver _salvarComEscolha).
       var _boloesElegiveisFooter=(typeof _todosBoloesV!=='undefined'?_todosBoloesV:[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
       var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+_boloesElegiveisFooter.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+      // Pré-seleção vinda de gerarJogosParaBolao() (clique em "🎲 Gerar
+      // Jogos" a partir de um card de bolão) — só pré-marca a escolha
+      // aqui; o vínculo em si só é gravado se o usuário clicar em Salvar
+      // (ver aviso em gerarJogos/gerarFechamento/gerarFechamentoPorScore
+      // sobre por que o vínculo automático na geração foi removido).
+      var _bolaoPreSel=window._bolaoVincPendente?String(window._bolaoVincPendente):'';
       footer.innerHTML=`
         <div style="display:flex;flex-direction:column;gap:8px;width:100%">
           <div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase">Nome do conjunto</div>
           <input id="salvar-nome-input" class="f-inp" type="text" value="${window._salvarNomeSugerido||nomeDefault}" placeholder="Ex: Mega-Sena #2800 · 10/06/2026" style="font-size:12px"/>
           <div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-top:2px">Onde salvar</div>
           <div style="display:flex;gap:12px;font-size:12px">
-            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="salvo" checked onchange="_atualizarModoSalvarUI()"/> Jogo Salvo</label>
-            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="vincular" onchange="_atualizarModoSalvarUI()"/> Vincular a um Bolão</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="salvo" ${_bolaoPreSel?'':'checked'} onchange="_atualizarModoSalvarUI()"/> Jogo Salvo</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-modo" value="vincular" ${_bolaoPreSel?'checked':''} onchange="_atualizarModoSalvarUI()"/> Vincular a um Bolão</label>
           </div>
-          <select id="salvar-bolao-sel" class="f-sel" style="display:none;font-size:12px">${_optsBolaoFooter}</select>
+          <select id="salvar-bolao-sel" class="f-sel" style="display:${_bolaoPreSel?'':'none'};font-size:12px">${_optsBolaoFooter}</select>
           <div style="display:flex;gap:6px">
             <button class="result-hdr-btn" style="flex:1;background:${d2.cor};border-color:${corMarca(d2)};color:${corTextoSobre(d2.cor)}" onclick="_salvarComEscolha()">💾 Salvar</button>
             <button class="result-hdr-btn" onclick="closeModal('modal-salvar')">Fechar</button>
           </div>
         </div>`;
+      if(_bolaoPreSel){ var _selB=document.getElementById('salvar-bolao-sel'); if(_selB) _selB.value=_bolaoPreSel; }
     } else {
       footer.innerHTML=`<button class="result-hdr-btn" onclick="closeModal('modal-salvar')">Fechar</button>`;
     }
@@ -10104,6 +10086,12 @@ function _atualizarModoSalvarUI(){
 // vincularSalvoAoBolao() o vincula), sem duplicar lógica de gravação.
 async function _salvarComEscolha(){
   var modo=(document.querySelector('input[name="salvar-modo"]:checked')||{}).value||'salvo';
+  // Consome a pré-seleção de gerarJogosParaBolao() nesta tentativa de
+  // salvar (aconteça ela ou não) — sem isso, o valor ficaria preso e
+  // pré-marcaria "Vincular a um Bolão" também em saves futuros e sem
+  // relação nenhuma com aquele bolão, reproduzindo o mesmo tipo de
+  // esquecimento que o dropdown antigo causava.
+  window._bolaoVincPendente=null;
   if(modo==='vincular'){
     var sel=document.getElementById('salvar-bolao-sel');
     var bolaoId=sel?parseInt(sel.value)||0:0;
@@ -11229,9 +11217,9 @@ async function gerarFechamentoPorScore(){
   const box=document.getElementById('result-box');box.style.display='block';
   exibirConcursoBar();box.scrollIntoView({behavior:'smooth',block:'nearest'});
   atualizarCustoPainel();
-  const vincSel=document.getElementById('jogo-vinculo-sel');
-  const vincId=vincSel?parseInt(vincSel.value)||0:0;
-  if(vincId&&typeof vincularJogosAoBolao==='function')await vincularJogosAoBolao(vincId,_clonarJogosComExtras(jogos),'jogo-dez-wrap');
+  // Vincular ao bolão: REMOVIDO daqui — mesmo bug/motivo do gerarJogos()
+  // acima (vinculava TODOS os jogos gerados, ignorando a seleção feita
+  // depois via checkbox). Vínculo agora só pelo botão "Salvar".
   toast(`✅ ${jogos.length} par${jogos.length!==1?'es':''} por score${espelhoOn?` (${jogos.length*2} jogos com espelho)`:''} gerado${jogos.length!==1?'s':''}`);
 }
 async function gerarFechamento(){
@@ -11370,12 +11358,9 @@ async function gerarFechamento(){
   exibirConcursoBar();
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
   atualizarCustoPainel();
-  // Se houver um bolão selecionado no dropdown, vincula automaticamente os jogos
-  var _fvSel=document.getElementById('jogo-vinculo-sel');
-  var _fvId=_fvSel?parseInt(_fvSel.value)||0:0;
-  if(_fvId && typeof vincularJogosAoBolao==='function'){
-    await vincularJogosAoBolao(_fvId, _clonarJogosComExtras(jogos), 'jogo-dez-wrap');
-  }
+  // Vincular ao bolão: REMOVIDO daqui — mesmo bug/motivo dos outros dois
+  // motores (vinculava TODOS os jogos gerados, ignorando a seleção feita
+  // depois via checkbox). Vínculo agora só pelo botão "Salvar".
 }
 // Atualização automática 3x ao dia (08h, 14h, 22h, horário local do
 // navegador) — antes era só 1x às 22h (e pulava domingo). Mesmo em dias sem
@@ -18035,36 +18020,6 @@ async function gerarJogosDoForm(){
   gerarJogosParaBolao(_boloesState.editId);
 }
 
-/* ── Vínculo de jogos gerados ao bolão ── */
-let _popularDropdownsVinculoEmAndamento=false;
-async function popularDropdownsVinculo(){
-  // Proteção contra chamadas concorrentes (ex.: dois pontos do código
-  // chamando esta função em sequência rápida, sem aguardar uma a outra) —
-  // sem isso, duas execuções em paralelo podiam fazer cada select de
-  // vínculo acabar com a seleção do usuário perdida/sobrescrita pela
-  // chamada que terminasse depois.
-  if(_popularDropdownsVinculoEmAndamento) return;
-  _popularDropdownsVinculoEmAndamento=true;
-  try{
-  var sels=[document.getElementById('jogo-vinculo-sel')];
-  var todos=[];
-  try{ todos=await dbAll('boloes_v2'); }catch(e){}
-  // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
-  // especiais têm período de vendas longo) — não fecha mais após a primeira.
-  // A restrição de mesma loteria/concurso é checada em vincularJogosAoBolao.
-  var vinculaveis=todos.slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
-  sels.forEach(function(sel){
-    if(!sel)return;
-    var atual=sel.value;
-    var opts=vinculaveis.map(function(g){ var nj=(g.concursos||[]).reduce(function(a,c){return a+((c.jogos||[]).length);},0)||(g.jogos&&g.jogos.length)||0; return '<option value="'+g.id+'">🌐 '+_esc(g.nome)+(nj?' ('+nj+' jogos)':'')+'</option>'; }).join('');
-    sel.innerHTML='<option value="">— Selecione um bolão —</option>'+opts;
-    if(atual) sel.value=atual;
-  });
-  }finally{
-    _popularDropdownsVinculoEmAndamento=false;
-  }
-}
-
 // Vincula um conjunto de jogos JÁ SALVO (da tela Jogos Salvos) a um bolão escolhido
 // Fila compartilhada de escrita no bolão — TODA função que faz
 // dbAll('boloes_v2') → modifica g.concursos em memória → dbPut('boloes_v2', g)
@@ -18218,7 +18173,6 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
       _boloesState.jogosVinculados=g.concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]); 
       renderParticipantesBoloes();
     }
-    if(typeof popularDropdownsVinculo==='function') await popularDropdownsVinculo();
     openModalSalvar();
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
@@ -19893,7 +19847,6 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       BolaoJogosRepo.vincularDual(loteriaKey,jogos,g._novoSchemaId);
       BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:_novoNum,loteria:loteriaKey,data:_dataSorteio,custo:_custoG,semana:_semLabel});
     }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
-    await popularDropdownsVinculo();
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
     if(_boloesState && _boloesState.editId===bolaoId){
       _boloesState.concursos=g.concursos;
@@ -19917,20 +19870,18 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
 
-// Abre o gerador já com um bolão pré-selecionado para vínculo
+// Abre o gerador já com um bolão pré-selecionado para vínculo — o vínculo
+// em si só acontece pelo botão Salvar (ver openModalSalvar), que lê
+// window._bolaoVincPendente para pré-marcar "Vincular a um Bolão". O antigo
+// dropdown "Vincular ao Bolão" (passo 4 do gerador) foi removido: era a
+// origem do bug de 2026-07-11 (vinculava TODOS os jogos gerados
+// automaticamente, ignorando a seleção por checkbox) e, com o vínculo já
+// centralizado no botão Salvar, tinha virado uma tela a mais sem função.
 function gerarJogosParaBolao(bolaoId){
   window._bolaoVincPendente=bolaoId;
   showTab('gerador');
   setTimeout(function(){
     if(typeof switchGenAba==='function') switchGenAba('bolao');
-    popularDropdownsVinculo().then(function(){
-      // Era 'bolao-vinculo-sel' — id que nunca existiu (o select real é
-      // 'jogo-vinculo-sel', ver linha ~2385) — o guard `if(sel)` engolia o
-      // erro silenciosamente, então clicar "🎲 Gerar Jogos" num card de
-      // bolão nunca pré-selecionava o bolão certo no dropdown do gerador.
-      var sel=document.getElementById('jogo-vinculo-sel');
-      if(sel){ sel.value=String(bolaoId); }
-    });
   }, 200);
 }
 
