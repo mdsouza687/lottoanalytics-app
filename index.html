@@ -2655,11 +2655,12 @@ function isEspecial(key, concursoNum){
 // dois para o mesmo projeto.
 const _SUPABASE_EH_DEV = ['localhost','127.0.0.1'].includes(location.hostname);
 const SUPABASE_CONFIG = _SUPABASE_EH_DEV
-  ? { url: 'https://ycssmyqhjlhoiomyvkba.supabase.co', key: 'sb_publishable_X9KfKhaSmjnwcjOl4NAdlg_gkflFRRF', tabela: 'jogos_loterias' }
-  : { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 'sb_publishable_59Io3j2Z-lUgFL-SrJYFSw_HQUdNKhp', tabela: 'jogos_loterias' };
+  ? { url: 'https://ycssmyqhjlhoiomyvkba.supabase.co', key: 'sb_publishable_X9KfKhaSmjnwcjOl4NAdlg_gkflFRRF' }
+  : { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 'sb_publishable_59Io3j2Z-lUgFL-SrJYFSw_HQUdNKhp' };
 function supabaseAtivo(){ return !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.key); }
-async function supabaseSalvar(item){ if(!supabaseAtivo()) return; try{ const temExtras=(item.extras&&item.extras.some(Boolean))||(item.trevos&&item.trevos.some(Boolean)); const jogosPayload=temExtras?{v:2,jogos:item.jogos,extras:item.extras||null,trevos:item.trevos||null}:item.jogos; await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}`, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_CONFIG.key, 'Authorization': `Bearer ${SUPABASE_CONFIG.key}`, 'Prefer':'return=minimal' }, body: JSON.stringify({ loteria: item.loteria, nome: item.nome, jogos: jogosPayload, num_dez: item.numDez, saved_at: new Date(item.savedAt).toISOString() }) }); }catch(e){console.warn(e);} }
-async function supabaseCarregar(){ if(!supabaseAtivo()) return 0; try{ const r=await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tabela}?select=*`, { headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`} }); if(!r.ok) return 0; const dados=await r.json(); let importados=0; for(const d of dados){ let jg=d.jogos,ex=null,tv=null; if(jg&&!Array.isArray(jg)&&Array.isArray(jg.jogos)){ex=jg.extras||null;tv=jg.trevos||null;jg=jg.jogos;} const item={loteria:d.loteria,nome:d.nome,jogos:jg,numDez:d.num_dez,savedAt:new Date(d.saved_at).getTime()}; if(ex)item.extras=ex; if(tv)item.trevos=tv; await dbPut('jogos_salvos',item); importados++; } return importados; }catch(e){return 0;} }
+// Limpeza pós-migração (2026-07-12): removidas daqui supabaseSalvar/
+// supabaseCarregar — mecanismo ainda mais antigo (tabela "jogos_loterias",
+// pré-jogos_salvos/boloes_v2), já órfão, sem nenhum caller.
 
 /* ════ AUTH GATE — login/cadastro obrigatórios (Supabase Auth) ════
    Cada usuário tem um ID único (auth.users.id, gerado pelo Supabase) e um
@@ -2830,19 +2831,6 @@ async function _agAposLogin(user){
     return;
   }
   window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin)};
-  // Item 4 (2026-07-10): _supabaseSyncPut/_supabaseSyncPullAll agora exigem
-  // window._usuarioAtual (sessão autenticada, RLS restrita por user_id) —
-  // a sincronização de bolões/jogos salvos que antes rodava só uma vez no
-  // BOOT (antes do login existir) precisa rodar de novo aqui, senão um
-  // navegador/dispositivo novo nunca puxaria o dado da nuvem depois de
-  // logar. Não bloqueia o login se falhar (melhor-esforço, mesmo padrão
-  // de todo o resto do dual-write).
-  if(typeof supabaseAtivo==='function'&&supabaseAtivo()){
-    (async()=>{
-      try{ await _supabaseSyncBidirectional('boloes_v2'); }catch(e){}
-      try{ await _supabaseSyncBidirectional('jogos_salvos'); }catch(e){}
-    })();
-  }
   closeModal('auth-gate');
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
@@ -3048,8 +3036,8 @@ function initDB(){
       if(!d.objectStoreNames.contains('bolao_grupos')){const b=d.createObjectStore('bolao_grupos',{keyPath:'id',autoIncrement:true});b.createIndex('loteria','loteria',{unique:false});b.createIndex('jogoId','jogoId',{unique:false});}
       if(!d.objectStoreNames.contains('boloes_v2')){const bv=d.createObjectStore('boloes_v2',{keyPath:'id',autoIncrement:true});bv.createIndex('loteria','loteria',{unique:false});}
       // Doc 2 (hardening de armazenamento): trilha de auditoria local, só
-      // leitura/depuração — nunca sincronizada com Supabase (não entra em
-      // SUPABASE_SYNC_STORES), então não pesa no backup/restauração.
+      // leitura/depuração — nunca sincronizada com Supabase, não pesa no
+      // backup/restauração.
       if(!d.objectStoreNames.contains('auditoria')){const a=d.createObjectStore('auditoria',{keyPath:'id',autoIncrement:true});a.createIndex('timestamp','timestamp',{unique:false});}
     };
     req.onsuccess=e=>{db=e.target.result;res(db);};
@@ -3106,45 +3094,6 @@ const listarJogosSalvos=async()=>{
   for(var i=0;i<ordem.length;i++){ var item=await getJogoSalvo(ordem[i]); if(item) out.push(item); }
   return out;
 };
-// Grava vários registros em stores DIFERENTES dentro de UMA ÚNICA transação
-// IndexedDB — se qualquer put falhar, a transação inteira reverte (nenhuma
-// escrita parcial fica persistida). Usado pelo vincular de jogo↔bolão, que
-// precisa atualizar boloes_v2 E jogos_salvos atomicamente (Doc 2, item 2).
-const dbPutMulti=(itens)=>new Promise((res,rej)=>{
-  if(!db) return rej(new Error('DB não inicializado'));
-  try{
-    const stores=[...new Set(itens.map(it=>it.store))];
-    const tx=db.transaction(stores,'readwrite');
-    const resultados=[];
-    let abortando=false;
-    tx.onerror=e=>{ e.preventDefault&&e.preventDefault(); };
-    tx.onabort=()=>rej(tx.error||new Error('Transação abortada'));
-    tx.oncomplete=()=>{
-      itens.forEach((it,i)=>{ if(SUPABASE_SYNC_STORES.includes(it.store)) _supabaseSyncPut(it.store,{...it.valor,id:resultados[i]}); });
-      res(resultados);
-    };
-    itens.forEach((it,i)=>{
-      try{
-        if(SUPABASE_SYNC_STORES.includes(it.store)) it.valor._updatedAt=Date.now();
-        const req=tx.objectStore(it.store).put(it.valor);
-        req.onsuccess=e=>{ resultados[i]=e.target.result; };
-        // Um put() individual falhando (ex.: violação de constraint) não
-        // aborta a transação sozinho no IndexedDB — sem isso, os OUTROS
-        // puts já enfileirados continuariam e seriam persistidos parcial
-        // e silenciosamente, quebrando a garantia de atomicidade que esta
-        // função promete (auditoria, achado durante a Fase 2.2).
-        req.onerror=e=>{ e.preventDefault&&e.preventDefault(); if(!abortando){ abortando=true; try{ tx.abort(); }catch(_){} } };
-      }catch(putErr){
-        // put() pode lançar de forma SÍNCRONA (ex.: DataCloneError, valor
-        // não serializável) — sem abortar aqui, os puts anteriores deste
-        // mesmo forEach já enfileirados na transação seriam persistidos
-        // mesmo assim, e só este item específico falharia.
-        if(!abortando){ abortando=true; try{ tx.abort(); }catch(_){} }
-        rej(putErr);
-      }
-    });
-  }catch(e){ rej(e); }
-});
 // UUID estável por jogo/vínculo (Doc 2, item 1) — sobrevive a export/
 // import e sync entre dispositivos, diferente do id autoIncrement do
 // IndexedDB (que é só local a cada banco) ou do antigo pseudo-ID
@@ -3162,68 +3111,14 @@ function _registrarAuditoria(operacao,detalhes){
   }catch(e){}
 }
 
-// Stores que passam a ser espelhadas no Supabase além do IndexedDB local —
-// resolve o problema de bolões/jogos salvos "sumirem" ao trocar de domínio
-// (IndexedDB é isolado por origem; o Supabase não é).
-const SUPABASE_SYNC_STORES=['boloes_v2','jogos_salvos'];
-// Item 4 (2026-07-10, correção de segurança): as 4 funções abaixo usavam
-// fetch() cru com a anon key como Bearer token — nunca carregavam a sessão
-// do usuário logado, então user_id nunca era preenchido nessas duas
-// tabelas (achado: 100% das linhas de produção tinham user_id nulo). Por
-// isso a RLS dessas tabelas precisava ficar aberta pra anon (qualquer
-// conta lia/gravava o dado de todo mundo). Agora usam o cliente Supabase
-// autenticado (_getSbClient(), que já carrega a sessão automaticamente) e
-// sempre gravam user_id explícito — pré-requisito pra restringir a RLS
-// pra auth.uid()=user_id.
-async function _supabaseSyncPut(store,item){
-  var sb=_getSbClient();
-  var uid=window._usuarioAtual&&window._usuarioAtual.id;
-  if(!supabaseAtivo()||!sb||!uid||!item||item.id==null) return;
-  try{
-    await sb.from(store).upsert({id:item.id, user_id:uid, loteria:item.loteria||null, nome:item.nome||null, dados:item},{onConflict:'id'});
-  }catch(e){ console.warn('[SUPABASE SYNC]',store,e.message); }
-}
-// Envia vários registros da mesma store numa ÚNICA request (upsert em
-// lote do PostgREST) em vez de 1 POST por item — usado pelo push do sync
-// bidirecional (auditoria Fase 5.4). Mesmo formato de linha que
-// _supabaseSyncPut usa por item, só que como array no corpo.
-async function _supabaseSyncPutBatch(store,itens){
-  var sb=_getSbClient();
-  var uid=window._usuarioAtual&&window._usuarioAtual.id;
-  if(!supabaseAtivo()||!sb||!uid||!itens||!itens.length) return;
-  try{
-    const body=itens.filter(it=>it&&it.id!=null).map(it=>({id:it.id, user_id:uid, loteria:it.loteria||null, nome:it.nome||null, dados:it}));
-    if(!body.length) return;
-    await sb.from(store).upsert(body,{onConflict:'id'});
-  }catch(e){ console.warn('[SUPABASE SYNC BATCH]',store,e.message); }
-}
-async function _supabaseSyncDel(store,id){
-  var sb=_getSbClient();
-  var uid=window._usuarioAtual&&window._usuarioAtual.id;
-  if(!supabaseAtivo()||!sb||!uid||id==null) return;
-  try{
-    // Lápide (tombstone) em vez de DELETE físico: um dispositivo com
-    // cópia local desatualizada (que ainda não tinha recebido esta
-    // exclusão) fazia o push do seu próprio registro "vivo" de volta pro
-    // Supabase no boot seguinte — sem nenhum sinal de "isto foi excluído"
-    // sobrevivendo no servidor, o sync bidirecional não tinha como
-    // diferenciar "nunca existiu aqui" de "existiu e foi apagado em outro
-    // aparelho", e a exclusão ressuscitava a cada sync desse dispositivo
-    // atrasado. Agora a exclusão vira um registro-lápide (id + _deleted +
-    // _updatedAt) que _supabaseSyncBidirectional propaga como exclusão
-    // local em qualquer outro dispositivo que ainda tiver a cópia antiga.
-    await sb.from(store).upsert({id, user_id:uid, loteria:null, nome:null, dados:{id, _deleted:true, _updatedAt:Date.now()}},{onConflict:'id'});
-  }catch(e){ console.warn('[SUPABASE SYNC DEL]',store,e.message); }
-}
-async function _supabaseSyncPullAll(store){
-  var sb=_getSbClient();
-  if(!supabaseAtivo()||!sb) return [];
-  try{
-    var {data,error}=await sb.from(store).select('id,dados');
-    if(error||!data) return [];
-    return data.filter(r=>r.dados).map(r=>({...r.dados,id:r.id}));
-  }catch(e){ return []; }
-}
+// Limpeza pós-migração (2026-07-12): removida daqui a sincronização
+// bidirecional legada (SUPABASE_SYNC_STORES/_supabaseSyncPut/PutBatch/Del/
+// PullAll/Bidirectional) que mantinha boloes_v2/jogos_salvos (IndexedDB
+// local) espelhados com as tabelas antigas do mesmo nome no Supabase —
+// pré-Doc2, superado pelas RPCs/RLS do schema novo. Rodava (sem escrever
+// nada de fato, já que os dois lados estão vazios desde o corte final) em
+// todo boot e todo login; removida antes do DROP das tabelas antigas pra
+// não começar a falhar quando elas deixarem de existir.
 // Sincroniza o histórico completo do Supabase para o IndexedDB local.
 // Incremental: para cada loteria, descobre o maior concurso já salvo
 // localmente e baixa só os registros mais novos que ainda faltam.
@@ -3258,62 +3153,18 @@ async function _syncHistoricoDoSupabase(){
     }catch(e){}
   }
 }
-// Sincronização bidirecional usada na inicialização do app: primeiro sobe
-// tudo que existe localmente (protege dados já salvos neste navegador),
-// depois baixa tudo que está no Supabase e mescla no IndexedDB local
-// (recupera dados salvos em outro navegador/dispositivo/domínio).
-async function _supabaseSyncBidirectional(store){
-  if(!supabaseAtivo()) return;
-  // Ordem IMPORTA: primeiro baixa e aplica o que vem do Supabase
-  // (inclusive lápides de exclusão — ver _supabaseSyncDel) ANTES de subir
-  // o que existe localmente. Antes era o contrário (sobe tudo, depois
-  // baixa): um dispositivo com uma cópia local desatualizada de algo já
-  // excluído em OUTRO dispositivo fazia o push dessa cópia "viva" de
-  // volta pro Supabase antes de, no mesmo ciclo, ter a chance de aprender
-  // que aquele registro deveria ter sido apagado — ressuscitando bolões/
-  // jogos já excluídos toda vez que esse dispositivo atrasado sincronizava
-  // de novo. Baixando primeiro, a exclusão é aplicada localmente antes do
-  // push, então o registro já não existe mais quando a hora de subir chega.
-  try{
-    const remotos=await _supabaseSyncPullAll(store);
-    for(const item of remotos){
-      // Antes de aplicar, checa se o local é mais novo que o remoto (só
-      // quando os dois lados já têm o carimbo _updatedAt — registros
-      // legados sem o campo mantêm o comportamento antigo, remoto sempre
-      // vence, evitando regressão de dado pré-existente).
-      const local=await dbGet(store,item.id);
-      if(local && local._updatedAt!=null && item._updatedAt!=null && local._updatedAt>item._updatedAt) continue;
-      if(item._deleted){
-        if(local) await dbOp(store,'readwrite',st=>st.delete(item.id));
-        continue;
-      }
-      await dbOp(store,'readwrite',st=>st.put(item));
-    }
-  }catch(e){}
-  try{ const locais=await dbAll(store); await _supabaseSyncPutBatch(store,locais); }catch(e){}
-}
-const dbPut=async(s,d)=>{
-  if(SUPABASE_SYNC_STORES.includes(s)){ d._updatedAt=Date.now(); }
-  const id=await dbOp(s,'readwrite',st=>st.put(d));
-  if(SUPABASE_SYNC_STORES.includes(s)){ _supabaseSyncPut(s,{...d,id}); }
-  return id;
-};
-const dbDel=async(s,k)=>{
-  const r=await dbOp(s,'readwrite',st=>st.delete(k));
-  if(SUPABASE_SYNC_STORES.includes(s)){ _supabaseSyncDel(s,k); }
-  return r;
-};
+const dbPut=(s,d)=>dbOp(s,'readwrite',st=>st.put(d));
+const dbDel=(s,k)=>dbOp(s,'readwrite',st=>st.delete(k));
 
 /* ════════════════════════════════════════════════════════
    SISTEMA DE BACKUP COMPLETO
    Exporta/importa TODAS as stores do IndexedDB num arquivo .json, mais o
    schema novo (boloes/bolao_participantes/bolao_concursos/jogos), buscado
-   direto do Supabase — jogos_salvos/boloes_v2 (IndexedDB local) pararam de
-   receber dado real depois do corte final (Item 3, 2026-07-12), mas os
-   nomes ficam na lista por compatibilidade com backups antigos na
-   importação.
+   direto do Supabase. jogos_salvos/boloes_v2 (IndexedDB local) removidas
+   da lista (limpeza pós-migração, 2026-07-12) — pararam de receber dado
+   real desde o corte final, e nada mais lê essas stores como fonte real.
    ════════════════════════════════════════════════════════ */
-const BACKUP_STORES=['resultados','historico','jogos_salvos','bolao_grupos','boloes_v2'];
+const BACKUP_STORES=['resultados','historico','bolao_grupos'];
 
 async function exportarBackup(){
   try{
@@ -4820,13 +4671,10 @@ async function conferirJogosSalvos(){
   if(_conferirJogosSalvosEmAndamento) return [];
   _conferirJogosSalvosEmAndamento=true;
   try{
-    // Doc 2: em DEV, itens salvos no schema novo (JogosCommon.ativo()) só
-    // existem no Supabase, não no IndexedDB local — sem isso eles nunca
-    // seriam conferidos contra os resultados. Mesmo adaptador já usado pra
-    // renderizar a tela "Jogos Salvos" (_carregarConjuntosDualComoAntigo).
-    const todosSalvosAntigo = await dbAll('jogos_salvos');
-    const todosSalvosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
-    const todosSalvos = todosSalvosAntigo.concat(todosSalvosNovo);
+    // Jogos avulsos vêm só do schema novo (jogos_salvos parou de crescer
+    // desde o corte final) — mesmo adaptador já usado pra renderizar a tela
+    // "Jogos Salvos" (_carregarConjuntosDualComoAntigo).
+    const todosSalvos=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
     if(!todosSalvos.length) return [];
     const premios = [];
     for(const item of todosSalvos){
@@ -6331,13 +6179,9 @@ function renderCard(res,d){
 async function verificarPremiacaoCard(key){
   const res=resultados[key]; if(!res) return;
   const d=CFG[key];
-  // Corte final (Item 3, 2026-07-12): jogos_salvos parou de crescer — sem
-  // mesclar o schema novo aqui, o banner "Você ganhou!" nunca dispararia
-  // pra nenhum jogo avulso salvo depois do corte (mesmo padrão já usado em
+  // Jogos avulsos vêm só do schema novo (mesmo padrão de
   // conferirJogosSalvos/openModalSalvar).
-  const todosAntigo=await dbAll('jogos_salvos');
-  const todosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
-  const todos=todosAntigo.concat(todosNovo);
+  const todos=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
   const paraCurr=todos.filter(j=>j.loteria===key);
   if(!paraCurr.length) return;
   const concursoResultado=parseInt(res.concurso);
@@ -8715,12 +8559,8 @@ async function conferirTodos(){
   let todosOsJogos=[];
   let fontes=[];
   if(jogosGerados.length>0){ jogosGerados.forEach((j,i)=>todosOsJogos.push({jogo:j,fonte:`🎲 Gerado #${i+1}`+(j._isEspelho?' 🪞':''),idx:i})); fontes.push(`${jogosGerados.length} jogo${jogosGerados.length!==1?'s':''} gerados nesta sessão`); }
-  // Corte final (Item 3, 2026-07-12): mescla schema novo, mesmo padrão de
-  // conferirJogosSalvos — sem isso, "Conferir Todos" nunca inclui os jogos
-  // avulsos salvos depois do corte (jogos_salvos parou de crescer).
-  const salvosAntigo=await dbAll('jogos_salvos');
-  const salvosNovo=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
-  const salvos=salvosAntigo.concat(salvosNovo);
+  // Jogos avulsos vêm só do schema novo, mesmo padrão de conferirJogosSalvos.
+  const salvos=(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva())?await _carregarConjuntosDualComoAntigo():[];
   const paraCurr=salvos.filter(s=>s.loteria===currentKey);
   let nManuais=0, nSalvosGer=0;
   paraCurr.forEach(item=>{
@@ -12559,6 +12399,17 @@ function atualizarManualDica(){
     else{
       const hdr=document.getElementById('hdr-manuais');
       if(hdr) setModalHeaderCor('hdr-manuais', d.cor);
+      // CORREÇÃO (2026-07-12): o botão "Salvar para Conferência" (e qualquer
+      // outro elemento do modal que use var(--ac)) herdava a cor da loteria
+      // ativa no TOPO da página (--ac é setado em document.documentElement
+      // só quando showLottery() troca a loteria principal), não a loteria
+      // escolhida no dropdown DESTE modal — trocar a loteria aqui dentro
+      // nunca atualizava essa variável. Escopando --ac/--ac-text no próprio
+      // modal (que sobrepõe a herdada do :root pra tudo dentro dele), o
+      // botão passa a seguir a seleção atual do modal, mesmo padrão já
+      // usado noutros botões com cor por loteria (ver setProperty('--ac',...)).
+      const modalManuais=document.getElementById('modal-manuais');
+      if(modalManuais){ modalManuais.style.setProperty('--ac',d.cor); modalManuais.style.setProperty('--ac-text',corTextoSobre(d.cor)); }
       const faixa=d.min===d.max?`${d.min} dezenas`:`${d.min} a ${d.max} dezenas`;
       dica.innerHTML=`<span style="color:${temColorAcc(corMarca(d))}"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome}</span> — ${d.superSete?'1 dígito (0–9) por coluna':faixa+` de ${pad2(d.start)} a ${pad2(d.start+d.universe-1)}`}${d.bolaExtra?` + ${d.bolaExtraNome} 1–${d.bolaExtraMax}`:''}${d.hasTrevo?` + ${d.trevosMin||2} trevos`:''}`;
     }
@@ -12942,21 +12793,12 @@ async function _bootApp(){
   saved.forEach(r=>{resultados[r.loteria]=r;atualizarBtnDash(r.loteria,r);});
   initLaHome();
   if(saved.length>0){ const u=Math.max(...saved.map(r=>r.updatedAt||0)); setDot('ok',`✓ Dados locais · última atualização: ${new Date(u).toLocaleTimeString('pt-BR')}`); }
-  // supabaseCarregar() (tabela legada "jogos_loterias") foi REMOVIDA daqui —
-  // era chamada em TODO boot do app, sem nenhum controle de "já importei
-  // isso antes": cada chamada inseria de novo cada linha da tabela como um
-  // item NOVO em jogos_salvos (dbPut sem "id" = autoIncrement sempre cria
-  // uma entrada nova), duplicando os jogos salvos a cada sessão aberta. O
-  // mecanismo abaixo (_supabaseSyncBidirectional) já cobre a mesma
-  // necessidade (jogos salvos acompanham o usuário entre domínios/
-  // navegadores) de forma correta, com id estável e upsert por
-  // "on_conflict=id" — não duplica.
-  // Sincroniza bolões e jogos salvos com o Supabase (sobe o que existe
-  // localmente e baixa o que estiver salvo na nuvem) — evita que esses
-  // dados fiquem presos ao domínio/navegador atual.
+  // Limpeza pós-migração (2026-07-12): removida daqui a sincronização
+  // bidirecional legada de boloes_v2/jogos_salvos (ver comentário maior
+  // onde essas funções viviam, próximo a initDB) — bolões/jogos salvos
+  // agora vivem só no schema novo, sincronizado via RLS/RPCs, não via essa
+  // ponte manual pra tabelas que o app parou de escrever.
   if(supabaseAtivo()){
-    try{ await _supabaseSyncBidirectional('boloes_v2'); }catch(e){}
-    try{ await _supabaseSyncBidirectional('jogos_salvos'); }catch(e){}
     // Sincroniza histórico completo do Supabase para o IndexedDB local —
     // baixa apenas concursos que ainda não existem localmente (incremental).
     try{ await _syncHistoricoDoSupabase(); }catch(e){}
@@ -18540,149 +18382,13 @@ async function _compararSchemaNovoDual(){
     amostra:novo.slice(0,5).map(function(j){ return {loteria:j.loteria,numeros:j.numeros,destino:j.destino,criadoEm:j.created_at}; })
   };
 }
-// Auditoria de PARIDADE de um bolão específico: compara o registro antigo
-// (boloes_v2, fonte de verdade real) contra o espelho no schema novo
-// (public.boloes + bolao_participantes + public.jogos), sem alterar nada
-// dos dois lados. Serve pra dar confiança ANTES de considerar religar a
-// leitura da tela real pro schema novo — mesmo padrão de "auditar antes de
-// confiar" já usado nas fases anteriores desta reestruturação (Fase 1).
-async function _auditarParidadeBolao(bolaoIdAntigo){
-  if(!JogosCommon.ativo()) return {erro:'Só roda em DEV.'};
-  var divergencias=[];
-  var todos=await dbAll('boloes_v2');
-  var antigo=todos.find(function(x){return x.id===bolaoIdAntigo;});
-  if(!antigo) return {erro:'Bolão antigo não encontrado (id '+bolaoIdAntigo+').'};
-  if(!antigo._novoSchemaId) return {erro:'Este bolão nunca foi salvo desde que o dual-write existe — sem _novoSchemaId, nada pra comparar. Abra e salve o bolão de novo pra criar o espelho.'};
-  var sb=_getSbClient();
-  var novoBolaoRes=await sb.from('boloes').select('nome,loteria,deleted_at').eq('id',antigo._novoSchemaId).maybeSingle();
-  if(novoBolaoRes.error||!novoBolaoRes.data) return {erro:'Bolão não encontrado no schema novo (id '+antigo._novoSchemaId+') — '+(novoBolaoRes.error&&novoBolaoRes.error.message)};
-  var novoBolao=novoBolaoRes.data;
-  if(novoBolao.deleted_at) divergencias.push('Bolão está com lápide de exclusão no schema novo, mas existe no antigo.');
-  if((antigo.nome||'')!==(novoBolao.nome||'')) divergencias.push('Nome diverge: antigo="'+antigo.nome+'" novo="'+novoBolao.nome+'"');
-
-  // Participantes: compara por nome (não tem id estável no schema antigo)
-  var participantesAntigos=antigo.participantes||[];
-  var particNovoRes=await sb.from('bolao_participantes').select('nome,cotas,is_admin,isento,status,valor_cota,status_pag').eq('bolao_id',antigo._novoSchemaId).is('deleted_at',null);
-  var participantesNovos=particNovoRes.data||[];
-  if(participantesAntigos.length!==participantesNovos.length){
-    divergencias.push('Quantidade de participantes diverge: antigo='+participantesAntigos.length+' novo='+participantesNovos.length);
-  }
-  participantesAntigos.forEach(function(pAntigo){
-    var pNovo=participantesNovos.find(function(x){return x.nome===(pAntigo.nome||'').trim();});
-    if(!pNovo){ divergencias.push('Participante "'+pAntigo.nome+'" existe no antigo mas não no novo.'); return; }
-    var ehAdminAntigo=!!(pAntigo.admin&&pAntigo.nome&&pAntigo.admin===pAntigo.nome);
-    if((pAntigo.cotas||1)!==pNovo.cotas) divergencias.push('Cotas de "'+pAntigo.nome+'" divergem: antigo='+pAntigo.cotas+' novo='+pNovo.cotas);
-    if(ehAdminAntigo!==pNovo.is_admin) divergencias.push('is_admin de "'+pAntigo.nome+'" diverge: antigo='+ehAdminAntigo+' novo='+pNovo.is_admin);
-    if(Math.abs((pAntigo.valorCota||0)-parseFloat(pNovo.valor_cota||0))>0.01) divergencias.push('valor_cota de "'+pAntigo.nome+'" diverge: antigo='+pAntigo.valorCota+' novo='+pNovo.valor_cota);
-    var statusPagAntigo=pAntigo.statusPag==='pago'?'pago':'naopagou';
-    if(statusPagAntigo!==pNovo.status_pag) divergencias.push('status_pag de "'+pAntigo.nome+'" diverge: antigo='+statusPagAntigo+' novo='+pNovo.status_pag);
-  });
-
-  // Jogos: compara contagem total (por concurso é mais frágil de casar 1:1
-  // sem vinculoId em todos os registros antigos, então soma geral primeiro)
-  var jogosAntigos=(antigo.concursos||[]).reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
-  var jogosNovoRes=await sb.from('jogos').select('id',{count:'exact',head:true}).eq('bolao_id',antigo._novoSchemaId).eq('destino','bolao').is('deleted_at',null);
-  var jogosNovo=jogosNovoRes.count||0;
-  if(jogosAntigos!==jogosNovo) divergencias.push('Quantidade de jogos diverge: antigo='+jogosAntigos+' novo='+jogosNovo);
-
-  return {
-    bolao:antigo.nome, novoSchemaId:antigo._novoSchemaId,
-    emParidade:divergencias.length===0,
-    divergencias:divergencias
-  };
-}
-// Reconstrói o mesmo formato de _boloesState que editarBolao() monta hoje
-// a partir do schema ANTIGO, mas lendo tudo do schema NOVO — bolão,
-// participantes e concursos/jogos. Só leitura, não grava nada, não
-// substitui editarBolao() (que continua sendo o caminho real). Serve pra
-// testar a tela de verdade (renderFormBolao/renderParticipantesBoloes)
-// alimentada pelo schema novo, lado a lado com o caminho antigo, antes de
-// qualquer decisão de trocar a fonte de leitura de vez.
-async function _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo){
-  if(!JogosCommon.leituraNovoSchemaAtiva()) return {erro:'Supabase indisponível.'};
-  var todos=await dbAll('boloes_v2');
-  var antigo=todos.find(function(x){return x.id===bolaoIdAntigo;});
-  if(!antigo||!antigo._novoSchemaId) return {erro:'Bolão sem espelho no schema novo — salve o bolão de novo primeiro.'};
-  var novoId=antigo._novoSchemaId;
-  var sb=_getSbClient();
-  var bRes=await sb.from('boloes').select('*').eq('id',novoId).maybeSingle();
-  if(bRes.error||!bRes.data) return {erro:'Bolão não encontrado no schema novo — '+(bRes.error&&bRes.error.message)};
-  var b=bRes.data;
-  var particRes=await sb.from('bolao_participantes').select('*').eq('bolao_id',novoId).is('deleted_at',null);
-  var participantesNovo=particRes.data||[];
-  var concRes=await sb.from('bolao_concursos').select('*').eq('bolao_id',novoId);
-  var concursosMeta=concRes.data||[];
-  var jogosRes=await sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true});
-  var jogosNovo=jogosRes.data||[];
-
-  // Checagem de paridade (2026-07-10, pós-hotfix): antes o leitor confiava
-  // no espelho só por ele "ter dados" (concursos.length>0), sem checar se
-  // estava ATUALIZADO — causou um bug real em produção (jogos vinculados
-  // depois do último save do bolão nunca apareciam no relatório, porque a
-  // escrita ainda não estava ligada). Agora compara a contagem TOTAL de
-  // jogos do antigo (fonte de verdade) contra o novo antes de confiar nele;
-  // qualquer divergência cai pro fallback do schema antigo automaticamente.
-  // Não elimina 100% do risco (um jogo trocado por outro do mesmo total
-  // passaria despercebido), mas cobre o caso real que já aconteceu.
-  var jogosAntigosCount=(antigo.concursos||[]).reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
-  if(jogosAntigosCount!==jogosNovo.length){
-    return {erro:'Espelho desatualizado (antigo tem '+jogosAntigosCount+' jogo(s), novo tem '+jogosNovo.length+') — usando schema antigo.'};
-  }
-
-  var participantes=participantesNovo.map(function(p){
-    return { nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
-      valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status };
-  });
-
-  // Agrupa jogos por (concurso_ref, loteria) — mesma chave usada em
-  // bolao_concursos — pra reconstruir cada "concurso" com seus jogos e
-  // metadados juntos, igual ao formato de g.concursos[] do schema antigo.
-  var porChave={};
-  jogosNovo.forEach(function(j){
-    var chave=(j.concurso_ref||'?')+'|'+j.loteria;
-    if(!porChave[chave]) porChave[chave]=[];
-    var arr=(j.numeros||[]).slice();
-    if(j.trevos&&j.trevos.length) arr._trevos=j.trevos.slice();
-    if(j.extras){ if(j.extras.extra!=null)arr._extra=j.extras.extra; if(j.extras.mes!=null)arr._mes=j.extras.mes; if(j.extras.time!=null)arr._time=j.extras.time;
-      if(Array.isArray(j.extras.ssCols)&&j.extras.ssCols.length) arr._ssCols=j.extras.ssCols.map(function(c){return c.slice();}); }
-    if(j.is_espelho) arr._isEspelho=true;
-    porChave[chave].push(arr);
-  });
-  var concursos=concursosMeta.map(function(c){
-    var chave=c.concurso_ref+'|'+c.loteria;
-    return { num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
-      status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
-      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:c.teimosinha_origem||null };
-  });
-
-  var estado={
-    nome:b.nome,
-    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf',
-      cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0) },
-    modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
-    concurso:b.concurso||'', participantes:participantes, editId:antigo.id, loteria:b.loteria||currentKey,
-    numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
-    concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
-    arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
-    mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||''
-  };
-  estado.semanas=_calcSemanasDoMes(estado.mesReferencia);
-  return {ok:true, estado:estado};
-}
-// Mesma leitura de _carregarBolaoDoSchemaNovoParaEstado, mas devolvendo o
-// formato do registro ANTIGO ({id,nome,loteria,concursos,jogos}, cada
-// concurso com {num,data,jogos,custo,status,semana,teimosinhaTodos}) — o
-// formato que _imprimirBolaoImpl/verJogosVinculados já sabem consumir
-// (gImp), pra reaproveitar toda a lógica de agrupamento por loteria/prêmio
-// sem duplicá-la. Só usado como tentativa inicial, sempre com fallback pro
-// dbAll('boloes_v2') normal se faltar qualquer coisa.
-async function _carregarRegistroBolaoDoSchemaNovo(bolaoIdAntigo){
-  var r=await _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo);
-  if(r.erro) return {erro:r.erro};
-  var e=r.estado;
-  return {ok:true, gImp:{ id:bolaoIdAntigo, nome:e.nome, loteria:e.loteria,
-    concursos:e.concursos, jogos:e.jogosVinculados }};
-}
+// Limpeza pós-migração (2026-07-12): removidas daqui _auditarParidadeBolao/
+// _carregarBolaoDoSchemaNovoParaEstado/_carregarRegistroBolaoDoSchemaNovo —
+// ferramentas de comparação antigo×novo (Fase 1/Item 5), todas dependiam
+// de dbAll('boloes_v2') pra achar o registro antigo por _novoSchemaId, e
+// boloes_v2 está permanentemente vazia desde o corte final. Já estavam
+// órfãs (sem nenhum caller fora de si mesmas) — a função que a tela real
+// usa de verdade é _carregarBolaoNovoSchemaPorUuid, abaixo.
 // Corte final (Item 3, 2026-07-12): mesma reconstrução de
 // _carregarBolaoDoSchemaNovoParaEstado, mas SEM depender do mapeamento
 // antigo→novo (boloes_v2._novoSchemaId) — recebe o uuid do bolão
@@ -18771,20 +18477,9 @@ async function getBolaoNovoSchema(novoId){
     semanas:e.semanas, dataSorteio:e.dataSorteio, semanaInicio:e.semanaInicio, semanaFim:e.semanaFim,
     rodadas:e.rodadas, jogos:e.jogosVinculados, concursos:e.concursos, numDez:e.numDezBolao };
 }
-// Abre a tela REAL de Bolões (mesmo renderFormBolao de sempre), mas
-// alimentada pelo estado lido do schema NOVO em vez do antigo — pra
-// comparar visualmente lado a lado com "Abrir" (schema antigo) no mesmo
-// bolão. Não altera editarBolao() nem nada do fluxo real; é só uma porta
-// de entrada alternativa pra teste, chamada a partir do botão de teste na
-// seção "🧪 Bolões (schema novo)".
-async function _abrirBolaoDoSchemaNovo(bolaoIdAntigo){
-  var r=await _carregarBolaoDoSchemaNovoParaEstado(bolaoIdAntigo);
-  if(r.erro){ toast(r.erro); return; }
-  _boloesState=r.estado;
-  _ordenarParticipantes();
-  renderFormBolao();
-  toast('🧪 Aberto a partir do schema novo — compare com "Abrir" (antigo).');
-}
+// Limpeza pós-migração (2026-07-12): removida daqui _abrirBolaoDoSchemaNovo
+// — porta de entrada de teste pro botão da já removida seção "🧪 Bolões
+// (schema novo)", sem nenhum caller restante.
 var BolaoJogosRepo = {
   // Dual-write: chamado a partir de vincularJogosAoBolao/vincularSalvoAoBolao,
   // nunca lê nada de JogosSalvosRepo. bolaoId aqui é o id NUMÉRICO local
@@ -19101,89 +18796,11 @@ async function _renderPainelSchemaNovo(){
   }).join('');
 }
 
-// Fase 3 (Doc 2): script de migração — converte jogos_salvos/boloes_v2
-// pro schema relacional novo (public.boloes/public.jogos), passando por
-// cima das mesmas RPCs que Fase 2 já valida (garante que a migração
-// respeita as MESMAS constraints do schema novo, não um caminho
-// separado). Roda em modo dryRun por padrão (só conta, não grava nada —
-// seguro chamar quantas vezes quiser) e é IDEMPOTENTE em modo real: as
-// RPCs rejeitam content_hash duplicado, então rodar duas vezes não
-// duplica nada, só ignora o que já foi migrado (ver duplicatasIgnoradas).
-async function _migrarParaJogosTable(opts){
-  opts=opts||{};
-  var dryRun=opts.dryRun!==false; // default true — precisa passar {dryRun:false} explicitamente pra gravar
-  var relatorio={dryRun:dryRun,boloesMigrados:0,boloesJaExistentes:0,jogosSalvosMigrados:0,jogosBolaoMigrados:0,duplicatasIgnoradas:0,erros:[]};
-  if(!JogosCommon.ativo()){ relatorio.erros.push('Ambiente não é DEV ou Supabase indisponível — migração só roda em DEV.'); return relatorio; }
-  var sb=_getSbClient(); if(!sb){ relatorio.erros.push('Cliente Supabase indisponível.'); return relatorio; }
-
-  var boloes=await dbAll('boloes_v2');
-  var jogosSalvos=await dbAll('jogos_salvos');
-  var mapaBolaoIdNovo={}; // id numérico antigo (boloes_v2) -> uuid novo (public.boloes)
-
-  function ehDuplicado(msg){ return /duplicate key|unique|content_hash/i.test(msg||''); }
-
-  // 1) Bolões — casados por nome (não existe outro identificador estável
-  // entre os dois esquemas ainda); se já existe um bolão com esse nome no
-  // schema novo, reaproveita o id em vez de criar outro.
-  // RLS exige user_id explícito no insert (mesmo bug já corrigido em
-  // BolaoJogosRepo._obterBolaoTeste — não há default/trigger que preencha
-  // sozinho a partir de auth.uid()).
-  var _uMig=await sb.auth.getUser();
-  var _uidMig=_uMig&&_uMig.data&&_uMig.data.user?_uMig.data.user.id:null;
-  for(var bi=0;bi<boloes.length;bi++){
-    var b=boloes[bi];
-    if(dryRun){ relatorio.boloesMigrados++; continue; }
-    if(!_uidMig){ relatorio.erros.push('bolão id='+b.id+': sem usuário autenticado'); continue; }
-    try{
-      var {data:existente}=await sb.from('boloes').select('id').eq('nome',b.nome).is('deleted_at',null).maybeSingle();
-      if(existente&&existente.id){ mapaBolaoIdNovo[b.id]=existente.id; relatorio.boloesJaExistentes++; continue; }
-      var {data:novo,error:errB}=await sb.from('boloes').insert({nome:b.nome,loteria:b.loteria||null,user_id:_uidMig}).select('id').single();
-      if(errB){ relatorio.erros.push('bolão id='+b.id+' ('+b.nome+'): '+errB.message); continue; }
-      mapaBolaoIdNovo[b.id]=novo.id;
-      relatorio.boloesMigrados++;
-    }catch(e){ relatorio.erros.push('bolão id='+b.id+': '+e.message); }
-  }
-
-  // 2) Jogos Salvos puros — NUNCA os que já estão vinculadoBolao (esses
-  // são cópia do que existe dentro do bolão; migrar os dois seria
-  // recriar exatamente a duplicação física que este projeto inteiro
-  // existe pra eliminar — ver item 1 do Documento 2).
-  for(var ji=0;ji<jogosSalvos.length;ji++){
-    var item=jogosSalvos[ji];
-    if(item.vinculadoBolao) continue;
-    var expandidos=_clonarJogosComExtras(item.jogos||[]);
-    if(!expandidos.length) continue;
-    if(dryRun){ relatorio.jogosSalvosMigrados+=expandidos.length; continue; }
-    try{
-      var payloadS=expandidos.map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=item.loteria; return p; });
-      var {data:dataS,error:errS}=await sb.rpc('rpc_salvar_jogos_salvos',{p_jogos:payloadS,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
-      if(errS){ if(ehDuplicado(errS.message)) relatorio.duplicatasIgnoradas++; else relatorio.erros.push('jogos_salvos id='+item.id+': '+errS.message); }
-      else relatorio.jogosSalvosMigrados+=(dataS?dataS.length:0);
-    }catch(e){ relatorio.erros.push('jogos_salvos id='+item.id+': '+e.message); }
-  }
-
-  // 3) Jogos dentro de cada bolão (boloes_v2.concursos[].jogos)
-  for(var bj=0;bj<boloes.length;bj++){
-    var bo=boloes[bj];
-    var bolaoNovoId=mapaBolaoIdNovo[bo.id];
-    var concursos=bo.concursos||[];
-    for(var ci=0;ci<concursos.length;ci++){
-      var cc=concursos[ci];
-      var expBolao=_clonarJogosComExtras(cc.jogos||[]);
-      if(!expBolao.length) continue;
-      if(dryRun){ relatorio.jogosBolaoMigrados+=expBolao.length; continue; }
-      if(!bolaoNovoId){ relatorio.erros.push('bolão id='+bo.id+' sem mapeamento novo — concurso '+cc.num+' não migrado'); continue; }
-      try{
-        var payloadB=expBolao.map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=cc.loteria||bo.loteria; p.concurso_ref=cc.num!=null?parseInt(cc.num)||null:null; return p; });
-        var {data:dataB,error:errB2}=await sb.rpc('rpc_vincular_jogos_bolao',{p_jogos:payloadB,p_bolao_id:bolaoNovoId,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
-        if(errB2){ if(ehDuplicado(errB2.message)) relatorio.duplicatasIgnoradas++; else relatorio.erros.push('bolão id='+bo.id+' concurso '+cc.num+': '+errB2.message); }
-        else relatorio.jogosBolaoMigrados+=(dataB?dataB.length:0);
-      }catch(e){ relatorio.erros.push('bolão id='+bo.id+' concurso '+cc.num+': '+e.message); }
-    }
-  }
-
-  return relatorio;
-}
+// Limpeza pós-migração (2026-07-12): removido daqui _migrarParaJogosTable —
+// script de migração da Fase 3 (jogos_salvos/boloes_v2 -> schema novo),
+// já rodado de verdade em DEV e produção (ver memória do projeto), sem
+// nenhum dado sobrando pra migrar desde o corte final (boloes_v2/
+// jogos_salvos permanentemente vazias). Sem callers restantes.
 function _extrasArraysDeJogos(jogos){
   return {
     mesArr:(jogos||[]).map(function(j){return j&&j._mes!=null?j._mes:null;}),
