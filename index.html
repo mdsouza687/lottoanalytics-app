@@ -17732,7 +17732,13 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
       var cc=_concursosNovos[ci];
       cc.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=cc.num; });
       await BolaoJogosRepo.vincularDual(cc.loteria,cc.jogos,g._novoSchemaId);
-      await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:cc.num,loteria:cc.loteria,data:cc.data,custo:cc.custo,semana:cc.semana});
+      // CORREÇÃO (2026-07-12): vinculoId/teimosinhaOrigem nunca eram
+      // repassados aqui, apesar de sincronizarConcursoDual já aceitar os
+      // dois — bolao_concursos.vinculo_id/teimosinha_origem ficavam sempre
+      // null. Sem vinculoId persistido, o badge "TEIMOSINHA ×N" nunca se
+      // reconstrói (teimosinhaTodos, ver getBolaoNovoSchema) mesmo com a
+      // Teimosinha vinculada corretamente.
+      await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:cc.num,loteria:cc.loteria,data:cc.data,custo:cc.custo,semana:cc.semana,vinculoId:cc.vinculoId,teimosinhaOrigem:cc.teimosinhaOrigem});
     }
     _registrarAuditoria('vincular_jogo_salvo',{jogoId:itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
@@ -17974,9 +17980,17 @@ async function excluirRodadaDoBolao(concursoIdxExibido){
   try{
     var g=await getBolao(s.editId);
     if(!g){ toast('Bolão não encontrado no banco.'); return; }
+    // CORREÇÃO (2026-07-12): comparava por num+savedAt — savedAt em s.concursos
+    // (estado em memória, escrito no momento do vínculo) é um timestamp DO
+    // CLIENTE (Date.now()), enquanto savedAt em g.concursos (releitura fresca
+    // do banco) vem de bolao_concursos.created_at (timestamp DO SERVIDOR) —
+    // os dois nunca batem exatamente, então a busca sempre falhava
+    // ("Concurso não localizado"). (num,loteria) já é a chave real de
+    // unicidade de bolao_concursos (constraint bolao_id,concurso_ref,loteria)
+    // — não precisa de timestamp nenhum pra desambiguar.
     var idxOriginal=-1;
     for(var i=0;i<(g.concursos||[]).length;i++){
-      if(g.concursos[i].num===cExibido.num && g.concursos[i].savedAt===cExibido.savedAt){ idxOriginal=i; break; }
+      if(g.concursos[i].num===cExibido.num && g.concursos[i].loteria===cExibido.loteria){ idxOriginal=i; break; }
     }
     if(idxOriginal<0){ toast('Concurso não localizado para exclusão.'); return; }
     var c=g.concursos[idxOriginal];
@@ -18021,10 +18035,13 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
   try{
     var g=await getBolao(s.editId);
     if(!g){ toast('Bolão não encontrado no banco.'); return; }
-    // Localiza o MESMO concurso no array original (não invertido) pelo número + savedAt
+    // CORREÇÃO (2026-07-12): mesma correção de excluirRodadaDoBolao — num+
+    // savedAt nunca bate entre estado em memória (timestamp do cliente) e
+    // releitura fresca do banco (timestamp do servidor). (num,loteria) é a
+    // chave real de unicidade de bolao_concursos.
     var idxOriginal=-1;
     for(var i=0;i<(g.concursos||[]).length;i++){
-      if(g.concursos[i].num===cExibido.num && g.concursos[i].savedAt===cExibido.savedAt){ idxOriginal=i; break; }
+      if(g.concursos[i].num===cExibido.num && g.concursos[i].loteria===cExibido.loteria){ idxOriginal=i; break; }
     }
     if(idxOriginal<0){ toast('Concurso não localizado para exclusão.'); return; }
     var c=g.concursos[idxOriginal];
@@ -19352,7 +19369,10 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
         var ccG=_concursosNovosG[ciG];
         ccG.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=ccG.num; });
         await BolaoJogosRepo.vincularDual(ccG.loteria,ccG.jogos,g._novoSchemaId);
-        await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:ccG.num,loteria:ccG.loteria,data:ccG.data,custo:ccG.custo,semana:ccG.semana});
+        // CORREÇÃO (2026-07-12): mesma correção do _vincularSalvoAoBolaoImpl
+        // — vinculoId/teimosinhaOrigem precisam ser repassados pra
+        // bolao_concursos, senão ficam sempre null.
+        await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:ccG.num,loteria:ccG.loteria,data:ccG.data,custo:ccG.custo,semana:ccG.semana,vinculoId:ccG.vinculoId,teimosinhaOrigem:ccG.teimosinhaOrigem});
       }
       _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
     }catch(e){ console.warn('[VINCULO]',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
