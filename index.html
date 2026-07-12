@@ -2478,6 +2478,11 @@ garantida entre os jogos">⭐ Score</button>
     </div>
     <div class="modal-footer">
       <button class="result-hdr-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:#7c3aed;color:#fff" onclick="usarJogosIA()">✅ Usar estes jogos</button>
+      <button class="result-hdr-btn" onclick="imprimirJogosIA()">🖨 Imprimir</button>
+      <button class="result-hdr-btn" id="btn-imprimir-volante-ia" style="display:none" onclick="imprimirVolantesIA()" data-tt="Imprime o volante oficial já marcado,
+em escala real (mm), com o maior
+número de volantes por folha A4
+e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
       <button class="result-hdr-btn" onclick="closeModal('modal-ia')">Fechar</button>
     </div>
   </div>
@@ -11545,6 +11550,10 @@ async function gerarComIA(tipo){
   window._iaTipo=tipo; // para o botão Gerar dentro do modal
   const d=CFG[currentKey]; if(!d){toast('Selecione uma loteria.');return;}
   exibirTeimosinhaBarIA(d);
+  // "Imprimir Volantes" (volante físico oficial) só existe pras 9 loterias
+  // da Caixa configuradas em VOLANTE_IMG — mesmo critério já usado no botão
+  // equivalente do painel principal (ver setupMods).
+  {const btnVolIA=document.getElementById('btn-imprimir-volante-ia'); if(btnVolIA) btnVolIA.style.display=(typeof VOLANTE_IMG!=='undefined'&&VOLANTE_IMG[currentKey])?'':'none';}
   // ── Inicializa o checkbox de espelho no modal ──
   const _espWrapModal=document.getElementById('ia-espelho-wrap');
   const _espChkModal=document.getElementById('ia-modal-espelho');
@@ -12202,9 +12211,9 @@ function iaAtualizarContagem(){
   if(all){ all.checked=sel===total&&total>0; all.indeterminate=sel>0&&sel<total; }
 }
 function usarJogosIA(){
-  if(!window._jogosIA||!window._jogosIA.length){toast('Nenhum jogo IA disponível.');return;}
+  if(!window._jogosIA||!window._jogosIA.length){toast('Nenhum jogo IA disponível.');return false;}
   const selIA=iaGetSelecionados();
-  if(!selIA.length){toast('Selecione ao menos um jogo.');return;}
+  if(!selIA.length){toast('Selecione ao menos um jogo.');return false;}
   // Montar array de jogos conforme seleção individual
   const jogos=selIA.map(({jogo,src,orig})=>{
     if(src==='pe'){
@@ -12299,6 +12308,20 @@ function usarJogosIA(){
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
   atualizarCustoPainel();
   toast(`✅ ${jogos.length} jogos da IA aplicados${_scoreMedioHdr!=null?` · Score médio ⭐${_scoreMedioHdr}`:''}`);
+  return true;
+}
+// Imprimir direto do modal de IA (2026-07-12): antes só existia "Usar estes
+// jogos" — pra imprimir (relatório ou volante físico), o usuário precisava
+// primeiro transferir os jogos pro painel principal e só então achar os
+// botões de impressão lá em cima, sem nenhuma pista disso dentro do modal.
+// Reaproveita usarJogosIA() (mesma seleção/transformação P+E/só principal/
+// só espelho já usada por "Usar estes jogos") e encadeia a impressão
+// correspondente assim que os jogos caem em jogosGerados.
+function imprimirJogosIA(){
+  if(usarJogosIA()) openModalImprimir();
+}
+function imprimirVolantesIA(){
+  if(usarJogosIA()) imprimirVolantes();
 }
 
 
