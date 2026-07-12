@@ -12802,10 +12802,20 @@ function adicionarJogoManual(){
   // loteria — mesma lógica de exibirConcursoBar()/aplicarTeimosinhaResultado()
   // usada no Gerador. Todos os jogos deste lote de inserção manual recebem
   // a MESMA lista (são a mesma aposta, repetida pelos mesmos concursos).
+  // CORREÇÃO (2026-07-12): quando os dados da loteria ainda não tinham
+  // carregado (calcConcursoVigente sem concursoNum — ex.: usuário trocou de
+  // loteria e começou a adicionar jogos antes do histórico terminar de
+  // processar), o jogo era adicionado ao carrinho MESMO ASSIM, só sem a
+  // Teimosinha, com um toast passageiro fácil de não notar — a seleção do
+  // usuário era silenciosamente ignorada. Mesma classe do primeiro bug
+  // desta sessão (checkbox de seleção ignorado ao salvar). Agora BLOQUEIA
+  // por completo em vez de adicionar errado: usuário escolheu Teimosinha,
+  // ou sai com Teimosinha aplicada ou não é adicionado, nunca vira aposta
+  // simples sem avisar de forma que dá pra perder.
   if(d.teimosinha&&d.teimosinha.length&&_manualTeimosinha){
     const {concursoNum}=calcConcursoVigente(resultados[key]);
-    if(concursoNum){ jogo._teimosinhaConcursos=calcConcursosTeimosinha(concursoNum,_manualTeimosinha); }
-    else { toast('Não foi possível identificar o concurso vigente — Teimosinha não aplicada a este jogo.'); }
+    if(!concursoNum){ toast('⚠️ Dados da loteria ainda carregando — aguarde e tente adicionar o jogo de novo (Teimosinha exige o concurso vigente já carregado).'); return; }
+    jogo._teimosinhaConcursos=calcConcursosTeimosinha(concursoNum,_manualTeimosinha);
   }
 
   // Evita duplicado entre os já adicionados (estrutura de colunas considerada no Super Sete)
