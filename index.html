@@ -16756,6 +16756,25 @@ async function _imprimirBolaoImpl(soPremiados){
   // são somadas numa única entrada por loteria, com o prêmio REAL daquela
   // loteria (resultados[loteria]), não um prêmio único genérico do bolão.
   var porLoteriaImp={};
+  // CORREÇÃO (2026-07-12): um "grupo" de Teimosinha (mesmo teimosinha_origem)
+  // pode conter jogos DIFERENTES com contagens de Teimosinha diferentes
+  // entre si — ex.: jogo A vinculado com 3 concursos e jogo B, vinculado
+  // separadamente mas caindo no mesmo concurso inicial, com só 2. Usar
+  // cc.teimosinhaTodos (a lista do GRUPO inteiro) pra rotular TODOS os
+  // jogos daquele concurso fazia o jogo B aparecer como "TEIMOSINHA ×3"
+  // (achado ao vivo em produção, 2026-07-12 — dado real confirmado por
+  // SQL: extras.teimosinhaConcursos do jogo tinha só 2 concursos, mas o
+  // relatório mostrava 3). Mapeia por _jogoId a lista REAL de concursos em
+  // que aquele MESMO jogo aparece, através de todos os concursos do bolão.
+  var _concursosPorJogoId={};
+  (gImp&&gImp.concursos||[]).forEach(function(cc){
+    (cc.jogos||[]).forEach(function(jg){
+      if(jg&&jg._jogoId){
+        if(!_concursosPorJogoId[jg._jogoId]) _concursosPorJogoId[jg._jogoId]=[];
+        _concursosPorJogoId[jg._jogoId].push(cc.num);
+      }
+    });
+  });
   (gImp&&gImp.concursos||[]).forEach(function(cc){
     // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos
     // arrays paralelos do concurso — sem isso, jogos de Dia de
@@ -16779,7 +16798,14 @@ async function _imprimirBolaoImpl(soPremiados){
     // loteria; sem isso, ao concatenar jogos de concursos diferentes da
     // mesma loteria (ex.: 2973 e 2974 da Dupla Sena), perdíamos de qual
     // concurso específico cada jogo individual veio.
-    (cc.jogos||[]).forEach(function(jg){ if(jg&&typeof jg==='object'){ jg._concursoOrigem=cc.num; if(cc.teimosinhaTodos) jg._teimosinhaConcursos=cc.teimosinhaTodos; } });
+    (cc.jogos||[]).forEach(function(jg){
+      if(jg&&typeof jg==='object'){
+        jg._concursoOrigem=cc.num;
+        var listaReal=jg._jogoId&&_concursosPorJogoId[jg._jogoId]&&_concursosPorJogoId[jg._jogoId].length>1?_concursosPorJogoId[jg._jogoId]:null;
+        if(listaReal) jg._teimosinhaConcursos=listaReal;
+        else if(cc.teimosinhaTodos) jg._teimosinhaConcursos=cc.teimosinhaTodos;
+      }
+    });
     porLoteriaImp[lk].jogos=porLoteriaImp[lk].jogos.concat(cc.jogos||[]);
     porLoteriaImp[lk].custo+=cc.custo||0;
   });
@@ -17597,8 +17623,21 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
       _boloesState.concursos=g.concursos;
-      _boloesState.jogosVinculados=g.concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]); 
-      renderParticipantesBoloes();
+      _boloesState.jogosVinculados=g.concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]);
+      // CORREÇÃO (2026-07-12): só chamava renderParticipantesBoloes() —
+      // "Controle Semanal" inteiro (custo, saldo, Histórico de Rodadas,
+      // Gastos Diários) é desenhado por renderFormBolao(), não por
+      // renderParticipantesBoloes(). Sem isso, essa seção ficava com dado
+      // velho (zerada) até o usuário sair e reabrir o bolão. Mesmo padrão
+      // já usado em _vincularJogosAoBolaoImpl: só refaz o formulário
+      // inteiro pra mensal/semanal (que têm blocos de semana próprios);
+      // "Único" usa a atualização mais leve já existente.
+      if(g.modalidade==='mensal'||g.modalidade==='semanal'){
+        renderFormBolao();
+        renderParticipantesBoloes();
+      } else {
+        _atualizarCotaUI();
+      }
     }
     openModalSalvar();
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
