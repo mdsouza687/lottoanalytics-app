@@ -3090,7 +3090,8 @@ const getJogoSalvo=async(id)=>{
     jogos:doLote.map(function(j){
       var a=(j.numeros||[]).slice();
       if(j.trevos&&j.trevos.length) a._trevos=j.trevos.slice();
-      if(j.extras){ if(j.extras.extra!=null)a._extra=j.extras.extra; if(j.extras.mes!=null)a._mes=j.extras.mes; if(j.extras.time!=null)a._time=j.extras.time; }
+      if(j.extras){ if(j.extras.extra!=null)a._extra=j.extras.extra; if(j.extras.mes!=null)a._mes=j.extras.mes; if(j.extras.time!=null)a._time=j.extras.time;
+        if(Array.isArray(j.extras.teimosinhaConcursos)&&j.extras.teimosinhaConcursos.length) a._teimosinhaConcursos=j.extras.teimosinhaConcursos.slice(); }
       if(j.is_espelho) a._isEspelho=true;
       a._jogoId=j.id;
       return a;
@@ -9816,7 +9817,8 @@ async function _carregarConjuntosDualComoAntigo(){
     var jogosReconstruidos=rows.map(function(r){
       var a=r.numeros.slice();
       if(r.trevos&&r.trevos.length) a._trevos=r.trevos.slice();
-      if(r.extras){ if(r.extras.extra!=null)a._extra=r.extras.extra; if(r.extras.mes!=null)a._mes=r.extras.mes; if(r.extras.time!=null)a._time=r.extras.time; }
+      if(r.extras){ if(r.extras.extra!=null)a._extra=r.extras.extra; if(r.extras.mes!=null)a._mes=r.extras.mes; if(r.extras.time!=null)a._time=r.extras.time;
+        if(Array.isArray(r.extras.teimosinhaConcursos)&&r.extras.teimosinhaConcursos.length) a._teimosinhaConcursos=r.extras.teimosinhaConcursos.slice(); }
       if(r.is_espelho) a._isEspelho=true;
       a._jogoId=r.id;
       return a;
@@ -10538,10 +10540,20 @@ function exibirConcursoBar(){
 // inteira para loterias que não oferecem a modalidade (ex.: Powerball,
 // Mega Millions, que não têm Teimosinha por serem loterias americanas).
 // Monta as <option>s de Teimosinha agrupadas por onde a marcação realmente
-// funciona: "Impressão física" (opções que existem de fato como caixinha no
-// volante oficial escaneado — d.teimosinhaFisico, mapeado por loteria em
-// VOLANTE_IMG) e "Outros" (demais opções de d.teimosinha, disponíveis só na
-// aposta online — no volante impresso essa Teimosinha fica sem marcação).
+// funciona: "Impressão física" (só as opções que existem de fato como
+// caixinha no volante oficial escaneado — d.teimosinhaFisico, mapeado por
+// loteria em VOLANTE_IMG, restrito de propósito) e "Aposta Online" (TODAS
+// as opções de d.teimosinha, sem exceção — online não tem a limitação da
+// caixinha impressa, então nenhum valor fica de fora desse grupo, nem os
+// que também aparecem na impressão física).
+// CORREÇÃO (2026-07-12): o grupo online antes mostrava só o COMPLEMENTO
+// (d.teimosinha menos d.teimosinhaFisico) — cada valor aparecia em só um
+// dos dois grupos, como se fossem exclusivos entre si. Mas um valor que dá
+// pra marcar no volante impresso também é válido pra aposta online (a
+// aposta online não tem restrição nenhuma); só o inverso é que não vale
+// (um valor "online-only" não tem caixinha física correspondente). Por
+// isso o grupo online precisa ser a lista COMPLETA (d.teimosinha), não o
+// complemento — só o grupo físico continua restrito ao subconjunto real.
 // Enquanto uma loteria ainda não teve seu volante físico mapeado (Doc 3),
 // d.teimosinhaFisico é undefined e a lista sai sem agrupamento, como antes.
 function _teimosinhaOptionsHtml(d,selecionado){
@@ -10550,9 +10562,8 @@ function _teimosinhaOptionsHtml(d,selecionado){
     return d.teimosinha.map(opts).join('');
   }
   const fisico=d.teimosinha.filter(n=>d.teimosinhaFisico.includes(n));
-  const outros=d.teimosinha.filter(n=>!d.teimosinhaFisico.includes(n));
   let html='<optgroup label="🖨 Impressão física">'+fisico.map(opts).join('')+'</optgroup>';
-  if(outros.length) html+='<optgroup label="💻 Outros (só aposta online)">'+outros.map(opts).join('')+'</optgroup>';
+  html+='<optgroup label="💻 Aposta Online (todas as opções)">'+d.teimosinha.map(opts).join('')+'</optgroup>';
   return html;
 }
 function exibirTeimosinhaBar(d){
@@ -18445,8 +18456,16 @@ var JogosCommon = {
       loteria: j._loteriaOrigem||null, // preenchido pelo chamador quando necessário
       numeros: Array.isArray(j)?j.slice():[],
       trevos: Array.isArray(j._trevos)?j._trevos.slice():null,
+      // CORREÇÃO (2026-07-12): teimosinhaConcursos não era serializado aqui —
+      // um jogo avulso salvo com Teimosinha perdia essa informação por
+      // completo assim que gravado no schema novo. Ao ser lido de volta pra
+      // vincular a um bolão, jogos[0]._teimosinhaConcursos vinha undefined e
+      // _pushConcursoEntry() tratava como aposta de 1 concurso só (nunca
+      // expandia pros N concursos consecutivos). Vai dentro de "extras"
+      // (jsonb livre), mesmo padrão já usado pra extra/mes/time/ssCols.
       extras: { extra:j._extra!=null?j._extra:null, mes:j._mes!=null?j._mes:null, time:j._time!=null?j._time:null,
-        ssCols:(Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null) },
+        ssCols:(Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null),
+        teimosinhaConcursos:(Array.isArray(j._teimosinhaConcursos)?j._teimosinhaConcursos.slice():null) },
       is_espelho: !!j._isEspelho,
       concurso_ref: j._concursoOrigem!=null?parseInt(j._concursoOrigem)||null:null
     };
@@ -18673,11 +18692,28 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     arr._jogoId=j.id;
     porChave[chave].push(arr);
   });
+  // CORREÇÃO (2026-07-12): teimosinhaTodos passava direto o valor de
+  // teimosinha_origem (um NÚMERO — o primeiro concurso da sequência, usado
+  // só como tag pra agrupar), em vez da LISTA de concursos da sequência
+  // Teimosinha. Downstream (impressão/relatório) checa `teimosinhaTodos.length`
+  // pra decidir se mostra o badge "TEIMOSINHA ×N" — com um número em vez de
+  // array, `.length` é sempre undefined, então a Teimosinha nunca aparecia
+  // como tal (mesma classe do bug de "vinculado como aposta simples").
+  // Agrupa por (teimosinha_origem, loteria) pra reconstruir a lista real.
+  var gruposTeim={};
+  concursosMeta.forEach(function(c){
+    if(c.teimosinha_origem==null) return;
+    var chaveT=c.teimosinha_origem+'|'+c.loteria;
+    if(!gruposTeim[chaveT]) gruposTeim[chaveT]=[];
+    gruposTeim[chaveT].push(c.concurso_ref);
+  });
   var concursos=concursosMeta.map(function(c){
     var chave=c.concurso_ref+'|'+c.loteria;
+    var chaveT=c.teimosinha_origem!=null?(c.teimosinha_origem+'|'+c.loteria):null;
+    var todos=(chaveT&&gruposTeim[chaveT]&&gruposTeim[chaveT].length>1)?gruposTeim[chaveT].slice().sort(function(a,b){return a-b;}):null;
     return { num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
       status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
-      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:c.teimosinha_origem||null };
+      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos };
   });
 
   var estado={
