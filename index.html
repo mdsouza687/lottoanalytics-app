@@ -2940,66 +2940,11 @@ function _aplicarMaxJogosGeracaoNaUI(){
   const qtyEl=document.getElementById('jogo-qty');
   if(qtyEl){ qtyEl.max=v; qtyEl.placeholder='máx '+v.toLocaleString('pt-BR'); }
 }
-async function adminRodarDiagnostico(){
-  const el=document.getElementById('adm-diagnostico-resultado');
-  if(el) el.textContent='Verificando...';
-  const r=await _diagnosticoIntegridade();
-  if(!el) return;
-  const linha=(ok,texto)=>`<div style="color:${ok?'#4ade80':'#facc15'}">${ok?'✓':'⚠️'} ${texto}</div>`;
-  el.innerHTML=[
-    `<div style="color:var(--text-muted);margin-bottom:4px">${r.totalJogosSalvos} jogo(s) salvo(s) · ${r.totalBoloes} bolão(ões)</div>`,
-    linha(r.orfaos.length===0, r.orfaos.length===0?'Nenhum jogo salvo órfão.':r.orfaos.length+' jogo(s) salvo(s) vinculado(s) a um bolão que não existe mais: '+r.orfaos.map(o=>'#'+o.id+' "'+_esc(o.nome)+'"').join(', ')),
-    // Duplicados NUNCA são apagados automaticamente (ver comentário no boot,
-    // linha ~12789) — só com o admin clicando aqui, vendo a lista exata do
-    // que seria removido, e confirmando.
-    linha(r.boloesDuplicados===0, r.boloesDuplicados===0?'Nenhum bolão duplicado.':r.boloesDuplicados+' bolão(ões) duplicado(s). <button class="btn-sm" onclick="adminLimparBoloesDuplicados()">Revisar e limpar</button>'),
-    linha(r.jogosSalvosDuplicados===0, r.jogosSalvosDuplicados===0?'Nenhum jogo salvo duplicado.':r.jogosSalvosDuplicados+' jogo(s) salvo(s) duplicado(s). <button class="btn-sm" onclick="adminLimparJogosSalvosDuplicados()">Revisar e limpar</button>'),
-    linha(r.concursosSemVinculoId===0, r.concursosSemVinculoId===0?'Todos os concursos de bolão têm identificador único.':r.concursosSemVinculoId+' concurso(s) de bolão sem identificador único (registros antigos, anteriores a esta atualização — continuam funcionando normalmente).'),
-    linha(r.jogosSalvosSemUuid===0, r.jogosSalvosSemUuid===0?'Todos os jogos salvos têm identificador único.':r.jogosSalvosSemUuid+' jogo(s) salvo(s) sem identificador único (registros antigos — continuam funcionando normalmente).'),
-  ].join('');
-}
-// Wrappers que tornam a limpeza de duplicados uma ação EXPLÍCITA do admin,
-// com lista exata do que será removido antes de confirmar — nunca mais
-// automática no boot (ver comentário no carregamento do app).
-async function adminLimparBoloesDuplicados(){
-  const todos=await dbAll('boloes_v2').catch(()=>[]);
-  const grupos=new Map();
-  todos.forEach(b=>{ const k=_bolaoAssinatura(b); if(!grupos.has(k)) grupos.set(k,[]); grupos.get(k).push(b); });
-  const aRemover=[];
-  for(const grupo of grupos.values()){
-    if(grupo.length<2) continue;
-    grupo.sort((a,b)=>(a.savedAt||0)-(b.savedAt||0));
-    aRemover.push(...grupo.slice(1));
-  }
-  if(!aRemover.length){ toast('Nenhum bolão duplicado encontrado.'); return; }
-  const lista=aRemover.map(b=>'#'+b.id+' "'+(b.nome||'(sem nome)')+'"').join('\n');
-  if(!confirm('Isto vai APAGAR permanentemente '+aRemover.length+' bolão(ões) considerado(s) duplicado(s) (mantém o mais antigo de cada grupo):\n\n'+lista+'\n\nConfirma?')) return;
-  const n=await limparBoloesDuplicados();
-  toast('✓ '+n+' bolão(ões) duplicado(s) removido(s).');
-  if(typeof popularDropdownManualBolao==='function') popularDropdownManualBolao();
-  adminRodarDiagnostico();
-}
-async function adminLimparJogosSalvosDuplicados(){
-  const todos=await dbAll('jogos_salvos').catch(()=>[]);
-  const grupos=new Map();
-  todos.forEach(item=>{ const k=_jogoSalvoAssinatura(item); if(!grupos.has(k)) grupos.set(k,[]); grupos.get(k).push(item); });
-  const aRemover=[];
-  for(const grupo of grupos.values()){
-    if(grupo.length<2) continue;
-    const vinculados=grupo.filter(x=>x.vinculadoBolao), soltos=grupo.filter(x=>!x.vinculadoBolao);
-    for(const sub of [vinculados,soltos]){
-      if(sub.length<2) continue;
-      sub.sort((a,b)=>(a.savedAt||0)-(b.savedAt||0));
-      aRemover.push(...sub.slice(1));
-    }
-  }
-  if(!aRemover.length){ toast('Nenhum jogo salvo duplicado encontrado.'); return; }
-  const lista=aRemover.map(j=>'#'+j.id+' "'+(j.nome||'(sem nome)')+'"').join('\n');
-  if(!confirm('Isto vai APAGAR permanentemente '+aRemover.length+' jogo(s) salvo(s) considerado(s) duplicado(s) (mantém o mais antigo de cada grupo):\n\n'+lista+'\n\nConfirma?')) return;
-  const n=await limparJogosSalvosDuplicados();
-  toast('✓ '+n+' jogo(s) salvo(s) duplicado(s) removido(s).');
-  adminRodarDiagnostico();
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): adminRodarDiagnostico/
+// adminLimparBoloesDuplicados/adminLimparJogosSalvosDuplicados removidos —
+// só verificavam/limpavam jogos_salvos/boloes_v2 (IndexedDB local), que
+// pararam de crescer depois do corte final. O botão correspondente no
+// painel admin também foi removido (ver abrirPainelAdmin).
 async function abrirPainelAdmin(){
   if(!window._usuarioAtual||!window._usuarioAtual.isAdmin){ toast('Acesso restrito ao administrador.'); return; }
   await renderPainelAdmin();
@@ -3034,12 +2979,6 @@ async function renderPainelAdmin(msg,msgTipo){
         <button class="ag-btn" onclick="adminSalvarMaxJogos()">Salvar</button>
         <span id="adm-max-jogos-msg" style="font-size:11px;color:#4ade80"></span>
       </div>
-    </div>
-    <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
-      <div style="font-weight:800;font-size:13px;margin-bottom:10px">🔍 Diagnóstico de Integridade (Jogos Salvos / Bolões)</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Verifica jogos salvos vinculados a bolões que não existem mais (órfãos), registros duplicados e registros gravados antes do sistema de UUID/auditoria. Não corrige automaticamente — só reporta, para você decidir.</div>
-      <button class="ag-btn" onclick="adminRodarDiagnostico()">Rodar diagnóstico</button>
-      <div id="adm-diagnostico-resultado" style="font-size:12px;margin-top:10px;line-height:1.7"></div>
     </div>
     <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ Criar usuário de teste (já confirmado, sem precisar clicar em link de e-mail)</div>
@@ -10090,39 +10029,19 @@ async function openModalSalvar(escopo){
      Bolão "Jogo Único" não aceita vínculo (é um spot fechado, sem concursos futuros);
      quando não há nenhum bolão elegível, a linha inteira de vínculo fica oculta. */
   try{
-    var _todosBoloesV=await dbAll('boloes_v2');
-    // Bolão "Único" (geralmente usado para concursos especiais como Quina de
-    // São João, Mega da Virada etc., que têm um período de vendas longo)
-    // aceita MÚLTIPLAS vinculações ao longo do tempo — não fecha mais após a
-    // primeira. A restrição real é: todas as vinculações de um bolão Único
-    // devem ser para a MESMA loteria e o MESMO concurso já fixado na
-    // primeira vinculação (checado em vincularJogosAoBolao, não aqui na
-    // lista) — isso é o que de fato preserva o significado de "Único".
-    var _vinculaveisV=_todosBoloesV.slice();
-    // Fase 4 (Doc 2): bolões do schema novo (uuid) pra popular os selects
-    // dos itens migrados — busca só uma vez, fora do forEach.
-    var _boloesNovoV=(paraInd.some(function(it){return it._novoSchema;})&&typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
+    // CORREÇÃO (2026-07-12): antes lia dbAll('boloes_v2') (schema antigo) —
+    // desde o corte final (Bucket B), bolões existem SÓ no schema novo, e
+    // boloes_v2 fica permanentemente vazio. Isso fazia o dropdown "Vincular
+    // a um Bolão" nunca mostrar nenhum bolão em produção. Todo item de
+    // Jogos Salvos também já é sempre _novoSchema:true (ver
+    // _carregarConjuntosDualComoAntigo) — não sobra mais nenhum item do
+    // formato antigo pra tratar em separado.
+    var _boloesNovoV=(typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
     paraInd.forEach(function(item){
       var sel=document.getElementById('vinc-sel-'+item.id);
       if(!sel) return;
-      if(item._novoSchema){
-        var optsNovo='<option value="">— Selecione um bolão —</option>'+_boloesNovoV.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
-        sel.innerHTML=optsNovo;
-        return;
-      }
-      var linhaVinc=sel.closest('div');
-      // Bolões Multi-Loteria não pertencem a 1 loteria fixa — listamos TODOS
-      // os bolões elegíveis juntos (ordenados por mais recente), sem filtrar
-      // pela loteria do conjunto salvo (item.loteria) nem pela loteria ativa
-      // no topo do app. Isso corrigia o bug de "só aparece 1 bolão".
-      var elegiveis=_vinculaveisV.slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
-      if(!elegiveis.length && !item.vinculadoBolao){
-        if(linhaVinc) linhaVinc.style.display='none';
-        return;
-      }
-      var opts='<option value="">— Selecione um bolão —</option>';
-      elegiveis.forEach(function(b){ opts+='<option value="'+b.id+'"'+(item.bolaoId===b.id?' selected':'')+'>🌐 '+_esc(b.nome||'Bolão')+'</option>'; });
-      sel.innerHTML=opts;
+      var optsNovo='<option value="">— Selecione um bolão —</option>'+_boloesNovoV.map(function(b){return '<option value="'+b.id+'"'+(item.bolaoId===b.id?' selected':'')+'>🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+      sel.innerHTML=optsNovo;
     });
   }catch(e){ console.warn('[SALVOS-VINC]',e.message); }
 
@@ -10138,8 +10057,11 @@ async function openModalSalvar(escopo){
       // comportamento de sempre para quem não usa bolões), mas a escolha
       // fica EXPLÍCITA e, se "Vincular a um Bolão" for marcada, o Salvar
       // só libera depois de um bolão selecionado (ver _salvarComEscolha).
-      var _boloesElegiveisFooter=(typeof _todosBoloesV!=='undefined'?_todosBoloesV:[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
-      var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+_boloesElegiveisFooter.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+      // CORREÇÃO (2026-07-12): usava _todosBoloesV (schema antigo, dead
+      // code desde o corte final) — agora reaproveita _boloesNovoV, já
+      // buscado do schema novo logo acima (ordenado por created_at desc
+      // na própria query, não precisa reordenar aqui).
+      var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+(typeof _boloesNovoV!=='undefined'?_boloesNovoV:[]).map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
       // Pré-seleção vinda de gerarJogosParaBolao() (clique em "🎲 Gerar
       // Jogos" a partir de um card de bolão) — só pré-marca a escolha
       // aqui; o vínculo em si só é gravado se o usuário clicar em Salvar
@@ -12578,28 +12500,24 @@ async function popularDropdownManualBolao(){
   _popularDropdownManualBolaoEmAndamento=true;
   const dd=document.getElementById('manual-vinculo-sel');
   if(!dd){ _popularDropdownManualBolaoEmAndamento=false; return; }
-  const selLot=document.getElementById('manual-loteria-sel');
-  const loteriaAlvo=(selLot&&selLot.value)||currentKey;
   const valorAtual=dd.value;
   dd.innerHTML='<option value="">— Nenhum (só conferência) —</option>';
   try{
-    const todos=await dbAll('boloes_v2');
+    // CORREÇÃO (2026-07-12): lia dbAll('boloes_v2') (schema antigo) — desde
+    // o corte final (Bucket B) bolões existem só no schema novo, e
+    // boloes_v2 fica permanentemente vazio (mesma classe de bug corrigida
+    // em openModalSalvar). getBolaoNovoSchema não serve aqui (é por id
+    // único) — usa BolaoJogosRepo.listarBoloesDual() direto, que já lê do
+    // schema novo com o gate de leitura ambiente-agnóstico correto.
+    const todos=(typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
     if(!todos||!todos.length) return;
-    // Ordena: bolões da loteria selecionada primeiro, depois os demais
-    const ordenados=todos.slice().sort(function(a,b){
-      const aMatch=a.loteria===loteriaAlvo?0:1;
-      const bMatch=b.loteria===loteriaAlvo?0:1;
-      if(aMatch!==bMatch) return aMatch-bMatch;
-      return (b.savedAt||0)-(a.savedAt||0);
-    });
-    ordenados.forEach(b=>{
+    // listarBoloesDual só devolve {id,nome} — sem loteria/savedAt/concurso
+    // pra ordenar/rotular por loteria como antes; lista só por nome,
+    // ordem já vem por created_at desc da própria query.
+    todos.forEach(b=>{
       const opt=document.createElement('option');
       opt.value=b.id;
-      const nomeLot=(typeof CFG!=='undefined'&&CFG[b.loteria])?CFG[b.loteria].nome:(b.loteria||'');
-      const mesmaLot=b.loteria===loteriaAlvo;
-      // Bolão virgem (b.loteria vazio — Doc 2, ainda sem jogo vinculado) não
-      // mostra colchete nenhum, em vez de "[ ]" vazio.
-      opt.textContent=(b.nome||'Bolão')+((mesmaLot||!b.loteria)?'':' ['+nomeLot+']')+(b.concurso?' · conc. '+b.concurso:'');
+      opt.textContent=b.nome||'Bolão';
       dd.appendChild(opt);
     });
     if(valorAtual) dd.value=valorAtual;
@@ -12984,127 +12902,14 @@ async function _salvarJogosManuaisImpl(){
   }
 }
 
-// Identifica duplicatas de jogos_salvos criadas pelo bug do antigo
-// supabaseCarregar() (chamado em todo boot, sem controle de "já importei
-// isso", recriava as mesmas entradas da tabela legada "jogos_loterias" a
-// cada sessão). Agrupa por assinatura de conteúdo (loteria+nome+savedAt+
-// numDez+jogos) — duplicatas geradas por esse bug têm savedAt IDÊNTICO
-// entre si (vem sempre do mesmo campo saved_at da linha de origem), então
-// essa assinatura não corre risco de fundir jogos genuinamente diferentes
-// que só coincidem por acaso. NÃO remove nada sozinha — só relata; a
-// remoção efetiva (_removerDuplicatasJogosSalvos) é uma ação separada,
-// disparada manualmente pelo usuário.
-async function _identificarDuplicatasJogosSalvos(){
-  let todos=[];
-  try{ todos=await dbAll('jogos_salvos'); }catch(e){ return {grupos:[],totalRemovivel:0}; }
-  const grupos=new Map();
-  for(const item of todos){
-    const assinatura=JSON.stringify([item.loteria,item.nome,item.savedAt,item.numDez,item.jogos]);
-    if(!grupos.has(assinatura)) grupos.set(assinatura,[]);
-    grupos.get(assinatura).push(item);
-  }
-  const duplicados=[...grupos.values()].filter(g=>g.length>1);
-  const totalRemovivel=duplicados.reduce((s,g)=>s+(g.length-1),0);
-  return {grupos:duplicados,totalRemovivel};
-}
-// Remove efetivamente as duplicatas identificadas acima, mantendo sempre a
-// entrada de MENOR id (mais antiga) de cada grupo. dbDel já propaga a
-// remoção ao Supabase (SUPABASE_SYNC_STORES inclui 'jogos_salvos').
-async function _removerDuplicatasJogosSalvos(){
-  const {grupos}=await _identificarDuplicatasJogosSalvos();
-  let removidos=0;
-  for(const grupo of grupos){
-    grupo.sort((a,b)=>(a.id||0)-(b.id||0));
-    for(let i=1;i<grupo.length;i++){
-      try{ await dbDel('jogos_salvos',grupo[i].id); removidos++; }catch(e){}
-    }
-  }
-  return removidos;
-}
-// Fase 1 da reestruturação de armazenamento (Documento 2): auditoria
-// completa, SÓ LEITURA — não apaga, não corrige, não escreve nada. Serve
-// pra dimensionar o estrago atual (jogos_salvos + boloes_v2.concursos[].jogos)
-// antes de qualquer migração pro novo schema relacional (public.jogos/
-// public.boloes no Supabase). Generaliza a mesma ideia de assinatura de
-// conteúdo já usada em _identificarDuplicatasJogosSalvos, mas cobrindo os
-// 5 tipos de inconsistência que o documento pede que a migração detecte:
-// duplicatas, jogo presente em Jogos Salvos E dentro de um bolão ao mesmo
-// tempo (viola o isolamento exigido), bolaoId órfão, espelho ainda
-// aninhado (não expandido em registro próprio) e jogo sem _jogoId (não
-// dá pra migrar pra um UUID estável sem essa referência).
-function _hashConteudoJogo(loteria,numeros,trevos){
-  var n=(numeros||[]).slice().sort(function(a,b){return a-b;}).join(',');
-  var t=trevos?trevos.slice().sort(function(a,b){return a-b;}).join(','):'';
-  return loteria+'|'+n+'|'+t;
-}
-async function _auditarIntegridadeCompleta(){
-  var jogosSalvos=[],boloes=[];
-  try{ jogosSalvos=await dbAll('jogos_salvos'); }catch(e){}
-  try{ boloes=await dbAll('boloes_v2'); }catch(e){}
-
-  var duplicatasPorHash=[], jogoEmDoisLugares=[], bolaoIdOrfao=[], espelhoNaoExpandido=[], jogoIdAusente=[];
-
-  // 1) Duplicatas por conteúdo dentro de Jogos Salvos (mesma loteria+dezenas+trevos)
-  var porHash={};
-  jogosSalvos.forEach(function(item){
-    (item.jogos||[]).forEach(function(j,idx){
-      var h=_hashConteudoJogo(item.loteria,j,j&&j._trevos);
-      (porHash[h]=porHash[h]||[]).push({itemId:item.id,itemNome:item.nome,jogoIdx:idx,jogoId:j&&j._jogoId});
-    });
-  });
-  Object.keys(porHash).forEach(function(h){ if(porHash[h].length>1) duplicatasPorHash.push({hash:h,ocorrencias:porHash[h]}); });
-
-  // 2) Jogo com o MESMO conteúdo existindo em Jogos Salvos E dentro de um bolão
-  //    ao mesmo tempo — viola o isolamento exigido pelo documento (item 1).
-  var hashesEmBolao={};
-  boloes.forEach(function(b){
-    (b.concursos||[]).forEach(function(cc){
-      (cc.jogos||[]).forEach(function(j){
-        var h=_hashConteudoJogo(cc.loteria||b.loteria,j,j&&j._trevos);
-        (hashesEmBolao[h]=hashesEmBolao[h]||[]).push({bolaoId:b.id,bolaoNome:b.nome,concursoNum:cc.num});
-      });
-    });
-  });
-  jogosSalvos.forEach(function(item){
-    if(item.vinculadoBolao) return; // já sabidamente uma cópia vinculada, não é o caso buscado aqui
-    (item.jogos||[]).forEach(function(j){
-      var h=_hashConteudoJogo(item.loteria,j,j&&j._trevos);
-      if(hashesEmBolao[h]) jogoEmDoisLugares.push({itemId:item.id,itemNome:item.nome,tambemEm:hashesEmBolao[h]});
-    });
-  });
-
-  // 3) bolaoId apontando pra um bolão que não existe (mais)
-  var boloesIds={}; boloes.forEach(function(b){ boloesIds[b.id]=true; });
-  jogosSalvos.forEach(function(item){
-    if(item.bolaoId!=null && !boloesIds[item.bolaoId]) bolaoIdOrfao.push({itemId:item.id,itemNome:item.nome,bolaoIdApontado:item.bolaoId});
-  });
-
-  // 4) Espelho ainda aninhado (jogo._espelho), nunca expandido em registro próprio
-  jogosSalvos.forEach(function(item){
-    (item.jogos||[]).forEach(function(j,idx){ if(j&&j._espelho) espelhoNaoExpandido.push({origem:'jogos_salvos',itemId:item.id,itemNome:item.nome,jogoIdx:idx}); });
-  });
-  boloes.forEach(function(b){
-    (b.concursos||[]).forEach(function(cc){
-      (cc.jogos||[]).forEach(function(j,idx){ if(j&&j._espelho) espelhoNaoExpandido.push({origem:'boloes_v2',bolaoId:b.id,bolaoNome:b.nome,concursoNum:cc.num,jogoIdx:idx}); });
-    });
-  });
-
-  // 5) Jogo sem _jogoId — não dá pra migrar pra um UUID estável sem essa referência
-  jogosSalvos.forEach(function(item){
-    (item.jogos||[]).forEach(function(j,idx){ if(j&&!j._jogoId) jogoIdAusente.push({itemId:item.id,itemNome:item.nome,jogoIdx:idx}); });
-  });
-
-  return {
-    resumo:{
-      totalJogosSalvos:jogosSalvos.length, totalBoloes:boloes.length,
-      duplicatas:duplicatasPorHash.length, emDoisLugares:jogoEmDoisLugares.length,
-      orfaos:bolaoIdOrfao.length, espelhosNaoExpandidos:espelhoNaoExpandido.length,
-      semJogoId:jogoIdAusente.length
-    },
-    duplicatasPorHash:duplicatasPorHash, jogoEmDoisLugares:jogoEmDoisLugares,
-    bolaoIdOrfao:bolaoIdOrfao, espelhoNaoExpandido:espelhoNaoExpandido, jogoIdAusente:jogoIdAusente
-  };
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): removidos daqui
+// _identificarDuplicatasJogosSalvos/_removerDuplicatasJogosSalvos/
+// _hashConteudoJogo/_auditarIntegridadeCompleta — só existiam pra
+// detectar/limpar duplicatas e inconsistências em jogos_salvos/boloes_v2
+// (IndexedDB local), tabelas que pararam de crescer depois do corte final.
+// Sem nenhuma escrita real chegando nelas, essas checagens sempre
+// retornariam "tudo limpo" para sempre — código morto, não uma
+// funcionalidade preservada.
 async function _bootApp(){
   buildDash();
   _aplicarMaxJogosGeracaoNaUI();
@@ -13160,16 +12965,6 @@ async function _bootApp(){
   setDot('ok',`✓ Pronto — ${new Date().toLocaleTimeString('pt-BR')}`);
   // Atualiza em background
   setTimeout(()=>atualizarTodas(true), 500);
-  // IMPORTANTE (incidente de integridade de dados): limparBoloesDuplicados()
-  // e limparJogosSalvosDuplicados() NÃO rodam mais sozinhas a cada
-  // carregamento do app. Apagar dados do usuário automaticamente, sem
-  // confirmação, todo santo carregamento, é perigoso demais — um ambiente
-  // de teste/preview que compartilhe o mesmo backend (mesmo Supabase) pode
-  // disparar essas rotinas repetidamente e apagar registros legítimos que
-  // só "parecem" duplicados (mesmo nome de bolão vinculado várias vezes,
-  // por exemplo). Agora essas duas rotinas só rodam via ação explícita do
-  // usuário, com relatório e confirmação antes — ver
-  // adminRodarDiagnostico()/_diagnosticoIntegridade() no painel admin.
   // Aviso periódico de backup (após o app carregar)
   setTimeout(verificarAvisoBackup, 4000);
   // Backup automático 1x/dia: dispara sozinho (sem precisar do usuário
@@ -14725,88 +14520,14 @@ function abrirPaginaBoloes(){
   // virgem" (Doc 2). Continua rodando quando o usuário escolhe um sorteio
   // especial explicitamente (_setSorteioBolao) ou quando jogos são
   // vinculados (vincularSalvoAoBolao/vincularJogosAoBolao).
-  // Verifica se há bolões no formato antigo a migrar (1x, com confirmação do usuário)
-  if(typeof verificarMigracaoBoloes==='function') verificarMigracaoBoloes();
 }
 
-/* ════════════════════════════════════════════════════════
-   MIGRAÇÃO PARA BOLÃO MULTI-LOTERIA (item 1 do documento de upgrade)
-   Todo bolão passa a ser Multi-Loteria — não há mais modalidade de loteria
-   única. Os valores internos de `modalidade` ('unico'/'semanal'/'mensal')
-   não mudam (só o RÓTULO exibido passa a ser "Multi-Loteria X"); bolões
-   antigos com o modificador legado modalidade==='multi' são reclassificados
-   como 'semanal' (se tinham rodadas), 'mensal' (se tinham semanas do mês)
-   ou 'unico' (senão). A migração só roda 1x por navegador, com confirmação
-   do usuário e backup automático antes de qualquer alteração.
-   ════════════════════════════════════════════════════════ */
-async function verificarMigracaoBoloes(){
-  try{
-    if(localStorage.getItem('lotto_migrado_multi_v1')==='1') return;
-    var todos=await dbAll('boloes_v2');
-    if(!todos||!todos.length){
-      // Nada para migrar — marca como concluído para não checar de novo
-      localStorage.setItem('lotto_migrado_multi_v1','1');
-      return;
-    }
-    var precisamMigrar=todos.filter(function(g){return g.modalidade==='multi';});
-    if(!precisamMigrar.length){
-      localStorage.setItem('lotto_migrado_multi_v1','1');
-      return;
-    }
-    _mostrarModalMigracaoBoloes(precisamMigrar.length, todos.length);
-  }catch(e){ console.warn('[verificarMigracaoBoloes]',e.message); }
-}
-function _mostrarModalMigracaoBoloes(qtdAfetados, qtdTotal){
-  if(document.getElementById('modal-migracao-boloes')) return;
-  var html=
-  '<div id="modal-migracao-boloes" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:20px">'+
-    '<div style="background:var(--bg,#12151f);border:1px solid '+MULTI_LOTERIA_COR+'55;border-radius:16px;max-width:480px;width:100%;overflow:hidden">'+
-      '<div style="padding:18px 22px;border-bottom:1px solid var(--glass-border);background:'+MULTI_LOTERIA_COR+'14">'+
-        '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:'+MULTI_LOTERIA_COR+'">🌐 Atualização do sistema de Bolões</div>'+
-      '</div>'+
-      '<div style="padding:18px 22px;font-size:13px;color:var(--text);line-height:1.6">'+
-        '<p style="margin:0 0 10px">O sistema de bolões foi atualizado para o novo formato <b>Multi-Loteria</b>. '+
-        qtdAfetados+' de '+qtdTotal+' bolão(ões) salvos usavam o formato anterior e serão reclassificados automaticamente — nenhum dado de jogos, participantes ou pagamentos será alterado ou perdido.</p>'+
-        '<p style="margin:0 0 10px;color:var(--text-muted);font-size:12px">Antes de continuar, vamos baixar um backup completo (.json) dos seus dados atuais, como medida de segurança.</p>'+
-      '</div>'+
-      '<div style="padding:14px 22px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end;gap:8px">'+
-        '<button onclick="_cancelarMigracaoBoloes()" style="border:1px solid var(--glass-border);border-radius:8px;padding:8px 14px;background:var(--glass-bg);color:var(--text);font-size:12px;font-weight:700;cursor:pointer">Agora não</button>'+
-        '<button onclick="_confirmarMigracaoBoloes()" style="border:none;border-radius:8px;padding:8px 16px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-size:12px;font-weight:800;cursor:pointer">Baixar backup e atualizar</button>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
-  document.body.insertAdjacentHTML('beforeend', html);
-}
-function _cancelarMigracaoBoloes(){
-  // Não marca como migrado — a pergunta volta a aparecer na próxima vez que
-  // a aba Bolões for aberta (o usuário pode preferir migrar depois).
-  document.getElementById('modal-migracao-boloes')?.remove();
-}
-async function _confirmarMigracaoBoloes(){
-  try{
-    await exportarBackup();
-    await _executarMigracaoBoloes();
-    toast('✓ Backup baixado e bolões atualizados para Multi-Loteria');
-  }catch(e){ console.error('[migracaoBoloes]',e); toast('Erro na atualização: '+e.message); }
-  document.getElementById('modal-migracao-boloes')?.remove();
-  listarBoloesSalvos();
-}
-async function _executarMigracaoBoloes(){
-  var todos=await dbAll('boloes_v2');
-  for(var i=0;i<todos.length;i++){
-    var g=todos[i];
-    if(g.modalidade==='multi'){
-      // Heurística: bolão tinha rodadas registradas → era semanal;
-      // tinha semanas do mês com valor lançado → era mensal; senão, único.
-      var temRodadas=g.rodadas&&g.rodadas.length>0;
-      var temSemanasComValor=g.semanas&&g.semanas.some(function(s){return s.valorJogos>0;});
-      g.modalidade = temRodadas?'semanal':(temSemanasComValor?'mensal':'unico');
-      await dbPut('boloes_v2', g);
-    }
-  }
-  localStorage.setItem('lotto_migrado_multi_v1','1');
-  try{ localStorage.setItem('lotto_ultimo_backup', Date.now().toString()); }catch(e){}
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): removida daqui a
+// migração one-time de bolões modalidade 'multi' -> semanal/mensal/unico
+// (verificarMigracaoBoloes/_mostrarModalMigracaoBoloes/
+// _cancelarMigracaoBoloes/_confirmarMigracaoBoloes/_executarMigracaoBoloes)
+// — lia/escrevia só em boloes_v2 (IndexedDB local), tabela que parou de
+// crescer depois do corte final. Código morto.
 
 function novoBolao(){
   var _mesAtual=new Date().toISOString().slice(0,7);
@@ -16950,142 +16671,11 @@ async function _importDOCX(file){
 }
 
 /* ── Persistência ── */
-// Remove bolões duplicados criados pelo bug de duplo-clique em "Salvar"
-// (corrigido acima, em salvarBolao, com a flag _salvarBolaoEmAndamento).
-// Dois registros são considerados a MESMA duplicação apenas quando nome,
-// loteria e dados do administrador (nome+telefone+pix) são idênticos E o
-// savedAt de ambos está a menos de 10s de distância — essa janela curta é
-// o que de fato distingue "duplo clique acidental" de "dois bolões
-// diferentes que por coincidência têm o mesmo nome", que não devem ser
-// tocados. Sempre mantém o registro mais ANTIGO (savedAt menor) de cada
-// grupo e apaga os demais.
-// Compara dois bolões por CONTEÚDO estrutural (ignorando id e savedAt, que
-// naturalmente divergem entre o original e a cópia duplicada com o tempo,
-// conforme cada um é editado independentemente depois de duplicado). Usa
-// nome+loteria+admin (identificação) + participantes+concursos (conteúdo
-// real do bolão) — dois bolões só são considerados duplicata quando TUDO
-// isso bate, evitando falsos positivos entre bolões diferentes que só
-// coincidem no nome.
-function _bolaoAssinatura(b){
-  const adminKey=b.admin?[b.admin.nome,b.admin.telefone,b.admin.pix].join('|'):'';
-  const partKey=(b.participantes||[]).map(p=>p.nome+':'+p.cotas).sort().join(',');
-  // CORREÇÃO (achado em varredura de bugs, 2026-07-10): comparava só
-  // c.num + a CONTAGEM de jogos por concurso, nunca as dezenas de verdade
-  // — dois bolões genuinamente diferentes (mesmo nome/loteria/admin/
-  // participantes, mesma quantidade de jogos por rodada, mas números
-  // diferentes) colidiam na mesma assinatura, e limparBoloesDuplicados()
-  // (roda SOZINHA no boot, sem confirmação) apagava um deles. Agora
-  // inclui as dezenas reais de cada jogo, mesmo padrão já usado em
-  // _jogoSalvoAssinatura() (conteúdo, não contagem).
-  const concKey=(b.concursos||[]).map(c=>{
-    const jogosKey=(c.jogos||[]).map(function(j){
-      return (Array.isArray(j)?j.slice().sort(function(a,b){return a-b;}):j).join(',');
-    }).sort().join('|');
-    return c.num+':'+jogosKey;
-  }).sort().join(',');
-  return [b.nome||'',b.loteria||'',adminKey,b.modalidade||'',partKey,concKey].join('||');
-}
-async function limparBoloesDuplicados(){
-  try{
-    const todos=await dbAll('boloes_v2');
-    if(!todos||todos.length<2) return 0;
-    const grupos=new Map(); // assinatura -> lista de bolões com essa assinatura
-    todos.forEach(b=>{
-      const key=_bolaoAssinatura(b);
-      if(!grupos.has(key)) grupos.set(key,[]);
-      grupos.get(key).push(b);
-    });
-    let removidos=0;
-    for(const [key,grupo] of grupos){
-      if(grupo.length<2) continue;
-      // Mantém o registro mais ANTIGO (savedAt menor = id geralmente menor
-      // também, mas usa savedAt por ser o critério temporal real); remove os demais.
-      grupo.sort((a,b)=>(a.savedAt||0)-(b.savedAt||0));
-      const manter=grupo[0];
-      for(let i=1;i<grupo.length;i++){
-        try{ await dbDel('boloes_v2', grupo[i].id); removidos++; }
-        catch(e){ console.warn('[DEDUP-BOLAO] falha ao remover',grupo[i].id,e.message); }
-      }
-    }
-    if(removidos>0) console.log('[DEDUP-BOLAO]',removidos,'bolão(ões) duplicado(s) removido(s) automaticamente.');
-    return removidos;
-  }catch(e){ console.warn('[DEDUP-BOLAO]',e.message); return 0; }
-}
-// Mesma ideia de limparBoloesDuplicados(), mas para "jogos_salvos" — os
-// bugs de clique duplo em salvarJogos()/salvarJogosManuais() (já
-// corrigidos) deixaram um acúmulo de conjuntos idênticos salvos várias
-// vezes. Em vez de exigir que o usuário rode um script no console para
-// limpar isso, roda sozinho em segundo plano toda vez que o app carrega —
-// dois conjuntos são duplicata quando têm a MESMA loteria, o MESMO
-// concurso e as MESMAS dezenas em todos os jogos (comparando por
-// conteúdo, não por id/data de salvamento, que naturalmente divergem
-// entre a cópia original e a duplicada).
-function _jogoSalvoAssinatura(item){
-  const jogosKey=(item.jogos||[]).map(function(j){
-    return (Array.isArray(j)?j.slice().sort(function(a,b){return a-b;}):j).join(',');
-  }).sort().join('|');
-  return [item.loteria||'',item.concurso||'',jogosKey].join('||');
-}
-async function limparJogosSalvosDuplicados(){
-  try{
-    const todos=await dbAll('jogos_salvos');
-    if(!todos||todos.length<2) return 0;
-    const grupos=new Map();
-    todos.forEach(function(item){
-      const key=_jogoSalvoAssinatura(item);
-      if(!grupos.has(key)) grupos.set(key,[]);
-      grupos.get(key).push(item);
-    });
-    let removidos=0;
-    for(const [key,grupo] of grupos){
-      if(grupo.length<2) continue;
-      const vinculados=grupo.filter(function(x){return x.vinculadoBolao;});
-      const soltos=grupo.filter(function(x){return !x.vinculadoBolao;});
-      for(const sub of [vinculados,soltos]){
-        if(sub.length<2) continue;
-        sub.sort(function(a,b){return (a.savedAt||0)-(b.savedAt||0);});
-        for(let i=1;i<sub.length;i++){
-          try{ await dbDel('jogos_salvos', sub[i].id); removidos++; }
-          catch(e){ console.warn('[DEDUP-JOGOS-SALVOS] falha ao remover',sub[i].id,e.message); }
-        }
-      }
-    }
-    if(removidos>0) console.log('[DEDUP-JOGOS-SALVOS]',removidos,'jogo(s) salvo(s) duplicado(s) removido(s) automaticamente.');
-    return removidos;
-  }catch(e){ console.warn('[DEDUP-JOGOS-SALVOS]',e.message); return 0; }
-}
-
-// Diagnóstico de integridade (Doc 2, item 4) — varre os dois repositórios e
-// reporta inconsistências SEM corrigir automaticamente (exceto duplicados,
-// que já têm rotina própria e testada acima). Só relatório: o usuário
-// decide o que fazer com órfãos e registros pré-hardening sem UUID/vínculo.
-async function _diagnosticoIntegridade(){
-  const jogosSalvos=await dbAll('jogos_salvos').catch(()=>[]);
-  const boloes=await dbAll('boloes_v2').catch(()=>[]);
-  const idsBoloes=new Set(boloes.map(b=>b.id));
-  // 1) Jogos salvos marcados como vinculados a um bolão que não existe mais
-  const orfaos=jogosSalvos.filter(j=>j.vinculadoBolao && j.bolaoId!=null && !idsBoloes.has(j.bolaoId));
-  // 2) Concursos de bolão sem vinculoId (registros gravados antes deste
-  // hardening — não quebram nada, só não têm identidade estável própria)
-  let concursosSemVinculoId=0;
-  boloes.forEach(b=>(b.concursos||[]).forEach(c=>{ if(!c.vinculoId) concursosSemVinculoId++; }));
-  // 3) Jogos salvos sem uuid (idem, registros antigos)
-  const jogosSalvosSemUuid=jogosSalvos.filter(j=>!j.uuid).length;
-  // 4) Duplicados (reaproveita a mesma assinatura de conteúdo já usada na
-  // limpeza automática — aqui só CONTA, não remove)
-  const gruposBolao=new Map();
-  boloes.forEach(b=>{ const k=_bolaoAssinatura(b); gruposBolao.set(k,(gruposBolao.get(k)||0)+1); });
-  const boloesDuplicados=[...gruposBolao.values()].filter(n=>n>1).reduce((a,n)=>a+(n-1),0);
-  const gruposJogo=new Map();
-  jogosSalvos.forEach(j=>{ const k=_jogoSalvoAssinatura(j); gruposJogo.set(k,(gruposJogo.get(k)||0)+1); });
-  const jogosSalvosDuplicados=[...gruposJogo.values()].filter(n=>n>1).reduce((a,n)=>a+(n-1),0);
-  return {
-    totalJogosSalvos:jogosSalvos.length, totalBoloes:boloes.length,
-    orfaos:orfaos.map(j=>({id:j.id,nome:j.nome,bolaoId:j.bolaoId})),
-    concursosSemVinculoId, jogosSalvosSemUuid,
-    boloesDuplicados, jogosSalvosDuplicados
-  };
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): removidos daqui
+// _bolaoAssinatura/limparBoloesDuplicados/_jogoSalvoAssinatura/
+// limparJogosSalvosDuplicados/_diagnosticoIntegridade — só existiam pra
+// detectar/limpar duplicatas em jogos_salvos/boloes_v2 (IndexedDB local),
+// tabelas que pararam de crescer depois do corte final. Código morto.
 
 let _salvarBolaoEmAndamento=false;
 // salvarBolao() agora passa pela MESMA fila compartilhada
@@ -17196,125 +16786,15 @@ async function listarBoloesSalvos(){
   '</div>';
 }
 
-// Fase 4 (Doc 2), leitura adicional: mostra (só-leitura) os bolões que já
-// existem no schema novo (public.boloes), pra nenhum jogo vinculado por lá
-// ficar invisível nesta tela. Não mexe na criação/edição/cotas/geração de
-// jogos, que continuam 100% no caminho antigo (boloes_v2) — só evita que um
-// bolão do schema novo "suma" da visão do usuário. Inerte fora do DEV
-// (JogosCommon.ativo()==false em produção).
-async function _anexarBoloesSchemaNovo(c){
-  try{
-    if(typeof JogosCommon==='undefined'||!JogosCommon.ativo()||typeof BolaoJogosRepo==='undefined') return;
-    var boloesNovo=await BolaoJogosRepo.listarBoloesDual();
-    if(!boloesNovo||!boloesNovo.length) return;
-    var cardStyle='background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;margin-bottom:14px';
-    var linhas=[];
-    for(var i=0;i<boloesNovo.length;i++){
-      var b=boloesNovo[i];
-      var jogos=await BolaoJogosRepo.listarPorBolaoDual(b.id);
-      var qtd=jogos?jogos.length:0;
-      linhas.push('<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--glass-border);gap:10px;flex-wrap:wrap">'+
-        '<div><div style="font-weight:800;color:var(--text);font-size:13px">🧪 '+_esc(b.nome||'Bolão')+'</div>'+
-        '<div style="font-size:11px;color:var(--text-muted)">'+qtd+' jogo'+(qtd!==1?'s':'')+' · schema novo (DEV), só leitura</div></div>'+
-        '<button onclick="_verJogosBolaoNovo(\''+b.id+'\',\''+_esc(b.nome||'Bolão').replace(/'/g,"\\'")+'\')" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 11px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">👁 Ver jogos</button>'+
-        '</div>');
-    }
-    if(!linhas.length) return;
-    c.innerHTML+='<div style="'+cardStyle+'">'+
-      '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:#16a34a;margin-bottom:10px">🧪 Bolões (schema novo) — '+boloesNovo.length+'</div>'+
-      linhas.join('')+
-    '</div>';
-  }catch(e){ console.warn('[_anexarBoloesSchemaNovo]',e.message); }
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): _anexarBoloesSchemaNovo
+// removida — órfã desde que listarBoloesSalvos() passou a ler diretamente
+// do schema novo (Bucket B), único ponto que a chamava.
 
-async function _verJogosBolaoNovo(bolaoId,nome){
-  window._painelBolaoNovoAtual={id:bolaoId,nome:nome};
-  var overlay=document.getElementById('painel-ver-jogos-bolao-novo');
-  if(!overlay){
-    overlay=document.createElement('div');
-    overlay.id='painel-ver-jogos-bolao-novo';
-    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99997;display:flex;align-items:center;justify-content:center';
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML='<div style="background:#12151f;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:18px;width:480px;max-width:92vw;max-height:80vh;overflow:auto;color:#fff;font-family:sans-serif">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-    '<b style="font-size:14px">🧪 '+_esc(nome)+'</b>'+
-    '<button onclick="document.getElementById(\'painel-ver-jogos-bolao-novo\').remove()" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">✕</button></div>'+
-    '<div id="painel-bolao-novo-jogos" style="font-size:12px;margin-bottom:14px">Carregando jogos...</div>'+
-    '<div style="border-top:1px solid rgba(255,255,255,.15);padding-top:10px">'+
-    '<b style="font-size:13px">Participantes (teste, schema novo)</b>'+
-    '<div id="painel-bolao-novo-partic" style="font-size:12px;margin:8px 0">Carregando participantes...</div>'+
-    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+
-      '<input id="pbn-nome" placeholder="Nome" style="flex:1;min-width:100px;padding:5px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:12px"/>'+
-      '<input id="pbn-cotas" type="number" min="1" value="1" placeholder="Cotas" style="width:60px;padding:5px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:12px"/>'+
-      '<button onclick="_pbnAdicionarParticipante()" style="background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:11px;padding:5px 10px;cursor:pointer">+ Adicionar</button>'+
-    '</div></div></div>';
-  await _renderPainelBolaoNovo();
-}
-async function _renderPainelBolaoNovo(){
-  var ctx=window._painelBolaoNovoAtual; if(!ctx) return;
-  var jogosEl=document.getElementById('painel-bolao-novo-jogos');
-  var particEl=document.getElementById('painel-bolao-novo-partic');
-  var jogos=await BolaoJogosRepo.listarPorBolaoDual(ctx.id)||[];
-  if(jogosEl){
-    jogosEl.innerHTML=jogos.length?jogos.map(function(j){
-      return '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)">'+
-        (j.is_espelho?'🪞 ':'')+_esc(j.loteria||'')+' · '+_esc((j.numeros||[]).join(', '))+
-        (j.trevos&&j.trevos.length?' · trevos '+_esc(j.trevos.join(',')):'')+'</div>';
-    }).join(''):'<div style="color:rgba(255,255,255,.6)">Nenhum jogo vinculado.</div>';
-  }
-  var partic=await BolaoJogosRepo.listarParticipantesDual(ctx.id)||[];
-  if(particEl){
-    particEl.innerHTML=partic.length?partic.map(function(p){
-      var linhaTop='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">'+
-        '<span>'+(p.is_admin?'⭐ ':'')+_esc(p.nome)+' ('+p.cotas+' cota'+(p.cotas!==1?'s':'')+')'+(p.isento?' 🎟':'')+
-        ' · '+_bMoney(p.valor_cota||0)+' · '+(p.status_pag==='pago'?'✅ pago':'⏳ não pago')+'</span>'+
-        '<span style="display:flex;gap:4px">'+
-        '<button onclick="_pbnEditarParticipante(\''+p.id+'\')" style="background:rgba(59,159,255,.15);border:none;border-radius:5px;color:#3b9fff;font-size:10px;padding:3px 7px;cursor:pointer">✏️</button>'+
-        '<button onclick="_pbnRemoverParticipante(\''+p.id+'\')" style="background:rgba(255,60,60,.15);border:none;border-radius:5px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer">✕</button>'+
-        '</span></div>';
-      var formEdit='<div id="pbn-edit-'+p.id+'" style="display:none;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);gap:6px;flex-wrap:wrap">'+
-        '<input id="pbn-e-cotas-'+p.id+'" type="number" min="1" value="'+p.cotas+'" placeholder="Cotas" style="width:55px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px"/>'+
-        '<input id="pbn-e-valor-'+p.id+'" type="number" min="0" step="0.01" value="'+(p.valor_cota||0)+'" placeholder="Valor cota" style="width:80px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px"/>'+
-        '<select id="pbn-e-pag-'+p.id+'" style="padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#1c2030;color:#fff;font-size:11px">'+
-          '<option value="naopagou"'+(p.status_pag!=='pago'?' selected':'')+'>Não pago</option>'+
-          '<option value="pago"'+(p.status_pag==='pago'?' selected':'')+'>Pago</option>'+
-        '</select>'+
-        '<button onclick="_pbnSalvarEdicaoParticipante(\''+p.id+'\')" style="background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:10px;padding:4px 8px;cursor:pointer">Salvar</button>'+
-        '</div>';
-      return linhaTop+formEdit;
-    }).join(''):'<div style="color:rgba(255,255,255,.6)">Nenhum participante ainda.</div>';
-  }
-}
-async function _pbnAdicionarParticipante(){
-  var ctx=window._painelBolaoNovoAtual; if(!ctx) return;
-  var nome=(document.getElementById('pbn-nome').value||'').trim();
-  var cotas=parseInt(document.getElementById('pbn-cotas').value);
-  if(!nome){ toast('Informe o nome do participante.'); return; }
-  if(!cotas||cotas<1){ toast('Cotas deve ser um número maior ou igual a 1.'); return; }
-  var r=await BolaoJogosRepo.adicionarParticipanteDual(ctx.id,nome,cotas,false,false,0,'naopagou');
-  if(!r){ toast('Erro ao adicionar participante.'); return; }
-  document.getElementById('pbn-nome').value='';
-  document.getElementById('pbn-cotas').value='1';
-  await _renderPainelBolaoNovo();
-}
-async function _pbnRemoverParticipante(participanteId){
-  await BolaoJogosRepo.removerParticipanteDual(participanteId);
-  await _renderPainelBolaoNovo();
-}
-function _pbnEditarParticipante(participanteId){
-  var el=document.getElementById('pbn-edit-'+participanteId);
-  if(el) el.style.display=el.style.display==='none'?'flex':'none';
-}
-async function _pbnSalvarEdicaoParticipante(participanteId){
-  var cotas=parseInt(document.getElementById('pbn-e-cotas-'+participanteId).value);
-  var valorCota=parseFloat(document.getElementById('pbn-e-valor-'+participanteId).value)||0;
-  var statusPag=document.getElementById('pbn-e-pag-'+participanteId).value;
-  if(!cotas||cotas<1){ toast('Cotas deve ser um número maior ou igual a 1.'); return; }
-  var r=await BolaoJogosRepo.editarParticipanteDual(participanteId,{cotas:cotas,valorCota:valorCota,statusPag:statusPag});
-  if(!r){ toast('Erro ao salvar participante.'); return; }
-  await _renderPainelBolaoNovo();
-}
+// Limpeza Bucket C (Item 3, corte final, 2026-07-12): removido daqui o
+// "painel de teste" inteiro (_verJogosBolaoNovo/_renderPainelBolaoNovo/
+// _pbnAdicionarParticipante/_pbnRemoverParticipante/_pbnEditarParticipante/
+// _pbnSalvarEdicaoParticipante) — só era alcançável a partir de
+// _anexarBoloesSchemaNovo (já removida), ficou 100% órfão.
 
 // Corte final (Item 3, 2026-07-12): id é sempre o uuid de public.boloes —
 // boloes_v2 não é mais lido nem escrito. O ramo antigo (dbAll/migração de
@@ -19287,11 +18767,16 @@ var BolaoJogosRepo = {
     if(error) throw new Error(error.message);
     return data;
   },
-  // Fase 4 (Doc 2): leitura do schema novo — só jogos daquele bolão
-  // específico (destino='bolao'), nunca lê nada de Jogos Salvos. Mesmo
-  // propósito de validação que JogosSalvosRepo.listarDual, sem religar UI.
+  // Leitura do schema novo — só jogos daquele bolão específico
+  // (destino='bolao'), nunca lê nada de Jogos Salvos.
+  // CORREÇÃO (2026-07-12): gate era JogosCommon.ativo() (DEV-only) — desde
+  // o corte final (Bucket B) esta função passou a ser usada por caminhos
+  // REAIS de produção (excluirRodadaDoBolao), não só pelo painel de teste
+  // antigo. Com o gate DEV-only, excluirRodadaDoBolao falhava em silêncio
+  // em produção (idsRodada sempre vazio). Trocado pro gate de leitura
+  // ambiente-agnóstico, mesmo padrão já usado em JogosSalvosRepo.listarDual.
   listarPorBolaoDual: async function(bolaoIdNovo){
-    if(!JogosCommon.ativo()||!bolaoIdNovo) return null;
+    if(!JogosCommon.leituraNovoSchemaAtiva()||!bolaoIdNovo) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.from('jogos').select('*').eq('bolao_id',bolaoIdNovo).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:false});
@@ -19299,10 +18784,11 @@ var BolaoJogosRepo = {
       return data;
     }catch(e){ console.warn('[BolaoJogosRepo.listarPorBolaoDual]',e.message); return null; }
   },
-  // Fase 4 (Doc 2): lista os bolões do usuário no schema novo — usado pro
-  // dropdown "Vincular a um bolão" do painel de teste.
+  // Lista os bolões do usuário no schema novo — usado pro dropdown
+  // "Vincular a um bolão" na tela real (openModalSalvar) e pelo painel de
+  // teste. Mesma correção de gate acima: DEV-only quebrava em produção.
   listarBoloesDual: async function(){
-    if(!JogosCommon.ativo()) return null;
+    if(!JogosCommon.leituraNovoSchemaAtiva()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.from('boloes').select('id,nome').is('deleted_at',null).order('created_at',{ascending:false});
