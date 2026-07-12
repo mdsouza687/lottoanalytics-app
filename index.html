@@ -3126,10 +3126,46 @@ const dbAll=(s)=>dbOp(s,'readonly',st=>st.getAll());
 // ~60 pontos do arquivo, de "dbAll da store inteira + .filter(x=>x.id===id)"
 // — que recarrega TODOS os bolões/jogos salvos do usuário só para achar 1
 // registro. Aditivas: nada muda até uma função passar a chamá-las.
-const getBolao=(id)=>dbGet('boloes_v2',id);
-const listarBoloes=()=>dbAll('boloes_v2');
-const getJogoSalvo=(id)=>dbGet('jogos_salvos',id);
-const listarJogosSalvos=()=>dbAll('jogos_salvos');
+// Corte final (Item 3, 2026-07-12): getBolao/listarBoloes/getJogoSalvo/
+// listarJogosSalvos agora leem do schema novo — boloes_v2/jogos_salvos
+// pararam de ser escritos, então continuar lendo deles devolveria sempre
+// vazio. getBolaoNovoSchema já devolve o mesmo formato "g" que todo
+// chamador existente espera (definida mais abaixo no arquivo).
+const getBolao=(id)=>getBolaoNovoSchema(id);
+const listarBoloes=async()=>{
+  var sb=_getSbClient(); if(!sb) return [];
+  var {data,error}=await sb.from('boloes').select('id').is('deleted_at',null);
+  if(error||!data) return [];
+  var out=[];
+  for(var i=0;i<data.length;i++){ var g=await getBolaoNovoSchema(data[i].id); if(g) out.push(g); }
+  return out;
+};
+const getJogoSalvo=async(id)=>{
+  var lista=await JogosSalvosRepo.listarDual();
+  var doLote=(lista||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
+  if(!doLote.length) return null;
+  var primeiro=doLote[0];
+  return { id:id, uuid:id, nome:primeiro.nome, loteria:primeiro.loteria, savedAt:new Date(primeiro.created_at).getTime(),
+    numDez:(primeiro.numeros||[]).length, concurso:primeiro.concurso_ref!=null?String(primeiro.concurso_ref):null,
+    vinculadoBolao:false, manual:false,
+    jogos:doLote.map(function(j){
+      var a=(j.numeros||[]).slice();
+      if(j.trevos&&j.trevos.length) a._trevos=j.trevos.slice();
+      if(j.extras){ if(j.extras.extra!=null)a._extra=j.extras.extra; if(j.extras.mes!=null)a._mes=j.extras.mes; if(j.extras.time!=null)a._time=j.extras.time; }
+      if(j.is_espelho) a._isEspelho=true;
+      a._jogoId=j.id;
+      return a;
+    })
+  };
+};
+const listarJogosSalvos=async()=>{
+  var lista=await JogosSalvosRepo.listarDual();
+  var grupos={},ordem=[];
+  (lista||[]).forEach(function(j){ var chave=j.lote_id||j.id; if(!grupos[chave]){grupos[chave]=true;ordem.push(chave);} });
+  var out=[];
+  for(var i=0;i<ordem.length;i++){ var item=await getJogoSalvo(ordem[i]); if(item) out.push(item); }
+  return out;
+};
 // Grava vários registros em stores DIFERENTES dentro de UMA ÚNICA transação
 // IndexedDB — se qualquer put falhar, a transação inteira reverte (nenhuma
 // escrita parcial fica persistida). Usado pelo vincular de jogo↔bolão, que
@@ -10157,22 +10193,14 @@ async function _salvarJogosImpl(){
   const jogosFinais=_clonarJogosComExtras(jogosSel);
   const temEspelho=jogosFinais.some(j=>j._isEspelho);
   const d=CFG[currentKey];
-  // Limite de 10 conjuntos salvos por loteria: em DEV a tela "Jogos Salvos"
-  // já lê do schema novo (_carregarConjuntosDualComoAntigo), então o limite
-  // precisa ser contado contra a MESMA fonte que aparece na tela — contar
-  // contra o schema antigo (dbAll) deixava o limite sem efeito prático ali
-  // (o schema antigo continua recebendo gravações em paralelo, mas não é
-  // mais o que o usuário vê nem o que deveria ser podado).
-  if(JogosCommon.leituraNovoSchemaAtiva()){
-    const conjuntosNovo=(await _carregarConjuntosDualComoAntigo()).filter(c=>c.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
-    if(conjuntosNovo.length>=10){
-      const maisAntigo=conjuntosNovo[0];
-      for(const j of (maisAntigo.jogos||[])){ if(j._jogoId) await JogosCommon.excluirDual(j._jogoId); }
-    }
-  } else {
-    const todos=await dbAll('jogos_salvos');
-    const paraCurr=todos.filter(j=>j.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
-    if(paraCurr.length>=10)await dbDel('jogos_salvos',paraCurr[0].id);
+  // Limite de 10 conjuntos salvos por loteria: contado contra a fonte de
+  // verdade única (schema novo) — antes disso rodava condicional a
+  // leituraNovoSchemaAtiva(), com um fallback pro schema antigo que não
+  // existe mais depois do corte final (Item 3, 2026-07-12).
+  const conjuntosNovo=(await _carregarConjuntosDualComoAntigo()).filter(c=>c.loteria===currentKey).sort((a,b)=>a.savedAt-b.savedAt);
+  if(conjuntosNovo.length>=10){
+    const maisAntigo=conjuntosNovo[0];
+    for(const j of (maisAntigo.jogos||[])){ if(j._jogoId) await JogosCommon.excluirDual(j._jogoId); }
   }
   // Garante que o resultado usado para calcular o concurso vigente está
   // razoavelmente atualizado, e não num cache antigo. Sem isso, um jogo
@@ -10201,23 +10229,20 @@ async function _salvarJogosImpl(){
   // ainda não tinha sido atualizado com o resultado mais recente.
   const concursoVigente=calcConcursoVigente(res).concursoNum||'';
   const nomeEscolhido=nomeInput&&nomeInput.value.trim()||`${d.nome} #${concursoVigente||'?'} · ${new Date().toLocaleDateString('pt-BR')}`;
-  // Teimosinha (todos os jogos do lote recebem a mesma marcação, ver
-  // aplicarTeimosinhaResultado) e temEspelho agora são calculados DENTRO de
-  // _criarItemJogoSalvo, a partir de jogosFinais — não precisam mais ser
-  // recalculados aqui antes de montar o item.
-  // Auditoria Fase 2.3: monta o item via _criarItemJogoSalvo (fábrica
-  // única), em vez de um literal próprio — mesmos campos de sempre, só
-  // centraliza o formato do registro entre os 3 pontos que criam
-  // jogos_salvos (aqui, inserção manual, e espelho de vincular direto).
-  const itemSalvar=_criarItemJogoSalvo({loteria:currentKey,nome:nomeEscolhido,jogos:jogosFinais,numDez,
-    concurso:concursoVigente,fixos:getFixos('jogo')});
-  const novoId=await dbPut('jogos_salvos',itemSalvar);
-  _registrarAuditoria('criar_jogo_salvo',{jogoId:itemSalvar.uuid,detalhes:`${jogosFinais.length} jogo(s) de ${d.nome}, id=${novoId}`});
+  // Corte final (Item 3, 2026-07-12): jogos_salvos deixou de ser a fonte
+  // de verdade — public.jogos (via JogosSalvosRepo.salvarDual) é o único
+  // lugar que grava agora. _concursoOrigem precisa ser marcado em cada
+  // jogo ANTES de chamar salvarDual (jogoParaPayload lê daí pra preencher
+  // concurso_ref) — sem isso a conferência de prêmio de um jogo avulso
+  // nunca saberia contra qual concurso comparar.
+  if(concursoVigente){ jogosFinais.forEach(j=>{ if(j&&typeof j==='object') j._concursoOrigem=concursoVigente; }); }
+  let novoId;
+  try{
+    const linhas=await JogosSalvosRepo.salvarDual(currentKey,jogosFinais,nomeEscolhido);
+    novoId=linhas&&linhas[0]?(linhas[0].lote_id||linhas[0].id):null;
+  }catch(e){ toast('Erro ao salvar: '+e.message); return null; }
+  _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${jogosFinais.length} jogo(s) de ${d.nome}, id=${novoId}`});
   window._salvarNomeSugerido=null;
-  supabaseSalvar(itemSalvar);
-  // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV, sem
-  // afetar o caminho acima (que continua sendo a fonte de verdade).
-  JogosSalvosRepo.salvarDual(currentKey,jogosFinais);
   toast(`✓ ${jogosFinais.length} jogo${jogosFinais.length!==1?'s':''} salvo${jogosFinais.length!==1?'s':''}${temEspelho?' (principais + espelhos)':''}`);openModalSalvar();
   return novoId;
 }
@@ -10266,52 +10291,31 @@ function toggleEditarSalvo(id){
 }
 
 // Salva as edições (nome e concurso) de um conjunto salvo
+// Corte final (Item 3, 2026-07-12): id é sempre o lote_id (uuid) do
+// schema novo — o ramo antigo (id numérico, dbPut em jogos_salvos) foi
+// removido, jogos_salvos não recebe mais gravação nenhuma.
 async function salvarEdicaoConjunto(id){
   var inpNome=document.getElementById('edit-nome-'+id);
   var novoNome=inpNome?inpNome.value.trim():'';
   if(!novoNome){ toast('O nome não pode ficar vazio.'); return; }
-  // Fase 4 (Doc 2): id em formato uuid = lote do schema novo — renomeia
-  // TODOS os jogos do lote (mesmo nome compartilhado, já é assim na
-  // criação — ver JogosSalvosRepo.salvarDual).
-  if(typeof id==='string'){
-    try{
-      var listaR=await JogosSalvosRepo.listarDual();
-      var doLoteR=(listaR||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
-      for(var ri=0;ri<doLoteR.length;ri++){ await JogosCommon.renomearDual(doLoteR[ri].id,novoNome); }
-      toast('✓ Nome atualizado');
-      openModalSalvar();
-    }catch(e){ toast('Erro ao salvar: '+e.message); }
-    return;
-  }
   try{
-    var item=await getJogoSalvo(id);
-    if(!item){ toast('Conjunto não encontrado.'); return; }
-    if(item.vinculadoBolao){ toast('Este conjunto está vinculado a um bolão e não pode ser renomeado.'); return; }
-    item.nome=novoNome;
-    // Número do concurso não é editável manualmente — é sempre o valor gravado
-    // automaticamente da API no momento em que os jogos foram salvos.
-    await dbPut('jogos_salvos',item);
-    _registrarAuditoria('editar_jogo_salvo',{jogoId:item.uuid||id,detalhes:'renomeado para "'+novoNome+'"'});
+    var listaR=await JogosSalvosRepo.listarDual();
+    var doLoteR=(listaR||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
+    for(var ri=0;ri<doLoteR.length;ri++){ await JogosCommon.renomearDual(doLoteR[ri].id,novoNome); }
     toast('✓ Nome atualizado');
     openModalSalvar();
   }catch(e){ toast('Erro ao salvar: '+e.message); }
 }
 
 async function deletarSalvo(id){
-  // Fase 4 (Doc 2): id em formato uuid = conjunto do schema novo (id é o
-  // lote_id) — apaga cada jogo do lote individualmente via RPC (soft
-  // delete, cada um com sua própria lápide), não um dbDel de um registro
-  // único como no schema antigo.
-  if(typeof id==='string'){
-    var lista=await JogosSalvosRepo.listarDual();
-    var doLote=(lista||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
-    for(var i=0;i<doLote.length;i++){ await JogosCommon.excluirDual(doLote[i].id); }
-    _registrarAuditoria('excluir_jogo_salvo',{detalhes:`lote=${id}, ${doLote.length} jogo(s)`});
-    toast('Conjunto removido.');
-    openModalSalvar();
-    return;
-  }
-  await dbDel('jogos_salvos',id);_registrarAuditoria('excluir_jogo_salvo',{detalhes:`id=${id}`});toast('Conjunto removido.');openModalSalvar();
+  // Apaga cada jogo do lote individualmente via RPC (soft delete, cada
+  // um com sua própria lápide) — não é um registro único como no schema antigo.
+  var lista=await JogosSalvosRepo.listarDual();
+  var doLote=(lista||[]).filter(function(j){ return (j.lote_id||j.id)===id; });
+  for(var i=0;i<doLote.length;i++){ await JogosCommon.excluirDual(doLote[i].id); }
+  _registrarAuditoria('excluir_jogo_salvo',{detalhes:`lote=${id}, ${doLote.length} jogo(s)`});
+  toast('Conjunto removido.');
+  openModalSalvar();
 }
 function getPeríodoAtual(){return document.getElementById('jogo-estat')?.value||'12';}
 function getPeríodoLabel(v){ const d=CFG[currentKey]; return{'historica':'Histórica','6':'Últ. 6','12':'Últ. 12','24':'Últ. 24','36':'Últ. 36','48':'Últ. 48','72':'Últ. 72','96':'Últ. 96','especial':d?.specialLabel||'Especial'}[v]||v; }
@@ -14976,9 +14980,25 @@ var _historicoConcursoTentado={};
 // cru. Bug real encontrado ao investigar um bolão cujo acerto de Mês da
 // Sorte (Dia de Sorte, concurso 1241) não aparecia nem entrava no
 // somatório de prêmios da semana.
+//
+// CORREÇÃO (2026-07-12, mesmo dia — regressão própria): existe um
+// TERCEIRO formato, híbrido, confirmado ao testar contra a API real de
+// produção (não só dado forjado à mão) — registros com `dezenas` já no
+// nome certo, mas `mesSorte`/`nomeTimeCoracaoMesSorte` ainda sem o alias
+// `mes`/`timeCoracao` (concurso 1241 é exatamente esse caso). A 1ª versão
+// desta função devolvia esses registros direto no early-return
+// "já normalizado", sem aplicar o alias — reintroduzindo, para esse
+// formato específico, o MESMO bug que a função inteira existe pra
+// resolver. Agora o alias de mes/timeCoracao é aplicado SEMPRE,
+// independente de qual dos formatos o registro estiver.
 function _normalizarDadosHistorico(raw){
   if(!raw) return raw;
-  if(raw.dezenas) return raw; // já normalizado
+  if(raw.dezenas){
+    // Já tem "dezenas" no nome certo — só falta garantir mes/timeCoracao.
+    if(raw.mes==null && raw.mesSorte!=null) raw.mes=raw.mesSorte;
+    if(raw.timeCoracao==null && raw.nomeTimeCoracaoMesSorte!=null) raw.timeCoracao=raw.nomeTimeCoracaoMesSorte;
+    return raw;
+  }
   if(!raw.listaDezenas) return raw; // formato desconhecido — devolve como veio
   var premiacoes=(raw.listaRateioPremio||[]).map(function(f){
     return {faixa:f.faixa,descricao:f.descricaoFaixa,valorPremio:f.valorPremio,ganhadores:f.numeroDeGanhadores};
@@ -17033,115 +17053,89 @@ async function salvarBolao(){
     _salvarBolaoEmAndamento=false;
   }
 }
+// Corte final (Item 3, 2026-07-12): grava só no schema novo — não existe
+// mais "concursosFrescos"/"jogosFrescos" pra proteger contra
+// sobrescrita, porque concursos/jogos agora vivem em tabelas PRÓPRIAS
+// (bolao_concursos/jogos), separadas da linha do bolão em si — salvar
+// nome/admin/modalidade aqui não toca nelas de jeito nenhum (risco que só
+// existia no schema antigo, onde tudo era um blob JSON único).
 async function _salvarBolaoImpl(){
   var s=_boloesState;
   if(!s.nome.trim()){ toast('Informe o nome do bolão.'); return; }
   if(!s.admin.nome.trim()||!s.admin.telefone.trim()||!s.admin.pix.trim()){ toast('Preencha nome, telefone e PIX do administrador.'); return; }
   if(!s.participantes.length){ toast('Adicione ao menos um participante.'); return; }
-  // Busca a versão mais recente já persistida (se for edição), para não
-  // sobrescrever concursos/jogos vinculados por uma operação concorrente.
-  var existente=null;
-  if(s.editId){
-    try{
-      var todosExist=await dbAll('boloes_v2');
-      existente=todosExist.filter(function(x){return x.id===s.editId;})[0]||null;
-    }catch(e){ console.warn('[salvarBolao] falha ao buscar versão atual:',e.message); }
-  }
-  var concursosFrescos=existente?(existente.concursos||[]):(_boloesState.concursos||[]);
-  var jogosFrescos=existente?(existente.jogos||[]):(concursosFrescos.length?concursosFrescos[concursosFrescos.length-1].jogos||[]:_boloesState.jogosVinculados||[]);
   var registro={
-    // Corrige bug onde o bolão era salvo com a loteria ATIVA no momento do
-    // clique em "Salvar" (currentKey), em vez da loteria com que o bolão foi
-    // criado/editado (s.loteria) — causava bolões "perdidos" (ex.: criados na
-    // Lotomania, mas gravados sob outra loteria se o usuário navegasse antes
-    // de salvar, ficando invisíveis na listagem da Lotomania).
-    // Doc 2: um bolão recém-criado (ainda sem nenhum concurso/jogo vinculado)
-    // deve nascer "virgem" — sem vínculo com loteria nenhuma. Só cai no
-    // fallback de currentKey se JÁ existirem concursos (caso legado onde
-    // s.loteria por algum motivo não foi definido, preservando o comportamento
-    // do bugfix acima); um bolão de verdade virgem fica com loteria=null até
-    // o primeiro jogo ser vinculado (ver vincularJogosAoBolao/
-    // vincularSalvoAoBolao, que definem g.loteria a partir daí).
-    loteria: s.loteria||(concursosFrescos.length?currentKey:null),
+    id: s.editId||undefined,
+    _novoSchemaId: s.editId||null,
+    // Bolão recém-criado (ainda sem concurso/jogo vinculado) nasce
+    // "virgem" — sem loteria — até o primeiro jogo ser vinculado.
+    loteria: s.loteria||((s.concursos&&s.concursos.length)?currentKey:null),
     nome: s.nome, admin: s.admin, modalidade: s.modalidade, sorteio: s.sorteio, concurso: s.concurso,
     cotas: s.cotas, premio: s.premio,
     participantes: s.participantes,
     arrecadacaoTotal: s.arrecadacaoTotal||0,
     mesReferencia: s.mesReferencia||'',
-    semanas: s.semanas||[],
     dataSorteio: s.dataSorteio||'',
     semanaInicio: s.semanaInicio||'', semanaFim: s.semanaFim||'',
     rodadas: s.rodadas||[],
-    jogos: jogosFrescos,
-    concursos: concursosFrescos,
-    numDez: _boloesState.numDezBolao||0,
-    savedAt: Date.now()
+    numDez: s.numDezBolao||0
   };
-  if(s.editId) registro.id=s.editId;
-  // Preserva o mapeamento id-antigo→uuid-novo através de edições — sem isso,
-  // cada save recriaria um bolão novo no schema novo (registro é montado do
-  // zero aqui, não herda campos do existente automaticamente).
-  if(existente&&existente._novoSchemaId) registro._novoSchemaId=existente._novoSchemaId;
   try{
-    var id=await dbPut('boloes_v2', registro);
-    _boloesState.editId=id;
-    _boloesState.concursos=concursosFrescos;
-    _registrarAuditoria(s.editId?'editar_bolao':'criar_bolao',{bolaoId:id});
+    var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
+    if(!novoId){ toast('Erro ao salvar bolão.'); return; }
+    await BolaoJogosRepo.sincronizarParticipantesDual(novoId,registro.participantes);
+    _boloesState.editId=novoId;
+    _registrarAuditoria(s.editId?'editar_bolao':'criar_bolao',{bolaoId:novoId});
     toast('✓ Bolão salvo');
-    // Dual-write (Doc 2, DEV only): espelha nome/loteria no schema novo,
-    // nunca bloqueia nem desfaz o save real acima se falhar.
-    if(typeof BolaoJogosRepo!=='undefined'&&typeof JogosCommon!=='undefined'&&JogosCommon.escritaNovoSchemaAtiva()){
-      try{
-        registro.id=id;
-        var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
-        if(novoId&&registro._novoSchemaId!==novoId){
-          registro._novoSchemaId=novoId;
-          await dbPut('boloes_v2',registro);
-        }
-        if(novoId) await BolaoJogosRepo.sincronizarParticipantesDual(novoId,registro.participantes);
-      }catch(eDual){ console.warn('[salvarBolao dual-write]',eDual.message); }
-    }
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
 }
 
+// Corte final (Item 3, 2026-07-12): lê só do schema novo (public.boloes) —
+// boloes_v2 não é mais a fonte da listagem. Cada card busca participantes
+// e concursos (pras badges de loteria) numa query própria, já que o schema
+// novo separa isso em tabelas — mais requisições que o blob único de
+// antes, mas aceitável pro volume de bolões de um usuário.
 async function listarBoloesSalvos(){
   var c=document.getElementById('boloes-conteudo'); if(!c) return;
+  var sb=_getSbClient();
   var todos=[];
-  try{ todos=await dbAll('boloes_v2'); }catch(e){}
-  // Todo bolão agora é Multi-Loteria (item 1/3 do documento de upgrade) e a
-  // gestão parte sempre da aba Bolões, sem depender da loteria ativa no topo
-  // (evita os laços entre abas que causavam o bug de "bolão não encontrado"
-  // ao trocar de loteria). Por isso a listagem mostra TODOS os bolões juntos,
-  // mais recentes primeiro — não há mais filtragem por currentKey.
-  todos.sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+  if(sb){
+    var {data,error}=await sb.from('boloes').select('*').is('deleted_at',null).order('created_at',{ascending:false});
+    if(error) console.warn('[listarBoloesSalvos]',error.message);
+    else todos=data||[];
+  }
   var cardStyle='background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;margin-bottom:14px';
   if(!todos.length){
     c.innerHTML='<div style="'+cardStyle+';text-align:center;color:var(--text-muted)">Nenhum bolão salvo ainda. Clique em "Criar Bolão".</div>';
     return;
   }
-  c.innerHTML='<div style="'+cardStyle+'">'+
-    '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:'+MULTI_LOTERIA_COR+';margin-bottom:10px">📂 Bolões Salvos</div>'+
-    todos.map(function(g){
-      try{
-      var ativos=(g.participantes||[]).filter(function(p){return p.statusPart!=='inativo';}).length;
-      // Badges das loterias presentes nos concursos vinculados (cor original de cada uma, item 3 do documento)
-      var loteriasNoBolao=Array.from(new Set((g.concursos||[]).map(function(c){return c.loteria;}).filter(Boolean)));
+  var linhas=[];
+  for(var i=0;i<todos.length;i++){
+    var b=todos[i];
+    try{
+      var particRes=await sb.from('bolao_participantes').select('status').eq('bolao_id',b.id).is('deleted_at',null);
+      var ativos=(particRes.data||[]).filter(function(p){return p.status!=='inativo';}).length;
+      var concRes=await sb.from('bolao_concursos').select('loteria').eq('bolao_id',b.id);
+      var loteriasNoBolao=Array.from(new Set((concRes.data||[]).map(function(c){return c.loteria;}).filter(Boolean)));
       var badgesLoterias=loteriasNoBolao.map(function(lk){
         var dl=(typeof CFG!=='undefined')?CFG[lk]:null; if(!dl) return '';
         return '<span title="'+_esc(dl.nome)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+dl.cor+';margin-right:3px" ></span>';
       }).join('');
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--glass-border);gap:10px;flex-wrap:wrap">'+
-        '<div><div style="font-weight:800;color:var(--text);font-size:13px">'+_esc(g.nome)+(badgesLoterias?'&nbsp; '+badgesLoterias:'')+'</div>'+
-        '<div style="font-size:11px;color:var(--text-muted)">'+_modNome(g.modalidade)+' · '+ativos+' participantes · Admin: '+_esc(g.admin.nome)+'</div></div>'+
+      var idJs="'"+b.id+"'";
+      linhas.push('<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--glass-border);gap:10px;flex-wrap:wrap">'+
+        '<div><div style="font-weight:800;color:var(--text);font-size:13px">'+_esc(b.nome)+(badgesLoterias?'&nbsp; '+badgesLoterias:'')+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted)">'+_modNome(b.modalidade)+' · '+ativos+' participantes · Admin: '+_esc(b.admin_nome||'')+'</div></div>'+
         '<div style="display:flex;gap:6px">'+
-          '<button onclick="gerarJogosParaBolao('+g.id+')" style="border:none;border-radius:7px;padding:5px 11px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-size:11px;font-weight:700;cursor:pointer">🎲 Gerar Jogos</button>'+
-          '<button onclick="editarBolao('+g.id+')" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 11px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">✏️ Abrir</button>'+
-          '<button onclick="excluirBolao('+g.id+')" style="border:1px solid #dc262644;border-radius:7px;padding:5px 11px;background:#dc26261a;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">🗑 Excluir</button>'+
-        '</div></div>';
-      }catch(e){ return '<div style="padding:8px;color:#f87171;font-size:11px">Erro ao ler bolão '+_esc(g.nome||'?')+'</div>'; }
-    }).join('')+
+          '<button onclick="gerarJogosParaBolao('+idJs+')" style="border:none;border-radius:7px;padding:5px 11px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-size:11px;font-weight:700;cursor:pointer">🎲 Gerar Jogos</button>'+
+          '<button onclick="editarBolao('+idJs+')" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 11px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">✏️ Abrir</button>'+
+          '<button onclick="excluirBolao('+idJs+')" style="border:1px solid #dc262644;border-radius:7px;padding:5px 11px;background:#dc26261a;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">🗑 Excluir</button>'+
+        '</div></div>');
+    }catch(e){ linhas.push('<div style="padding:8px;color:#f87171;font-size:11px">Erro ao ler bolão '+_esc(b.nome||'?')+'</div>'); }
+  }
+  c.innerHTML='<div style="'+cardStyle+'">'+
+    '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:'+MULTI_LOTERIA_COR+';margin-bottom:10px">📂 Bolões Salvos</div>'+
+    linhas.join('')+
   '</div>';
-  await _anexarBoloesSchemaNovo(c);
 }
 
 // Fase 4 (Doc 2), leitura adicional: mostra (só-leitura) os bolões que já
@@ -17264,77 +17258,31 @@ async function _pbnSalvarEdicaoParticipante(participanteId){
   await _renderPainelBolaoNovo();
 }
 
+// Corte final (Item 3, 2026-07-12): id é sempre o uuid de public.boloes —
+// boloes_v2 não é mais lido nem escrito. O ramo antigo (dbAll/migração de
+// jogos legados/limpeza de concursos vazios) foi removido; essas
+// responsabilidades já não se aplicam ao schema novo (RPCs não deixam
+// concurso vazio nem jogo "solto" pra migrar).
 async function editarBolao(id){
-  var todos=await dbAll('boloes_v2');
-  var g=todos.filter(function(x){return x.id===id;})[0];
-  if(!g){ toast('Bolão não encontrado.'); return; }
-  // Corte de LEITURA (Doc 2): em DEV, se este bolão já tem espelho no
-  // schema novo, tenta montar a tela a partir de lá. Se QUALQUER coisa
-  // falhar ou vier incompleta, cai pro caminho antigo abaixo sem nenhum
-  // efeito colateral — o antigo continua sendo gravado normalmente em
-  // TODO save (salvarBolao usa s.editId, que aqui é sempre o id antigo,
-  // então a escrita nunca muda, só a leitura inicial). Reversível: um
-  // problema aqui nunca perde nem corrompe dado, só deixa de usar o atalho.
-  if(typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva()&&g._novoSchemaId){
-    try{
-      var _viaNovo=await _carregarBolaoDoSchemaNovoParaEstado(id);
-      if(_viaNovo&&_viaNovo.ok){
-        _boloesState=_viaNovo.estado;
-        _ordenarParticipantes();
-        renderFormBolao();
-        console.info('[editarBolao] carregado do schema novo');
-        return;
-      }
-      console.warn('[editarBolao] leitura do schema novo falhou/incompleta, usando caminho antigo:',_viaNovo&&_viaNovo.erro);
-    }catch(eNovo){ console.warn('[editarBolao] erro ao tentar schema novo, usando caminho antigo:',eNovo.message); }
-  }
-  var semDef=_calcSemanaAtual();
-  var _mesRef=g.mesReferencia||new Date().toISOString().slice(0,7);
-  // Migrar jogos legados (g.jogos) para g.concursos se ainda não foram migrados
-  var _concursos=g.concursos||[];
-  if(!_concursos.length&&g.jogos&&g.jogos.length){
-    var _dMigE=(typeof CFG!=='undefined')?(CFG[g.loteria]||CFG[currentKey]):null;
-    var _custoMigE=(_dMigE&&typeof calcCustoTotal==='function')?(calcCustoTotal(g.jogos,_dMigE)||0):0;
-    _concursos=[{num:g.concurso||'?',data:g.dataSorteio||new Date().toLocaleDateString('pt-BR'),
-      jogos:g.jogos,custo:_custoMigE,status:'Aguardando',semana:g.semanaInicio&&g.semanaFim?g.semanaInicio+' a '+g.semanaFim:'',savedAt:g.savedAt||Date.now()}];
-  }
-  // Item 3/6 do documento de correções: remove concursos VAZIOS (0 jogos) ao
-  // carregar o bolão — limpeza centralizada aqui cobre todas as telas que
-  // dependem de _boloesState.concursos (participantes, jogos do bolão,
-  // impressão), evitando registros "fantasma" duplicados na interface.
-  var _qtdAntes=_concursos.length;
-  _concursos=_concursos.filter(function(c){return c.jogos&&c.jogos.length>0;});
-  if(_concursos.length!==_qtdAntes){
-    g.concursos=_concursos;
-    try{ await dbPut('boloes_v2', g); }catch(eClean){ console.warn('[editarBolao] limpeza:',eClean.message); }
-  }
-  // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
-  // paralelos de cada concurso ANTES de espalhar esses jogos pelo resto do
-  // estado do bolão (_boloesState) — ponto central usado por várias telas
-  // (participantes, jogos do bolão, impressão, conferência); ver
-  // _hidratarConcursoJogos para o motivo dessas propriedades sumirem.
-  _concursos.forEach(_hidratarConcursoJogos);
-  var _todosJogos=_concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]);
-  _boloesState={ nome:g.nome, admin:Object.assign({pixTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0},g.admin), modalidade:g.modalidade, cotas:g.cotas, premio:g.premio||0, sorteio:g.sorteio||'normal', concurso:g.concurso||'', participantes:g.participantes, editId:g.id,
-    loteria:g.loteria||currentKey, numDezBolao:g.numDez||0,
-    jogosVinculados:_todosJogos, concursos:_concursos,
-    semanaInicio:g.semanaInicio||semDef.inicio, semanaFim:g.semanaFim||semDef.fim,
-    arrecadacaoTotal:g.arrecadacaoTotal||0, rodadas:g.rodadas||[],
-    // Recalcula sempre as semanas do mês ao carregar (em vez de confiar no
-    // g.semanas salvo): bolões mensais salvos antes da correção de
-    // cobertura do mês (ver _calcSemanasDoMes) podem ter só 4 semanas fixas,
-    // que deixavam os últimos dias do mês sem semana correspondente. O
-    // campo valorJogos dentro de cada semana não é mais usado (gasto é
-    // derivado de s.concursos), então recalcular aqui não perde dados.
-    mesReferencia:_mesRef, semanas:_calcSemanasDoMes(_mesRef), dataSorteio:g.dataSorteio||'' };
+  var r=await _carregarBolaoNovoSchemaPorUuid(id);
+  if(r.erro){ toast('Bolão não encontrado.'); console.warn('[editarBolao]',r.erro); return; }
+  _boloesState=r.estado;
   _ordenarParticipantes();
   renderFormBolao();
 }
 
+// Corte final (Item 3, 2026-07-12): soft-delete direto em public.boloes
+// (RLS já exige auth.uid()=user_id pra UPDATE, sem precisar de RPC própria).
 async function excluirBolao(id){
   if(!confirm('Excluir este bolão? Esta ação não pode ser desfeita.')) return;
-  try{ await dbDel('boloes_v2', id); _registrarAuditoria('excluir_bolao',{bolaoId:id}); toast('Bolão excluído'); listarBoloesSalvos(); }
-  catch(e){ toast('Erro ao excluir.'); }
+  try{
+    var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível.');
+    var {error}=await sb.from('boloes').update({deleted_at:new Date().toISOString()}).eq('id',id);
+    if(error) throw new Error(error.message);
+    _registrarAuditoria('excluir_bolao',{bolaoId:id});
+    toast('Bolão excluído');
+    listarBoloesSalvos();
+  }catch(e){ toast('Erro ao excluir: '+e.message); }
 }
 
 /* ── Impressão ── */
@@ -17376,23 +17324,10 @@ async function _imprimirBolaoImpl(soPremiados){
   // cor original da loteria de cada jogo (item 3/5 do documento).
   var jogosVinc=[], gImp=null;
   try{
-    var todosB=await dbAll('boloes_v2');
-    if(s.editId){ gImp=todosB.filter(function(x){return x.id===s.editId;})[0]; }
-    if(!gImp && s.nome){ gImp=todosB.filter(function(x){return x.nome===s.nome;}).sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);})[0]; }
-    // Corte de leitura (DEV): tenta reconstruir gImp a partir do schema
-    // novo (mesmo formato), caindo pro gImp do schema antigo já carregado
-    // acima em qualquer erro/incompletude — nunca interrompe a impressão.
-    if(gImp&&typeof JogosCommon!=='undefined'&&JogosCommon.leituraNovoSchemaAtiva()&&gImp._novoSchemaId){
-      try{
-        var _rImp=await _carregarRegistroBolaoDoSchemaNovo(gImp.id);
-        if(_rImp&&_rImp.ok&&_rImp.gImp&&_rImp.gImp.concursos&&_rImp.gImp.concursos.length){
-          gImp=_rImp.gImp;
-          console.info('[IMPR-BOLAO] gImp carregado do schema novo');
-        }else{
-          console.warn('[IMPR-BOLAO] leitura do schema novo falhou/incompleta, usando antigo:',_rImp&&_rImp.erro);
-        }
-      }catch(eNovo){ console.warn('[IMPR-BOLAO] erro ao tentar schema novo, usando antigo:',eNovo.message); }
-    }
+    // Corte final (Item 3, 2026-07-12): s.editId é sempre o uuid do schema
+    // novo agora — sem mais fallback pro antigo (não existe mais nada lá
+    // pra cair de volta).
+    if(s.editId) gImp=await getBolaoNovoSchema(s.editId);
     if(gImp&&gImp.concursos&&gImp.concursos.length){
       gImp.concursos.forEach(function(cc){
         (cc.jogos||[]).forEach(function(j){
@@ -18135,25 +18070,19 @@ function _enfileirarEscritaBolao(fn){
 // duplicar a própria lógica de gravação em vez de reusar esta função,
 // que já é a correta (RENOMEIA o registro existente, não cria um novo).
 async function vincularSalvoAoBolao(itemId, bolaoIdOverride){
-  // Fase 4 (Doc 2): itemId em formato uuid = lote do schema novo — vincula
-  // CADA jogo do lote via moverParaBolaoDual (RPC própria, fora da fila
-  // de escrita do bolão antigo, que não se aplica ao schema novo).
-  if(typeof itemId==='string'){
-    var selN=document.getElementById('vinc-sel-'+itemId);
-    var bolaoIdN=bolaoIdOverride||(selN&&selN.value);
-    if(!bolaoIdN){ toast('Selecione um bolão para vincular.'); return; }
-    var listaN=await JogosSalvosRepo.listarDual();
-    var doLoteN=(listaN||[]).filter(function(j){ return (j.lote_id||j.id)===itemId; });
-    for(var ni=0;ni<doLoteN.length;ni++){ await JogosCommon.moverParaBolaoDual(doLoteN[ni].id,bolaoIdN); }
-    toast('✓ Jogos vinculados ao bolão');
-    openModalSalvar();
-    return;
-  }
   return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride); });
 }
+// Corte final (Item 3, 2026-07-12): itemId é sempre o lote_id (uuid) do
+// schema novo. A regra de negócio (dedup dentro do bolão, modalidade
+// "Único", cálculo de concurso vigente, expansão de Teimosinha) continua
+// EXATAMENTE igual — opera sobre "g"/"item", que agora vêm do schema novo
+// (getBolao/getJogoSalvo), mas no mesmo formato de sempre. Só a
+// PERSISTÊNCIA final mudou: em vez de dbPutMulti(boloes_v2+jogos_salvos),
+// insere os jogos vinculados via RPC (já existente, agora bloqueante) e
+// soft-deleta os jogos avulsos originais (agora "usados").
 async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
   var sel=document.getElementById('vinc-sel-'+itemId);
-  var bolaoId=bolaoIdOverride||(sel?parseInt(sel.value)||0:0);
+  var bolaoId=bolaoIdOverride||(sel&&sel.value);
   if(!bolaoId){ toast('Selecione um bolão para vincular.'); return; }
   try{
     // Auditoria Fase 3.2: getJogoSalvo busca direto por chave em vez de
@@ -18217,46 +18146,40 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     var _dataSorteioS=_calcS.concursoData&&_calcS.concursoData!=='—'?_calcS.concursoData:(_resS?(_resS.proximoConcurso||_resS.data||''):'');
     var _semLabelS=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
     var _custoS=(_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0;
+    // uuids dos jogos avulsos originais que vão ser vinculados — capturado
+    // ANTES de _pushConcursoEntry (que clona jogos internamente pra cada
+    // concurso da Teimosinha; o array "jogos" em si não é mutado).
+    // Precisa pra soft-deletar o avulso depois que a cópia vinculada ao
+    // bolão for gravada — sem isso, o mesmo jogo apareceria em Jogos
+    // Salvos E dentro do bolão ao mesmo tempo (viola o isolamento do
+    // schema novo, Doc 2 item 8).
+    var jogoIdsParaExcluir=jogos.map(function(j){return j&&j._jogoId;}).filter(Boolean);
     // Teimosinha: se os jogos deste conjunto têm uma lista de concursos
     // consecutivos (jogo._teimosinhaConcursos, vinda da seleção feita ao
     // gerar/salvar), CADA concurso vira sua PRÓPRIA entrada em g.concursos[]
     // — aposta separada por sorteio, com custo e status independentes.
     // Auditoria Fase 2.1: bloco extraído para _pushConcursoEntry (era
     // duplicado idêntico aqui e em vincularJogosAoBolao).
+    var _qtdConcursosAntes=g.concursos.length;
     _pushConcursoEntry(g, jogos, {loteria:loteriaItem, custo:_custoS, semana:_semLabelS, dataSorteio:_dataSorteioS, num:_novoNumS});
+    var _concursosNovos=g.concursos.slice(_qtdConcursosAntes);
     g.jogos=jogos; // backward compat — aponta para jogos do último concurso
     g.concurso=_novoNumS;
     g.numDez=item.numDez||(jogos[0]&&jogos[0].length)||0;
     g.jogosSavedAt=Date.now();
-    // Renomeia o conjunto salvo para seguir o nome do bolão e marca o vínculo
-    item.nome='Bolão: '+(g.nome||'(sem nome)');
-    item.bolaoId=bolaoId;
-    item.vinculadoBolao=true;
-    // Sincroniza o concurso do item salvo com o do bolão. Sem isso, um jogo
-    // que não tinha "concurso" definido (ex.: inserido manualmente para
-    // conferência, ou de uma versão anterior) continuaria sem essa
-    // informação mesmo após ser vinculado — e a conferência automática de
-    // prêmios o trataria como válido para QUALQUER resultado, incluindo
-    // concursos passados para os quais ele nunca foi uma aposta real.
-    item.concurso=_novoNumS;
-    // Doc 2 (item 2): as duas escritas (bolão + jogo salvo) numa ÚNICA
-    // transação atômica — se uma falhar, nenhuma das duas fica persistida
-    // (evita o bolão "achar" que o jogo foi vinculado enquanto o registro
-    // em jogos_salvos continua sem o vínculo marcado, ou vice-versa).
-    await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:item}]);
-    _registrarAuditoria('vincular_jogo_salvo',{jogoId:item.uuid||itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
-    // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV. Usa o
-    // uuid real espelhado deste bolão (g._novoSchemaId), não um bolão de
-    // teste compartilhado — sem isso os jogos de bolões diferentes se
-    // misturariam todos no mesmo bolão fantasma no schema novo.
-    // _concursoOrigem precisa estar marcado ANTES daqui — JogosCommon.
-    // jogoParaPayload lê esse campo pra preencher concurso_ref; sem isso
-    // (era só marcado depois, na hora de imprimir o relatório) todo jogo
-    // vinculado ficava com concurso_ref NULL no schema novo, quebrando
-    // qualquer leitor que precise agrupar jogos por concurso.
-    jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=_novoNumS; });
-    BolaoJogosRepo.vincularDual(loteriaItem,jogos,g._novoSchemaId);
-    BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:_novoNumS,loteria:loteriaItem,data:_dataSorteioS,custo:_custoS,semana:_semLabelS});
+    // Corte final (Item 3, 2026-07-12): grava cada concurso novo (1 só, ou
+    // N em caso de Teimosinha) direto no schema relacional — é a fonte de
+    // verdade agora, não mais um espelho best-effort.
+    for(var ci=0;ci<_concursosNovos.length;ci++){
+      var cc=_concursosNovos[ci];
+      cc.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=cc.num; });
+      await BolaoJogosRepo.vincularDual(cc.loteria,cc.jogos,g._novoSchemaId);
+      await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:cc.num,loteria:cc.loteria,data:cc.data,custo:cc.custo,semana:cc.semana});
+    }
+    // Marca os jogos avulsos originais como usados (soft delete) — o
+    // conjunto some de "Jogos Salvos" porque agora só existe dentro do bolão.
+    for(var di=0;di<jogoIdsParaExcluir.length;di++){ await JogosCommon.excluirDual(jogoIdsParaExcluir[di]); }
+    _registrarAuditoria('vincular_jogo_salvo',{jogoId:itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
@@ -18502,54 +18425,26 @@ async function excluirRodadaDoBolao(concursoIdxExibido){
     }
     if(idxOriginal<0){ toast('Concurso não localizado para exclusão.'); return; }
     var c=g.concursos[idxOriginal];
-    var custoRemovido=c.custo||0;
-
-    // Devolve o valor à semana correspondente (apenas bolão mensal) — mesma
-    // lógica de excluirJogoDoBolao, mas com o custo total da rodada de uma vez.
-    var devolvido=0;
-    if(g.modalidade==='mensal' && g.semanas && c.semana){
-      for(var w=0;w<g.semanas.length;w++){
-        var semLabel=g.semanas[w].inicio+' a '+g.semanas[w].fim;
-        if(semLabel===c.semana){
-          g.semanas[w].valorJogos=Math.max(0,(g.semanas[w].valorJogos||0)-custoRemovido);
-          devolvido=custoRemovido;
-          break;
-        }
-      }
-    }
-
-    // Desvincula o conjunto correspondente em "Jogos Salvos" (mesmo critério
-    // de correspondência usado em excluirJogoDoBolao) — a rodada inteira
-    // está sendo removida, então o vínculo precisa cair junto.
-    try{
-      var _salvosR=await dbAll('jogos_salvos');
-      var _candidatosR=_salvosR.filter(function(x){return x.bolaoId===g.id && x.vinculadoBolao;});
-      // Correspondência por LOTERIA em primeiro lugar — desde a correção de
-      // hoje, só existe UM espelho por (bolão, loteria) (ver
-      // vincularJogosAoBolao), então x.loteria===c.loteria já resolve
-      // exatamente o registro certo sem depender de coincidência de horário.
-      // A heurística por savedAt (<2s) fica só como fallback para registros
-      // legados sem essa garantia.
-      var _itemR=_candidatosR.length===1?_candidatosR[0]
-        :_candidatosR.filter(function(x){return x.loteria===c.loteria;})[0]
-        ||_candidatosR.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
-      if(_itemR){
-        _itemR.vinculadoBolao=false;
-        _itemR.bolaoId=null;
-        await dbPut('jogos_salvos', _itemR);
-        _registrarAuditoria('desvincular_jogo',{jogoId:_itemR.uuid||_itemR.id,bolaoId:g.id,detalhes:'rodada excluída'});
-      }
-    }catch(eR){ console.warn('[excluirRodadaDoBolao] desvínculo:',eR.message); }
+    // Corte final (Item 3, 2026-07-12): sem mais "semanas[].valorJogos"
+    // (dead code pra renderização, ver comentário em vincularJogosAoBolao)
+    // — o saldo já é recalculado direto de s.concursos[] a cada render, a
+    // exclusão abaixo já basta pra refletir no saldo.
+    // Desvincula cada jogo desta rodada (volta a ser "Jogo Salvo" avulso,
+    // mesmo efeito de excluirJogoDoBolao um a um) em vez de apagar de vez —
+    // RPC própria (rpc_desvincular_jogo).
+    var sb=_getSbClient();
+    var jogosDaRodada=await BolaoJogosRepo.listarPorBolaoDual(g._novoSchemaId);
+    var idsRodada=(jogosDaRodada||[]).filter(function(j){return String(j.concurso_ref)===String(c.num)&&j.loteria===c.loteria;}).map(function(j){return j.id;});
+    for(var ri=0;ri<idsRodada.length;ri++){ await JogosCommon.desvincularDual(idsRodada[ri]); }
+    if(sb) await sb.from('bolao_concursos').delete().eq('bolao_id',g._novoSchemaId).eq('concurso_ref',c.num).eq('loteria',c.loteria);
+    _registrarAuditoria('excluir_rodada_bolao',{bolaoId:g.id,detalhes:'concurso '+c.num+', '+idsRodada.length+' jogo(s)'});
 
     g.concursos.splice(idxOriginal,1);
-    if(idxOriginal===g.concursos.length){ g.jogos=[]; g.numDez=0; } // era o último concurso (campo legado)
-    await dbPut('boloes_v2', g);
 
     s.concursos=g.concursos;
-    s.semanas=g.semanas||s.semanas;
     s.jogosVinculados=g.concursos.reduce(function(a,cc){return a.concat(cc.jogos||[]);},[]);
 
-    toast(devolvido>0?'Rodada excluída · R$ '+devolvido.toFixed(2).replace('.',',')+' devolvido ao saldo':'Rodada excluída.');
+    toast('Rodada excluída.');
     document.getElementById('modal-jogos-vinc')?.remove();
     verJogosVinculados();
     renderFormBolao();
@@ -18581,64 +18476,25 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
     if(!c.jogos||jogoIdx<0||jogoIdx>=c.jogos.length){ toast('Jogo não encontrado.'); return; }
 
     var jogoRemovido=c.jogos[jogoIdx];
-    var custoRemovido=(d&&typeof calcCustoJogo==='function')?(calcCustoJogo(jogoRemovido,d)||0):0;
+    // Corte final (Item 3, 2026-07-12): exclui a linha do jogo direto no
+    // schema novo (soft delete via RPC) — sem mais "semanas[].valorJogos"
+    // (dead code pra renderização) nem mirror em jogos_salvos (não existe
+    // mais essa duplicação; o jogo em si É a fonte de verdade).
+    if(jogoRemovido&&jogoRemovido._jogoId){ await JogosCommon.excluirDual(jogoRemovido._jogoId); }
     c.jogos.splice(jogoIdx,1);
-    c.custo=(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(c.jogos,d)||0):0;
     var concursoFicouVazio=(c.jogos.length===0);
-
-    // Devolve o valor à semana correspondente (apenas bolão mensal)
-    var devolvido=0;
-    if(g.modalidade==='mensal' && g.semanas && c.semana){
-      for(var w=0;w<g.semanas.length;w++){
-        var semLabel=g.semanas[w].inicio+' a '+g.semanas[w].fim;
-        if(semLabel===c.semana){
-          g.semanas[w].valorJogos=Math.max(0,(g.semanas[w].valorJogos||0)-custoRemovido);
-          devolvido=custoRemovido;
-          break;
-        }
-      }
-    }
-
-    // Atualiza campo legado g.jogos se este for o concurso mais recente
-    if(idxOriginal===g.concursos.length-1){ g.jogos=c.jogos; g.numDez=c.jogos.length?(c.jogos[0].filter(function(x){return x<1000;}).length):g.numDez; }
-
-    await dbPut('boloes_v2', g);
-
-    // Item 2/3 do documento de correções: quando um jogo é removido e o
-    // concurso correspondente fica VAZIO, o conjunto em "Jogos Salvos" que
-    // originou esse concurso deve ser totalmente desvinculado — sem isso,
-    // ele continuava marcado "🔗 Vinculado a bolão" mesmo já excluído,
-    // aparecendo como referência fantasma na tela de Jogos Salvos.
     if(concursoFicouVazio){
-      try{
-        var _salvosD=await dbAll('jogos_salvos');
-        // Correspondência por LOTERIA em primeiro lugar (mesmo raciocínio de
-        // excluirRodadaDoBolao, acima) — só existe UM espelho por (bolão,
-        // loteria), então isso identifica o registro certo com precisão, sem
-        // depender de coincidência de horário. Heurística por savedAt (<2s)
-        // fica só como fallback para registros legados.
-        var _candidatosD=_salvosD.filter(function(x){return x.bolaoId===g.id && x.vinculadoBolao;});
-        var _itemD=_candidatosD.length===1?_candidatosD[0]
-          :_candidatosD.filter(function(x){return x.loteria===c.loteria;})[0]
-          ||_candidatosD.filter(function(x){return Math.abs((x.jogosSavedAt||x.savedAt||0)-(c.savedAt||0))<2000;})[0];
-        if(_itemD){
-          _itemD.vinculadoBolao=false;
-          _itemD.bolaoId=null;
-          await dbPut('jogos_salvos', _itemD);
-          _registrarAuditoria('desvincular_jogo',{jogoId:_itemD.uuid||_itemD.id,bolaoId:g.id,detalhes:'concurso ficou vazio'});
-        }
-      }catch(eD){ console.warn('[excluirJogoDoBolao] desvínculo:',eD.message); }
-      // Remove o concurso vazio da lista (não deixa registro residual)
+      var sbJ=_getSbClient();
+      if(sbJ) await sbJ.from('bolao_concursos').delete().eq('bolao_id',g._novoSchemaId).eq('concurso_ref',c.num).eq('loteria',c.loteria);
       g.concursos.splice(idxOriginal,1);
-      await dbPut('boloes_v2', g);
     }
+    _registrarAuditoria('excluir_jogo_bolao',{bolaoId:g.id,detalhes:'concurso '+c.num});
 
     // Sincroniza _boloesState em memória com o que foi persistido
     s.concursos=g.concursos;
-    s.semanas=g.semanas||s.semanas;
     s.jogosVinculados=g.concursos.reduce(function(a,cc){return a.concat(cc.jogos||[]);},[]);
 
-    toast(devolvido>0?'Jogo excluído · R$ '+devolvido.toFixed(2).replace('.',',')+' devolvido ao saldo':'Jogo excluído do concurso.');
+    toast('Jogo excluído do concurso.');
     document.getElementById('modal-jogos-vinc')?.remove();
     verJogosVinculados(); // reabre o modal já atualizado
     renderFormBolao(); // atualiza saldo/painéis na tela principal
@@ -18647,23 +18503,10 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
 
 async function verJogosVinculados(){
   var s=_boloesState;
-  // Item 3/6 do documento de correções: remove concursos VAZIOS (0 jogos) que
-  // ficaram como registro residual — ex.: vinculações que falharam no meio do
-  // caminho, ou concursos criados e nunca populados. Sem isso, apareciam como
-  // entradas "fantasma" duplicadas na lista (mesma loteria/data, 0 jogos).
-  var concursosOriginais=s.concursos||[];
-  var concursosLimpos=concursosOriginais.filter(function(c){return c.jogos&&c.jogos.length>0;});
-  if(concursosLimpos.length!==concursosOriginais.length && s.editId){
-    try{
-      var todosL=await dbAll('boloes_v2');
-      var gL=todosL.filter(function(x){return x.id===s.editId;})[0];
-      if(gL){
-        gL.concursos=(gL.concursos||[]).filter(function(c){return c.jogos&&c.jogos.length>0;});
-        await dbPut('boloes_v2', gL);
-        s.concursos=gL.concursos;
-      }
-    }catch(eL){ console.warn('[verJogosVinculados] limpeza:',eL.message); }
-  }
+  // Corte final (Item 3, 2026-07-12): a limpeza de concursos vazios que
+  // existia aqui não é mais necessária — excluirRodadaDoBolao/
+  // excluirJogoDoBolao já removem a linha de bolao_concursos assim que ela
+  // fica vazia, no schema novo não sobra registro residual pra limpar aqui.
   var concursos=(s.concursos||[]).slice().reverse(); // mais recente primeiro
   // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
   // paralelos de cada concurso (ver _hidratarConcursoJogos) — sem isso,
@@ -19019,11 +18862,15 @@ var JogosCommon = {
       return data;
     }catch(e){ console.warn('[JogosCommon.desvincularDual]',e.message); return null; }
   },
-  moverParaBolaoDual: async function(jogoId,bolaoIdNovo){
+  // concursoRef (opcional): grava o concurso que o jogo passa a valer no
+  // bolão — sem isso, um jogo movido de Jogos Salvos ficava com o
+  // concurso antigo (de quando foi salvo avulso) ou nulo, quebrando a
+  // conferência de prêmio contra o concurso real do bolão.
+  moverParaBolaoDual: async function(jogoId,bolaoIdNovo,concursoRef){
     if(!JogosCommon.escritaNovoSchemaAtiva()||!jogoId||!bolaoIdNovo) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
-      var {data,error}=await sb.rpc('rpc_mover_jogo_para_bolao',{p_jogo_id:jogoId,p_bolao_id:bolaoIdNovo});
+      var {data,error}=await sb.rpc('rpc_mover_jogo_para_bolao',{p_jogo_id:jogoId,p_bolao_id:bolaoIdNovo,p_concurso_ref:concursoRef!=null?parseInt(concursoRef)||null:null});
       if(error){ console.warn('[JogosCommon.moverParaBolaoDual]',error.message); return null; }
       return data;
     }catch(e){ console.warn('[JogosCommon.moverParaBolaoDual]',e.message); return null; }
@@ -19062,28 +18909,25 @@ var JogosCommon = {
   }
 };
 var JogosSalvosRepo = {
-  // Dual-write: chamado a partir de _salvarJogosImpl, nunca lê nada de
-  // BolaoJogosRepo nem aceita bolaoId — só existe pra jogos SEM bolão.
+  // Corte final (Item 3, 2026-07-12): ÚNICO caminho de escrita de jogo
+  // avulso — não é mais dual-write nem melhor-esforço, é a fonte de
+  // verdade. Chamador (_salvarJogosImpl) aguarda o resultado e trata erro
+  // como falha real do save (antes, um erro aqui era só um console.warn
+  // silencioso, porque jogos_salvos era quem realmente "contava").
   // nomeLote (opcional): rótulo aplicado a TODOS os jogos desta chamada —
   // preserva a UX de "salvar N jogos de uma vez com um nome" do schema
   // antigo, mas cada jogo continua sendo uma linha independente (a RPC
   // gera um lote_id compartilhado só pra agrupar na exibição).
   salvarDual: async function(loteria,jogosFinais,nomeLote){
-    if(!JogosCommon.escritaNovoSchemaAtiva()) return;
-    try{
-      var sb=_getSbClient(); if(!sb) return;
-      var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; if(nomeLote) p.nome=nomeLote; return p; });
-      var {data,error}=await sb.rpc('rpc_salvar_jogos_salvos',{p_jogos:payload,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
-      if(error) console.warn('[JogosSalvosRepo.salvarDual]',error.message);
-      else console.info('[JogosSalvosRepo.salvarDual] ok, '+(data?data.length:0)+' linha(s) no schema novo');
-    }catch(e){ console.warn('[JogosSalvosRepo.salvarDual]',e.message); }
+    var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível.');
+    var payload=(jogosFinais||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); p.loteria=loteria; if(nomeLote) p.nome=nomeLote; return p; });
+    var {data,error}=await sb.rpc('rpc_salvar_jogos_salvos',{p_jogos:payload,p_idempotency_key:JogosCommon.novaIdempotencyKey()});
+    if(error) throw new Error(error.message);
+    return data;
   },
-  // Fase 4 (Doc 2): leitura do schema novo — só jogos com destino='salvo'
-  // (nunca lê nada que esteja vinculado a bolão, mesmo isolamento aplicado
-  // na escrita). Não é chamado por nenhuma tela ainda; existe pra validar
-  // que o schema novo responde corretamente antes de religar a UI a ele.
+  // Leitura da fonte de verdade — só jogos com destino='salvo' (nunca lê
+  // nada vinculado a bolão, mesmo isolamento aplicado na escrita).
   listarDual: async function(){
-    if(!JogosCommon.ativo()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
       var {data,error}=await sb.from('jogos').select('*').eq('destino','salvo').is('deleted_at',null).order('created_at',{ascending:false});
@@ -19248,6 +19092,77 @@ async function _carregarRegistroBolaoDoSchemaNovo(bolaoIdAntigo){
   var e=r.estado;
   return {ok:true, gImp:{ id:bolaoIdAntigo, nome:e.nome, loteria:e.loteria,
     concursos:e.concursos, jogos:e.jogosVinculados }};
+}
+// Corte final (Item 3, 2026-07-12): mesma reconstrução de
+// _carregarBolaoDoSchemaNovoParaEstado, mas SEM depender do mapeamento
+// antigo→novo (boloes_v2._novoSchemaId) — recebe o uuid do bolão
+// DIRETAMENTE, porque a partir de agora o uuid do schema novo É o id do
+// bolão (não existe mais registro correspondente em boloes_v2). Também
+// sem a checagem de paridade antigo×novo (não faz sentido comparar contra
+// uma fonte que parou de ser escrita).
+async function _carregarBolaoNovoSchemaPorUuid(novoId){
+  var sb=_getSbClient(); if(!sb) return {erro:'Supabase indisponível.'};
+  var bRes=await sb.from('boloes').select('*').eq('id',novoId).is('deleted_at',null).maybeSingle();
+  if(bRes.error||!bRes.data) return {erro:'Bolão não encontrado — '+(bRes.error&&bRes.error.message)};
+  var b=bRes.data;
+  var particRes=await sb.from('bolao_participantes').select('*').eq('bolao_id',novoId).is('deleted_at',null);
+  var participantesNovo=particRes.data||[];
+  var concRes=await sb.from('bolao_concursos').select('*').eq('bolao_id',novoId);
+  var concursosMeta=concRes.data||[];
+  var jogosRes=await sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true});
+  var jogosNovo=jogosRes.data||[];
+
+  var participantes=participantesNovo.map(function(p){
+    return { nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
+      valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status };
+  });
+
+  var porChave={};
+  jogosNovo.forEach(function(j){
+    var chave=(j.concurso_ref||'?')+'|'+j.loteria;
+    if(!porChave[chave]) porChave[chave]=[];
+    var arr=(j.numeros||[]).slice();
+    if(j.trevos&&j.trevos.length) arr._trevos=j.trevos.slice();
+    if(j.extras){ if(j.extras.extra!=null)arr._extra=j.extras.extra; if(j.extras.mes!=null)arr._mes=j.extras.mes; if(j.extras.time!=null)arr._time=j.extras.time;
+      if(Array.isArray(j.extras.ssCols)&&j.extras.ssCols.length) arr._ssCols=j.extras.ssCols.map(function(c){return c.slice();}); }
+    if(j.is_espelho) arr._isEspelho=true;
+    arr._jogoId=j.id;
+    porChave[chave].push(arr);
+  });
+  var concursos=concursosMeta.map(function(c){
+    var chave=c.concurso_ref+'|'+c.loteria;
+    return { num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
+      status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
+      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:c.teimosinha_origem||null };
+  });
+
+  var estado={
+    nome:b.nome,
+    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf',
+      cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0) },
+    modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
+    concurso:b.concurso||'', participantes:participantes, editId:novoId, loteria:b.loteria||currentKey,
+    numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
+    concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
+    arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
+    mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||''
+  };
+  estado.semanas=_calcSemanasDoMes(estado.mesReferencia);
+  return {ok:true, estado:estado};
+}
+// Mesmo formato "g" (boloes_v2) que toda a lógica de negócio de vincular
+// (dedup, regra "Único", Teimosinha, _pushConcursoEntry) já sabe consumir
+// — permite reaproveitar essa lógica inteira sem reescrevê-la, só trocando
+// de onde os dados vêm. novoId é sempre o uuid de public.boloes agora.
+async function getBolaoNovoSchema(novoId){
+  var r=await _carregarBolaoNovoSchemaPorUuid(novoId);
+  if(r.erro) return null;
+  var e=r.estado;
+  return { id:novoId, _novoSchemaId:novoId, nome:e.nome, loteria:e.loteria, admin:e.admin,
+    modalidade:e.modalidade, sorteio:e.sorteio, concurso:e.concurso, cotas:e.cotas, premio:e.premio,
+    participantes:e.participantes, arrecadacaoTotal:e.arrecadacaoTotal, mesReferencia:e.mesReferencia,
+    semanas:e.semanas, dataSorteio:e.dataSorteio, semanaInicio:e.semanaInicio, semanaFim:e.semanaFim,
+    rodadas:e.rodadas, jogos:e.jogosVinculados, concursos:e.concursos, numDez:e.numDezBolao };
 }
 // Abre a tela REAL de Bolões (mesmo renderFormBolao de sempre), mas
 // alimentada pelo estado lido do schema NOVO em vez do antigo — pra
@@ -19714,6 +19629,10 @@ function _clonarJogosComExtras(jogos){
   var out=[];
   (jogos||[]).forEach(function(j){
     var a=Array.isArray(j)?j.slice():j;
+    // _jogoId (schema novo): precisa sobreviver ao clone pra quem for
+    // MOVER o jogo (moverParaBolaoDual, em vez de recriar uma linha nova)
+    // saber qual linha original mexer.
+    if(j&&j._jogoId) a._jogoId=j._jogoId;
     var trevos=jogoTrevos(j); if(trevos) a._trevos=trevos.slice();
     var extra=jogoExtra(j); if(extra!=null) a._extra=extra;
     var mes=jogoMes(j); if(mes!=null) a._mes=mes;
@@ -19821,123 +19740,32 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // — é uma aposta separada por sorteio, não uma única aposta "estendida".
     // Auditoria Fase 2.1: bloco extraído para _pushConcursoEntry (era
     // duplicado idêntico aqui e em vincularSalvoAoBolao).
+    var _qtdConcursosAntesG=g.concursos.length;
     _pushConcursoEntry(g, jogos, {loteria:loteriaKey, custo:_custoG, semana:_semLabel, dataSorteio:_dataSorteio, num:_novoNum});
+    var _concursosNovosG=g.concursos.slice(_qtdConcursosAntesG);
     g.jogos=jogos; // backward compat
     g.concurso=_novoNum;
     g.numDez=getDezWrap(wrapId, d?d.min:6);
     g.dataConcurso=_dataSorteio;
     g.jogosSavedAt=Date.now();
-    // Registrar rodada no histórico semanal
-    if(g.modalidade==='semanal'){
-      if(!g.rodadas) g.rodadas=[];
-      var dBolao=typeof CFG!=='undefined'?CFG[g.loteria||loteriaKey]:null;
-      var custRodada=0;
-      if(dBolao&&typeof calcCustoTotal==='function') custRodada=calcCustoTotal(jogos,dBolao)||0;
-      var semLabel=_boloesState.semanaInicio&&_boloesState.semanaFim
-        ?_boloesState.semanaInicio+' a '+_boloesState.semanaFim
-        :(g.semanaInicio&&g.semanaFim?g.semanaInicio+' a '+g.semanaFim:'');
-      g.rodadas.push({semana:semLabel,jogos:jogos,custo:custRodada,concurso:g.concurso,data:new Date().toLocaleDateString('pt-BR')});
-      g.semanaInicio=_boloesState.semanaInicio||g.semanaInicio||'';
-      g.semanaFim=_boloesState.semanaFim||g.semanaFim||'';
-      // NÃO altera arrecadacaoTotal — é manual; saldo = arrecadação − custo das rodadas é derivado na renderização
-      if(_boloesState.editId===bolaoId) _boloesState.rodadas=g.rodadas.slice();
-    }
+    // Corte final (Item 3, 2026-07-12): "rodadas" (semanal) e
+    // "semanas[].valorJogos" (mensal) foram removidos daqui — já eram
+    // estruturas mortas pra RENDERIZAÇÃO (ver comentário em
+    // renderFormBolao, ~linha 15540): o "Gasto por semana"/"Histórico de
+    // Rodadas" já são calculados direto de s.concursos[], nunca dessas
+    // duas. Mantê-las só duplicaria escrita sem nenhum consumidor real —
+    // não existe coluna equivalente pra "semanas" no schema novo, e
+    // "rodadas" tem coluna mas ficaria sempre vazia sem prejuízo.
     g.arrecadacaoTotal=g.arrecadacaoTotal||_boloesState.arrecadacaoTotal||0;
-    // Registrar em semana do bolão MENSAL
-    if(g.modalidade==='mensal'){
-      if(!g.semanas||!g.semanas.length)
-        g.semanas=_calcSemanasDoMes(g.mesReferencia||new Date().toISOString().slice(0,7));
-      // Calcular custo — tenta loteria do bolão, depois currentKey, depois cotas × jogos
-      var _tryLoteria=function(key){ return (typeof CFG!=='undefined'&&CFG[key]&&CFG[key].precoBase)?CFG[key]:null; };
-      var dBolaoM=_tryLoteria(g.loteria)||_tryLoteria(loteriaKey)||null;
-      var custMensal=0;
-      if(dBolaoM&&typeof calcCustoTotal==='function')
-        custMensal=calcCustoTotal(jogos,dBolaoM)||0;
-      // Fallback: cota mensal × número de jogos
-      if(!custMensal&&g.cotas&&g.cotas.mensal&&jogos.length)
-        custMensal=(g.cotas.mensal||0)*jogos.length;
-      // Identificar qual das 4 semanas contém hoje
-      var _parseBR=function(str){
-        var p=(str||'').split('/');
-        if(p.length!==3) return null;
-        var d=new Date(+p[2],+p[1]-1,+p[0]); d.setHours(0,0,0,0); return d;
-      };
-      var hoje=new Date(); hoje.setHours(0,0,0,0);
-      var semanaIdx=-1;
-      for(var wi=0;wi<g.semanas.length;wi++){
-        var dIni=_parseBR(g.semanas[wi].inicio);
-        var dFim=_parseBR(g.semanas[wi].fim);
-        if(dIni&&dFim&&hoje>=dIni&&hoje<=dFim){semanaIdx=wi;break;}
-      }
-      // Fallback 1: usar a semana definida no campo "Data início" da tela de Dados
-      if(semanaIdx<0 && (g.semanaInicio||_boloesState.semanaInicio)){
-        var iniDef=_parseBR(g.semanaInicio||_boloesState.semanaInicio);
-        if(iniDef){
-          for(var wj=0;wj<g.semanas.length;wj++){
-            var sIni=_parseBR(g.semanas[wj].inicio);
-            if(sIni&&sIni.getTime()===iniDef.getTime()){semanaIdx=wj;break;}
-          }
-        }
-      }
-      // Fallback 2: se ainda não achou, usa a 1ª semana que contém o dia de hoje por proximidade
-      if(semanaIdx<0){
-        for(var wk=0;wk<g.semanas.length;wk++){
-          var pIni=_parseBR(g.semanas[wk].inicio);
-          var pFim=_parseBR(g.semanas[wk].fim);
-          if(pIni&&pFim&&hoje>=pIni){ semanaIdx=wk; }
-        }
-        if(semanaIdx<0) semanaIdx=0;
-      }
-      if(semanaIdx>=0){
-        // Preencher o valor da semana com o custo (acumula se já houver valor)
-        g.semanas[semanaIdx].valorJogos=(g.semanas[semanaIdx].valorJogos||0)+custMensal;
-        // NÃO altera arrecadacaoTotal — ela é manual; o saldo = arrecadação − soma(semanas) é derivado na renderização
-        // Sincronizar com estado em memória
-        if(_boloesState.editId===bolaoId){
-          _boloesState.semanas=g.semanas.slice();
-        }
-      }
-      // Garantir que semanas ficam no objeto g para gravação no DB
-      g.arrecadacaoTotal=g.arrecadacaoTotal||_boloesState.arrecadacaoTotal||0;
-    }
-    g.jogosSavedAt=Date.now();
-    // Também salva/atualiza o conjunto em "Jogos Salvos" com o NOME DO BOLÃO
     try{
-      var nomeBolao='Bolão: '+(g.nome||'(sem nome)');
-      var todosSalvos=await dbAll('jogos_salvos');
-      // Só substitui o espelho da MESMA loteria deste vínculo — um bolão
-      // Multi-Loteria pode ter jogos de várias loterias diferentes
-      // vinculados (ex.: Mega-Sena E Lotofácil no mesmo bolão), cada uma
-      // precisa do seu PRÓPRIO espelho em Jogos Salvos, com sua própria
-      // cor/dezenas corretas. Antes isto apagava QUALQUER espelho com o
-      // mesmo bolaoId (de qualquer loteria), então vincular uma segunda
-      // loteria apagava o espelho da primeira — e o que sobrava usava
-      // g.loteria (a loteria do bolão, um campo cada vez mais vestigial
-      // agora que bolões nascem "virgens", ver correção anterior de hoje)
-      // em vez da loteria REAL do jogo recém-vinculado, pintando os jogos
-      // com a cor errada.
-      for(var si=0; si<todosSalvos.length; si++){
-        var it=todosSalvos[si];
-        if(it && it.bolaoId===bolaoId && it.loteria===loteriaKey){ try{ await dbOp('jogos_salvos','readwrite',function(st){return st.delete(it.id);}); }catch(_){} }
+      for(var ciG=0;ciG<_concursosNovosG.length;ciG++){
+        var ccG=_concursosNovosG[ciG];
+        ccG.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=ccG.num; });
+        await BolaoJogosRepo.vincularDual(ccG.loteria,ccG.jogos,g._novoSchemaId);
+        await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:ccG.num,loteria:ccG.loteria,data:ccG.data,custo:ccG.custo,semana:ccG.semana});
       }
-      // Auditoria Fase 2.3: usa _criarItemJogoSalvo — antes este espelho não
-      // tinha uuid/concurso/jogoIds/fixos/teimosinhaConcursos/ssCols.
-      var itemBolao=_criarItemJogoSalvo({loteria:loteriaKey,nome:nomeBolao,jogos:jogos,numDez:g.numDez,
-        concurso:_novoNum,bolaoId:bolaoId,vinculadoBolao:true});
-      // Auditoria Fase 2.2: bolão + espelho gravados numa ÚNICA transação
-      // (dbPutMulti) — antes eram dois dbPut separados; se o segundo
-      // falhasse, o bolão já ficava com o concurso novo mas sem o espelho
-      // correspondente em Jogos Salvos, um estado inconsistente e
-      // silencioso. Mesmo padrão que vincularSalvoAoBolao já usa.
-      await dbPutMulti([{store:'boloes_v2',valor:g},{store:'jogos_salvos',valor:itemBolao}]);
       _registrarAuditoria('vincular_jogos_ao_bolao',{bolaoId:bolaoId,detalhes:jogos.length+' jogo(s), concurso '+_novoNum});
-      // Fase 2 (Doc 2): dual-write no schema relacional novo, só em DEV. Usa
-      // o uuid real espelhado deste bolão (g._novoSchemaId). Mesma correção
-      // de _concursoOrigem explicada em _vincularSalvoAoBolaoImpl.
-      jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=_novoNum; });
-      BolaoJogosRepo.vincularDual(loteriaKey,jogos,g._novoSchemaId);
-      BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:_novoNum,loteria:loteriaKey,data:_dataSorteio,custo:_custoG,semana:_semLabel});
-    }catch(e){ console.warn('[VINCULO] jogos_salvos:',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
+    }catch(e){ console.warn('[VINCULO]',e.message); toast('Erro ao vincular — nada foi salvo, tente novamente.'); return; }
     // Atualizar painel de participantes e formulário se o bolão atual está aberto
     if(_boloesState && _boloesState.editId===bolaoId){
       _boloesState.concursos=g.concursos;
