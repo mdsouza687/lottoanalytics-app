@@ -16756,25 +16756,6 @@ async function _imprimirBolaoImpl(soPremiados){
   // são somadas numa única entrada por loteria, com o prêmio REAL daquela
   // loteria (resultados[loteria]), não um prêmio único genérico do bolão.
   var porLoteriaImp={};
-  // CORREÇÃO (2026-07-12): um "grupo" de Teimosinha (mesmo teimosinha_origem)
-  // pode conter jogos DIFERENTES com contagens de Teimosinha diferentes
-  // entre si — ex.: jogo A vinculado com 3 concursos e jogo B, vinculado
-  // separadamente mas caindo no mesmo concurso inicial, com só 2. Usar
-  // cc.teimosinhaTodos (a lista do GRUPO inteiro) pra rotular TODOS os
-  // jogos daquele concurso fazia o jogo B aparecer como "TEIMOSINHA ×3"
-  // (achado ao vivo em produção, 2026-07-12 — dado real confirmado por
-  // SQL: extras.teimosinhaConcursos do jogo tinha só 2 concursos, mas o
-  // relatório mostrava 3). Mapeia por _jogoId a lista REAL de concursos em
-  // que aquele MESMO jogo aparece, através de todos os concursos do bolão.
-  var _concursosPorJogoId={};
-  (gImp&&gImp.concursos||[]).forEach(function(cc){
-    (cc.jogos||[]).forEach(function(jg){
-      if(jg&&jg._jogoId){
-        if(!_concursosPorJogoId[jg._jogoId]) _concursosPorJogoId[jg._jogoId]=[];
-        _concursosPorJogoId[jg._jogoId].push(cc.num);
-      }
-    });
-  });
   (gImp&&gImp.concursos||[]).forEach(function(cc){
     // Reconstrói jogo._mes/_time/_extra/_trevos/_ssCols a partir dos
     // arrays paralelos do concurso — sem isso, jogos de Dia de
@@ -16801,9 +16782,15 @@ async function _imprimirBolaoImpl(soPremiados){
     (cc.jogos||[]).forEach(function(jg){
       if(jg&&typeof jg==='object'){
         jg._concursoOrigem=cc.num;
-        var listaReal=jg._jogoId&&_concursosPorJogoId[jg._jogoId]&&_concursosPorJogoId[jg._jogoId].length>1?_concursosPorJogoId[jg._jogoId]:null;
-        if(listaReal) jg._teimosinhaConcursos=listaReal;
-        else if(cc.teimosinhaTodos) jg._teimosinhaConcursos=cc.teimosinhaTodos;
+        // CORREÇÃO (2026-07-12): cada linha de jogos já vem com sua PRÓPRIA
+        // lista real de Teimosinha (jg._teimosinhaConcursos, reconstruída em
+        // _carregarBolaoNovoSchemaPorUuid a partir de extras.teimosinhaConcursos)
+        // — nunca sobrescrever com cc.teimosinhaTodos (lista do GRUPO inteiro,
+        // que pode ter mais concursos que ESTE jogo específico se outro jogo
+        // do mesmo lote tiver uma Teimosinha maior). Só usa o fallback do
+        // grupo pra jogos antigos, salvos antes deste fix, que não têm a
+        // própria lista.
+        if(!jg._teimosinhaConcursos&&cc.teimosinhaTodos) jg._teimosinhaConcursos=cc.teimosinhaTodos;
       }
     });
     porLoteriaImp[lk].jogos=porLoteriaImp[lk].jogos.concat(cc.jogos||[]);
@@ -18459,7 +18446,17 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     var arr=(j.numeros||[]).slice();
     if(j.trevos&&j.trevos.length) arr._trevos=j.trevos.slice();
     if(j.extras){ if(j.extras.extra!=null)arr._extra=j.extras.extra; if(j.extras.mes!=null)arr._mes=j.extras.mes; if(j.extras.time!=null)arr._time=j.extras.time;
-      if(Array.isArray(j.extras.ssCols)&&j.extras.ssCols.length) arr._ssCols=j.extras.ssCols.map(function(c){return c.slice();}); }
+      if(Array.isArray(j.extras.ssCols)&&j.extras.ssCols.length) arr._ssCols=j.extras.ssCols.map(function(c){return c.slice();});
+      // CORREÇÃO (2026-07-12, achada ao vivo em produção): cada CONCURSO de
+      // uma sequência Teimosinha vira uma linha PRÓPRIA em public.jogos
+      // (id diferente por concurso, mesmo sendo a "mesma aposta") — minha
+      // tentativa anterior de corrigir isso cruzando por _jogoId estava
+      // errada, porque _jogoId nunca se repete entre concursos (cada linha
+      // tem seu próprio uuid). O dado certo já estava salvo em
+      // extras.teimosinhaConcursos de CADA linha desde o fix anterior desta
+      // sessão — só faltava reconstruir aqui, mesmo padrão já usado em
+      // getJogoSalvo/_carregarConjuntosDualComoAntigo pros jogos avulsos.
+      if(Array.isArray(j.extras.teimosinhaConcursos)&&j.extras.teimosinhaConcursos.length) arr._teimosinhaConcursos=j.extras.teimosinhaConcursos.slice(); }
     if(j.is_espelho) arr._isEspelho=true;
     arr._jogoId=j.id;
     porChave[chave].push(arr);
