@@ -10354,6 +10354,24 @@ function calcDatasTeimosinha(loteriaKey,dataBaseStr,n){
   }
   return datas;
 }
+// Data esperada de sorteio de um concurso FUTURO que a API ainda não
+// divulgou (ex.: 2ª ou 3ª rodada à frente de um bolão recorrente) — mesma
+// lógica de calcDatasTeimosinha (dia da semana fixo da loteria + pula
+// feriado nacional), só que ancorada no ÚLTIMO resultado já confirmado
+// (resultados[loteria]), não numa base arbitrária. Usada no "Histórico de
+// Rodadas" pra não deixar a data em branco só porque a Caixa ainda não
+// publicou o card oficial desse concurso — o calendário de sorteios em si
+// é conhecido de antemão e só muda com feriado.
+function _dataSorteioEstimada(loteriaKey,concursoNum){
+  if(!loteriaKey||!concursoNum) return '';
+  var res=(typeof resultados!=='undefined')?resultados[loteriaKey]:null;
+  if(!res||!res.concurso||!res.data) return '';
+  var base=parseInt(res.concurso),alvo=parseInt(concursoNum);
+  if(!base||!alvo||alvo<=base) return '';
+  var k=alvo-base;
+  var datas=(typeof calcDatasTeimosinha==='function')?calcDatasTeimosinha(loteriaKey,res.data,k+1):[];
+  return datas.length>k?datas[k]:'';
+}
 // Uma aposta Teimosinha só é considerada FINALIZADA depois que o ÚLTIMO
 // concurso da lista (não o primeiro) já tiver sido sorteado — mesmo que
 // concursos intermediários já tenham saído, a aposta continua "vigente"
@@ -15361,7 +15379,7 @@ function renderFormBolao(){
               '<span>'+nJogosM+' jogo'+(nJogosM!==1?'s':'')+'</span>'+
               '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
               (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-              (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
+              (function(){var _dt=cc.data||_dataSorteioEstimada(cc.loteria,cc.num);return _dt?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(_dt))+'</span>':'';})()+
               '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmtM+'</span>'+
             '</div>';
           }).join('')
@@ -15527,7 +15545,7 @@ function renderFormBolao(){
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-            (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
+            (function(){var _dt=cc.data||_dataSorteioEstimada(cc.loteria,cc.num);return _dt?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(_dt))+'</span>':'';})()+
             '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
           '</div>';
         }).join('')
@@ -15644,7 +15662,7 @@ function renderFormBolao(){
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
-            (cc.data?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(cc.data))+'</span>':'')+
+            (function(){var _dt=cc.data||_dataSorteioEstimada(cc.loteria,cc.num);return _dt?'<span style="color:var(--text-muted)">&nbsp;sorteio '+_esc(String(_dt))+'</span>':'';})()+
             '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
           '</div>';
         }).join('')
