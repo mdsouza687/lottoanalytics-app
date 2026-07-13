@@ -18033,7 +18033,7 @@ async function verJogosVinculados(){
       // linha (c.num) — aqui, diferente da impressão, cada "concurso" já é
       // uma seção visualmente separada, então não há ambiguidade de qual
       // concurso o jogo pertence.
-      var concursoOrigemTela=(j&&j._teimosinhaConcursos&&j._teimosinhaConcursos.length)?null:c.num;
+      var concursoOrigemTela=c.num;
       var infoPremioTela=_calcPremioJogo(c.loteria,j,concursoOrigemTela);
       var corPremiadoTela='#b8860b';
       var balls=dezenas.map(function(n){
