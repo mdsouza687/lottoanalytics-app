@@ -2642,6 +2642,15 @@ const ESPELHO_CFG = {
   maismilionaria:{grupoA:25, grupoB:25},
   powerball:     {disjunto:true},
   megamillions:  {disjunto:true},
+  // Lotomania: min===max===50===universe/2, então "disjunto" (espelho
+  // sorteado do que sobrar depois de excluir o principal) degenera
+  // matematicamente no COMPLEMENTO EXATO — sobram sempre exatamente 50
+  // números pro espelho, os mesmos 50 que o volante físico oficial marca
+  // na "APOSTA ESPELHO" (ver assets/volantes-corrigidos-teste/lotomania_v2_teste.html).
+  // Não é um hack: reaproveita o mesmo mecanismo do Powerball/MM sem
+  // precisar de um modo novo, porque aqui o tamanho do pool restante
+  // sempre bate exatamente com numDez.
+  lotomania:     {disjunto:true, desc:'Espelho = os 50 números que sobrarem (complemento exato)'},
 };
 
 function isEspecial(key, concursoNum){
@@ -7833,7 +7842,7 @@ function gerarJogoEstat(universe, numDez, fixos, filtros, d){
 }
 function atualizarEspelhoUI(d){
   const cfg=ESPELHO_CFG[currentKey];
-  const desc = cfg ? (cfg.disjunto?'Dois jogos com dezenas distintas entre si':`Universo dividido em 2 grupos (${cfg.grupoA}+${cfg.grupoB}); 1 jogo de cada`) : '';
+  const desc = cfg ? (cfg.desc||(cfg.disjunto?'Dois jogos com dezenas distintas entre si':`Universo dividido em 2 grupos (${cfg.grupoA}+${cfg.grupoB}); 1 jogo de cada`)) : '';
   [['espelho-wrap','jogo-espelho','espelho-info'],
    ['bolao-espelho-wrap','bolao-espelho','bolao-espelho-info']].forEach(function(ids){
     const wrap=document.getElementById(ids[0]);
@@ -8950,11 +8959,25 @@ const VOLANTE_ASSETS_BASE = 'assets/volantes/';
 // maismilionaria. +Milionária agora tem digitalização em resolução plena
 // (antes era estimada) — a folha real tem 4 painéis de jogo lado a lado,
 // por isso "jogos" tem 4 entradas (cada uma com seu próprio trevoCols/Rows).
+// ═══ Coordenadas regeradas a partir de fotos NOVAS de todos os 9 volantes
+// (item "Recalibração de volantes v2", concluído após conferência visual +
+// aprovação explícita do usuário para cada uma das 9 loterias, uma de cada
+// vez, via artifacts de teste publicados durante o trabalho — ver
+// assets/volantes-corrigidos-teste/*_v2_teste.html, mantidos como registro
+// de como cada coordenada foi medida e verificada). As fotos novas trazem
+// seções que não existiam nas imagens antigas (SURPRESINHA, BOLÃO em quase
+// todas, APOSTA ESPELHO exclusiva da Lotomania) — nenhuma delas recebe
+// marca (o app não decide por elas: Surpresinha/Bolão são "o sistema
+// escolhe pra você"; Aposta Espelho da Lotomania é tratada à parte, ver
+// ESPELHO_CFG.lotomania). markW/markH (por painel) e trevoMarkW/trevoMarkH
+// são um override opcional do tamanho padrão (fração do espaçamento entre
+// colunas) — usados quando o colchete real da loteria é maior/menor do que
+// essa fração cobre bem (ver _volanteMarcacoesHtml).
 const VOLANTE_IMG = {
-  megasena: { file:'megasena.jpg', wmm:83, hmm:146.44, jogos:[
-    {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[47.399,50.645,53.891,57.222,60.49,63.8]},
-    {cols:[14.894,21.429,27.667,34.138,40.545,46.677,53.445,59.853,66.472,72.858],rows:[72.499,75.745,78.991,82.28,85.505,88.751]},
-    {cols:[15.043,21.577,27.815,34.265,40.715,46.804,53.594,60.001,66.621,72.986],rows:[97.577,100.823,104.07,107.379,110.626,113.914]},
+  megasena: { file:'megasena.jpg', wmm:83, hmm:184.72, jogos:[
+    {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[50.0,53.3,56.6,59.9,63.2,66.5]},
+    {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[75.35,78.65,81.95,85.25,88.55,91.85]},
+    {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[100.75,104.05,107.35,110.65,113.95,117.25]},
   ],
   // Novos campos (item "Correção do Módulo de Impressão de Volantes"):
   // marca automaticamente quantas dezenas foram apostadas neste jogo, e em
@@ -8963,157 +8986,163 @@ const VOLANTE_IMG = {
   // oficial (a Teimosinha em papel só oferece 3 opções fixas — se o valor
   // escolhido no app não for nenhuma delas, nenhuma caixinha é marcada,
   // porque fisicamente ela não existe no papel).
-  // w/h medidos DIRETO na tinta real de cada colchete (não estimados por
-  // fração do espaçamento entre colunas) — números de 1 dígito são mais
-  // estreitos que os de 2 dígitos, então cada caixinha tem seu próprio w.
-  dezCountRow:{row:124.671,cells:[
-    {v:6,x:15.849,w:2.673},{v:7,x:22.447,w:2.631},{v:8,x:28.728,w:2.631},{v:9,x:35.199,w:2.588},
-    {v:10,x:40.8,w:4.286},{v:11,x:46.931,w:4.328},{v:12,x:53.742,w:4.286},{v:13,x:60.086,w:4.243},
-    {v:14,x:66.706,w:4.243},{v:15,x:73.092,w:4.286},
-  ], h:2.249},
-  teimosinhaRow:{row:144.488,cells:[
-    {v:2,x:15.276,w:4.328},{v:4,x:28.049,w:4.243},{v:8,x:41.712,w:2.716},
-  ], h:2.249},
+  dezCountRow:{row:128.15,cells:[
+    {v:6,x:14.64,w:2.745},{v:7,x:21.16,w:2.745},{v:8,x:27.45,w:2.745},{v:9,x:34.05,w:2.745},{v:10,x:40.63,w:2.745},
+    {v:11,x:46.8,w:2.745},{v:12,x:53.55,w:2.745},{v:13,x:59.92,w:2.745},{v:14,x:66.65,w:2.745},{v:15,x:73.2,w:2.745},
+  ], h:2.046},
+  teimosinhaRow:{row:148.15,cells:[
+    {v:2,x:14.8,w:2.745},{v:4,x:27.54,w:2.745},{v:8,x:40.68,w:2.745},
+  ], h:2.046},
   },
-  lotofacil: { file:'lotofacil.jpg', wmm:108.5, hmm:141.86,
+  lotofacil: { file:'lotofacil.jpg', wmm:83, hmm:189.15,
     // colunas vêm da esquerda p/ direita já na ordem REAL da folha
     // (o volante real do Lotofácil imprime 21-25,16-20,11-15,06-10,01-05
     // da esquerda pra direita, não 01-05 primeiro) — colBase reflete isso.
     colBase:[21,16,11,6,1], jogos:[
-    {cols:[16.341,28.829,41.72,54.949,67.416],rows:[44.619,49.086,53.573,58.102,62.59]},
-    {cols:[16.171,28.85,41.656,54.864,67.331],rows:[69.787,74.274,78.761,83.291,87.736]},
-    {cols:[16.108,28.765,41.571,54.779,67.246],rows:[95.144,99.653,104.14,108.627,113.115]},
+    {cols:[13.628,27.060,39.771,53.487,66.327],rows:[49.225,53.837,58.473,63.131,67.775],markW:4.5,markH:3.2},
+    {cols:[13.628,27.060,39.771,53.487,66.327],rows:[75.164,79.845,84.504,89.147,93.714],markW:4.5,markH:3.2},
+    {cols:[13.628,27.060,39.771,53.487,66.327],rows:[101.394,106.030,110.673,115.309,119.944],markW:4.5,markH:3.2},
   ],
   // Assinale quantos números você está marcando (6 caixinhas: 15 a 20) +
-  // Teimosinha (5 caixinhas: 3,6,12,18,24 — subconjunto físico das opções
-  // do app, que também tem 2,4,8,9 só disponíveis na aposta online).
-  dezCountRow:{row:120.269,cells:[
-    {v:15,x:15.6,w:3.598},{v:16,x:21.865,w:3.429},{v:17,x:28.046,w:3.429},
-    {v:18,x:34.756,w:3.641},{v:19,x:41.169,w:3.598},{v:20,x:47.71,w:3.641},
-  ], h:2.074},
-  teimosinhaRow:{row:136.356,cells:[
-    {v:3,x:15.558,w:3.598},{v:6,x:28.067,w:3.556},{v:12,x:40.979,w:3.641},
-    {v:18,x:54.038,w:3.598},{v:24,x:66.59,w:3.641},
-  ], h:2.201},
+  // Teimosinha (5 caixinhas: 3,6,12,18,24) — colchetes bem menores que os
+  // retângulos da grade principal, por isso w/h próprios aqui.
+  dezCountRow:{row:127.823,cells:[
+    {v:15,x:13.257,w:3.3},{v:16,x:19.688,w:3.3},{v:17,x:26.076,w:3.3},
+    {v:18,x:32.967,w:3.3},{v:19,x:39.552,w:3.3},{v:20,x:46.312,w:3.3},
+  ], h:1.8},
+  teimosinhaRow:{row:143.970,cells:[
+    {v:3,x:13.279,w:3.3},{v:6,x:26.186,w:3.3},{v:12,x:39.464,w:3.3},
+    {v:18,x:52.940,w:3.3},{v:24,x:65.846,w:3.3},
+  ], h:1.8},
   },
-  quina: { file:'quina.jpg', wmm:93.98, hmm:158.33, jogos:[
-    {cols:[25.463,31.919,38.079,44.641,51.117,57.256,63.966,70.316,76.454,82.91],rows:[39.984,43.243,46.503,49.763,53.001,56.261,59.669,62.928]},
-    {cols:[25.294,31.75,37.931,44.471,50.948,57.087,63.796,70.125,76.264,82.719],rows:[71.945,75.184,78.465,81.725,84.984,88.244,91.63,94.869]},
-    {cols:[25.315,31.75,37.931,44.471,50.948,57.087,63.796,70.104,76.264,82.719],rows:[103.95,107.167,110.427,113.707,116.967,120.227,123.635,126.852]},
+  quina: { file:'quina.jpg', wmm:93.98, hmm:210.87, jogos:[
+    {cols:[15.020,22.396,29.527,37.074,44.572,51.582,59.275,66.602,73.709,81.158],rows:[44.743,48.455,52.265,56.027,59.739,63.500,67.359,71.144]},
+    {cols:[15.020,22.396,29.527,37.074,44.572,51.582,59.275,66.602,73.709,81.158],rows:[81.573,85.310,89.095,92.857,96.618,100.354,104.238,107.999]},
+    {cols:[15.020,22.396,29.527,37.074,44.572,51.582,59.275,66.602,73.709,81.158],rows:[118.476,122.189,125.925,129.711,133.472,137.233,141.239,144.829]},
   ],
   // Assinale quantos números você está marcando (11 caixinhas: 5 a 15) +
   // Teimosinha (5 caixinhas: 3,6,12,18,24 — igual às opções do app, todas
-  // existem fisicamente no volante da Quina).
-  dezCountRow:{row:137.583,cells:[
-    {v:5,x:24.871,w:4.191},{v:6,x:31.39,w:4.106},{v:7,x:37.634,w:4.149},{v:8,x:44.069,w:4.233},
-    {v:9,x:50.588,w:4.233},{v:10,x:56.706,w:4.191},{v:11,x:63.458,w:4.149},{v:12,x:69.765,w:4.149},
-    {v:13,x:75.904,w:4.149},{v:14,x:82.317,w:4.191},{v:15,x:88.582,w:4.191},
-  ], h:2.15},
-  teimosinhaRow:{row:154.644,cells:[
-    {v:3,x:31.263,w:4.106},{v:6,x:44.048,w:4.191},{v:12,x:56.663,w:4.191},
-    {v:18,x:69.638,w:4.149},{v:24,x:82.042,w:4.233},
-  ], h:2.15},
+  // existem fisicamente no volante da Quina). Colchetes menores que a
+  // grade principal — w/h próprios (75%/85% do tamanho da grade).
+  dezCountRow:{row:157.285,cells:[
+    {v:5,x:15.384,w:2.324},{v:6,x:22.643,w:2.324},{v:7,x:29.902,w:2.324},{v:8,x:37.161,w:2.324},
+    {v:9,x:44.42,w:2.324},{v:10,x:51.679,w:2.324},{v:11,x:59.421,w:2.324},{v:12,x:66.699,w:2.324},
+    {v:13,x:73.831,w:2.324},{v:14,x:81.231,w:2.324},{v:15,x:87.972,w:2.324},
+  ], h:1.956},
+  teimosinhaRow:{row:176.945,cells:[
+    {v:3,x:22.517,w:2.324},{v:6,x:37.147,w:2.324},{v:12,x:51.777,w:2.324},
+    {v:18,x:66.699,w:2.324},{v:24,x:81.036,w:2.324},
+  ], h:1.956},
   },
-  lotomania: { file:'lotomania.jpg', wmm:72.81, hmm:161.29, jogos:[
-    {cols:[11.261,17.632,24.045,30.522,36.915,43.222,49.572,56.092,62.505,68.919],rows:[31.559,34.989,38.481,42.016,45.466,48.959,52.43,55.901,59.415,62.886]},
-    {cols:[11.261,17.653,24.067,30.522,36.915,43.222,49.551,56.071,62.484,68.898],rows:[76.433,79.904,83.376,86.889,90.339,93.832,97.303,100.817,104.309,107.781]},
+  lotomania: { file:'lotomania.jpg', wmm:72.81, hmm:162.77, jogos:[
+    {cols:[11.729,17.414,23.079,28.839,34.580,40.340,46.024,51.784,57.469,63.153],rows:[28.934,32.014,35.169,38.325,41.443,44.579,47.659,50.796,53.933,57.069],markW:3.4,markH:1.9},
+    {cols:[11.786,17.471,23.136,28.896,34.656,40.416,46.081,51.822,57.526,63.267],rows:[69.198,72.335,75.471,78.589,81.69,84.882,87.980,91.098,94.254,97.295],markW:3.4,markH:1.9},
   ],
   // Lotomania sempre aposta exatamente 50 dezenas fixas — não existe campo
   // de "quantidade de dezenas apostadas" no volante oficial (diferente das
   // demais loterias), por isso não há dezCountRow aqui, só Teimosinha.
-  teimosinhaRow:{row:157.057,cells:[
-    {v:3,x:11.239,w:4.276},{v:6,x:24.003,w:4.318},{v:9,x:36.978,w:4.191},{v:12,x:49.467,w:4.276},
-  ], h:2.244},
+  teimosinhaRow:{row:141.61,cells:[
+    {v:3,x:11.824,w:3.4},{v:6,x:23.174,w:3.4},{v:9,x:34.846,w:3.4},{v:12,x:46.100,w:3.4},
+  ], h:1.9},
+  // Aposta Espelho — exclusiva da Lotomania, diferente do mecanismo de
+  // grupo A/B das demais (ver ESPELHO_CFG.lotomania e o comentário em
+  // _volanteMarcacoesHtml): uma única caixinha, marcada quando qualquer
+  // jogo do volante veio de uma geração com Espelho ativo.
+  espelhoChk:{x:11.85, y:115.97, w:3.4, h:1.9},
   },
-  timemania: { file:'timemania.jpg', wmm:80.43, hmm:162.56, jogos:[
-    {cols:[12.255,18.479,24.934,31.433,37.888,44.302,50.673,57.087,63.585,70.062],rows:[23.918,27.58,31.242,34.84,38.502,42.143,45.784,49.467]},
+  timemania: { file:'timemania.jpg', wmm:80.43, hmm:182.45, jogos:[
+    {cols:[13.125,19.299,25.620,31.983,38.409,44.835,51.198,57.477,63.819,70.224],rows:[24.65,28.29,31.90,35.47,39.08,42.71,46.33,49.96]},
   ],
   // Timemania sempre aposta exatamente 10 dezenas fixas — sem dezCountRow.
   // A marcação do Time do Coração no volante físico (lista com ~80 times)
   // fica fora do escopo deste item (Doc 3 só cobre dezenas apostadas +
   // Teimosinha); o Time do Coração já é exibido em texto/badge em toda a
   // interface (Doc 1), só não é marcado na imagem física do volante.
-  teimosinhaRow:{row:159.385,cells:[
-    {v:3,x:24.68,w:4.233},{v:6,x:31.136,w:4.276},{v:9,x:37.592,w:4.233},{v:12,x:44.027,w:4.149},
-  ], h:2.23},
+  teimosinhaRow:{row:158.95,cells:[
+    {v:3,x:25.935,w:2.593},{v:6,x:32.277,w:2.593},{v:9,x:38.661,w:2.593},{v:12,x:45.108,w:2.593},
+  ], h:2.257},
   },
-  duplasena: { file:'duplasena.jpg', wmm:82.97, hmm:145.2,
+  duplasena: { file:'duplasena.jpg', wmm:83, hmm:183.46,
   // Assinale quantos números você está marcando (10 caixinhas: 6 a 15) +
   // Teimosinha (4 caixinhas: 3,6,9,12 — subconjunto físico das opções do
   // app, que também tem 2,4,8 só disponíveis na aposta online).
-  dezCountRow:{row:123.613,cells:[
-    {v:6,x:15.494,w:4.149},{v:7,x:22.818,w:4.149},{v:8,x:28.194,w:4.149},{v:9,x:34.692,w:4.191},
-    {v:10,x:41.084,w:4.191},{v:11,x:47.159,w:4.149},{v:12,x:53.7,w:4.106},{v:13,x:60.113,w:4.149},
-    {v:14,x:66.506,w:4.233},{v:15,x:73.067,w:4.149},
-  ], h:2.0},
-  teimosinhaRow:{row:143.722,cells:[
-    {v:3,x:15.706,w:4.149},{v:6,x:28.279,w:4.149},{v:9,x:41.169,w:4.191},{v:12,x:53.954,w:4.106},
-  ], h:2.05},
+  dezCountRow:{row:124.84,cells:[
+    {v:6,x:13.826,w:2.724},{v:7,x:20.377,w:2.724},{v:8,x:26.756,w:2.724},{v:9,x:33.2,w:2.724},
+    {v:10,x:39.537,w:2.724},{v:11,x:45.639,w:2.724},{v:12,x:52.339,w:2.724},{v:13,x:59.146,w:2.724},
+    {v:14,x:65.269,w:2.724},{v:15,x:71.734,w:2.724},
+  ], h:2.021},
+  teimosinhaRow:{row:145.47,cells:[
+    {v:3,x:13.89,w:2.724},{v:6,x:26.671,w:2.724},{v:9,x:39.452,w:2.724},{v:12,x:52.446,w:2.724},
+  ], h:2.021},
   jogos:[
-    {cols:[15.05,21.357,27.601,34.099,40.619,47.075,53.404,59.69,66.103,72.538],rows:[52.324,55.541,58.801,62.082,65.32]},
-    {cols:[15.219,21.526,27.771,34.29,40.788,47.244,53.573,59.859,66.252,72.707],rows:[74.824,78.084,81.344,84.603,87.842]},
-    {cols:[15.367,21.696,27.94,34.438,40.958,47.413,53.742,60.008,66.421,72.877],rows:[97.896,101.156,104.436,107.654,110.871]},
+    {cols:[14.04,20.526,26.82,33.285,39.75,46.258,52.744,59.124,65.504,71.884],rows:[54.07,57.33,60.62,63.90,67.19]},
+    {cols:[14.04,20.526,26.82,33.285,39.75,46.258,52.744,59.124,65.504,71.884],rows:[76.77,80.01,83.32,86.58,89.83]},
+    {cols:[14.04,20.526,26.82,33.285,39.75,46.258,52.744,59.124,65.504,71.884],rows:[100.01,103.27,106.53,109.80,113.06]},
   ]},
-  diasorte: { file:'diasorte.jpg', wmm:78.74, hmm:154.94, jogos:[
-    {cols:[3.577,10.647,16.849,23.305,29.739,35.835,42.608,49.022,55.118,61.489],rows:[41.995,45.254,48.514],
-     mesGrid:{cols6:[3.81,16.849,29.824,42.672,55.224,67.903],rows2:[58.23,61.934]}},
-    {cols:[3.789,10.816,17.06,23.516,29.93,36.047,42.82,49.212,55.309,61.68],rows:[74.126,77.385,80.645],
-     mesGrid:{cols6:[4.0,17.039,29.993,42.841,55.393,68.072],rows2:[90.424,93.662]}},
-    {cols:[4.508,11.028,17.23,23.707,30.12,36.216,42.989,49.403,55.478,61.849],rows:[106.087,109.305,112.607],
-     mesGrid:{cols6:[4.593,17.23,30.163,43.032,55.562,68.241],rows2:[122.386,125.624]}},
+  diasorte: { file:'diasorte.jpg', wmm:78.74, hmm:178.75, jogos:[
+    {cols:[6.55,12.806,18.847,25.157,31.488,37.467,44.046,50.211,56.169,62.438],rows:[40.18,43.34,46.53],row31:50.36,
+     mesGrid:{cols6:[6.335,18.785,31.488,44.025,56.252,68.665],rows2:[56.09,59.67],markW:4.0,markH:2.1}},
+    {cols:[6.633,12.930,18.951,25.281,31.570,37.529,44.128,50.314,56.272,62.520],rows:[71.54,74.73,77.93],row31:81.58,
+     mesGrid:{cols6:[6.418,18.868,31.570,44.108,56.314,68.748],rows2:[87.47,90.66],markW:4.0,markH:2.1}},
+    {cols:[6.736,13.013,19.013,25.343,31.653,37.611,44.211,50.397,56.355,62.603],rows:[102.76,105.92,109.11],row31:112.45,
+     mesGrid:{cols6:[6.501,18.951,31.653,44.211,56.376,68.830],rows2:[118.71,121.88],markW:4.0,markH:2.1}},
   ],
   // Assinale quantos números você está marcando (9 caixinhas: 7 a 15) +
   // Teimosinha (4 caixinhas: 3,6,9,12 — subconjunto físico das opções do
   // app, que também tem 2,4,8 só disponíveis na aposta online).
-  dezCountRow:{row:136.44,cells:[
-    {v:7,x:4.381,w:4.191},{v:8,x:10.858,w:4.191},{v:9,x:17.314,w:4.149},{v:10,x:23.326,w:4.149},
-    {v:11,x:30.057,w:4.149},{v:12,x:36.428,w:4.191},{v:13,x:42.672,w:4.233},{v:14,x:49.064,w:4.149},
-    {v:15,x:55.181,w:4.106},
-  ], h:2.16},
-  teimosinhaRow:{row:153.607,cells:[
-    {v:3,x:4.466,w:4.191},{v:6,x:17.335,w:4.106},{v:9,x:29.76,w:4.149},{v:12,x:42.905,w:4.191},
-  ], h:2.16},
+  dezCountRow:{row:132.38,cells:[
+    {v:7,x:6.53,w:2.628},{v:8,x:12.744,w:2.628},{v:9,x:18.992,w:2.628},{v:10,x:24.867,w:2.628},
+    {v:11,x:31.488,w:2.628},{v:12,x:37.736,w:2.628},{v:13,x:43.797,w:2.628},{v:14,x:49.942,w:2.628},
+    {v:15,x:55.962,w:2.628},
+  ], h:1.959},
+  teimosinhaRow:{row:149.14,cells:[
+    {v:3,x:6.57,w:2.628},{v:6,x:18.930,w:2.628},{v:9,x:31.157,w:2.628},{v:12,x:43.963,w:2.628},
+  ], h:1.959},
   },
-  supersete: { file:'supersete.jpg', wmm:80.43, hmm:105.83,
-    cols:[12.044,18.415,24.956,31.348,38.439,45.022,51.35],
-    rows:[37.486,41.169,44.895,48.578,52.282,55.944,59.669,63.352,67.077,70.739],
+  supersete: { file:'supersete.jpg', wmm:85, hmm:140.79,
+    cols:[14.715,21.472,28.274,34.943,41.633,48.59,55.281],
+    rows:[38.499,42.41,46.276,50.172,53.994,57.882,61.793,65.637,69.511,73.377],
+    markW:3.716, markH:2.425,
   // Assinale quantos números você está marcando: no Super Sete essas 15
   // opções (7 a 21) não cabem numa linha só no volante físico — o campo se
   // divide em 2 linhas impressas (7 a 14 numa, 15 a 21 na outra), por isso
   // cada célula carrega sua própria "row" além da compartilhada abaixo.
-  dezCountRow:{row:80.687,cells:[
-    {v:7,x:5.524,w:3.65},{v:8,x:12.531,w:3.641},{v:9,x:18.965,w:3.641},{v:10,x:25.421,w:3.683},
-    {v:11,x:31.856,w:3.683},{v:12,x:38.354,w:3.725},{v:13,x:44.873,w:3.641},{v:14,x:51.223,w:3.641},
-    {v:15,x:5.588,w:3.68,row:84.73},{v:16,x:12.594,w:3.683,row:84.73},{v:17,x:19.029,w:3.598,row:84.73},
-    {v:18,x:25.463,w:3.683,row:84.73},{v:19,x:31.919,w:3.725,row:84.73},{v:20,x:38.418,w:3.683,row:84.73},
-    {v:21,x:44.937,w:3.683,row:84.73},
-  ], h:1.93},
-  teimosinhaRow:{row:102.341,cells:[
-    {v:3,x:5.715,w:3.6},{v:6,x:19.219,w:3.556},{v:9,x:32.131,w:3.641},{v:12,x:45.148,w:3.598},
-  ], h:1.93},
+  dezCountRow:{row:84.198,cells:[
+    {v:7,x:8.002,w:3.28},{v:8,x:14.715,w:3.28},{v:9,x:21.517,w:3.28},{v:10,x:28.252,w:3.28},
+    {v:11,x:34.943,w:3.28},{v:12,x:41.7,w:3.28},{v:13,x:48.59,w:3.28},{v:14,x:55.303,w:3.28},
+    {v:15,x:8.002,w:3.28,row:88.379},{v:16,x:14.692,w:3.28,row:88.379},{v:17,x:21.495,w:3.28,row:88.379},
+    {v:18,x:28.229,w:3.28,row:88.379},{v:19,x:34.943,w:3.28,row:88.379},{v:20,x:41.722,w:3.28,row:88.379},
+    {v:21,x:48.168,w:3.28,row:88.379},
+  ], h:1.64},
+  teimosinhaRow:{row:106.87,cells:[
+    {v:3,x:8.047,w:3.28},{v:6,x:21.539,w:3.28},{v:9,x:34.987,w:3.28},{v:12,x:48.612,w:3.28},
+  ], h:1.64},
   },
-  maismilionaria: { file:'maismilionaria.jpg', wmm:186, hmm:110, jogos:[
-    {cols:[12.891,18.638,24.428,30.218,35.987],rows:[33.804,36.381,38.915,41.407,43.963,46.476,49.01,51.523,54.016,56.508],trevoCols:[12.891,24.438,35.987],trevoRows:[65.158,71.086]},
-    {cols:[47.208,52.977,58.724,64.536,70.283],rows:[33.699,36.276,38.81,41.303,43.837,46.35,48.905,51.418,53.911,56.383],trevoCols:[47.208,58.745,70.283],trevoRows:[65.557,70.938]},
-    {cols:[81.484,87.252,92.979,98.811,104.58],rows:[33.615,36.213,38.726,41.219,43.753,46.266,48.821,51.335,53.806,56.299],trevoCols:[81.484,93.031,104.58],trevoRows:[62.352,64.655]},
-    {cols:[115.59,121.379,127.149,132.938,138.749],rows:[33.532,36.129,38.643,41.135,43.69,46.182,48.738,51.251,53.744,56.215],trevoCols:[115.59,127.17,138.749],trevoRows:[64.928,71.065]}
+  maismilionaria: { file:'maismilionaria.jpg', wmm:186, hmm:109.32, jogos:[
+    {cols:[12.929,18.732,24.514,30.360,36.248],rows:[33.112,35.664,38.216,40.768,43.320,45.872,48.424,50.976,53.528,56.080],
+     trevoCols:[19.35,24.67,29.98],trevoRows:[64.955,70.705],markW:3.4,markH:2.0,trevoMarkW:3.4,trevoMarkH:2.0},
+    {cols:[47.641,53.445,59.226,65.072,70.939],rows:[33.112,35.664,38.216,40.768,43.320,45.872,48.424,50.976,53.528,56.080],
+     trevoCols:[54.062,59.382,64.692],trevoRows:[64.955,70.705],markW:3.4,markH:2.0,trevoMarkW:3.4,trevoMarkH:2.0},
+    {cols:[82.354,88.157,93.533,99.806,105.673],rows:[33.112,35.664,38.216,40.768,43.320,45.872,48.424,50.976,53.528,56.080],
+     trevoCols:[88.775,94.095,99.405],trevoRows:[64.955,70.705],markW:3.4,markH:2.0,trevoMarkW:3.4,trevoMarkH:2.0},
+    {cols:[116.938,122.741,128.523,134.412,140.300],rows:[33.112,35.664,38.216,40.768,43.320,45.872,48.424,50.976,53.528,56.080],
+     trevoCols:[123.359,128.679,133.989],trevoRows:[64.955,70.705],markW:3.4,markH:2.0,trevoMarkW:3.4,trevoMarkH:2.0},
   ],
   // Números (6 a 12) e Trevos (2 a 6) apostados + Teimosinha (2 a 5, todas
-  // opções do app existem fisicamente aqui). Medido direto no arquivo
-  // maismilionaria.jpg (resolução mais baixa que os scans 600dpi das
-  // outras loterias, já que essa imagem foi montada/composta numa sessão
-  // anterior a partir do scan original, cuja tira de rodapé é impressa
-  // rotacionada 90° em relação ao resto da folha) — por isso a margem de
-  // segurança padrão (SEGURANCA_CAMPO) importa ainda mais aqui.
-  dezCountRow:{row:89.55,cells:[
-    {v:6,x:18.717,w:3.4},{v:7,x:24.467,w:3.4},{v:8,x:30.217,w:3.4},{v:9,x:35.967,w:3.4},
-    {v:10,x:41.717,w:3.4},{v:11,x:47.467,w:3.4},{v:12,x:53.217,w:3.4},
-  ], h:1.9},
-  trevoCountRow:{row:92.09,cells:[
-    {v:2,x:13.675,w:3.2},{v:3,x:19.425,w:3.2},{v:4,x:25.175,w:3.2},{v:5,x:30.925,w:3.2},{v:6,x:36.675,w:3.2},
-  ], h:1.9},
-  teimosinhaRow:{row:102.569,cells:[
-    {v:2,x:87.731,w:2.3},{v:3,x:94.079,w:2.3},{v:4,x:99.094,w:2.3},{v:5,x:105.633,w:2.3},
+  // opções do app existem fisicamente aqui). Posições calculadas pelo
+  // centroide de tinta de cada colchete (ver assets/volantes-corrigidos-
+  // teste/maismilionaria_v2_teste.html) — colchetes pequenos e pouco
+  // contrastados na foto, limiar de segmentação simples dava tamanho/
+  // posição inconsistentes entre eles.
+  dezCountRow:{row:89.25,cells:[
+    {v:6,x:17.9,w:2.8},{v:7,x:24.703,w:2.8},{v:8,x:30.726,w:2.8},{v:9,x:36.662,w:2.8},
+    {v:10,x:43.142,w:3.9},{v:11,x:49.0,w:3.9},{v:12,x:54.556,w:3.9},
+  ], h:1.8},
+  trevoCountRow:{row:92.17,cells:[
+    {v:2,x:19.195,w:2.8},{v:3,x:24.984,w:2.8},{v:4,x:31.021,w:2.8},{v:5,x:36.911,w:2.8},{v:6,x:42.602,w:2.8},
+  ], h:1.8},
+  teimosinhaRow:{row:102.84,cells:[
+    {v:2,x:88.85,w:2.8},{v:3,x:94.74,w:2.8},{v:4,x:100.58,w:2.8},{v:5,x:106.26,w:2.8},
   ], h:1.8},
   },
 };
@@ -9160,7 +9189,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   if(key==='supersete'){
     const jogo=jogos[0];
     const colunas=(jogo&&jogo._ssCols)||[jogo||[]];
-    const w=_pitch(v.cols)*FRAC_NUM_W, h=_pitch(v.rows)*FRAC_NUM_H;
+    const w=v.markW||(_pitch(v.cols)*FRAC_NUM_W), h=v.markH||(_pitch(v.rows)*FRAC_NUM_H);
     v.cols.forEach((cx,c)=>{
       const marcadosCol=new Set((colunas[c]||[]).map(Number));
       v.rows.forEach((cy,digito)=>{
@@ -9175,7 +9204,11 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   jogos.forEach((jogo,idx)=>{
     const jg=v.jogos&&v.jogos[idx]; if(!jg) return;
     const marcados=new Set((jogo||[]).map(Number));
-    const w=_pitch(jg.cols)*FRAC_NUM_W, h=_pitch(jg.rows)*FRAC_NUM_H;
+    // markW/markH: override opcional por painel — algumas loterias têm
+    // elemento visual diferente de um colchete simples (ex.: Lotofácil usa
+    // retângulo cheio, Lotomania/Super Sete/+Milionária têm colchete maior
+    // que a fração padrão cobre bem) — quando ausente, cai na fração padrão.
+    const w=jg.markW||(_pitch(jg.cols)*FRAC_NUM_W), h=jg.markH||(_pitch(jg.rows)*FRAC_NUM_H);
     if(key==='lotofacil'){
       jg.cols.forEach((cx,c)=>{
         const base=v.colBase[c];
@@ -9197,7 +9230,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
     // e mês da sorte (Dia de Sorte)
     if(key==='maismilionaria' && jg.trevoCols && jg.trevoRows){
       const trevos=new Set(((jogo&&jogo._trevos)||[]).map(Number));
-      const tw=_pitch(jg.trevoCols)*FRAC_TREVO_W, th=_pitch(jg.trevoRows)*FRAC_TREVO_H;
+      const tw=jg.trevoMarkW||(_pitch(jg.trevoCols)*FRAC_TREVO_W), th=jg.trevoMarkH||(_pitch(jg.trevoRows)*FRAC_TREVO_H);
       let t=1;
       jg.trevoRows.forEach(cy=>{
         jg.trevoCols.forEach(cx=>{
@@ -9217,7 +9250,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
       // usar uma grade única fazia os meses dos jogos 2 e 3 caírem todos
       // empilhados na área do jogo 1.
       const mesIdx=(jogo&&jogo._mes!=null)?jogo._mes:null;
-      const mw=_pitch(jg.mesGrid.cols6)*FRAC_MES_W, mh=_pitch(jg.mesGrid.rows2)*FRAC_MES_H;
+      const mw=jg.mesGrid.markW||(_pitch(jg.mesGrid.cols6)*FRAC_MES_W), mh=jg.mesGrid.markH||(_pitch(jg.mesGrid.rows2)*FRAC_MES_H);
       let i=1;
       jg.mesGrid.rows2.forEach(cy=>{
         jg.mesGrid.cols6.forEach(cx=>{
@@ -9225,6 +9258,12 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
           i++;
         });
       });
+    }
+    // Dia 31: só existe em 7 dos 12 meses, por isso fica FORA da grade
+    // principal (que só vai até o dia 30) — colchete próprio, na mesma
+    // coluna do dia 1 (jg.cols[0]), numa linha abaixo da grade.
+    if(key==='diasorte' && jg.row31!=null){
+      html+=_volanteMarcaDiv(jg.cols[0],jg.row31,w,h,'#000',marcados.has(31));
     }
   });
   // Quantidade de dezenas apostadas + Teimosinha (item "Correção do Módulo
@@ -9279,6 +9318,19 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
     v.teimosinhaRow.cells.forEach(cell=>{
       html+=_volanteMarcaDiv(cell.x,v.teimosinhaRow.row,cell.w*SEGURANCA_CAMPO,th,'#000',qtdTeim!=null&&cell.v===qtdTeim);
     });
+  }
+  // Aposta Espelho da Lotomania: campo próprio do volante físico (exclusivo
+  // dela — nenhuma outra loteria tem essa caixinha impressa), completamente
+  // diferente do mecanismo de grupo A/B das demais. Não se marcam números
+  // complementares aqui — é o terminal da Caixa que gera as 2 apostas extras
+  // sozinho ao ler a caixinha marcada (ver ESPELHO_CFG.lotomania e
+  // assets/volantes-corrigidos-teste/lotomania_v2_teste.html). Por isso só
+  // marca 1 caixinha única por volante, quando QUALQUER jogo do grupo
+  // impresso (painel de cima e/ou de baixo) veio de uma geração com Aposta
+  // Espelho ativa (jogo._espelho presente).
+  if(v.espelhoChk && jogos.some(jg=>jg&&jg._espelho)){
+    const ew=v.espelhoChk.w*SEGURANCA_CAMPO, eh=v.espelhoChk.h*SEGURANCA_CAMPO;
+    html+=_volanteMarcaDiv(v.espelhoChk.x,v.espelhoChk.y,ew,eh,'#000',true);
   }
   return html;
 }
@@ -11651,7 +11703,7 @@ async function gerarComIA(tipo){
     const _eCfg=ESPELHO_CFG[currentKey];
     if(_eCfg && !d.superSete){
       _iaEspWrap.style.display='';
-      if(_iaEspDesc) _iaEspDesc.textContent=_eCfg.disjunto?'Dois jogos com dezenas distintas':`Universo dividido em 2 grupos (${_eCfg.grupoA}+${_eCfg.grupoB})`;
+      if(_iaEspDesc) _iaEspDesc.textContent=_eCfg.desc||(_eCfg.disjunto?'Dois jogos com dezenas distintas':`Universo dividido em 2 grupos (${_eCfg.grupoA}+${_eCfg.grupoB})`);
       if(!_modalJaAberto){
         // Primeira abertura: verifica se QUALQUER checkbox de espelho está ativo (qualquer aba)
         const _anyEspOn=['jogo-espelho','fech-espelho','fch2-espelho']
@@ -12013,8 +12065,14 @@ async function gerarComIA(tipo){
       // Para cada jogo: gera espelho EXCLUSIVAMENTE do Grupo B
       jogosIA.forEach(({jogo,mode})=>{
         if(!_grupoB.length) return;
-        // Pool do espelho: apenas números do Grupo B (sem sobreposição garantida por construção)
-        const _poolB=[..._grupoB];
+        // Pool do espelho: apenas números do Grupo B, excluindo os do jogo
+        // principal — nos grupos pré-calculados (não-disjunto) isso já vem
+        // garantido por construção (B é o complemento de A), mas no modo
+        // disjunto (Powerball/MM/Lotomania) _grupoB é o universo inteiro
+        // (não restrito por jogo), então sem esse filtro o espelho podia
+        // sortear números repetidos do principal — bug que ficava bem
+        // visível na Lotomania (50 de 100 números).
+        const _poolB=_ecfgIA.disjunto?_grupoB.filter(n=>!jogo.includes(n)):[..._grupoB];
         if(_poolB.length<numDez) return;
         const _esc=[];
         while(_esc.length<numDez&&_poolB.length){

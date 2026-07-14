@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Lotomania corrigida (não usado pelo app)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:600px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .wrap { position:relative; width:83mm; height:183mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); }
+  .wrap img { position:absolute; top:0; left:0; width:83mm; height:183mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.88; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  /* Régua de referência em mm nas bordas, pra comparar com régua física */
+  .ruler-x { position:absolute; top:-4mm; left:0; width:83mm; height:4mm; font-size:1.6mm; color:#000; }
+  .ruler-x span { position:absolute; top:0; }
+  .ruler-y { position:absolute; left:-6mm; top:0; width:6mm; height:183mm; font-size:1.6mm; color:#000; }
+  .ruler-y span { position:absolute; left:0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .wrap { box-shadow:none; }
+    @page { size: 83mm 183mm; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Lotomania (imagem corrigida, coordenadas ainda em ajuste)</strong><br>
+  Retângulos pretos = onde a marcação cairia hoje. Imprima esta página (escala 100%, sem "ajustar à página"),
+  compare com um bilhete real de Lotomania usando régua, e me diga o desvio em mm (pra cima/baixo/esquerda/direita)
+  de qualquer marca que não estiver centralizada no colchete — as réguas nas bordas (em mm) ajudam a apontar a posição exata.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <img src="lotomania.jpg"/>
+  <div id="marks"></div>
+  <div class="ruler-x no-print" id="rulerX"></div>
+  <div class="ruler-y no-print" id="rulerY"></div>
+</div>
+
+<script>
+const cols = [14.67,21.06,27.45,33.84,40.23,46.62,53.01,59.4,65.79,72.18];
+const rows1 = [32.46,35.99,39.52,43.05,46.58,50.11,53.64,57.17,60.7,64.23];
+const rows2 = [77.84,81.37,84.9,88.43,91.96,95.49,99.02,102.55,106.08,109.61];
+const teimosinha = [{v:3,x:14.26},{v:6,x:27.06},{v:9,x:40.2},{v:12,x:52.75}];
+const teimoY = 159.4;
+
+const PITCH_W = cols[1]-cols[0];
+const PITCH_H = rows1[1]-rows1[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+
+let html='';
+function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+cols.forEach(cx=>{ rows1.forEach(cy=>mark(cx,cy,MW,MH)); rows2.forEach(cy=>mark(cx,cy,MW,MH)); });
+teimosinha.forEach(c=>mark(c.x, teimoY, MW, MH));
+document.getElementById('marks').innerHTML = html;
+
+let rx='', ry='';
+for(let x=0; x<=83; x+=5) rx += `<span style="left:${x}mm">${x}</span>`;
+for(let y=0; y<=183; y+=5) ry += `<span style="top:${y}mm">${y}</span>`;
+document.getElementById('rulerX').innerHTML = rx;
+document.getElementById('rulerY').innerHTML = ry;
+</script>
+</body>
+</html>

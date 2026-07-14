@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — +Milionária v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:760px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 RETRATO, 2 volantes empilhados (o bilhete é bem largo — 186mm
+     — então só cabe 1 por linha; 2 no total exige empilhar na vertical, ao
+     contrário das outras 8 loterias que vão de lado a lado em paisagem). */
+  .page { position:relative; width:210mm; height:297mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; gap:5mm; }
+  .volante { position:relative; width:186mm; height:109.32mm; }
+  .volante img { position:absolute; top:0; left:0; width:186mm; height:109.32mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 portrait; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — +Milionária, modelo NOVO do bilhete (com Surpresinha + Bolão)</strong><br>
+  A foto de origem mudou — o bilhete atual da Caixa tem 4 jogos lado a lado (cada um com sua própria grade
+  de 50 números + 6 trevos) e ganhou as seções "SURPRESINHA" (1 a 10 apostas) e "BOLÃO" (até 100 cotas,
+  Dezena 0-9/Unidade 0-9/Cota Limite [100]) perto do rodapé, que não existiam antes. Diferente das outras 8
+  loterias (A4 paisagem, lado a lado), esse bilhete é bem largo (186mm) — só cabe 1 por linha, então o
+  layout aqui é <strong>A4 retrato, 2 empilhados na vertical</strong>. As 4 grades de números, os 4 conjuntos
+  de trevos, "Assinale quantos números e quantos trevos" (Números 6-12, Trevos 2-6) e a Teimosinha (2,3,4,5
+  — já eram essas opções) foram todos remedidos do zero. Surpresinha e Bolão ficam visíveis mas SEM marca.
+  Marca de corte em cruz nos 4 cantos de cada volante.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+// Os 4 jogos do bilhete são idênticos em estrutura, só deslocados
+// horizontalmente por um espaçamento fixo entre painéis (medido do zero:
+// ~34.7mm, incluindo a margem/borda dourada entre eles).
+const panelOffsets = [0, 34.712, 69.425, 104.009];
+const cols = [12.929,18.732,24.514,30.360,36.248];
+const rows = [33.112,35.664,38.216,40.768,43.320,45.872,48.424,50.976,53.528,56.080];
+const trevoX = [19.35,24.67,29.98];
+const trevoRows = [64.955,70.705];
+
+// Posições recalculadas pelo centroide de tinta de cada colchete (média
+// ponderada da posição de cada pixel de tinta numa janela por colchete),
+// em vez de segmentação por limiar — essa loteria tem colchetes pequenos e
+// pouco contrastados na foto, e limiar vinha dando tamanho/posição
+// inconsistentes entre os colchetes. Altura (1.8mm) e largura (2.8mm, ou
+// 3.9mm pros de 2 dígitos 10/11/12) agora uniformes nas duas linhas.
+const dezCountRow = {row:89.25, cells:[
+  {v:6,x:17.9,w:2.8},{v:7,x:24.703,w:2.8},{v:8,x:30.726,w:2.8},{v:9,x:36.662,w:2.8},
+  {v:10,x:43.142,w:3.9},{v:11,x:49.0,w:3.9},{v:12,x:54.556,w:3.9},
+]};
+const trevoCountRow = {row:92.17, cells:[
+  {v:2,x:19.195},{v:3,x:24.984},{v:4,x:31.021},{v:5,x:36.911},{v:6,x:42.602},
+]};
+const teimosinhaRow = {row:102.84, cells:[
+  {v:2,x:88.85},{v:3,x:94.74},{v:4,x:100.58},{v:5,x:106.26},
+]};
+
+const MW = 3.4, MH = 2.0;
+const SW = 2.8, SH = 1.8;
+
+function buildVolante(){
+  let html = '<img src="maismilionaria_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  panelOffsets.forEach(off=>{
+    cols.forEach(cx=>rows.forEach(cy=>mark(cx+off,cy,MW,MH)));
+    trevoX.forEach(cx=>trevoRows.forEach(cy=>mark(cx+off,cy,MW,MH)));
+  });
+  dezCountRow.cells.forEach(c=>mark(c.x,dezCountRow.row,c.w||SW,SH));
+  trevoCountRow.cells.forEach(c=>mark(c.x,trevoCountRow.row,SW,SH));
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,SW,SH));
+  // SURPRESINHA, BOLÃO e os 4 checkboxes "Para anular este jogo" ficam sem
+  // marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+let gridHtml = '';
+for(let i=0;i<2;i++) gridHtml += buildVolante();
+document.getElementById('grid').innerHTML = gridHtml;
+</script>
+</body>
+</html>

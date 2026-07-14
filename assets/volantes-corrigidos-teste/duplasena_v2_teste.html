@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Dupla Sena v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:700px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:83mm; height:183.46mm; }
+  .volante img { position:absolute; top:0; left:0; width:83mm; height:183.46mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Dupla Sena, modelo NOVO do bilhete (com Surpresinha + Bolão)</strong><br>
+  A foto de origem mudou — o bilhete atual da Caixa ganhou as seções "SURPRESINHA" e "BOLÃO" no rodapé,
+  que não existiam antes. Os 3 painéis, "Assinale quantos números" e "Teimosinha" foram todos remedidos
+  do zero (não reaproveitei nenhuma coordenada antiga). Surpresinha e Bolão ficam visíveis mas SEM marca
+  (não fazem parte da aposta impressa pelo app). Layout: A4 paisagem, 3 por folha, marca de corte em cruz
+  nos 4 cantos.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const cols = [14.04,20.526,26.82,33.285,39.75,46.258,52.744,59.124,65.504,71.884];
+const rows1 = [54.07,57.33,60.62,63.90,67.19];
+const rows2 = [76.77,80.01,83.32,86.58,89.83];
+const rows3 = [100.01,103.27,106.53,109.80,113.06];
+const dezCountRow = {row:124.84, cells:[
+  {v:6,x:13.826},{v:7,x:20.377},{v:8,x:26.756},{v:9,x:33.2},{v:10,x:39.537},
+  {v:11,x:45.639},{v:12,x:52.339},{v:13,x:59.146},{v:14,x:65.269},{v:15,x:71.734},
+]};
+const teimosinhaRow = {row:145.47, cells:[
+  {v:3,x:13.89},{v:6,x:26.671},{v:9,x:39.452},{v:12,x:52.446},
+]};
+
+const PITCH_W = cols[1]-cols[0], PITCH_H = rows1[1]-rows1[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+
+function buildVolante(){
+  let html = '<img src="duplasena_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  cols.forEach(cx=>{
+    rows1.forEach(cy=>mark(cx,cy,MW,MH));
+    rows2.forEach(cy=>mark(cx,cy,MW,MH));
+    rows3.forEach(cy=>mark(cx,cy,MW,MH));
+  });
+  dezCountRow.cells.forEach(c=>mark(c.x,dezCountRow.row,MW,MH));
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,MW,MH));
+  // SURPRESINHA e BOLÃO ficam sem marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+let gridHtml = '';
+for(let i=0;i<3;i++) gridHtml += buildVolante();
+document.getElementById('grid').innerHTML = gridHtml;
+</script>
+</body>
+</html>

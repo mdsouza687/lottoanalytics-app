@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Lotofácil corrigida (não usado pelo app)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:600px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .wrap { position:relative; width:83mm; height:184.7mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); }
+  .wrap img { position:absolute; top:0; left:0; width:83mm; height:184.7mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.88; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  .ruler-x { position:absolute; top:-4mm; left:0; width:83mm; height:4mm; font-size:1.6mm; color:#000; }
+  .ruler-x span { position:absolute; top:0; }
+  .ruler-y { position:absolute; left:-6mm; top:0; width:6mm; height:184.7mm; font-size:1.6mm; color:#000; }
+  .ruler-y span { position:absolute; left:0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .wrap { box-shadow:none; }
+    @page { size: 83mm 184.7mm; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Lotofácil (imagem corrigida, coordenadas em ajuste)</strong><br>
+  Retângulos pretos = onde a marcação cairia hoje. As colunas do grid são invertidas (21,16,11,06,01
+  da esquerda pra direita) — é assim no bilhete real, não é erro. Imprima em escala 100%, compare com
+  um bilhete real usando régua, e me diga o desvio em mm de qualquer marca fora do colchete.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <img src="lotofacil.jpg"/>
+  <div id="marks"></div>
+  <div class="ruler-x no-print" id="rulerX"></div>
+  <div class="ruler-y no-print" id="rulerY"></div>
+</div>
+
+<script>
+// 3 painéis de 5x5 números, colunas na ordem real da folha (21,16,11,06,01)
+const cols = [15.17, 27.78, 40.82, 54.07, 67.10];
+const panels = [
+  {row1:47.92, spacing:4.65},
+  {row1:73.27, spacing:4.65},
+  {row1:98.27, spacing:4.70},
+];
+const gridRows = panels.map(p => Array.from({length:5}, (_,i)=>+(p.row1+i*p.spacing).toFixed(2)));
+
+const dezCountRow = {row:124.8, cells:[
+  {v:15,x:14.49},{v:16,x:20.84},{v:17,x:27.08},{v:18,x:33.85},{v:19,x:40.33},{v:20,x:46.93},
+]};
+const teimosinhaRow = {row:140.7, cells:[
+  {v:3,x:14.46},{v:6,x:27.13},{v:12,x:40.16},{v:18,x:53.32},{v:24,x:65.99},
+]};
+
+// Números impressos girados 90° dentro de caixinhas ~quadradas (medido: ~5.75x5.95mm),
+// bem menores que o espaçamento entre colunas (12,6mm) — por isso NÃO usamos fração do
+// pitch aqui (isso gerava marca maior que o colchete). Medida real da caixinha, com folga.
+const MW = 2.8, MH = 2.8;
+
+let html='';
+function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+gridRows.forEach(rows => cols.forEach(cx => rows.forEach(cy => mark(cx,cy,MW,MH))));
+dezCountRow.cells.forEach(c => mark(c.x, dezCountRow.row, MW, MH));
+teimosinhaRow.cells.forEach(c => mark(c.x, teimosinhaRow.row, MW, MH));
+document.getElementById('marks').innerHTML = html;
+
+let rx='', ry='';
+for(let x=0; x<=83; x+=5) rx += `<span style="left:${x}mm">${x}</span>`;
+for(let y=0; y<=185; y+=5) ry += `<span style="top:${y}mm">${y}</span>`;
+document.getElementById('rulerX').innerHTML = rx;
+document.getElementById('rulerY').innerHTML = ry;
+</script>
+</body>
+</html>

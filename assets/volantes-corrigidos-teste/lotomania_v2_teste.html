@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Lotomania v2 (modelo novo com Aposta Espelho/Surpresinha)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:760px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .info label { display:inline-flex; align-items:center; gap:6px; margin:8px 12px 0 0; cursor:pointer; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:72.81mm; height:162.77mm; }
+  .volante img { position:absolute; top:0; left:0; width:72.81mm; height:162.77mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Lotomania, modelo NOVO do bilhete (com Aposta Espelho + Surpresinha)</strong><br>
+  CORRIGIDO pelo seu esclarecimento: a Aposta Espelho da Lotomania não é "1 jogo marcado + terminal gera
+  sozinho" — você marca <strong>dois jogos reais</strong> (um em cada quadro do bilhete, os DOIS quadros
+  ficam preenchidos) e marca a caixinha "APOSTA ESPELHO"; a máquina então gera <strong>mais dois</strong>
+  jogos com os 50 números que sobraram em cada um. No app, ao salvar, isso vira um par principal+espelho
+  para CADA um dos 2 jogos do bilhete (4 jogos no total), mostrado com cor diferente pra identificar — igual
+  já acontece hoje pra Mega-Sena/Quina etc. A tinta impressa no papel é preta pros dois jogos reais (o par
+  espelho de cada um não é impresso aqui, sai no comprovante do terminal). Os dois quadros (100 números,
+  10x10 cada) e a Teimosinha (3,6,9,12 — já eram essas opções) foram remedidos do zero. Abaixo, os dois
+  quadros aparecem preenchidos com um padrão demonstrativo (listras verticais alternadas) só pra você
+  conferir que as marcas caem certinho nos colchetes das DUAS grades. Surpresinha fica visível mas SEM
+  marca, igual às demais loterias. Layout: A4 paisagem, 3 por folha, marca de corte em cruz nos 4 cantos.<br>
+  <label><input type="checkbox" id="chkEspelho" checked onchange="render()"> Marcar "APOSTA ESPELHO"</label>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const cols1 = [11.729,17.414,23.079,28.839,34.580,40.340,46.024,51.784,57.469,63.153];
+const rows1 = [28.934,32.014,35.169,38.325,41.443,44.579,47.659,50.796,53.933,57.069];
+const cols2 = [11.786,17.471,23.136,28.896,34.656,40.416,46.081,51.822,57.526,63.267];
+const rows2 = [69.198,72.335,75.471,78.589,81.69,84.882,87.980,91.098,94.254,97.295];
+
+const espelhoChk = {x:11.85, y:115.97};
+const teimosinhaRow = {row:141.61, cells:[
+  {v:3,x:11.824},{v:6,x:23.174},{v:9,x:34.846},{v:12,x:46.100},
+]};
+
+// Grade principal usa colchetes pequenos "[XX]" (~3.8x1.9mm) — mesmo padrão
+// vale pra Teimosinha e pro colchete único da Aposta Espelho, então um único
+// tamanho de marca serve pra tudo neste bilhete (diferente de Lotofácil/Quina,
+// que têm dois tamanhos de elemento distintos no mesmo bilhete).
+const MW = 3.4, MH = 1.9;
+
+function buildVolante(marcarEspelho){
+  let html = '<img src="lotomania_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  // Padrão demonstrativo: listras de colunas alternadas em cada quadro, só
+  // pra provar visualmente que as marcas caem certinho nos colchetes das
+  // DUAS grades (jogo 1 no painel de cima, jogo 2 no painel de baixo) —
+  // não são números reais de aposta.
+  cols1.forEach((cx,c)=>{ if(c%2===0) rows1.forEach(cy=>mark(cx,cy,MW,MH)); });
+  cols2.forEach((cx,c)=>{ if(c%2===1) rows2.forEach(cy=>mark(cx,cy,MW,MH)); });
+  if (marcarEspelho) mark(espelhoChk.x, espelhoChk.y, MW, MH);
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,MW,MH));
+  // SURPRESINHA fica sem marca de propósito.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+function render(){
+  const marcarEspelho = document.getElementById('chkEspelho').checked;
+  let gridHtml = '';
+  for(let i=0;i<3;i++) gridHtml += buildVolante(marcarEspelho);
+  document.getElementById('grid').innerHTML = gridHtml;
+}
+render();
+</script>
+</body>
+</html>

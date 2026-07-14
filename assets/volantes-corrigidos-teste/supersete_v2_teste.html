@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Super Sete v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:760px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:85mm; height:140.79mm; }
+  .volante img { position:absolute; top:0; left:0; width:85mm; height:140.79mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Super Sete, modelo NOVO do bilhete (com Surpresinha + Bolão)</strong><br>
+  CORRIGIDO (3ª rodada): as versões anteriores deste teste chegaram a recortar o painel lateral do QR code
+  e depois a esticar a imagem com proporções diferentes em X e Y (o que distorcia o desenho do volante) para
+  tentar bater com medidas exatas em mm. Agora uso a imagem inteira e íntegra (nada cortado) numa ÚNICA
+  escala, sem distorcer — a largura real (85mm) e a altura vêm direto da proporção nativa da própria foto
+  (85mm x 140,79mm), garantindo que o volante fique fiel ao original. A foto de origem também ganhou as
+  seções "SURPRESINHA"
+  (1 a 9 apostas) e "BOLÃO" (até 100 cotas, Dezena 0-9/Unidade 0-9/Cota Limite [100]) perto do rodapé, que
+  não existiam antes. A grade principal (7 colunas x 10 dígitos 0-9), "Assinale quantos números" (2 linhas
+  impressas: 07-14 e 15-21) e a Teimosinha (3,6,9,12 — já eram essas opções) foram remedidos do zero, com as
+  coordenadas recalculadas nessa escala correta (83x142mm, sem esticar o desenho — X e Y calculados cada um
+  a partir da respectiva dimensão real). Surpresinha e Bolão ficam visíveis mas SEM marca. Layout: A4
+  paisagem, 3 por folha, marca de corte em cruz nos 4 cantos.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const cols = [14.715,21.472,28.274,34.943,41.633,48.59,55.281];
+const rows = [38.499,42.41,46.276,50.172,53.994,57.882,61.793,65.637,69.511,73.377];
+
+const dezCountRow1 = {row:84.198, cells:[
+  {v:7,x:8.002},{v:8,x:14.715},{v:9,x:21.517},{v:10,x:28.252},
+  {v:11,x:34.943},{v:12,x:41.7},{v:13,x:48.59},{v:14,x:55.303},
+]};
+const dezCountRow2 = {row:88.379, cells:[
+  {v:15,x:8.002},{v:16,x:14.692},{v:17,x:21.495},{v:18,x:28.229},
+  {v:19,x:34.943},{v:20,x:41.722},{v:21,x:48.168},
+]};
+const teimosinhaRow = {row:106.87, cells:[
+  {v:3,x:8.047},{v:6,x:21.539},{v:9,x:34.987},{v:12,x:48.612},
+]};
+
+// A grade de dígitos usa colchetes proporcionalmente maiores (espaçamento
+// entre colunas bem maior que entre linhas) — mesma fórmula (fração do
+// pitch) já usada em produção pro Super Sete. As linhas de "quantos
+// números"/Teimosinha usam um colchete menor e mais espaçado, então ganham
+// seu próprio tamanho de marca.
+const PITCH_W = cols[1]-cols[0], PITCH_H = rows[1]-rows[0];
+const MW = PITCH_W*0.55, MH = PITCH_H*0.62;
+const SW = 3.28, SH = 1.64;
+
+function buildVolante(){
+  let html = '<img src="supersete_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  cols.forEach(cx=>rows.forEach(cy=>mark(cx,cy,MW,MH)));
+  dezCountRow1.cells.forEach(c=>mark(c.x,dezCountRow1.row,SW,SH));
+  dezCountRow2.cells.forEach(c=>mark(c.x,dezCountRow2.row,SW,SH));
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,SW,SH));
+  // SURPRESINHA e BOLÃO ficam sem marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+let gridHtml = '';
+for(let i=0;i<3;i++) gridHtml += buildVolante();
+document.getElementById('grid').innerHTML = gridHtml;
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Quina corrigida (não usado pelo app)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:600px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .wrap { position:relative; width:83mm; height:181.7mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); }
+  .wrap img { position:absolute; top:0; left:0; width:83mm; height:181.7mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.88; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  .ruler-x { position:absolute; top:-4mm; left:0; width:83mm; height:4mm; font-size:1.6mm; color:#000; }
+  .ruler-x span { position:absolute; top:0; }
+  .ruler-y { position:absolute; left:-6mm; top:0; width:6mm; height:181.7mm; font-size:1.6mm; color:#000; }
+  .ruler-y span { position:absolute; left:0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .wrap { box-shadow:none; }
+    @page { size: 83mm 181.7mm; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Quina (imagem corrigida, coordenadas em ajuste)</strong><br>
+  Retângulos pretos = onde a marcação cairia hoje. Imprima em escala 100% (sem "ajustar à página"),
+  compare com um bilhete real de Quina usando régua, e me diga o desvio em mm de qualquer marca
+  fora do centro do colchete.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <img src="quina.jpg"/>
+  <div id="marks"></div>
+  <div class="ruler-x no-print" id="rulerX"></div>
+  <div class="ruler-y no-print" id="rulerY"></div>
+</div>
+
+<script>
+// 3 painéis de 8x10 números (01-80) + Assinale quantos / Surpresinha / Teimosinha / Bolão
+const COL0 = 14.94, PITCH_W = 6.29;
+const cols = Array.from({length:10}, (_,i)=>+(COL0+i*PITCH_W).toFixed(2));
+
+const panels = [
+  {row1:38.6,  spacing:3.4},
+  {row1:71.15, spacing:3.18},
+  {row1:102.97,spacing:3.18},
+];
+const gridRows = panels.map(p => Array.from({length:8}, (_,i)=>+(p.row1+i*p.spacing).toFixed(2)));
+
+const dezCountRow = {row:135.5, cells:[
+  {v:5,x:14.01},{v:6,x:20.48},{v:7,x:26.69},{v:8,x:33.08},{v:9,x:39.56},
+  {v:10,x:45.65},{v:11,x:52.37},{v:12,x:58.64},{v:13,x:64.73},{v:14,x:71.14},{v:15,x:77.32},
+]};
+const teimosinhaRow = {row:152.45, cells:[
+  {v:3,x:20.36},{v:6,x:33.07},{v:12,x:45.58},{v:18,x:58.51},{v:24,x:70.84},
+]};
+
+const PITCH_H = panels[0].spacing;
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+
+let html='';
+function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+gridRows.forEach(rows => cols.forEach(cx => rows.forEach(cy => mark(cx,cy,MW,MH))));
+dezCountRow.cells.forEach(c => mark(c.x, dezCountRow.row, MW, MH));
+teimosinhaRow.cells.forEach(c => mark(c.x, teimosinhaRow.row, MW, MH));
+document.getElementById('marks').innerHTML = html;
+
+let rx='', ry='';
+for(let x=0; x<=83; x+=5) rx += `<span style="left:${x}mm">${x}</span>`;
+for(let y=0; y<=182; y+=5) ry += `<span style="top:${y}mm">${y}</span>`;
+document.getElementById('rulerX').innerHTML = rx;
+document.getElementById('rulerY').innerHTML = ry;
+</script>
+</body>
+</html>

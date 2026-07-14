@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Timemania v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:700px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:80.43mm; height:182.45mm; }
+  .volante img { position:absolute; top:0; left:0; width:80.43mm; height:182.45mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Timemania, modelo NOVO do bilhete (com Surpresinha + Bolão + Time do Coração)</strong><br>
+  A foto de origem mudou — o bilhete atual da Caixa ganhou as seções "SURPRESINHA" e "BOLÃO" perto do
+  rodapé, que não existiam antes. A grade de dezenas (1-80, 10x8) e a Teimosinha foram remedidas do zero.
+  Timemania não tem campo de "quantidade de dezenas" (sempre aposta 10 fixas). NOVO nesta rodada: a lista
+  de Time do Coração (80 times em 3 colunas) agora também é mapeada e marcada — o app já guarda o nome do
+  time escolhido por jogo, então dá pra marcar o coraçãozinho certo, igual já era feito com o Mês da Sorte
+  da Dia de Sorte. Escolha um time abaixo pra ver a marca se mover pelas 3 colunas. Surpresinha e Bolão
+  ficam visíveis mas SEM marca. Layout: A4 paisagem, 3 por folha, marca de corte em cruz nos 4 cantos.<br>
+  <select id="timeSelect" style="margin-top:8px;padding:4px 8px;font-size:12px"></select>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const cols = [13.125,19.299,25.620,31.983,38.409,44.835,51.198,57.477,63.819,70.224];
+const rows = [24.65,28.29,31.90,35.47,39.08,42.71,46.33,49.96];
+const teimosinhaRow = {row:158.95, cells:[
+  {v:3,x:25.935},{v:6,x:32.277},{v:9,x:38.661},{v:12,x:45.108},
+]};
+
+// Grade "Time do Coração" — 80 times em 3 colunas (27+27+26), ordem alfabética
+// igual ao volante real. Coração (♡) fica à esquerda do nome em cada coluna,
+// mesma posição X pra todas as linhas; Y segue um espaçamento fixo (pitch)
+// medido do zero na imagem nova (essa seção não existia mapeada até agora).
+const timeColX = [6.75, 32.2, 57.75];
+const timeRowStart = 57.35, timePitch = 3.616;
+const timesColunas = [
+  ['ABC/RN','Águia Marabá/PA','Altos/PI','Amazonas/AM','América/MG','América/RN','Anápolis/GO',
+   'Aparecidense/GO','ASA/AL','Athletic Club/MG','Athletico/PR','Atlético/GO','Atlético/MG','Avaí/SC',
+   'Bahia/BA','Barra/SC','Botafogo/PB','Botafogo/RJ','Botafogo/SP','Bragantino/SP','Brasil/RS',
+   'Brasiliense/DF','Brusque/SC','Cascavel/PR','Caxias/RS','Ceará/CE','Chapecoense/SC'],
+  ['Confiança/SE','Corinthians/SP','Coritiba/PR','CRB/AL','Criciúma/SC','Cruzeiro/MG','CSA/AL',
+   'Cuiabá/MT','Ferroviária/SP','Ferroviário/CE','Figueirense/SC','Flamengo/RJ','Floresta/CE',
+   'Fluminense/RJ','Fortaleza/CE','Goiás/GO','Grêmio/RS','Guarani/SP','Inter Limeira/SP',
+   'Internacional/RS','Itabaiana/SE','Ituano/SP','Juventude/RS','Londrina/PR','Manaus/AM',
+   'Maranhão/MA','Maringá/PR'],
+  ['Mirassol/SP','Náutico/PE','Nova Iguaçu/RJ','Novorizontino/SP','Operário/PR','Palmeiras/SP',
+   'Paysandu/PA','Ponte Preta/SP','Porto Velho/RO','Remo/PA','Retrô/PE','Samp Corrêa/MA',
+   'Santa Cruz/PE','Santos/SP','São Bernardo/SP','São José/RS','São Paulo/SP','Sousa/PB','Sport/PE',
+   'Tocantinópolis/TO','Tombense/MG','Vasco/RJ','Vila Nova/GO','Vitória/BA','Volta Redonda/RJ',
+   'Ypiranga/RS'],
+];
+// nome -> {x,y} — usado pra achar a posição de UM time escolhido, sem precisar
+// varrer as 3 colunas toda hora.
+const timePos = {};
+timesColunas.forEach((coluna, ci) => {
+  coluna.forEach((nome, ri) => {
+    timePos[nome] = { x: timeColX[ci], y: timeRowStart + ri*timePitch };
+  });
+});
+
+const PITCH_W = cols[1]-cols[0], PITCH_H = rows[1]-rows[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+const TIMEW = 2.5, TIMEH = 2.5;
+
+function buildVolante(timeEscolhido){
+  let html = '<img src="timemania_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  cols.forEach(cx=>rows.forEach(cy=>mark(cx,cy,MW,MH)));
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,MW,MH));
+  const p = timePos[timeEscolhido];
+  if (p) mark(p.x, p.y, TIMEW, TIMEH);
+  // SURPRESINHA e BOLÃO ficam sem marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+function render(){
+  const timeEscolhido = document.getElementById('timeSelect').value;
+  let gridHtml = '';
+  for(let i=0;i<3;i++) gridHtml += buildVolante(timeEscolhido);
+  document.getElementById('grid').innerHTML = gridHtml;
+}
+
+const todosOsTimes = [].concat(...timesColunas);
+document.getElementById('timeSelect').innerHTML = todosOsTimes.map(t=>`<option value="${t}">${t}</option>`).join('');
+document.getElementById('timeSelect').value = 'Corinthians/SP';
+document.getElementById('timeSelect').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Dupla Sena (não usado pelo app)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:600px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .wrap { position:relative; width:82.97mm; height:145.2mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); }
+  .wrap img { position:absolute; top:0; left:0; width:82.97mm; height:145.2mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.88; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  .ruler-x { position:absolute; top:-4mm; left:0; width:82.97mm; height:4mm; font-size:1.6mm; color:#000; }
+  .ruler-x span { position:absolute; top:0; }
+  .ruler-y { position:absolute; left:-6mm; top:0; width:6mm; height:145.2mm; font-size:1.6mm; color:#000; }
+  .ruler-y span { position:absolute; left:0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .wrap { box-shadow:none; }
+    @page { size: 82.97mm 145.2mm; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Dupla Sena (coordenadas já em produção, sem correção pendente)</strong><br>
+  Estas são as mesmas coordenadas já usadas no app hoje — conferidas antes de publicar (marcas caindo
+  em cima de tinta real em 8/8 pontos de checagem). Imprima em escala 100% e confirme com régua.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <img src="duplasena.jpg"/>
+  <div id="marks"></div>
+  <div class="ruler-x no-print" id="rulerX"></div>
+  <div class="ruler-y no-print" id="rulerY"></div>
+</div>
+
+<script>
+// 3 painéis de 10x5 (50 números cada) + Assinale quantos + Teimosinha
+// (dados já em produção, VOLANTE_IMG.duplasena)
+const jogos = [
+  {cols:[15.05,21.357,27.601,34.099,40.619,47.075,53.404,59.69,66.103,72.538],rows:[52.324,55.541,58.801,62.082,65.32]},
+  {cols:[15.219,21.526,27.771,34.29,40.788,47.244,53.573,59.859,66.252,72.707],rows:[74.824,78.084,81.344,84.603,87.842]},
+  {cols:[15.367,21.696,27.94,34.438,40.958,47.413,53.742,60.008,66.421,72.877],rows:[97.896,101.156,104.436,107.654,110.871]},
+];
+const dezCountRow = {row:123.613, cells:[
+  {v:6,x:15.494},{v:7,x:22.818},{v:8,x:28.194},{v:9,x:34.692},{v:10,x:41.084},
+  {v:11,x:47.159},{v:12,x:53.7},{v:13,x:60.113},{v:14,x:66.506},{v:15,x:73.067},
+]};
+const teimosinhaRow = {row:143.722, cells:[
+  {v:3,x:15.706},{v:6,x:28.279},{v:9,x:41.169},{v:12,x:53.954},
+]};
+
+const PITCH_W = jogos[0].cols[1]-jogos[0].cols[0], PITCH_H = jogos[0].rows[1]-jogos[0].rows[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+
+let html='';
+function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+jogos.forEach(jg => jg.cols.forEach(cx => jg.rows.forEach(cy => mark(cx,cy,MW,MH))));
+dezCountRow.cells.forEach(c => mark(c.x, dezCountRow.row, MW, MH));
+teimosinhaRow.cells.forEach(c => mark(c.x, teimosinhaRow.row, MW, MH));
+document.getElementById('marks').innerHTML = html;
+
+let rx='', ry='';
+for(let x=0; x<=83; x+=5) rx += `<span style="left:${x}mm">${x}</span>`;
+for(let y=0; y<=146; y+=5) ry += `<span style="top:${y}mm">${y}</span>`;
+document.getElementById('rulerX').innerHTML = rx;
+document.getElementById('rulerY').innerHTML = ry;
+</script>
+</body>
+</html>

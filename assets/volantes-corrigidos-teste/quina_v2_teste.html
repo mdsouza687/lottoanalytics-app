@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Quina v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:700px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:93.98mm; height:210.87mm; }
+  .volante img { position:absolute; top:0; left:0; width:93.98mm; height:210.87mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Quina, modelo NOVO do bilhete (com Surpresinha + Bolão)</strong><br>
+  A foto de origem mudou — o bilhete atual da Caixa ganhou as seções "SURPRESINHA" (opções [1] a [7]) e
+  "BOLÃO" (até 50 cotas, Dezena 1-5/Unidade 0-9) perto do rodapé, que não existiam antes. Os 3 painéis de
+  dezenas (1-80, 8x10), "Assinale quantos números" (5 a 15) e a Teimosinha (5 opções: 3,6,12,18,24 — mesmas
+  de antes) foram todos remedidos do zero. Surpresinha e Bolão ficam visíveis mas SEM marca. Layout: A4
+  paisagem, 3 por folha, marca de corte em cruz nos 4 cantos.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const cols1 = [15.020,22.396,29.527,37.074,44.572,51.582,59.275,66.602,73.709,81.158];
+const rows1 = [44.743,48.455,52.265,56.027,59.739,63.500,67.359,71.144];
+const rows2 = [81.573,85.310,89.095,92.857,96.618,100.354,104.238,107.999];
+const rows3 = [118.476,122.189,125.925,129.711,133.472,137.233,141.239,144.829];
+
+const dezCountRow = {row:157.285, cells:[
+  {v:5,x:15.384},{v:6,x:22.643},{v:7,x:29.902},{v:8,x:37.161},{v:9,x:44.42},{v:10,x:51.679},
+  {v:11,x:59.421},{v:12,x:66.699},{v:13,x:73.831},{v:14,x:81.231},{v:15,x:87.972},
+]};
+const teimosinhaRow = {row:176.945, cells:[
+  {v:3,x:22.517},{v:6,x:37.147},{v:12,x:51.777},{v:18,x:66.699},{v:24,x:81.036},
+]};
+
+// Grade principal usa retângulos cheios; "Assinale quantos números" e
+// Teimosinha usam colchetes bem menores — cada um tem seu próprio tamanho de
+// marca, senão a do colchete transborda (mesma lição da Lotofácil).
+const PITCH_W = cols1[1]-cols1[0], PITCH_H = rows1[1]-rows1[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+const SW = MW*0.75, SH = MH*0.85;
+
+function buildVolante(){
+  let html = '<img src="quina_v2.jpg"/>';
+  function mark(x,y,w,h){ html += `<div class="mk" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  cols1.forEach(cx=>{
+    rows1.forEach(cy=>mark(cx,cy,MW,MH));
+    rows2.forEach(cy=>mark(cx,cy,MW,MH));
+    rows3.forEach(cy=>mark(cx,cy,MW,MH));
+  });
+  dezCountRow.cells.forEach(c=>mark(c.x,dezCountRow.row,SW,SH));
+  teimosinhaRow.cells.forEach(c=>mark(c.x,teimosinhaRow.row,SW,SH));
+  // SURPRESINHA e BOLÃO ficam sem marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+let gridHtml = '';
+for(let i=0;i<3;i++) gridHtml += buildVolante();
+document.getElementById('grid').innerHTML = gridHtml;
+</script>
+</body>
+</html>

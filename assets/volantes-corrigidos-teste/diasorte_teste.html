@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Dia de Sorte (não usado pelo app)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:600px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+  .wrap { position:relative; width:78.74mm; height:154.94mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); }
+  .wrap img { position:absolute; top:0; left:0; width:78.74mm; height:154.94mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.88; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  .mk-mes { background:#0000ff; }
+  .ruler-x { position:absolute; top:-4mm; left:0; width:78.74mm; height:4mm; font-size:1.6mm; color:#000; }
+  .ruler-x span { position:absolute; top:0; }
+  .ruler-y { position:absolute; left:-6mm; top:0; width:6mm; height:154.94mm; font-size:1.6mm; color:#000; }
+  .ruler-y span { position:absolute; left:0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .wrap { box-shadow:none; }
+    @page { size: 78.74mm 154.94mm; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Dia de Sorte (coordenadas já em produção, sem correção pendente)</strong><br>
+  Estas são as mesmas coordenadas já usadas no app hoje — conferidas antes de publicar (marcas caindo
+  em cima de tinta real em 8/8 pontos de checagem). Marcas <span style="color:#5b8bff">azuis</span> = grade
+  de dezenas; <span style="color:#a78bfa">roxas</span> = grade do Mês da Sorte. Imprima em escala 100% e
+  confirme com régua.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <img src="diasorte.jpg"/>
+  <div id="marks"></div>
+  <div class="ruler-x no-print" id="rulerX"></div>
+  <div class="ruler-y no-print" id="rulerY"></div>
+</div>
+
+<script>
+// 3 painéis de 10x3 (dezenas 1-31) + grade do Mês da Sorte (6x2) por painel
+// + Assinale quantos + Teimosinha (dados já em produção, VOLANTE_IMG.diasorte)
+const jogos = [
+  {cols:[3.577,10.647,16.849,23.305,29.739,35.835,42.608,49.022,55.118,61.489],rows:[41.995,45.254,48.514],
+   mesGrid:{cols6:[3.81,16.849,29.824,42.672,55.224,67.903],rows2:[58.23,61.934]}},
+  {cols:[3.789,10.816,17.06,23.516,29.93,36.047,42.82,49.212,55.309,61.68],rows:[74.126,77.385,80.645],
+   mesGrid:{cols6:[4.0,17.039,29.993,42.841,55.393,68.072],rows2:[90.424,93.662]}},
+  {cols:[4.508,11.028,17.23,23.707,30.12,36.216,42.989,49.403,55.478,61.849],rows:[106.087,109.305,112.607],
+   mesGrid:{cols6:[4.593,17.23,30.163,43.032,55.562,68.241],rows2:[122.386,125.624]}},
+];
+const dezCountRow = {row:136.44, cells:[
+  {v:7,x:4.381},{v:8,x:10.858},{v:9,x:17.314},{v:10,x:23.326},{v:11,x:30.057},
+  {v:12,x:36.428},{v:13,x:42.672},{v:14,x:49.064},{v:15,x:55.181},
+]};
+const teimosinhaRow = {row:153.607, cells:[
+  {v:3,x:4.466},{v:6,x:17.335},{v:9,x:29.76},{v:12,x:42.905},
+]};
+
+const PITCH_W = jogos[0].cols[1]-jogos[0].cols[0], PITCH_H = jogos[0].rows[1]-jogos[0].rows[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+const MES_PITCH_W = jogos[0].mesGrid.cols6[1]-jogos[0].mesGrid.cols6[0];
+const MES_PITCH_H = jogos[0].mesGrid.rows2[1]-jogos[0].mesGrid.rows2[0];
+const MESW = MES_PITCH_W*0.42, MESH = MES_PITCH_H*0.5;
+
+let html='';
+function mark(x,y,w,h,cls){ html += `<div class="mk ${cls||''}" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+jogos.forEach(jg => {
+  jg.cols.forEach(cx => jg.rows.forEach(cy => mark(cx,cy,MW,MH)));
+  jg.mesGrid.cols6.forEach(cx => jg.mesGrid.rows2.forEach(cy => mark(cx,cy,MESW,MESH,'mk-mes')));
+});
+dezCountRow.cells.forEach(c => mark(c.x, dezCountRow.row, MW, MH));
+teimosinhaRow.cells.forEach(c => mark(c.x, teimosinhaRow.row, MW, MH));
+document.getElementById('marks').innerHTML = html;
+
+let rx='', ry='';
+for(let x=0; x<=79; x+=5) rx += `<span style="left:${x}mm">${x}</span>`;
+for(let y=0; y<=155; y+=5) ry += `<span style="top:${y}mm">${y}</span>`;
+document.getElementById('rulerX').innerHTML = rx;
+document.getElementById('rulerY').innerHTML = ry;
+</script>
+</body>
+</html>

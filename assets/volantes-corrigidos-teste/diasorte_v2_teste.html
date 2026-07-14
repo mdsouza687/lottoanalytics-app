@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE IMPRESSÃO — Dia de Sorte v2 (modelo novo com Surpresinha/Bolão)</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:#888; font-family: Arial, sans-serif; padding:20px; }
+  .info { background:#222; color:#fff; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; max-width:700px; }
+  .info button { background:#00AB67; border:none; color:#fff; font-weight:700; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:8px; }
+
+  /* Página A4 paisagem, 3 volantes lado a lado, margem mínima. */
+  .page { position:relative; width:297mm; height:210mm; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.4); margin:0 auto; }
+  .grid { position:absolute; top:50%; left:50%; transform:translate(calc(-50% + 1.5mm),-50%); display:flex; gap:5mm; }
+  .volante { position:relative; width:78.74mm; height:178.75mm; }
+  .volante img { position:absolute; top:0; left:0; width:78.74mm; height:178.75mm; display:block; }
+  .mk { position:absolute; background:#000; opacity:.9; box-shadow:0 0 0 0.15mm rgba(255,255,255,.5); }
+  .mk-mes { background:#0000ff; }
+
+  .ck { position:absolute; width:6mm; height:6mm; pointer-events:none; }
+  .ck::before, .ck::after { content:''; position:absolute; background:#000; }
+  .ck::before { width:6mm; height:0.25mm; top:50%; left:0; transform:translateY(-50%); }
+  .ck::after { width:0.25mm; height:6mm; left:50%; top:0; transform:translateX(-50%); }
+  .ck-tl { top:-3mm; left:-3mm; }
+  .ck-tr { top:-3mm; right:-3mm; }
+  .ck-bl { bottom:-3mm; left:-3mm; }
+  .ck-br { bottom:-3mm; right:-3mm; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .info, .no-print { display:none !important; }
+    .page { box-shadow:none; margin:0; }
+    @page { size: A4 landscape; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="info no-print">
+  <strong>🧪 TESTE — Dia de Sorte, modelo NOVO do bilhete (com Surpresinha + Bolão)</strong><br>
+  A foto de origem mudou — o bilhete atual da Caixa ganhou as seções "SURPRESINHA" e "BOLÃO" no rodapé,
+  que não existiam antes. Os 3 painéis (grade de dezenas + grade do Mês da Sorte), "Assinale quantos
+  números" e "Teimosinha" foram todos remedidos do zero (não reaproveitei nenhuma coordenada antiga).
+  Surpresinha e Bolão ficam visíveis mas SEM marca (não fazem parte da aposta impressa pelo app). Marcas
+  <span style="color:#5b8bff">azuis</span> = grade do Mês da Sorte. Layout: A4 paisagem, 3 por folha,
+  marca de corte em cruz nos 4 cantos.<br>
+  <button onclick="window.print()">🖨 Imprimir este teste</button>
+</div>
+
+<div class="page">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const jogos = [
+  {cols:[6.55,12.806,18.847,25.157,31.488,37.467,44.046,50.211,56.169,62.438],rows:[40.18,43.34,46.53],row31:50.36,
+   mesGrid:{cols6:[6.335,18.785,31.488,44.025,56.252,68.665],rows2:[56.09,59.67]}},
+  {cols:[6.633,12.930,18.951,25.281,31.570,37.529,44.128,50.314,56.272,62.520],rows:[71.54,74.73,77.93],row31:81.58,
+   mesGrid:{cols6:[6.418,18.868,31.570,44.108,56.314,68.748],rows2:[87.47,90.66]}},
+  {cols:[6.736,13.013,19.013,25.343,31.653,37.611,44.211,50.397,56.355,62.603],rows:[102.76,105.92,109.11],row31:112.45,
+   mesGrid:{cols6:[6.501,18.951,31.653,44.211,56.376,68.830],rows2:[118.71,121.88]}},
+];
+const dezCountRow = {row:132.38, cells:[
+  {v:7,x:6.53},{v:8,x:12.744},{v:9,x:18.992},{v:10,x:24.867},{v:11,x:31.488},
+  {v:12,x:37.736},{v:13,x:43.797},{v:14,x:49.942},{v:15,x:55.962},
+]};
+const teimosinhaRow = {row:149.14, cells:[
+  {v:3,x:6.57},{v:6,x:18.930},{v:9,x:31.157},{v:12,x:43.963},
+]};
+
+const PITCH_W = jogos[0].cols[1]-jogos[0].cols[0], PITCH_H = jogos[0].rows[1]-jogos[0].rows[0];
+const MW = PITCH_W*0.42, MH = PITCH_H*0.62;
+const MESW = 4.0, MESH = 2.1;
+
+function buildVolante(){
+  let html = '<img src="diasorte_v2.jpg"/>';
+  function mark(x,y,w,h,cls){ html += `<div class="mk ${cls||''}" style="left:${x-w/2}mm;top:${y-h/2}mm;width:${w}mm;height:${h}mm"></div>`; }
+  jogos.forEach(jg => {
+    jg.cols.forEach(cx => jg.rows.forEach(cy => mark(cx,cy,MW,MH)));
+    mark(jg.cols[0], jg.row31, MW, MH);
+    jg.mesGrid.cols6.forEach(cx => jg.mesGrid.rows2.forEach(cy => mark(cx,cy,MESW,MESH,'mk-mes')));
+  });
+  dezCountRow.cells.forEach(c => mark(c.x, dezCountRow.row, MW, MH));
+  teimosinhaRow.cells.forEach(c => mark(c.x, teimosinhaRow.row, MW, MH));
+  // SURPRESINHA e BOLÃO ficam sem marca de propósito — não fazem parte da aposta impressa.
+  const cortes = '<span class="ck ck-tl"></span><span class="ck ck-tr"></span><span class="ck ck-bl"></span><span class="ck ck-br"></span>';
+  return `<div class="volante">${cortes}${html}</div>`;
+}
+
+let gridHtml = '';
+for(let i=0;i<3;i++) gridHtml += buildVolante();
+document.getElementById('grid').innerHTML = gridHtml;
+</script>
+</body>
+</html>
