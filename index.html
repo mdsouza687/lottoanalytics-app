@@ -15936,6 +15936,7 @@ function renderFormBolao(){
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
+        '<button onclick="publicarResultadoBolao()" title="Envia o resultado (com ou sem prêmio) para o app dos participantes que já pagaram" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📤 Publicar Resultado</button>'+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
@@ -16004,6 +16005,43 @@ function addParticipanteBol(){
 
 function removerParticipanteBol(i){ _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes(); }
 function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
+
+// TODO(Fase 2 do app mobile de participante): trocar pela URL real da PWA
+// quando ela existir — hoje é só um placeholder pra deixar o link no
+// formato certo (?convite=TOKEN) desde já.
+var PARTICIPANTE_APP_URL = location.origin + '/participante';
+// Fase 1 do app mobile de participante: gera o convite (via RPC) e mostra
+// o link pronto pro admin copiar/compartilhar. Participante precisa ter
+// sido salvo antes (tem .id) — convidar um nome ainda não salvo não faz
+// sentido, não existe linha no banco pra vincular o convite.
+// Pede o WhatsApp na primeira vez (a RPC usa esse contato pra reconhecer
+// se essa MESMA pessoa já participa de outro bolão — próprio ou de outro
+// organizador — e reaproveitar a conta dela em vez de tratar como pessoa
+// nova a cada convite).
+async function convidarParticipanteBol(i){
+  var p=_boloesState.participantes[i]; if(!p) return;
+  if(!p.id){ toast('Salve o bolão antes de convidar este participante.'); return; }
+  var whatsapp=p.whatsapp;
+  if(!whatsapp){
+    whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
+    if(!whatsapp){ toast('WhatsApp é necessário para convidar.'); return; }
+  }
+  var resultado=await BolaoJogosRepo.criarConviteDual(p.id,whatsapp,p.email);
+  if(!resultado){ toast('Erro ao gerar convite.'); return; }
+  p.whatsapp=whatsapp;
+  if(resultado.auto_vinculado){
+    p.convite_status='aceito';
+    renderParticipantesBoloes();
+    toast('✓ '+p.nome+' já tem conta no app (vinculado automaticamente pelo WhatsApp).');
+    return;
+  }
+  var link=PARTICIPANTE_APP_URL+'?convite='+resultado.token;
+  p.convite_status='pendente';
+  renderParticipantesBoloes();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(function(){ toast('✓ Link de convite copiado: '+link); }, function(){ toast('Link de convite: '+link); });
+  } else { toast('Link de convite: '+link); }
+}
 
 function _sorteioNome(s){ return {normal:'Concurso Normal',megavirada:'Mega da Virada',lotofacilindep:'Lotofácil da Independência',quinasaojoao:'Quina de São João',duplapascoa:'Dupla Sena de Páscoa'}[s]||'Concurso Normal'; }
 function _sorteioParaLoteria(sorteio,s){
@@ -16342,10 +16380,10 @@ function renderParticipantesBoloes(){
   // altas/cheias de informação. Essa lista agora vira uma área própria
   // abaixo da tabela (ver renderConcursosPorParticipanteHtml), com um
   // cartão por participante em grade de 2-3 colunas.
-  var grid='24px 44px 1.4fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 24px';
+  var grid='24px 44px 1.4fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 30px 24px';
   var head='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:6px 8px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--glass-border);align-items:center">'+
     '<input type="checkbox" id="bol-sel-all" onchange="toggleSelAllPart(this.checked)" title="Selecionar todos" style="cursor:pointer"'+(nSel&&nSel===s.participantes.length?' checked':'')+'/>'+
-    '<span>Refer.</span><span>Nome</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span></span></div>';
+    '<span>Refer.</span><span>Nome</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span title="App do participante">📨</span><span></span></div>';
 
   // Linha do administrador: aparece se ele tem cotas isentas (modelo antigo)
   // OU se está no modo de orçamento fixo (modelo novo).
@@ -16366,7 +16404,7 @@ function renderParticipantesBoloes(){
     '<span style="font-size:11px;color:#f5a800;font-weight:800">ISENTO</span>'+
     '<span style="font-size:11px;color:var(--text-muted);text-align:center">'+(tipoOrg==='fixo'?'—':(cotasPagas>0?(100/cotasPagas).toFixed(2)+'%':'—'))+'</span>'+
     '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'?'—':_fmtPremioPorLoteriaHtml(_premiosVigentes,pctAdmin))+'</span>'+
-    '<span></span></div>'):'';
+    '<span></span><span></span></div>'):'';
 
   var refSeq=0; // numeração sequencial global (conta cada cota/linha)
   var rows=s.participantes.map(function(p,i){
@@ -16427,6 +16465,14 @@ function renderParticipantesBoloes(){
         ? '<select onchange="setPartStatus('+i+',\'statusPag\',this.value)" '+(bolaoFinalizado?'disabled ':'')+'style="'+selStyle+';color:'+pagColor+';font-weight:800'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"><option value="pago" style="color:#000"'+(pago?' selected':'')+'>Pago</option><option value="naopagou" style="color:#000"'+(!pago?' selected':'')+'>Pendente</option></select>'
         : '<span style="font-size:10px;color:'+pagColor+';font-weight:700;text-align:center">'+(pago?'pago':'pendente')+'</span>';
       var colRem = primeira ? (bolaoFinalizado?'<span></span>':'<button onclick="removerParticipanteBol('+i+')" title="Remover" style="border:none;background:transparent;color:#dc2626;cursor:pointer;font-size:13px">✕</button>') : '<span></span>';
+      // Coluna de convite pro app do participante (Fase 1): só faz sentido
+      // na 1ª linha (cota extra não é uma "pessoa" própria) e só depois do
+      // participante já ter sido salvo (precisa de id pra vincular o
+      // convite). aceito/pendente refletem bolao_participantes.convite_status.
+      var colConvite = !primeira ? '<span></span>'
+        : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:11px;color:var(--text-dim);text-align:center;display:block">—</span>'
+        : p.convite_status==='aceito' ? '<span title="Participante já está no app" style="font-size:13px;text-align:center;display:block">✅</span>'
+        : '<button onclick="convidarParticipanteBol('+i+')" title="Gerar link de convite para o app do participante" style="border:none;background:transparent;color:var(--accent,#3a9b4e);cursor:pointer;font-size:13px">📨</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
       // colunas próprias do participante (não é mais calculado a partir de
@@ -16459,6 +16505,7 @@ function renderParticipantesBoloes(){
         colPart+colParticipacao+colPag+
         '<span id="np-pct-'+i+'" style="font-size:11px;color:var(--text-muted);text-align:center">'+pctCota.toFixed(2)+'%</span>'+
         '<span id="np-premio-'+i+'" style="font-size:11px;color:var(--text-muted)">'+_fmtPremioPorLoteriaHtml(_premiosVigentes,pctCota)+'</span>'+
+        colConvite+
         colRem+
       '</div>';
     }
@@ -16845,6 +16892,87 @@ async function excluirBolao(id){
     toast('Bolão excluído');
     listarBoloesSalvos();
   }catch(e){ toast('Erro ao excluir: '+e.message); }
+}
+
+/* ── Fase 4 do app mobile de participante: publicar resultado ── */
+// Ação EXPLÍCITA e separada de "Imprimir" — imprimir pode ser clicado
+// várias vezes (reimpressão de recibo), publicar deve ser uma decisão
+// deliberada do organizador, uma vez por conferência real, senão cada
+// reimpressão geraria um relatório/notificação novo pros participantes.
+// Reaproveita _calcPremioJogo/getBolaoNovoSchema/_tipoOrg — as MESMAS
+// fontes de verdade que _imprimirBolaoImpl usa — para nunca ter uma
+// segunda cópia divergente da regra de premiação (já foi bug real neste
+// bolão antes: histórico de correções na função de impressão).
+async function publicarResultadoBolao(){
+  var s=_boloesState;
+  if(!s.editId){ toast('Salve o bolão antes de publicar o resultado.'); return; }
+  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo' && p.id;});
+  if(!ativos.length){ toast('Nenhum participante salvo para publicar.'); return; }
+
+  var gPub=await getBolaoNovoSchema(s.editId);
+  if(!gPub){ toast('Erro ao carregar dados do bolão.'); return; }
+
+  var jogosPorLoteria={};
+  (gPub.concursos||[]).forEach(function(cc){
+    if(typeof _hidratarConcursoJogos==='function') _hidratarConcursoJogos(cc);
+    var lk=cc.loteria||(s.loteria||currentKey);
+    if(!jogosPorLoteria[lk]) jogosPorLoteria[lk]=[];
+    (cc.jogos||[]).forEach(function(jg){
+      if(jg&&typeof jg==='object'){ jg._concursoOrigem=cc.num; jogosPorLoteria[lk].push(jg); }
+    });
+  });
+
+  if(typeof atualizarLoteria==='function'){
+    await Promise.all(Object.keys(jogosPorLoteria).map(function(lk){ return atualizarLoteria(lk).catch(function(){}); }));
+  }
+
+  var algumConferido=false, totalPremio=0, jogosPremiados=[];
+  Object.keys(jogosPorLoteria).forEach(function(lk){
+    jogosPorLoteria[lk].forEach(function(jg){
+      var r=(typeof _calcPremioJogo==='function')?_calcPremioJogo(lk,jg,jg._concursoOrigem):null;
+      if(r){
+        algumConferido=true;
+        if(r.premiado){ totalPremio+=r.valor; jogosPremiados.push({loteria:lk,concurso:jg._concursoOrigem,acertos:r.acertos,valor:r.valor}); }
+      }
+    });
+  });
+  if(!algumConferido){ toast('Nenhum concurso vinculado a este bolão foi sorteado ainda — nada para publicar.'); return; }
+
+  // Prêmio (e portanto o relatório) é dividido só entre quem já pagou —
+  // mesma regra já usada na tabela de impressão (pagosImp).
+  var tipoOrgPub=_tipoOrg(s);
+  var cotasAdminPub=(tipoOrgPub==='cotas')?((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0):0;
+  var pagosPub=ativos.filter(function(p){return p.statusPag==='pago';});
+  var cotasPagasPub=pagosPub.reduce(function(a,p){return a+(p.cotas||0);},0)+cotasAdminPub;
+  var pctPorCotaPub=cotasPagasPub>0?(100/cotasPagasPub):0;
+  var concursoRefPrincipal=(gPub.concursos&&gPub.concursos[0]&&gPub.concursos[0].num)||s.concurso||'';
+
+  if(!pagosPub.length){ toast('Nenhum participante com pagamento confirmado — nada para publicar.'); return; }
+
+  var relatoriosPayload=[];
+  if(totalPremio<=0){
+    pagosPub.forEach(function(p){
+      relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_sem_premio',
+        conteudo:{ concurso:String(concursoRefPrincipal), quantidade_jogos:(gPub.jogos||[]).length } });
+    });
+  } else {
+    pagosPub.forEach(function(p){
+      var pctP=pctPorCotaPub*Math.max(1,p.cotas||1);
+      var valorP=totalPremio*pctP/100;
+      relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_com_premio',
+        conteudo:{ concurso:String(concursoRefPrincipal),
+          jogos_premiados:jogosPremiados.map(function(j){return {loteria:j.loteria,acertos:j.acertos};}),
+          valor_liquido_participante:Math.round(valorP*100)/100,
+          memoria_calculo:p.cotas+' cota'+(p.cotas>1?'s':'')+' de '+cotasPagasPub+' pagas · '+pctP.toFixed(2)+'% de '+_bMoney(totalPremio) } });
+    });
+  }
+
+  try{
+    var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível');
+    var { error }=await sb.rpc('rpc_publicar_resultado_bolao',{ p_bolao_id:s.editId, p_relatorios:relatoriosPayload });
+    if(error) throw error;
+    toast('✓ Resultado publicado para '+relatoriosPayload.length+' participante(s).');
+  }catch(e){ console.error(e); toast('Erro ao publicar: '+e.message); }
 }
 
 /* ── Impressão ── */
@@ -18596,8 +18724,10 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
   var jogosNovo=jogosRes.data||[];
 
   var participantes=participantesNovo.map(function(p){
-    return { nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
-      valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status };
+    return { id:p.id, nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
+      valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status,
+      isento:!!p.isento, convite_status:p.convite_status||'pendente',
+      participante_user_id:p.participante_user_id||null };
   });
 
   var porChave={};
@@ -18796,6 +18926,23 @@ var BolaoJogosRepo = {
       if(error) console.warn('[BolaoJogosRepo.removerParticipanteDual]',error.message);
     }catch(e){ console.warn('[BolaoJogosRepo.removerParticipanteDual]',e.message); }
   },
+  // Fase 1 do app mobile de participante: gera um convite tokenizado para
+  // um participante já salvo (precisa de id — participante recém-digitado
+  // e ainda não salvo não pode ser convidado, "Salvar" primeiro).
+  // p_whatsapp/p_email são usados pela RPC pra reconhecer que a MESMA
+  // pessoa já tem conta vinculada em outro bolão — de outro organizador
+  // inclusive, a busca não é restrita aos bolões deste usuário — e nesse
+  // caso volta {auto_vinculado:true, token:null} em vez de gerar um
+  // convite novo, sem duplicar a identidade da pessoa a cada bolão.
+  criarConviteDual: async function(participanteId,whatsapp,email){
+    if(!JogosCommon.escritaNovoSchemaAtiva()||!participanteId) return null;
+    try{
+      var sb=_getSbClient(); if(!sb) return null;
+      var {data,error}=await sb.rpc('rpc_criar_convite',{p_participante_id:participanteId,p_canal:'link',p_whatsapp:whatsapp||null,p_email:email||null});
+      if(error){ console.warn('[BolaoJogosRepo.criarConviteDual]',error.message); return null; }
+      return data;
+    }catch(e){ console.warn('[BolaoJogosRepo.criarConviteDual]',e.message); return null; }
+  },
   // Dual-write do bolão em si — TODOS os campos que a tela real usa (não
   // só nome/loteria como antes), pra que um leitor do schema novo consiga
   // reconstruir o mesmo _boloesState que a tela real monta hoje a partir
@@ -18861,15 +19008,20 @@ var BolaoJogosRepo = {
       var _u=await sb.auth.getUser();
       var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
       if(!_uid) return;
-      // Insere os participantes NOVOS antes de apagar os antigos (nunca o
-      // contrário) — se o insert falhar no meio do caminho (rede, RLS), a
-      // réplica antiga fica intacta em vez de ficar com 0 participantes.
-      // A remoção dos antigos é feita por id explícito, não por um DELETE
-      // genérico "de tudo desse bolão" (que também apagaria as linhas recém
-      // inseridas).
+      // CORREÇÃO (Fase 0 do app mobile de participante, 2026-07-15): este
+      // método antes apagava TODOS os participantes e reinseria com uuids
+      // novos a cada save do bolão — inofensivo enquanto bolao_participantes
+      // não tinha nenhum dado que precisasse sobreviver entre saves, mas
+      // desde que participantes passaram a poder aceitar convite (campo
+      // participante_user_id, tabela bolao_convites/relatorios com FK pro
+      // id do participante), apagar a linha em cada save quebrava
+      // silenciosamente qualquer convite já aceito. Agora faz upsert por
+      // id: quem já existe é atualizado (preserva id/convite/vínculo);
+      // só quem realmente foi removido da lista local é deletado.
       var existentes=await sb.from('bolao_participantes').select('id').eq('bolao_id',bolaoIdNovo);
       if(existentes.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] select',existentes.error.message); return; }
       var idsAntigos=(existentes.data||[]).map(function(r){return r.id;});
+      var idsAtuais=(participantesArr||[]).filter(function(p){return p.id;}).map(function(p){return p.id;});
       if(participantesArr&&participantesArr.length){
         var rows=participantesArr.map(function(p){
           // is_admin: o schema antigo não tem um booleano próprio — cada
@@ -18880,15 +19032,26 @@ var BolaoJogosRepo = {
           // admin de verdade — mesmo bug de "campo que não existe" já visto
           // hoje em _vincularSalvoAoBolaoImpl (mês/time).
           var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
-          return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
+          var row={ bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
             is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
             valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou' };
+          // Colunas de convite/contato NUNCA entram aqui — omitir da
+          // upsert preserva o valor já gravado (convite aceito etc.) em vez
+          // de sobrescrever com o estado local, que nem carrega esses campos.
+          if(p.id) row.id=p.id;
+          return row;
         });
-        var ins=await sb.from('bolao_participantes').insert(rows);
-        if(ins.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert',ins.error.message); return; }
+        var ups=await sb.from('bolao_participantes').upsert(rows,{onConflict:'id'}).select('id');
+        if(ups.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert',ups.error.message); return; }
+        // Participantes novos (sem id local ainda) recebem o uuid gerado
+        // pelo banco — grava de volta no array local na mesma ordem em que
+        // foi enviado, pra não duplicar a linha se o usuário salvar de novo
+        // sem recarregar a tela.
+        (ups.data||[]).forEach(function(r,idx){ if(participantesArr[idx]&&!participantesArr[idx].id) participantesArr[idx].id=r.id; });
       }
-      if(idsAntigos.length){
-        var del=await sb.from('bolao_participantes').delete().in('id',idsAntigos);
+      var idsRemover=idsAntigos.filter(function(id){ return idsAtuais.indexOf(id)<0; });
+      if(idsRemover.length){
+        var del=await sb.from('bolao_participantes').delete().in('id',idsRemover);
         if(del.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message);
       }
     }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); }
