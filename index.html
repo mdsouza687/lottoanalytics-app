@@ -13041,8 +13041,28 @@ async function renderAnalise(){
   destroyCharts();
   const body=document.getElementById('body-analise');
   if(!body)return;
-  body.innerHTML=loadingHtml();
+  // Botão "⭐ Especial" (Mega da Virada, Quina de São João, Dupla Sena de
+  // Páscoa, Lotofácil da Independência) — só aparece pras loterias que têm
+  // sorteio especial catalogado em CONCURSOS_ESPECIAIS. Ficava sempre
+  // escondido (bug: nada nunca desfazia o display:none do HTML estático) —
+  // reativado aqui, que roda em toda troca de loteria/período/aba.
   const d=CFG[currentKey];
+  const btnEsp=document.getElementById('ap-btn-especial');
+  const temEspecial=!!CONCURSOS_ESPECIAIS[currentKey];
+  if(btnEsp){
+    btnEsp.style.display=temEspecial?'':'none';
+    if(temEspecial) btnEsp.textContent=`⭐ ${d.specialLabel||'Especial'}`;
+  }
+  // Se o filtro "Especial" ficou ligado numa loteria e o usuário troca pra
+  // uma sem sorteio especial catalogado, o histórico filtrado vem sempre
+  // vazio (silenciosamente) — volta pro período padrão (24) nesse caso.
+  if(!temEspecial && _analiseEspecial){
+    _analiseEspecial=false; _apPeriod=24;
+    document.querySelectorAll('#ap-controls .ap-period-btn').forEach(b=>b.classList.remove('active'));
+    const btn24=[...document.querySelectorAll('#ap-controls .ap-period-btn')].find(b=>b.getAttribute('onclick')==='setApPeriod(24)');
+    if(btn24) btn24.classList.add('active');
+  }
+  body.innerHTML=loadingHtml();
   const periodoVal=_apPeriod;
   const qtdFetch=(periodoVal===0||periodoVal===-1)?3000:Math.max(periodoVal,6);
   let hist=await garantirHistorico(currentKey,qtdFetch,_analiseEspecial);
