@@ -10175,6 +10175,45 @@ async function _salvarJogosImpl(){
   // concurso_ref) — sem isso a conferência de prêmio de um jogo avulso
   // nunca saberia contra qual concurso comparar.
   if(concursoVigente){ jogosFinais.forEach(j=>{ if(j&&typeof j==='object') j._concursoOrigem=concursoVigente; }); }
+  // Substituição automática de jogos repetidos (2026-07-16): salvar de novo
+  // um jogo com as MESMAS dezenas/trevos de um já salvo para este mesmo
+  // concurso é rejeitado pelo banco (índice único de conteúdo) — antes,
+  // isso virava um "Erro ao salvar: duplicate key..." cru pro usuário,
+  // obrigando a gerar tudo de novo manualmente. Agora sorteia um
+  // substituto (mesmo sorteio aleatório simples usado no fallback do
+  // gerador) até não colidir mais, e avisa quantos foram trocados.
+  if(!d.superSete){
+    const _sigJogo=j=>(Array.isArray(j)?j:[]).filter(n=>n<1000).slice().sort((a,b)=>a-b).join(',');
+    const _existentesMesmoConcurso=new Set();
+    conjuntosNovo.forEach(c=>{
+      if(String(c.concurso||'')!==String(concursoVigente||'')) return;
+      (c.jogos||[]).forEach(j=>_existentesMesmoConcurso.add(_sigJogo(j)));
+    });
+    if(_existentesMesmoConcurso.size){
+      let _universeSubst=[];
+      if(d.universe===100) for(let i=0;i<100;i++) _universeSubst.push(i);
+      else for(let i=d.start;i<=d.start+d.universe-1;i++) _universeSubst.push(i);
+      const _vistosNesteLote=new Set();
+      let _qtdSubstituidos=0;
+      jogosFinais.forEach((j,idx)=>{
+        let sig=_sigJogo(j), trocou=false, guard=0;
+        while((_existentesMesmoConcurso.has(sig)||_vistosNesteLote.has(sig)) && guard<500){
+          guard++; trocou=true;
+          const novoJogo=gerarJogoSimples(_universeSubst,numDez,[]);
+          if(j&&typeof j==='object'){
+            novoJogo._extra=j._extra; novoJogo._mes=j._mes; novoJogo._time=j._time;
+            novoJogo._isEspelho=j._isEspelho; novoJogo._concursoOrigem=j._concursoOrigem;
+            if(d.hasTrevo) novoJogo._trevos=gerarTrevosPadrao(d.trevosMin||2,d.trevosUniverse||6);
+          }
+          jogosFinais[idx]=novoJogo;
+          sig=_sigJogo(novoJogo);
+        }
+        if(trocou) _qtdSubstituidos++;
+        _vistosNesteLote.add(sig);
+      });
+      if(_qtdSubstituidos) toast(`${_qtdSubstituidos} jogo${_qtdSubstituidos!==1?'s':''} repetido${_qtdSubstituidos!==1?'s':''} ${_qtdSubstituidos!==1?'foram substituídos':'foi substituído'} por ${_qtdSubstituidos!==1?'novos':'novo'}.`, 3800);
+    }
+  }
   let novoId;
   try{
     const linhas=await JogosSalvosRepo.salvarDual(currentKey,jogosFinais,nomeEscolhido);
@@ -16972,9 +17011,18 @@ async function publicarResultadoBolao(){
   }
 
   var algumConferido=false, totalPremio=0, jogosPremiados=[];
+  // Detalhe de cada jogo — mesma info que o participante vê no relatório
+  // impresso (dezenas, Teimosinha, premiado ou não), não só o resumo
+  // financeiro. Igual à Fase 7 (Edge Function), que grava a mesma forma.
+  var jogosDetalhePub=[];
   Object.keys(jogosPorLoteria).forEach(function(lk){
     jogosPorLoteria[lk].forEach(function(jg){
       var r=(typeof _calcPremioJogo==='function')?_calcPremioJogo(lk,jg,jg._concursoOrigem):null;
+      var extrasJg={extra:jg._extra!=null?jg._extra:null,mes:jg._mes!=null?jg._mes:null,time:jg._time!=null?jg._time:null,
+        ssCols:(Array.isArray(jg._ssCols)?jg._ssCols.map(function(c){return c.slice();}):null)};
+      jogosDetalhePub.push({loteria:lk,concurso:jg._concursoOrigem,numeros:(Array.isArray(jg)?jg.slice():[]),
+        trevos:(Array.isArray(jg._trevos)?jg._trevos.slice():null),extras:extrasJg,
+        premiado:!!(r&&r.premiado),acertos:r?r.acertos:null,valor:r?r.valor:0});
       if(r){
         algumConferido=true;
         if(r.premiado){ totalPremio+=r.valor; jogosPremiados.push({loteria:lk,concurso:jg._concursoOrigem,acertos:r.acertos,valor:r.valor}); }
@@ -16982,6 +17030,28 @@ async function publicarResultadoBolao(){
     });
   });
   if(!algumConferido){ toast('Nenhum concurso vinculado a este bolão foi sorteado ainda — nada para publicar.'); return; }
+
+  // Histórico de Rodadas do bolão inteiro — mesma seção do relatório
+  // impresso (não é dado de um participante específico).
+  var historicoRodadasPub=(gPub.concursos||[]).map(function(cc){
+    return {loteria:cc.loteria,concurso:String(cc.num),custo:cc.custo||0,vinculadoEm:cc.savedAt?new Date(cc.savedAt).toISOString():null,dataSorteio:cc.data||null};
+  });
+
+  // Nº da cota de cada participante — mesma numeração sequencial "Refer."
+  // já usada na tabela de participantes (soma cumulativa das cotas, na
+  // ordem em que aparecem em s.participantes).
+  var cotaRangePub={}; var acumCotasPub=0;
+  s.participantes.forEach(function(p){
+    var qtdP=Math.max(1,p.cotas||1);
+    cotaRangePub[p.id]={inicio:acumCotasPub+1,fim:acumCotasPub+qtdP};
+    acumCotasPub+=qtdP;
+  });
+
+  // Taxa de administração — reaproveita _calcDadosFinanceirosBolao (mesma
+  // fonte de verdade da tabela de participantes), não recalcula do zero.
+  var dadosFinPub=(typeof _calcDadosFinanceirosBolao==='function')?_calcDadosFinanceirosBolao(s):null;
+  var valorCotaPub=dadosFinPub?dadosFinPub.valorCota:0;
+  var taxaAdminValorPub=dadosFinPub?dadosFinPub.valorRateioPorPart:0;
 
   // Prêmio (e portanto o relatório) é dividido só entre quem já pagou —
   // mesma regra já usada na tabela de impressão (pagosImp).
@@ -16997,17 +17067,25 @@ async function publicarResultadoBolao(){
   var relatoriosPayload=[];
   if(totalPremio<=0){
     pagosPub.forEach(function(p){
+      var cotaP=cotaRangePub[p.id]||{inicio:null,fim:null};
       relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_sem_premio',
-        conteudo:{ concurso:String(concursoRefPrincipal), quantidade_jogos:(gPub.jogos||[]).length } });
+        conteudo:{ concurso:String(concursoRefPrincipal), quantidade_jogos:(gPub.jogos||[]).length,
+          jogos:jogosDetalhePub, historicoRodadas:historicoRodadasPub,
+          cotaInicio:cotaP.inicio, cotaFim:cotaP.fim,
+          taxa_admin_valor:Math.round(taxaAdminValorPub*100)/100, valor_cota:Math.round(valorCotaPub*100)/100 } });
     });
   } else {
     pagosPub.forEach(function(p){
       var pctP=pctPorCotaPub*Math.max(1,p.cotas||1);
       var valorP=totalPremio*pctP/100;
+      var cotaP=cotaRangePub[p.id]||{inicio:null,fim:null};
       relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_com_premio',
         conteudo:{ concurso:String(concursoRefPrincipal),
           jogos_premiados:jogosPremiados.map(function(j){return {loteria:j.loteria,acertos:j.acertos};}),
-          valor_liquido_participante:Math.round(valorP*100)/100,
+          jogos:jogosDetalhePub, historicoRodadas:historicoRodadasPub,
+          cotaInicio:cotaP.inicio, cotaFim:cotaP.fim,
+          taxa_admin_valor:Math.round(taxaAdminValorPub*100)/100, valor_cota:Math.round(valorCotaPub*100)/100,
+          valor_liquido_participante:Math.round(valorP*100)/100, pct_cota:Math.round(pctP*100)/100,
           memoria_calculo:p.cotas+' cota'+(p.cotas>1?'s':'')+' de '+cotasPagasPub+' pagas · '+pctP.toFixed(2)+'% de '+_bMoney(totalPremio) } });
     });
   }
@@ -17852,6 +17930,8 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     var g=await getBolao(bolaoId);
     if(!g){ toast('Bolão não encontrado.'); return; }
     if(!g.concursos) g.concursos=[];
+    var _snapshotDupS=_construirSnapshotConcursos(g);
+    var _contadorDupS=new Map();
     // Migrar jogos legados para concursos[] se ainda não migrado
     if(!g.concursos.length&&g.jogos&&g.jogos.length){
       var _dMig=(typeof CFG!=='undefined')?(CFG[g.loteria]||CFG[loteriaItem]||CFG[currentKey]):null;
@@ -17915,29 +17995,59 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     g.concurso=_novoNumS;
     g.numDez=item.numDez||(jogos[0]&&jogos[0].length)||0;
     g.jogosSavedAt=Date.now();
-    // Marca os jogos avulsos originais como usados (soft delete) ANTES de
-    // inserir a cópia vinculada — ORDEM CRÍTICA: o índice único de
-    // conteúdo (user_id, content_hash, concurso_ref) só ignora linhas com
-    // deleted_at preenchido; inserir a cópia enquanto a original (mesmo
-    // hash+concurso) ainda está viva colide com ela mesma e o INSERT falha
-    // (silenciosamente, só logado em console.warn — bug real encontrado
-    // ao testar ao vivo em produção em 2026-07-12: o jogo desaparecia de
-    // Jogos Salvos mas nunca aparecia dentro do bolão).
-    for(var di=0;di<jogoIdsParaExcluir.length;di++){ await JogosCommon.excluirDual(jogoIdsParaExcluir[di]); }
+    // O índice único de conteúdo (user_id, content_hash, concurso_ref) só
+    // ignora linhas com deleted_at preenchido — então, se o jogo avulso
+    // original JÁ tinha o MESMO concurso do destino (auto-colide com ele
+    // mesmo), precisa sumir ANTES do insert pra abrir espaço. Mas isso é
+    // uma exceção: pré-apagar SEMPRE, incondicionalmente, foi o que causou
+    // um bug real de perda de jogo (achado em produção, 2026-07-16) —
+    // "Inserir Jogos para Conferência" tentou vincular um jogo cujas
+    // dezenas já estavam noutro jogo ATIVO do mesmo bolão/concurso (não o
+    // próprio original, um OUTRO já vinculado antes); o insert falhava por
+    // colidir com esse outro registro, mas o avulso original já tinha sido
+    // apagado — o jogo desaparecia de Jogos Salvos sem nunca entrar no
+    // bolão, sem nenhum jeito de recuperar.
+    // Correção: só apaga ANTES quando o autocolisão é real (o avulso já
+    // tinha esse concurso); no caso comum (concurso novo/manual, sem
+    // concurso_ref prévio), insere PRIMEIRO e só apaga o avulso depois de
+    // confirmar sucesso — se o insert falhar por qualquer motivo (duplicata
+    // de outro jogo, erro de rede, sessão expirada), o avulso continua
+    // intacto em Jogos Salvos.
+    var _algumConcursoIgualAoOrigem=item.concurso!=null && _concursosNovos.some(function(cc){return String(cc.num)===String(item.concurso);});
+    if(_algumConcursoIgualAoOrigem){
+      for(var di=0;di<jogoIdsParaExcluir.length;di++){ await JogosCommon.excluirDual(jogoIdsParaExcluir[di]); }
+    }
     // Corte final (Item 3, 2026-07-12): grava cada concurso novo (1 só, ou
     // N em caso de Teimosinha) direto no schema relacional — é a fonte de
     // verdade agora, não mais um espelho best-effort.
-    for(var ci=0;ci<_concursosNovos.length;ci++){
-      var cc=_concursosNovos[ci];
-      cc.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=cc.num; });
-      await BolaoJogosRepo.vincularDual(cc.loteria,cc.jogos,g._novoSchemaId);
-      // CORREÇÃO (2026-07-12): vinculoId/teimosinhaOrigem nunca eram
-      // repassados aqui, apesar de sincronizarConcursoDual já aceitar os
-      // dois — bolao_concursos.vinculo_id/teimosinha_origem ficavam sempre
-      // null. Sem vinculoId persistido, o badge "TEIMOSINHA ×N" nunca se
-      // reconstrói (teimosinhaTodos, ver getBolaoNovoSchema) mesmo com a
-      // Teimosinha vinculada corretamente.
-      await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:cc.num,loteria:cc.loteria,data:cc.data,custo:cc.custo,semana:cc.semana,vinculoId:cc.vinculoId,teimosinhaOrigem:cc.teimosinhaOrigem});
+    try{
+      for(var ci=0;ci<_concursosNovos.length;ci++){
+        var cc=_concursosNovos[ci];
+        cc.jogos.forEach(function(jg){ if(jg&&typeof jg==='object'){ jg._concursoOrigem=cc.num; jg._duplicataNum=_proximoDuplicataNum(_snapshotDupS,cc.loteria,cc.num,jg,_contadorDupS); } });
+        await BolaoJogosRepo.vincularDual(cc.loteria,cc.jogos,g._novoSchemaId);
+        // CORREÇÃO (2026-07-12): vinculoId/teimosinhaOrigem nunca eram
+        // repassados aqui, apesar de sincronizarConcursoDual já aceitar os
+        // dois — bolao_concursos.vinculo_id/teimosinha_origem ficavam sempre
+        // null. Sem vinculoId persistido, o badge "TEIMOSINHA ×N" nunca se
+        // reconstrói (teimosinhaTodos, ver getBolaoNovoSchema) mesmo com a
+        // Teimosinha vinculada corretamente.
+        await BolaoJogosRepo.sincronizarConcursoDual(g._novoSchemaId,{concursoRef:cc.num,loteria:cc.loteria,data:cc.data,custo:cc.custo,semana:cc.semana,vinculoId:cc.vinculoId,teimosinhaOrigem:cc.teimosinhaOrigem});
+      }
+    }catch(eIns){
+      if(!_algumConcursoIgualAoOrigem){
+        // Não apagou nada ainda — o(s) jogo(s) continua(m) seguro(s) em
+        // Jogos Salvos. Mensagem específica quando a causa for a mesma
+        // dezena já vinculada a este concurso (não dá pra duplicar de
+        // propósito — é a mesma regra que impede dois jogos idênticos no
+        // mesmo concurso deste bolão).
+        var _duplicado=/jogos_content_hash_unique|duplicate key/i.test(eIns.message||'');
+        toast(_duplicado?'Este(s) jogo(s) já está(ão) vinculado(s) a este concurso — não foi duplicado.':('Erro ao vincular: '+eIns.message));
+        return;
+      }
+      throw eIns; // autocolisão: o avulso já foi apagado, não tem como recuperar — propaga pro catch externo
+    }
+    if(!_algumConcursoIgualAoOrigem){
+      for(var di2=0;di2<jogoIdsParaExcluir.length;di2++){ await JogosCommon.excluirDual(jogoIdsParaExcluir[di2]); }
     }
     _registrarAuditoria('vincular_jogo_salvo',{jogoId:itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
@@ -18502,6 +18612,40 @@ function _confirmarDuplicadosOuFiltrar(g, jogosNovos, loteriaKey){
   toast((jogosNovos.length-restantes.length)+' jogo(s) duplicado(s) ignorado(s); vinculando só os '+restantes.length+' novo(s).');
   return restantes;
 }
+// Foto de "quantas vezes cada jogo já aparece em cada concurso do bolão"
+// — precisa ser tirada ANTES de _pushConcursoEntry (que já insere os jogos
+// novos em g.concursos em memória, antes mesmo da gravação no banco); sem
+// essa foto prévia, contar direto em g.concursos encontraria o próprio
+// jogo que está sendo inserido, tratando toda inserção normal como se já
+// fosse uma duplicata.
+function _construirSnapshotConcursos(g){
+  var mapa=new Map();
+  (g.concursos||[]).forEach(function(c){
+    (c.jogos||[]).forEach(function(j){
+      var sig=(Array.isArray(j)?j:[]).filter(function(n){return n<1000;}).slice().sort(function(a,b){return a-b;}).join(',');
+      var chave=c.loteria+'|'+c.num+'|'+sig;
+      mapa.set(chave,(mapa.get(chave)||0)+1);
+    });
+  });
+  return mapa;
+}
+// Calcula o próximo "duplicata_num" pra um jogo — 0 se ele ainda não existia
+// no concurso/loteria (caso normal, sem mudança de comportamento), ou N+1
+// se já existem N cópias (usuário confirmou "incluir mesmo assim" em
+// _confirmarDuplicadosOuFiltrar, ou está vinculando 2+ cópias idênticas no
+// mesmo lote). O índice único do banco é (user_id, content_hash, concurso,
+// duplicata_num) — sem esse número crescente, a 2ª cópia colidiria com a
+// 1ª mesmo depois de confirmada. contadorSessao acumula entre chamadas na
+// MESMA operação de vincular (pode ter mais de uma, ex.: Teimosinha com
+// vários concursos).
+function _proximoDuplicataNum(snapshot, loteriaKey, concursoNum, jogo, contadorSessao){
+  var sig=(Array.isArray(jogo)?jogo:[]).filter(function(n){return n<1000;}).slice().sort(function(a,b){return a-b;}).join(',');
+  var chave=loteriaKey+'|'+concursoNum+'|'+sig;
+  var existentes=snapshot.get(chave)||0;
+  var jaNesteLote=contadorSessao.get(chave)||0;
+  contadorSessao.set(chave, jaNesteLote+1);
+  return existentes+jaNesteLote;
+}
 // Clona um array de jogos preservando as propriedades extras anexadas a cada
 // jogo (j._trevos, j._extra, j._isEspelho, j._ssCols). Array.prototype.slice()
 // Acessores de jogo (auditoria, Fase 1.1a) — hoje um "jogo" ainda é um array
@@ -18696,7 +18840,13 @@ var JogosCommon = {
         ssCols:(Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null),
         teimosinhaConcursos:(Array.isArray(j._teimosinhaConcursos)?j._teimosinhaConcursos.slice():null) },
       is_espelho: !!j._isEspelho,
-      concurso_ref: j._concursoOrigem!=null?parseInt(j._concursoOrigem)||null:null
+      concurso_ref: j._concursoOrigem!=null?parseInt(j._concursoOrigem)||null:null,
+      // Duplicata confirmada pelo usuário (ver _proximoDuplicataNum) — 0 é o
+      // caso normal (mesmo comportamento de sempre); só é >0 quando o
+      // mesmo jogo já existe no mesmo concurso e o usuário optou
+      // explicitamente por incluir mesmo assim, na pergunta de
+      // _confirmarDuplicadosOuFiltrar.
+      duplicata_num: j._duplicataNum||0
     };
   }
 };
@@ -19107,22 +19257,32 @@ var BolaoJogosRepo = {
   // (Histórico de Rodadas, impressão, cálculo de custo por semana). Uma
   // linha por (bolão, concurso, loteria) — chamado toda vez que uma
   // vinculação de jogos é feita, faz upsert (cria ou atualiza).
+  // Corrigido (2026-07-16, achado ao vivo em produção): esta função
+  // continuava "melhor-esforço" (só console.warn, nunca propagava) muito
+  // depois de vincularDual já ter sido corrigido pro mesmo problema
+  // (comentário logo acima dela) — mesma classe de bug: o INSERT em
+  // "jogos" (vincularDual) dava certo, mas o UPSERT da metadata em
+  // "bolao_concursos" (aqui) falhava em silêncio, deixando o jogo
+  // fisicamente salvo e vinculado, mas com NENHUM registro de concurso
+  // pra tela renderizar — o concurso inteiro (Histórico de Rodadas, Gasto
+  // por Loteria, "Jogos do Bolão") ficava invisível, mesmo o jogo estando
+  // 100% correto no banco. Bug real: Lotofácil #3737 do bolão "Private
+  // Club" sumiu da tela mesmo salvo corretamente. Agora propaga o erro,
+  // pro chamador saber que a vinculação não terminou de verdade.
   sincronizarConcursoDual: async function(bolaoIdNovo,opts){
     if(!JogosCommon.escritaNovoSchemaAtiva()||!bolaoIdNovo||!opts||opts.concursoRef==null) return;
-    try{
-      var sb=_getSbClient(); if(!sb) return;
-      var _u=await sb.auth.getUser();
-      var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
-      if(!_uid) return;
-      var linha={
-        bolao_id:bolaoIdNovo, user_id:_uid, concurso_ref:parseInt(opts.concursoRef), loteria:opts.loteria||'',
-        data:opts.data||null, status:opts.status||'Aguardando', custo:opts.custo||0,
-        semana:opts.semana||null, vinculo_id:opts.vinculoId||null, teimosinha_origem:opts.teimosinhaOrigem||null,
-        updated_at:new Date().toISOString()
-      };
-      var {error}=await sb.from('bolao_concursos').upsert(linha,{onConflict:'bolao_id,concurso_ref,loteria'});
-      if(error) console.warn('[BolaoJogosRepo.sincronizarConcursoDual]',error.message);
-    }catch(e){ console.warn('[BolaoJogosRepo.sincronizarConcursoDual]',e.message); }
+    var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível.');
+    var _u=await sb.auth.getUser();
+    var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+    if(!_uid) throw new Error('Sessão expirada — faça login novamente.');
+    var linha={
+      bolao_id:bolaoIdNovo, user_id:_uid, concurso_ref:parseInt(opts.concursoRef), loteria:opts.loteria||'',
+      data:opts.data||null, status:opts.status||'Aguardando', custo:opts.custo||0,
+      semana:opts.semana||null, vinculo_id:opts.vinculoId||null, teimosinha_origem:opts.teimosinhaOrigem||null,
+      updated_at:new Date().toISOString()
+    };
+    var {error}=await sb.from('bolao_concursos').upsert(linha,{onConflict:'bolao_id,concurso_ref,loteria'});
+    if(error) throw new Error(error.message);
   }
 };
 
@@ -19318,6 +19478,8 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
   try{
     var g=await getBolao(bolaoId);
     if(!g){ toast('Bolão não encontrado.'); return; }
+    var _snapshotDupG=_construirSnapshotConcursos(g);
+    var _contadorDupG=new Map();
     // loteriaKey: a loteria REAL destes jogos especificamente — usa
     // loteriaOverride quando fornecido (ex.: chamada vinda do modal
     // "Inserir Jogos para Conferência", que tem sua PRÓPRIA seleção de
@@ -19399,7 +19561,7 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     try{
       for(var ciG=0;ciG<_concursosNovosG.length;ciG++){
         var ccG=_concursosNovosG[ciG];
-        ccG.jogos.forEach(function(jg){ if(jg&&typeof jg==='object') jg._concursoOrigem=ccG.num; });
+        ccG.jogos.forEach(function(jg){ if(jg&&typeof jg==='object'){ jg._concursoOrigem=ccG.num; jg._duplicataNum=_proximoDuplicataNum(_snapshotDupG,ccG.loteria,ccG.num,jg,_contadorDupG); } });
         await BolaoJogosRepo.vincularDual(ccG.loteria,ccG.jogos,g._novoSchemaId);
         // CORREÇÃO (2026-07-12): mesma correção do _vincularSalvoAoBolaoImpl
         // — vinculoId/teimosinhaOrigem precisam ser repassados pra

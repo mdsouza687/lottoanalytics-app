@@ -1,4 +1,4 @@
-// Netlify Scheduled Function — roda a cada 3 horas mesmo sem ninguém com o
+// Netlify Scheduled Function — roda a cada 1 hora mesmo sem ninguém com o
 // app aberto. Busca os resultados das 9 loterias da Caixa e grava no
 // Supabase (tabela "resultados"), de onde o cliente lê primeiro (evita
 // CORS e reduz dependência de fontes externas instáveis).
@@ -227,5 +227,5 @@ export default async () => {
 };
 
 export const config = {
-  schedule: "0 */3 * * *",
+  schedule: "0 * * * *",
 };
