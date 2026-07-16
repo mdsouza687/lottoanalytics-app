@@ -1354,6 +1354,10 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
 .ag-field input{width:100%;background:var(--glass-hover);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font-body)}
 .ag-field input:focus{outline:none;border-color:var(--ac)}
+.ag-pwd-wrap{position:relative}
+.ag-pwd-wrap input{padding-right:38px}
+.ag-pwd-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;font-size:15px;padding:6px;line-height:1;opacity:.65}
+.ag-pwd-toggle:hover{opacity:1}
 .ag-req{color:#f87171;font-size:10px;margin-left:2px}
 .ag-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-md);background:var(--ac);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
 .ag-btn:disabled{opacity:.5;cursor:not-allowed}
@@ -1390,7 +1394,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
     <!-- ── LOGIN ── -->
     <div id="ag-form-login">
       <div class="ag-field"><label>E-mail</label><input type="email" id="ag-login-email" autocomplete="email"/></div>
-      <div class="ag-field"><label>Senha</label><input type="password" id="ag-login-senha" autocomplete="current-password"/></div>
+      <div class="ag-field"><label>Senha</label><div class="ag-pwd-wrap"><input type="password" id="ag-login-senha" autocomplete="current-password"/><button type="button" class="ag-pwd-toggle" onclick="agTogglePwd('ag-login-senha',this)" title="Mostrar senha" aria-label="Mostrar senha">👁</button></div></div>
       <button class="ag-btn" id="ag-btn-login" onclick="agFazerLogin()">Entrar</button>
       <button class="ag-btn-link" onclick="agEsqueciSenha()">Esqueci minha senha</button>
     </div>
@@ -1399,8 +1403,8 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
     <div id="ag-form-cadastro" style="display:none">
       <div class="ag-field"><label>Nome completo <span class="ag-req">*</span></label><input type="text" id="ag-cad-nome" autocomplete="name"/></div>
       <div class="ag-field"><label>E-mail <span class="ag-req">*</span></label><input type="email" id="ag-cad-email" autocomplete="email"/></div>
-      <div class="ag-field"><label>Senha <span class="ag-req">*</span></label><input type="password" id="ag-cad-senha" autocomplete="new-password"/></div>
-      <div class="ag-field"><label>Confirmar senha <span class="ag-req">*</span></label><input type="password" id="ag-cad-senha2" autocomplete="new-password"/></div>
+      <div class="ag-field"><label>Senha <span class="ag-req">*</span></label><div class="ag-pwd-wrap"><input type="password" id="ag-cad-senha" autocomplete="new-password"/><button type="button" class="ag-pwd-toggle" onclick="agTogglePwd('ag-cad-senha',this)" title="Mostrar senha" aria-label="Mostrar senha">👁</button></div></div>
+      <div class="ag-field"><label>Confirmar senha <span class="ag-req">*</span></label><div class="ag-pwd-wrap"><input type="password" id="ag-cad-senha2" autocomplete="new-password"/><button type="button" class="ag-pwd-toggle" onclick="agTogglePwd('ag-cad-senha2',this)" title="Mostrar senha" aria-label="Mostrar senha">👁</button></div></div>
       <div class="ag-opcionais">Opcionais</div>
       <div class="ag-field"><label>CPF</label><input type="text" id="ag-cad-cpf" inputmode="numeric" placeholder="000.000.000-00"/></div>
       <div class="ag-field"><label>PIX</label>
@@ -2689,6 +2693,31 @@ function _getSbClient(){
   return _sbClient;
 }
 const AG_TRIAL_DIAS=10;
+// Verifica se a sessão ainda é válida no SERVIDOR (getUser() força uma
+// checagem contra o Supabase Auth, diferente de getSession() que só lê o
+// storage local — um token pode "parecer" presente localmente mas já ter
+// expirado/sido revogado no servidor). Usado antes de gravações cujo erro,
+// sem isso, aparece só como um "null value in column user_id" cru vindo do
+// Postgres (a RPC grava user_id=auth.uid(), que vira null quando a sessão
+// não é mais válida) — nada a ver com a loteria escolhida, mesmo que o
+// usuário só note o erro numa tela específica.
+async function _sessaoValidaOuAvisar(){
+  const sb=_getSbClient();
+  if(!sb) return false;
+  try{
+    const {data,error}=await sb.auth.getUser();
+    if(error||!data?.user){
+      toast('Sua sessão expirou. Faça login novamente para salvar.');
+      if(typeof _agRequerLogin==='function') _agRequerLogin();
+      return false;
+    }
+    return true;
+  }catch(e){
+    toast('Sua sessão expirou. Faça login novamente para salvar.');
+    if(typeof _agRequerLogin==='function') _agRequerLogin();
+    return false;
+  }
+}
 
 function agSwitchTab(tab){
   document.getElementById('ag-tab-login').classList.toggle('active', tab==='login');
@@ -2713,6 +2742,15 @@ function agErroTraduzido(msg){
   if(m.includes('password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
   if(m.includes('unable to validate email address')||m.includes('invalid email')) return 'E-mail inválido.';
   return msg||'Ocorreu um erro. Tente novamente.';
+}
+
+// Mostrar/ocultar senha nos campos do Auth Gate (login e cadastro) — troca
+// type="password"/"text" e o ícone do próprio botão que disparou o toggle.
+function agTogglePwd(inputId,btn){
+  var input=document.getElementById(inputId); if(!input) return;
+  var mostrando=input.type==='password';
+  input.type=mostrando?'text':'password';
+  if(btn){ btn.textContent=mostrando?'🙈':'👁'; btn.title=mostrando?'Ocultar senha':'Mostrar senha'; btn.setAttribute('aria-label',btn.title); }
 }
 
 async function agFazerLogin(){
@@ -4990,7 +5028,7 @@ const LA_ORDER=['megasena','lotofacil','quina','lotomania','duplasena','diasorte
 // Dupla Sena, Lotofácil, Quina, Lotomania; Sábado = Mega-Sena, Lotofácil,
 // Quina, Dia de Sorte, Timemania, +Milionária.
 const LA_DIAS_NUMS={megasena:[2,4,6],lotofacil:[1,2,3,4,5,6],quina:[1,2,3,4,5,6],lotomania:[1,3,5],duplasena:[1,3,5],diasorte:[1,2,3,4,5,6],supersete:[1,3,5],timemania:[2,4,6],maismilionaria:[3,6]};
-const LA_DIAS={megasena:'ter, qui e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'seg, qua e sex',duplasena:'seg, qua e sex',diasorte:'ter, qui e sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'qua e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
+const LA_DIAS={megasena:'ter, qui e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'seg, qua e sex',duplasena:'seg, qua e sex',diasorte:'seg a sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'qua e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
 const LA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Lista oficial dos 80 clubes da Timemania, no formato exato usado pelo
 // volante e pela API de resultados (NOME/UF, sem acento, maiúsculas — ex.
@@ -12875,6 +12913,7 @@ async function _salvarJogosManuaisImpl(){
   const key=sel?.value; const d=key?CFG[key]:null;
   if(!d){toast('Selecione a loteria.');return;}
   if(!_manualJogos.length){toast('Adicione ao menos um jogo no cartão.');return;}
+  if(!(await _sessaoValidaOuAvisar())) return;
 
   const nomeDefault=`Manual ${d.nome} · ${new Date().toLocaleDateString('pt-BR')}`;
   const nome=prompt('Nome para este conjunto de jogos:',nomeDefault)||nomeDefault;
