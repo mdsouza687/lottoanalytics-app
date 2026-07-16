@@ -17022,7 +17022,8 @@ async function publicarResultadoBolao(){
         ssCols:(Array.isArray(jg._ssCols)?jg._ssCols.map(function(c){return c.slice();}):null)};
       jogosDetalhePub.push({loteria:lk,concurso:jg._concursoOrigem,numeros:(Array.isArray(jg)?jg.slice():[]),
         trevos:(Array.isArray(jg._trevos)?jg._trevos.slice():null),extras:extrasJg,
-        premiado:!!(r&&r.premiado),acertos:r?r.acertos:null,valor:r?r.valor:0});
+        premiado:!!(r&&r.premiado),acertos:r?r.acertos:null,valor:r?r.valor:0,
+        status:r?'sorteado':'vigente'});
       if(r){
         algumConferido=true;
         if(r.premiado){ totalPremio+=r.valor; jogosPremiados.push({loteria:lk,concurso:jg._concursoOrigem,acertos:r.acertos,valor:r.valor}); }
