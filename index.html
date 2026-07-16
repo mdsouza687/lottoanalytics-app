@@ -16006,10 +16006,7 @@ function addParticipanteBol(){
 function removerParticipanteBol(i){ _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes(); }
 function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
 
-// TODO(Fase 2 do app mobile de participante): trocar pela URL real da PWA
-// quando ela existir — hoje é só um placeholder pra deixar o link no
-// formato certo (?convite=TOKEN) desde já.
-var PARTICIPANTE_APP_URL = location.origin + '/participante';
+var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 // Fase 1 do app mobile de participante: gera o convite (via RPC) e mostra
 // o link pronto pro admin copiar/compartilhar. Participante precisa ter
 // sido salvo antes (tem .id) — convidar um nome ainda não salvo não faz
@@ -16038,9 +16035,18 @@ async function convidarParticipanteBol(i){
   var link=PARTICIPANTE_APP_URL+'?convite='+resultado.token;
   p.convite_status='pendente';
   renderParticipantesBoloes();
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(link).then(function(){ toast('✓ Link de convite copiado: '+link); }, function(){ toast('Link de convite: '+link); });
-  } else { toast('Link de convite: '+link); }
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(link).catch(function(){});
+  var msg='Olá '+p.nome+'! Você foi convidado(a) para participar de um bolão no LottoAnalytics 🍀\nAcesse o link para entrar: '+link;
+  window.open('https://wa.me/'+_waNumeroCompat(whatsapp)+'?text='+encodeURIComponent(msg),'_blank');
+  toast('✓ WhatsApp aberto com o convite (link também copiado).');
+}
+// Normaliza um WhatsApp digitado sem código do país (padrão nacional: DDD +
+// número, até 11 dígitos) prefixando 55 — wa.me exige o número completo,
+// sem "+", sem espaços. Se já vier com código do país (mais de 11 dígitos),
+// não mexe.
+function _waNumeroCompat(raw){
+  var d=(raw||'').replace(/\D/g,'');
+  return d.length<=11 ? '55'+d : d;
 }
 
 function _sorteioNome(s){ return {normal:'Concurso Normal',megavirada:'Mega da Virada',lotofacilindep:'Lotofácil da Independência',quinasaojoao:'Quina de São João',duplapascoa:'Dupla Sena de Páscoa'}[s]||'Concurso Normal'; }
@@ -16380,7 +16386,7 @@ function renderParticipantesBoloes(){
   // altas/cheias de informação. Essa lista agora vira uma área própria
   // abaixo da tabela (ver renderConcursosPorParticipanteHtml), com um
   // cartão por participante em grade de 2-3 colunas.
-  var grid='24px 44px 1.4fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 30px 24px';
+  var grid='24px 44px 1.1fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 46px 24px';
   var head='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:6px 8px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--glass-border);align-items:center">'+
     '<input type="checkbox" id="bol-sel-all" onchange="toggleSelAllPart(this.checked)" title="Selecionar todos" style="cursor:pointer"'+(nSel&&nSel===s.participantes.length?' checked':'')+'/>'+
     '<span>Refer.</span><span>Nome</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span title="App do participante">📨</span><span></span></div>';
@@ -16470,9 +16476,9 @@ function renderParticipantesBoloes(){
       // participante já ter sido salvo (precisa de id pra vincular o
       // convite). aceito/pendente refletem bolao_participantes.convite_status.
       var colConvite = !primeira ? '<span></span>'
-        : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:11px;color:var(--text-dim);text-align:center;display:block">—</span>'
-        : p.convite_status==='aceito' ? '<span title="Participante já está no app" style="font-size:13px;text-align:center;display:block">✅</span>'
-        : '<button onclick="convidarParticipanteBol('+i+')" title="Gerar link de convite para o app do participante" style="border:none;background:transparent;color:var(--accent,#3a9b4e);cursor:pointer;font-size:13px">📨</button>';
+        : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
+        : p.convite_status==='aceito' ? '<span title="Participante já está no app" style="font-size:16px;text-align:center;display:block">✅</span>'
+        : '<button onclick="convidarParticipanteBol('+i+')" title="Convidar para o app do participante (abre o WhatsApp)" style="border:1px solid var(--accent,#3a9b4e);border-radius:6px;background:rgba(58,155,78,.12);color:var(--accent,#3a9b4e);cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;width:100%">📨</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
       // colunas próprias do participante (não é mais calculado a partir de
