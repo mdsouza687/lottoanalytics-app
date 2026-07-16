@@ -16101,10 +16101,18 @@ async function convidarParticipanteBol(i){
     whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
     if(!whatsapp){ toast('WhatsApp é necessário para convidar.'); return; }
   }
+  // Precisa abrir a aba JÁ no clique, antes de qualquer await — a maioria
+  // dos navegadores só permite window.open() como resposta direta a um
+  // gesto do usuário; chamado depois de um await (esperar o Supabase
+  // responder), o bloqueador de pop-up mata silenciosamente a chamada,
+  // sem erro nenhum no console. Abre em branco e só preenche a URL quando
+  // o convite (e o link) já estiverem prontos.
+  var abaWa=window.open('','_blank');
   var resultado=await BolaoJogosRepo.criarConviteDual(p.id,whatsapp,p.email);
-  if(!resultado){ toast('Erro ao gerar convite.'); return; }
+  if(!resultado){ if(abaWa) abaWa.close(); toast('Erro ao gerar convite.'); return; }
   p.whatsapp=whatsapp;
   if(resultado.auto_vinculado){
+    if(abaWa) abaWa.close();
     p.convite_status='aceito';
     renderParticipantesBoloes();
     toast('✓ '+p.nome+' já tem conta no app (vinculado automaticamente pelo WhatsApp).');
@@ -16115,8 +16123,9 @@ async function convidarParticipanteBol(i){
   renderParticipantesBoloes();
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(link).catch(function(){});
   var msg='Olá '+p.nome+'! Você foi convidado(a) para participar de um bolão no LottoAnalytics 🍀\nAcesse o link para entrar: '+link;
-  window.open('https://wa.me/'+_waNumeroCompat(whatsapp)+'?text='+encodeURIComponent(msg),'_blank');
-  toast('✓ WhatsApp aberto com o convite (link também copiado).');
+  var waUrl='https://wa.me/'+_waNumeroCompat(whatsapp)+'?text='+encodeURIComponent(msg);
+  if(abaWa){ abaWa.location.href=waUrl; } else { window.open(waUrl,'_blank'); }
+  toast('✓ WhatsApp aberto com o convite (link também copiado). Se o navegador bloqueou a aba, o link já está copiado — cole direto na conversa.');
 }
 // Normaliza um WhatsApp digitado sem código do país (padrão nacional: DDD +
 // número, até 11 dígitos) prefixando 55 — wa.me exige o número completo,
