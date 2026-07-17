@@ -5028,7 +5028,13 @@ const LA_ORDER=['megasena','lotofacil','quina','lotomania','duplasena','diasorte
 // Dupla Sena, Lotofácil, Quina, Lotomania; Sábado = Mega-Sena, Lotofácil,
 // Quina, Dia de Sorte, Timemania, +Milionária.
 const LA_DIAS_NUMS={megasena:[2,4,6],lotofacil:[1,2,3,4,5,6],quina:[1,2,3,4,5,6],lotomania:[1,3,5],duplasena:[1,3,5],diasorte:[1,2,3,4,5,6],supersete:[1,3,5],timemania:[2,4,6],maismilionaria:[3,6]};
-const LA_DIAS={megasena:'ter, qui e sáb',lotofacil:'seg a sáb',quina:'seg a sáb',lotomania:'seg, qua e sex',duplasena:'seg, qua e sex',diasorte:'seg a sáb',supersete:'seg, qua e sex',timemania:'ter, qui e sáb',maismilionaria:'qua e sáb',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
+// A partir de 19/07/2026 a Caixa moveu os sorteios de sábado para domingo,
+// 11h (Mega-Sena, Lotofácil, Quina, Timemania, Dia de Sorte, +Milionária) —
+// confirmado em fontes oficiais/imprensa (Metrópoles, InfoMoney, CNN
+// Brasil). Só afeta este texto informativo: a busca real de resultados
+// (atualizar-cron.mjs) já lê a data do próprio concurso na API da Caixa,
+// sem assumir dia da semana, então não precisou de nenhuma outra mudança.
+const LA_DIAS={megasena:'ter, qui e dom',lotofacil:'seg a sex e dom',quina:'seg a sex e dom',lotomania:'seg, qua e sex',duplasena:'seg, qua e sex',diasorte:'seg a sex e dom',supersete:'seg, qua e sex',timemania:'ter, qui e dom',maismilionaria:'qua e dom',powerball:'seg, qua, sáb',megamillions:'ter e sex'};
 const LA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Lista oficial dos 80 clubes da Timemania, no formato exato usado pelo
 // volante e pela API de resultados (NOME/UF, sem acento, maiúsculas — ex.
@@ -14634,7 +14640,7 @@ function abrirPaginaBoloes(){
 function novoBolao(){
   var _mesAtual=new Date().toISOString().slice(0,7);
   var _semAtual=_calcSemanaAtual();
-  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null,
+  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
     semanaInicio:_semAtual.inicio, semanaFim:_semAtual.fim, arrecadacaoTotal:0, rodadas:[],
     mesReferencia:_mesAtual, semanas:_calcSemanasDoMes(_mesAtual), dataSorteio:'',
     concursos:[], jogosVinculados:[], numDezBolao:0, loteria:currentKey };
@@ -15398,6 +15404,11 @@ function renderFormBolao(){
   var bolaoFinalizado=_bolaoConcursoJaRealizado(s);
   var disabledAttr=bolaoFinalizado?' disabled':'';
   var disabledStyle=bolaoFinalizado?';opacity:.6;cursor:not-allowed':'';
+  // Bolão ATIVADO (Fase 14) fecha a lista de participantes pra novos
+  // cadastros — distinto de bolaoFinalizado (concurso já sorteado), que
+  // trava mais coisas (jogos, importação por outro motivo). Aqui só
+  // afeta quem pode ser adicionado/importado.
+  var bolaoAtivado=!!s.ativadoEm;
   var bannerFinalizado=bolaoFinalizado
     ?'<div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);border-radius:12px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'+
       '<span style="font-size:18px">✅</span>'+
@@ -15935,9 +15946,10 @@ function renderFormBolao(){
   // Administrador
   '<div style="'+cardStyle+'">'+
     '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text);margin-bottom:12px">👤 Administrador</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">'+
       '<div><label style="'+lbl+'">Nome *</label><input id="adm-nome" style="'+inp+'" value="'+_esc(s.admin.nome)+'" oninput="_boloesState.admin.nome=this.value"/></div>'+
       '<div><label style="'+lbl+'">Telefone *</label><input id="adm-tel" style="'+inp+'" value="'+_esc(s.admin.telefone)+'" placeholder="(00) 00000-0000" maxlength="16" oninput="_maskTel(this)"/></div>'+
+      '<div><label style="'+lbl+'">CPF (opcional)</label><input id="adm-cpf" style="'+inp+'" value="'+_esc(s.admin.cpf||'')+'" placeholder="000.000.000-00" title="Usado só no Termo de Constituição do Bolão — não é obrigatório" oninput="_boloesState.admin.cpf=this.value"/></div>'+
       '<div><label style="'+lbl+'">PIX *</label>'+
         '<div style="display:flex;gap:5px">'+
           '<select id="adm-pix-tipo" style="'+inp+';flex:0 0 96px;width:96px" onchange="_boloesState.admin.pixTipo=this.value;_boloesState.admin.pix=\'\';renderFormBolao()">'+
@@ -15956,7 +15968,12 @@ function renderFormBolao(){
         '<option value="nenhuma"'+(_tipoOrg(s)==='nenhuma'?' selected':'')+'>Não cobrar</option>'+
         '<option value="cotas"'+(_tipoOrg(s)==='cotas'?' selected':'')+'>Cotas isentas</option>'+
         '<option value="fixo"'+(_tipoOrg(s)==='fixo'?' selected':'')+'>Valor fixo</option>'+
+        '<option value="percentual"'+(_tipoOrg(s)==='percentual'?' selected':'')+'>% do prêmio bruto</option>'+
       '</select>'+
+      (_tipoOrg(s)==='percentual'
+        ? '<input id="adm-percentual-premio" type="number" min="0" max="100" step="0.5" value="'+(s.admin.percentualPremio==null?10:s.admin.percentualPremio)+'" style="'+inp+';width:70px;flex:0 0 70px" onchange="_boloesState.admin.percentualPremio=Math.max(0,Math.min(100,parseFloat(this.value)||0));renderFormBolao()"/>'+
+          '<span style="font-size:10px;color:var(--text-muted)">% descontado do prêmio bruto quando houver premiação — não incide sobre as cotas nem participa do rateio de custo.</span>'
+        : '')+
       (_tipoOrg(s)==='fixo'
         ? (function(){
             // Moeda do valor fixo: se o bolão envolve uma só moeda, usa-a
@@ -16000,7 +16017,7 @@ function renderFormBolao(){
               '<option value="2"'+(s.admin.cotasAdmin===2?' selected':'')+'>2 cotas</option>'+
             '</select>'+
             '<span style="font-size:10px;color:var(--text-muted)">Cotas isentas; o valor é rateado entre os participantes.</span>'
-          : '<span style="font-size:10px;color:var(--text-muted)">O administrador não participa com cotas nem recebe taxa de organização.</span>')
+          : (_tipoOrg(s)==='percentual' ? '' : '<span style="font-size:10px;color:var(--text-muted)">O administrador não participa com cotas nem recebe taxa de organização.</span>'))
       )+
     '</div>'+
   '</div>'+
@@ -16009,26 +16026,32 @@ function renderFormBolao(){
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text)">🧑‍🤝‍🧑 Participantes</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button onclick="'+(bolaoFinalizado?'':"document.getElementById(\'bol-file\').click()")+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível importar novos participantes"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">📥 Importar Lista</button>'+
+        '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
         '<button onclick="salvarBolao()" style="border:none;border-radius:8px;padding:6px 12px;background:'+cor+';color:#fff;font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Lista</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
-        '<button onclick="publicarResultadoBolao()" title="Envia o resultado (com ou sem prêmio) para o app dos participantes que já pagaram" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📤 Publicar Resultado</button>'+
+        '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
+        (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
+        (_boloesState.ativadoEm
+          ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
+          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — confira os participantes ativos/pagos antes" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
-    // Adicionar manual (bloqueado se o bolão já foi finalizado). E-mail e
-    // WhatsApp são obrigatórios desde o cadastro (não mais pedidos depois,
-    // via prompt() só na hora de convidar) — evita que o organizador reuse
-    // o próprio contato como placeholder pra vários participantes, o que
-    // fazia o auto-vínculo por contato (Fase 8) linkar pessoas diferentes
-    // à mesma conta dentro do mesmo bolão.
-    (bolaoFinalizado?'':(
+    // Adicionar manual (bloqueado se o bolão já foi finalizado OU já foi
+    // ativado — Fase 14 fecha a lista de participantes na ativação).
+    // E-mail e WhatsApp são obrigatórios desde o cadastro (não mais
+    // pedidos depois, via prompt() só na hora de convidar) — evita que o
+    // organizador reuse o próprio contato como placeholder pra vários
+    // participantes, o que fazia o auto-vínculo por contato (Fase 8)
+    // linkar pessoas diferentes à mesma conta dentro do mesmo bolão.
+    ((bolaoFinalizado||bolaoAtivado)?'':(
     '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">'+
       '<input id="np-nome" style="'+inp+';flex:2;min-width:140px;width:auto" placeholder="Nome do participante"/>'+
       '<input id="np-email" type="email" style="'+inp+';flex:2;min-width:160px;width:auto" placeholder="E-mail *"/>'+
       '<input id="np-whatsapp" type="text" inputmode="tel" style="'+inp+';flex:1;min-width:130px;width:auto" placeholder="WhatsApp (DDD) *"/>'+
+      '<input id="np-cpf" type="text" style="'+inp+';flex:1;min-width:120px;width:auto" placeholder="CPF (opcional)" title="Usado só no Termo de Constituição do Bolão — não é obrigatório"/>'+
       '<input id="np-cotas" type="number" min="1" value="1" style="'+inp+';width:70px;flex:0 0 70px" placeholder="Cotas" title="Quantidade de cotas (para fins de % do prêmio)"/>'+
       '<div style="position:relative;flex:0 0 110px">'+
         '<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none">R$</span>'+
@@ -16079,6 +16102,7 @@ function addParticipanteBol(){
   var nome=(document.getElementById('np-nome').value||'').trim();
   var email=(document.getElementById('np-email').value||'').trim();
   var whatsapp=(document.getElementById('np-whatsapp').value||'').trim();
+  var cpf=(document.getElementById('np-cpf').value||'').trim();
   var cotas=parseInt(document.getElementById('np-cotas').value)||1;
   var valorCotaInput=document.getElementById('np-valor-cota');
   // valorCota = quanto este participante específico está pagando para
@@ -16090,10 +16114,11 @@ function addParticipanteBol(){
   if(!nome){ toast('Informe o nome do participante.'); return; }
   if(!email||!_emailValido(email)){ toast('Informe um e-mail válido do participante.'); return; }
   if(!whatsapp||!_whatsappValido(whatsapp)){ toast('Informe o WhatsApp com DDD (10 ou 11 dígitos).'); return; }
-  _boloesState.participantes.push({ nome:nome, email:email, whatsapp:whatsapp.replace(/\D/g,''), admin:_boloesState.admin.nome||'', cotas:cotas, valorCota:valorCota, statusPart:'ativo', statusPag:'naopagou' });
+  _boloesState.participantes.push({ nome:nome, email:email, whatsapp:whatsapp.replace(/\D/g,''), cpf:cpf, admin:_boloesState.admin.nome||'', cotas:cotas, valorCota:valorCota, statusPart:'ativo', statusPag:'naopagou' });
   document.getElementById('np-nome').value='';
   document.getElementById('np-email').value='';
   document.getElementById('np-whatsapp').value='';
+  document.getElementById('np-cpf').value='';
   document.getElementById('np-cotas').value='1';
   if(valorCotaInput) valorCotaInput.value='';
   _ordenarParticipantes();
@@ -16212,10 +16237,10 @@ async function _atualizarConcursoPremio(){
 // admin também participar com cotas próprias abatidas desse orçamento).
 function _tipoOrg(s){ return (s.admin&&s.admin.tipoOrganizacao)||'cotas'; }
 function _setTipoOrganizacao(v){
-  var tipo=(v==='fixo')?'fixo':(v==='nenhuma'?'nenhuma':'cotas');
+  var tipo=(v==='fixo')?'fixo':(v==='nenhuma'?'nenhuma':(v==='percentual'?'percentual':'cotas'));
   _boloesState.admin.tipoOrganizacao=tipo;
   if(tipo==='fixo'){
-    // Ao trocar para valor fixo, zera as cotas do admin (os modelos não se
+    // Ao trocar de modelo, zera as cotas do admin (os modelos não se
     // acumulam — é um ou outro) e garante um valor inicial.
     _boloesState.admin.cotasAdmin=0;
     if(_boloesState.admin.valorFixoOrganizacao==null) _boloesState.admin.valorFixoOrganizacao=0;
@@ -16224,6 +16249,15 @@ function _setTipoOrganizacao(v){
     _boloesState.admin.cotasAdmin=0;
     _boloesState.admin.valorFixoOrganizacao=0;
     _boloesState.admin.adminParticipaCotas=false;
+  } else if(tipo==='percentual'){
+    // Percentual não é cost-sharing — o administrador não toma cotas nem
+    // orçamento fixo, só uma fatia do PRÊMIO quando houver premiação (ver
+    // fatorPercentual em _imprimirBolaoImpl e o cálculo equivalente na
+    // Edge Function publicar-resultados-automatico).
+    _boloesState.admin.cotasAdmin=0;
+    _boloesState.admin.valorFixoOrganizacao=0;
+    _boloesState.admin.adminParticipaCotas=false;
+    if(_boloesState.admin.percentualPremio==null) _boloesState.admin.percentualPremio=10;
   } else {
     _boloesState.admin.valorFixoOrganizacao=0;
     if(!_boloesState.admin.cotasAdmin) _boloesState.admin.cotasAdmin=1;
@@ -17018,124 +17052,37 @@ async function excluirBolao(id){
 }
 
 /* ── Fase 4 do app mobile de participante: publicar resultado ── */
-// Ação EXPLÍCITA e separada de "Imprimir" — imprimir pode ser clicado
-// várias vezes (reimpressão de recibo), publicar deve ser uma decisão
-// deliberada do organizador, uma vez por conferência real, senão cada
-// reimpressão geraria um relatório/notificação novo pros participantes.
-// Reaproveita _calcPremioJogo/getBolaoNovoSchema/_tipoOrg — as MESMAS
-// fontes de verdade que _imprimirBolaoImpl usa — para nunca ter uma
-// segunda cópia divergente da regra de premiação (já foi bug real neste
-// bolão antes: histórico de correções na função de impressão).
-async function publicarResultadoBolao(){
+// Fase 14: substitui o antigo "📤 Publicar Resultado" (publicação
+// pós-sorteio, hoje 100% automática via cron — ver Edge Function
+// publicar-resultados-automatico/modoCron). "Ativar Bolão" é uma decisão
+// ANTES do sorteio: o organizador confere quem está ativo/pago, fecha a
+// lista pra novos participantes e disponibiliza o bolão no app de quem
+// já aceitou convite (rpc_ativar_bolao trava isso via boloes.ativado_em).
+// Idempotente no backend, mas só oferece a ação uma vez na UI — depois de
+// ativado, o botão vira um indicador (ver renderFormBolao).
+async function abrirConfirmacaoAtivarBolao(){
   var s=_boloesState;
-  if(!s.editId){ toast('Salve o bolão antes de publicar o resultado.'); return; }
-  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo' && p.id;});
-  if(!ativos.length){ toast('Nenhum participante salvo para publicar.'); return; }
-
-  var gPub=await getBolaoNovoSchema(s.editId);
-  if(!gPub){ toast('Erro ao carregar dados do bolão.'); return; }
-
-  var jogosPorLoteria={};
-  (gPub.concursos||[]).forEach(function(cc){
-    if(typeof _hidratarConcursoJogos==='function') _hidratarConcursoJogos(cc);
-    var lk=cc.loteria||(s.loteria||currentKey);
-    if(!jogosPorLoteria[lk]) jogosPorLoteria[lk]=[];
-    (cc.jogos||[]).forEach(function(jg){
-      if(jg&&typeof jg==='object'){ jg._concursoOrigem=cc.num; jogosPorLoteria[lk].push(jg); }
-    });
-  });
-
-  if(typeof atualizarLoteria==='function'){
-    await Promise.all(Object.keys(jogosPorLoteria).map(function(lk){ return atualizarLoteria(lk).catch(function(){}); }));
-  }
-
-  var algumConferido=false, totalPremio=0, jogosPremiados=[];
-  // Detalhe de cada jogo — mesma info que o participante vê no relatório
-  // impresso (dezenas, Teimosinha, premiado ou não), não só o resumo
-  // financeiro. Igual à Fase 7 (Edge Function), que grava a mesma forma.
-  var jogosDetalhePub=[];
-  Object.keys(jogosPorLoteria).forEach(function(lk){
-    jogosPorLoteria[lk].forEach(function(jg){
-      var r=(typeof _calcPremioJogo==='function')?_calcPremioJogo(lk,jg,jg._concursoOrigem):null;
-      var extrasJg={extra:jg._extra!=null?jg._extra:null,mes:jg._mes!=null?jg._mes:null,time:jg._time!=null?jg._time:null,
-        ssCols:(Array.isArray(jg._ssCols)?jg._ssCols.map(function(c){return c.slice();}):null)};
-      jogosDetalhePub.push({loteria:lk,concurso:jg._concursoOrigem,numeros:(Array.isArray(jg)?jg.slice():[]),
-        trevos:(Array.isArray(jg._trevos)?jg._trevos.slice():null),extras:extrasJg,
-        premiado:!!(r&&r.premiado),acertos:r?r.acertos:null,valor:r?r.valor:0,
-        status:r?'sorteado':'vigente'});
-      if(r){
-        algumConferido=true;
-        if(r.premiado){ totalPremio+=r.valor; jogosPremiados.push({loteria:lk,concurso:jg._concursoOrigem,acertos:r.acertos,valor:r.valor}); }
-      }
-    });
-  });
-  if(!algumConferido){ toast('Nenhum concurso vinculado a este bolão foi sorteado ainda — nada para publicar.'); return; }
-
-  // Histórico de Rodadas do bolão inteiro — mesma seção do relatório
-  // impresso (não é dado de um participante específico).
-  var historicoRodadasPub=(gPub.concursos||[]).map(function(cc){
-    return {loteria:cc.loteria,concurso:String(cc.num),custo:cc.custo||0,vinculadoEm:cc.savedAt?new Date(cc.savedAt).toISOString():null,dataSorteio:cc.data||null};
-  });
-
-  // Nº da cota de cada participante — mesma numeração sequencial "Refer."
-  // já usada na tabela de participantes (soma cumulativa das cotas, na
-  // ordem em que aparecem em s.participantes).
-  var cotaRangePub={}; var acumCotasPub=0;
-  s.participantes.forEach(function(p){
-    var qtdP=Math.max(1,p.cotas||1);
-    cotaRangePub[p.id]={inicio:acumCotasPub+1,fim:acumCotasPub+qtdP};
-    acumCotasPub+=qtdP;
-  });
-
-  // Taxa de administração — reaproveita _calcDadosFinanceirosBolao (mesma
-  // fonte de verdade da tabela de participantes), não recalcula do zero.
-  var dadosFinPub=(typeof _calcDadosFinanceirosBolao==='function')?_calcDadosFinanceirosBolao(s):null;
-  var valorCotaPub=dadosFinPub?dadosFinPub.valorCota:0;
-  var taxaAdminValorPub=dadosFinPub?dadosFinPub.valorRateioPorPart:0;
-
-  // Prêmio (e portanto o relatório) é dividido só entre quem já pagou —
-  // mesma regra já usada na tabela de impressão (pagosImp).
-  var tipoOrgPub=_tipoOrg(s);
-  var cotasAdminPub=(tipoOrgPub==='cotas')?((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0):0;
-  var pagosPub=ativos.filter(function(p){return p.statusPag==='pago';});
-  var cotasPagasPub=pagosPub.reduce(function(a,p){return a+(p.cotas||0);},0)+cotasAdminPub;
-  var pctPorCotaPub=cotasPagasPub>0?(100/cotasPagasPub):0;
-  var concursoRefPrincipal=(gPub.concursos&&gPub.concursos[0]&&gPub.concursos[0].num)||s.concurso||'';
-
-  if(!pagosPub.length){ toast('Nenhum participante com pagamento confirmado — nada para publicar.'); return; }
-
-  var relatoriosPayload=[];
-  if(totalPremio<=0){
-    pagosPub.forEach(function(p){
-      var cotaP=cotaRangePub[p.id]||{inicio:null,fim:null};
-      relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_sem_premio',
-        conteudo:{ concurso:String(concursoRefPrincipal), quantidade_jogos:(gPub.jogos||[]).length,
-          jogos:jogosDetalhePub, historicoRodadas:historicoRodadasPub,
-          cotaInicio:cotaP.inicio, cotaFim:cotaP.fim,
-          taxa_admin_valor:Math.round(taxaAdminValorPub*100)/100, valor_cota:Math.round(valorCotaPub*100)/100 } });
-    });
-  } else {
-    pagosPub.forEach(function(p){
-      var pctP=pctPorCotaPub*Math.max(1,p.cotas||1);
-      var valorP=totalPremio*pctP/100;
-      var cotaP=cotaRangePub[p.id]||{inicio:null,fim:null};
-      relatoriosPayload.push({ participante_id:p.id, tipo:'resultado_com_premio',
-        conteudo:{ concurso:String(concursoRefPrincipal),
-          jogos_premiados:jogosPremiados.map(function(j){return {loteria:j.loteria,acertos:j.acertos};}),
-          jogos:jogosDetalhePub, historicoRodadas:historicoRodadasPub,
-          cotaInicio:cotaP.inicio, cotaFim:cotaP.fim,
-          taxa_admin_valor:Math.round(taxaAdminValorPub*100)/100, valor_cota:Math.round(valorCotaPub*100)/100,
-          valor_liquido_participante:Math.round(valorP*100)/100, pct_cota:Math.round(pctP*100)/100,
-          memoria_calculo:p.cotas+' cota'+(p.cotas>1?'s':'')+' de '+cotasPagasPub+' pagas · '+pctP.toFixed(2)+'% de '+_bMoney(totalPremio) } });
-    });
-  }
-
+  if(!s.editId){ toast('Salve o bolão antes de ativar.'); return; }
+  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo';});
+  if(!ativos.length){ toast('Adicione ao menos um participante ativo antes de ativar.'); return; }
+  var pagos=ativos.filter(function(p){return p.statusPag==='pago';});
+  var pendentes=ativos.length-pagos.length;
+  var msg='Ativar este bolão?\n\n'+
+    ativos.length+' participante'+(ativos.length>1?'s':'')+' ativo'+(ativos.length>1?'s':'')+
+    ' · '+pagos.length+' pago'+(pagos.length!==1?'s':'')+
+    ' · '+pendentes+' pendente'+(pendentes!==1?'s':'')+
+    '\n\nIsso fecha o bolão para novos participantes e o disponibiliza no app de quem já aceitou o convite. Não pode ser desfeito.';
+  if(!confirm(msg)) return;
+  await salvarBolao();
   try{
     var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível');
-    var { error }=await sb.rpc('rpc_publicar_resultado_bolao',{ p_bolao_id:s.editId, p_relatorios:relatoriosPayload });
+    var { error }=await sb.rpc('rpc_ativar_bolao',{ p_bolao_id:s.editId });
     if(error) throw error;
-    toast('✓ Resultado publicado para '+relatoriosPayload.length+' participante(s).');
-  }catch(e){ console.error(e); toast('Erro ao publicar: '+e.message); }
+    s.ativadoEm=new Date().toISOString();
+    _registrarAuditoria('ativar_bolao',{bolaoId:s.editId});
+    toast('✓ Bolão ativado — disponível no app dos participantes.');
+    renderFormBolao();
+  }catch(e){ console.error(e); toast('Erro ao ativar: '+e.message); }
 }
 
 /* ── Impressão ── */
@@ -17354,6 +17301,12 @@ async function _imprimirBolaoImpl(soPremiados){
     ? (valorFixoOrgImp>0&&nPagantes>0?valorFixoOrgImp/nPagantes:0)
     : (cotasAdmin>0&&nPagantes>0?(cotasAdmin*valorCota)/nPagantes:0);
   var totalCotasPremio=totalCotasImp;
+  // Modo "percentual": administrador não participa do rateio de custo (fica
+  // como 'nenhuma' pra fins de cotasAdmin/valorRateioPorPart, já coberto
+  // acima) — em vez disso, tira uma fatia do PRÊMIO em si quando há
+  // premiação. fatorPercentual escala o valor mostrado a cada participante
+  // pra já refletir a taxa descontada, sem precisar reescrever cada tabela.
+  var fatorPercentual=(tipoOrgImp==='percentual')?(1-((s.admin.percentualPremio==null?10:s.admin.percentualPremio)/100)):1;
   // Prêmio dividido só entre cotas pagas (+ admin isento)
   var pagosImp=ativos.filter(function(p){return p.statusPag==='pago';});
   var cotasPagasImp=pagosImp.reduce(function(a,p){return a+(p.cotas||0);},0)+cotasAdmin;
@@ -17468,8 +17421,8 @@ async function _imprimirBolaoImpl(soPremiados){
     // estimativa (nenhum concurso do grupo tem dados suficientes ainda).
     function _celPremioImp(pct){
       var partes=[];
-      if(L.algumConferido) partes.push(_bMoney(L.premioRealNum*pct/100));
-      if(L.algumVigente && L.premioNum>0) partes.push('<span style="color:#888;font-style:italic" title="Estimativa — sorteio ainda não ocorreu">'+_bMoney(L.premioNum*pct/100)+' est.</span>');
+      if(L.algumConferido) partes.push(_bMoney(L.premioRealNum*pct/100*fatorPercentual));
+      if(L.algumVigente && L.premioNum>0) partes.push('<span style="color:#888;font-style:italic" title="Estimativa — sorteio ainda não ocorreu">'+_bMoney(L.premioNum*pct/100*fatorPercentual)+' est.</span>');
       if(!partes.length) return '<span style="color:#999;font-style:italic">aguardando</span>';
       return partes.join('<br>');
     }
@@ -17505,12 +17458,15 @@ async function _imprimirBolaoImpl(soPremiados){
     (!_algumaLoteriaConferida
       ? '<div style="font-size:11px;color:#888;font-style:italic">Nenhum concurso deste bolão foi conferido ainda — aguardando sorteio/sincronização.</div>'
       : ('<div style="font-size:12px;margin-bottom:8px"><b>Total recebido (todas as loterias):</b> <span style="color:'+(_totalPremioRealBolao>0?'#16a34a':'#888')+';font-weight:800">'+_bMoney(_totalPremioRealBolao)+'</span> <span style="color:#888;font-size:9px">('+_totalJogosPremiadosBolao+' jogo'+(_totalJogosPremiadosBolao!==1?'s':'')+' premiado'+(_totalJogosPremiadosBolao!==1?'s':'')+' no total)</span></div>'+
+        (tipoOrgImp==='percentual'&&_totalPremioRealBolao>0
+          ? '<div style="font-size:11px;margin-bottom:8px;color:#b8860b"><b>Taxa administrativa ('+(s.admin.percentualPremio==null?10:s.admin.percentualPremio)+'% do prêmio bruto):</b> -'+_bMoney(_totalPremioRealBolao*(1-fatorPercentual))+' &nbsp;·&nbsp; <b>Líquido a distribuir:</b> '+_bMoney(_totalPremioRealBolao*fatorPercentual)+'</div>'
+          : '')+
         (_totalPremioRealBolao>0
           ? ('<table style="table-layout:fixed"><thead><tr><th style="width:40%">Participante</th><th style="width:20%;text-align:center">% / Cota</th><th style="width:40%;text-align:right">Total recebido</th></tr></thead><tbody>'+
               (cotasAdmin>0?('<tr style="background:#fff7e0"><td>⭐ '+_esc(s.admin.nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdmin.toFixed(2)+'%</td><td style="text-align:right;font-weight:700">'+_bMoney(_totalPremioRealBolao*pctAdmin/100)+'</td></tr>'):'')+
               pagosImp.map(function(p){
                 var pctCotaP=pctPorCota*Math.max(1,p.cotas||1);
-                return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right;font-weight:700;color:#16a34a">'+_bMoney(_totalPremioRealBolao*pctCotaP/100)+'</td></tr>';
+                return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right;font-weight:700;color:#16a34a">'+_bMoney(_totalPremioRealBolao*pctCotaP/100*fatorPercentual)+'</td></tr>';
               }).join('')+
             '</tbody></table>')
           : '')))
@@ -17899,6 +17855,237 @@ async function _imprimirBolaoImpl(soPremiados){
   // Chrome, não pelo app, e não dá pra colocar uma barra de progresso
   // dentro dela. Só avisa antes, pra não parecer travado.
   if(_totalPrint>300){ toast('Relatório grande ('+_totalPrint+' jogos) — a visualização de impressão pode demorar alguns segundos.'); }
+  var w=window.open('','_blank');
+  if(!w){ toast('Permita pop-ups para imprimir.'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ w.print(); }, 500);
+}
+
+// Fase 14: Termo de Constituição de Bolão Particular — documento de
+// governança/comprovação (baseado em orientação sobre como demonstrar à
+// Receita Federal que um prêmio pago numa conta pessoal pertence, de
+// fato, a um grupo). Só fica disponível DEPOIS de ativado — é o
+// documento que a ativação promete gerar. Preenchimento automático a
+// partir dos dados já cadastrados do bolão; NENHUM campo é obrigatório
+// pra gerar (CPF em branco simplesmente aparece como "—", a preencher à
+// mão se o organizador quiser reforçar o valor probatório do documento).
+function imprimirTermoConstituicao(){
+  var s=_boloesState;
+  if(!s.ativadoEm){ toast('Ative o bolão antes de gerar o Termo de Constituição.'); return; }
+  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo';});
+  if(!ativos.length){ toast('Nenhum participante ativo para gerar o termo.'); return; }
+  var totalCotas=ativos.reduce(function(a,p){return a+(p.cotas||1);},0)+((_tipoOrg(s)==='cotas')?((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0):0);
+  var pct=function(cotas){ return totalCotas>0?((cotas/totalCotas)*100).toFixed(2):'0,00'; };
+  var v=function(x){ return x?_esc(x):'<span style="color:#999">—</span>'; };
+
+  var linhasParticipantes=ativos.map(function(p){
+    return '<tr><td>'+_esc(p.nome)+'</td><td>'+v(p.cpf)+'</td><td style="text-align:center">'+(p.cotas||1)+'</td>'+
+      '<td style="text-align:center">'+pct(p.cotas||1)+'%</td><td style="text-align:right">'+_bMoney(p.valorCota||0)+'</td>'+
+      '<td style="border-bottom:1px solid #333;height:36px"></td></tr>';
+  }).join('');
+
+  var concursosVinc=(s.concursos||[]).map(function(cc){
+    var d=CFG[cc.loteria]||null;
+    return (d?d.nome:cc.loteria)+' — Concurso '+_esc(cc.num)+(cc.data?' ('+_esc(cc.data)+')':'');
+  });
+
+  var dataEmissao=new Date(s.ativadoEm).toLocaleDateString('pt-BR');
+
+  var html='<html><head><meta charset="utf-8"><title>Termo de Constituição — '+_esc(s.nome)+'</title>'+
+    '<style>@page{size:A4;margin:14mm}'+
+    'body{font-family:Georgia,\'Times New Roman\',serif;color:#111;padding:0;line-height:1.55;font-size:12.5px}'+
+    'h1{font-size:16px;text-align:center;letter-spacing:.03em;margin:0 0 4px}'+
+    '.sub{text-align:center;color:#666;font-size:10px;margin-bottom:18px}'+
+    'h2{font-size:12.5px;margin:16px 0 6px;border-bottom:1px solid #ccc;padding-bottom:2px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}'+
+    'th{background:#f0f0f0;text-align:left;padding:5px 7px;border-bottom:1px solid #999}'+
+    'td{padding:5px 7px;border-bottom:1px solid #ddd}'+
+    '.box{background:#f7f7f5;border:1px solid #e0e0dc;border-radius:5px;padding:8px 12px;margin-bottom:6px}'+
+    '.assinatura{margin-top:34px;text-align:center;width:260px;display:inline-block}'+
+    '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
+    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
+      '<span style="font-size:12px;color:#ccc">Documento de governança/comprovação — não substitui orientação de contador ou advogado.</span>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
+    '</div><div id="print-spacer" style="height:52px"></div>'+
+    '<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
+    '<div class="sub">'+_esc(s.nome)+' · Emitido em '+dataEmissao+'</div>'+
+    '<p>Pelo presente instrumento, os participantes abaixo identificados constituem, de comum acordo, um bolão particular '+
+    'destinado à realização de apostas nas Loterias CAIXA, nos termos e condições descritos a seguir.</p>'+
+    '<h2>Administrador do Bolão</h2>'+
+    '<div class="box"><b>Nome:</b> '+v(s.admin.nome)+' &nbsp;·&nbsp; <b>CPF:</b> '+v(s.admin.cpf)+'</div>'+
+    '<h2>Participantes</h2>'+
+    '<table><thead><tr><th>Nome</th><th>CPF</th><th style="text-align:center">Cotas</th><th style="text-align:center">Percentual</th><th style="text-align:right">Valor pago</th><th>Assinatura</th></tr></thead>'+
+    '<tbody>'+linhasParticipantes+'</tbody></table>'+
+    '<h2>Objeto</h2>'+
+    '<p>O presente bolão tem por finalidade a realização de apostas nas modalidades administradas pela CAIXA, '+
+    'utilizando exclusivamente recursos financeiros provenientes dos participantes acima relacionados'+
+    (concursosVinc.length?', nos seguintes concursos: '+_esc(concursosVinc.join('; '))+'.':'.')+'</p>'+
+    '<h2>Responsabilidade do Administrador</h2>'+
+    '<p>O administrador será responsável apenas por receber as contribuições, registrar as apostas, armazenar os '+
+    'comprovantes e prestar contas aos participantes, podendo receber eventual prêmio em razão da impossibilidade '+
+    'técnica de divisão automática pela plataforma utilizada. Todos os participantes reconhecem que o administrador '+
+    'não é proprietário exclusivo das apostas.</p>'+
+    '<h2>Divisão dos Prêmios</h2>'+
+    '<p>Todo prêmio será dividido proporcionalmente ao percentual de participação constante neste documento. '+
+    'Os participantes reconhecem que os valores pertencem ao grupo desde a realização da aposta.</p>'+
+    '<h2>Data e Assinaturas</h2>'+
+    '<p>'+_esc(s.nome)+', '+dataEmissao+'.</p>'+
+    '<div style="text-align:center;margin-top:10px">'+
+      '<div class="assinatura"><div class="linha">'+_esc(s.admin.nome||'Administrador')+' (Administrador)</div></div>'+
+      ativos.map(function(p){ return '<div class="assinatura"><div class="linha">'+_esc(p.nome)+'</div></div>'; }).join('')+
+    '</div>'+
+    '</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){ toast('Permita pop-ups para imprimir.'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ w.print(); }, 500);
+}
+
+// Fase 15: Termos e Condições de participação — documento padrão pra
+// QUALQUER pessoa que administre bolões pelo app (não é específico deste
+// bolão nem deste organizador), adaptado de um modelo usado por
+// administradores pessoa jurídica: aqui o administrador é sempre pessoa
+// física, identificado por nome + CPF (sem CNPJ). A cláusula de Taxa
+// Administrativa é a ÚNICA parte que muda de fato por bolão — descreve
+// dinamicamente qual dos 4 modelos (não cobrar / cotas isentas / valor
+// fixo / % do prêmio bruto) está configurado em admin.tipoOrganizacao,
+// em vez de fixar um modelo só como o documento de referência fazia.
+function _clausulaTaxaAdministrativa(s){
+  var tipo=_tipoOrg(s);
+  if(tipo==='percentual'){
+    var pct=s.admin.percentualPremio==null?10:s.admin.percentualPremio;
+    return '<p>A remuneração do administrador ocorre por meio de <b>taxa administrativa de '+pct+'% sobre o valor bruto da premiação</b>, '+
+      'aplicada somente quando houver prêmio e descontada antes da divisão entre os participantes. '+
+      'Essa taxa <b>não incide sobre o valor arrecadado das cotas</b> — o administrador não recebe nada além dela.</p>';
+  }
+  if(tipo==='cotas'){
+    var qtd=s.admin.cotasAdmin==null?1:s.admin.cotasAdmin;
+    return '<p>A remuneração do administrador ocorre por meio de <b>'+qtd+' cota'+(qtd>1?'s':'')+' isenta'+(qtd>1?'s':'')+'</b> — '+
+      'o custo correspondente é diluído entre os demais participantes no rateio do jogo. '+
+      'Não há cobrança adicional sobre as premiações obtidas.</p>';
+  }
+  if(tipo==='fixo'){
+    return '<p>A remuneração do administrador ocorre por meio de um <b>valor fixo de organização</b> ('+_bMoney(s.admin.valorFixoOrganizacao||0)+' '+
+      'para o período do bolão), rateado entre os participantes. Não há cobrança adicional sobre as premiações obtidas.</p>';
+  }
+  return '<p>O administrador <b>não cobra qualquer taxa administrativa</b> — não retém valor sobre as cotas nem sobre eventuais premiações.</p>';
+}
+function imprimirTermosCondicoes(){
+  var s=_boloesState;
+  if(!s.admin.nome){ toast('Preencha os dados do administrador antes de gerar os Termos e Condições.'); return; }
+  var v=function(x){ return x?_esc(x):'<span style="color:#999">[A PREENCHER]</span>'; };
+  var html='<html><head><meta charset="utf-8"><title>Termos e Condições — '+_esc(s.nome||'Bolão')+'</title>'+
+    '<style>@page{size:A4;margin:14mm}'+
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.55;font-size:12px}'+
+    'h1{font-size:17px;margin:0 0 4px}h2{font-size:12.5px;margin:16px 0 4px;color:#1a1a1a}'+
+    '.sub{color:#666;font-size:10px;margin-bottom:16px}'+
+    'ul{margin:4px 0;padding-left:20px}li{margin-bottom:2px}'+
+    'p{margin:4px 0 10px}'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
+    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
+      '<span style="font-size:12px;color:#ccc">Modelo padrão — recomenda-se revisão por advogado antes do uso.</span>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
+    '</div><div id="print-spacer" style="height:52px"></div>'+
+    '<h1>Termos e Condições</h1>'+
+    '<div class="sub">'+_esc(s.nome||'Bolão')+' · Administrador: '+v(s.admin.nome)+' (CPF '+v(s.admin.cpf)+')</div>'+
+    '<p>Este documento estabelece os Termos e Condições de participação no bolão acima identificado, definindo '+
+    'direitos, deveres e responsabilidades entre o <b>ADMINISTRADOR</b> e os <b>PARTICIPANTES</b>. Ao realizar o '+
+    'pagamento de qualquer cota via PIX e/ou ao aceitar estes termos no aplicativo, o participante declara que leu, '+
+    'compreendeu e concorda integralmente com este documento.</p>'+
+    '<h2>1. Identificação do Administrador</h2>'+
+    '<p>O bolão é administrado por pessoa física, '+v(s.admin.nome)+', CPF '+v(s.admin.cpf)+', responsável pela '+
+    'organização operacional do bolão e gestão das apostas coletivas.</p>'+
+    '<h2>2. Natureza do Serviço</h2>'+
+    '<p>O administrador atua exclusivamente como organizador de apostas coletivas entre participantes nas '+
+    'loterias oficiais, não realizando sorteios nem operando loterias. Suas atividades incluem:</p>'+
+    '<ul><li>organização dos participantes;</li><li>arrecadação das cotas;</li><li>elaboração das apostas;</li>'+
+    '<li>registro das apostas em casas lotéricas ou plataformas oficiais;</li><li>acompanhamento dos resultados;</li>'+
+    '<li>resgate das premiações;</li><li>repasse proporcional dos valores aos participantes.</li></ul>'+
+    '<h2>3. Ausência de Vínculo com a Caixa Econômica Federal</h2>'+
+    '<p>O bolão não possui vínculo institucional com a Caixa Econômica Federal. As apostas são realizadas nas '+
+    'loterias oficiais operadas pela Caixa, conforme a Lei nº 13.756/2018.</p>'+
+    '<h2>4. Participação</h2>'+
+    '<p>Para participar, o interessado deve realizar o pagamento via PIX dentro do prazo informado, respeitar o '+
+    'valor oficial da cota e manter o comprovante da transferência. O titular da conta que realizou o PIX será '+
+    'considerado o participante oficial.</p>'+
+    '<h2>5. Restrição de Idade</h2>'+
+    '<p>É proibida a participação de menores de 18 anos, conforme legislação brasileira aplicável às loterias.</p>'+
+    '<h2>6. Elaboração dos Jogos e Valor da Cota</h2>'+
+    '<p>Os jogos são elaborados pela administração utilizando estratégias estatísticas, probabilísticas ou '+
+    'operacionais. O valor da cota pode variar conforme a quantidade de dezenas selecionadas, o volume de apostas '+
+    'e a modalidade da loteria. O participante declara estar ciente de que o valor da cota representa a '+
+    'participação em uma estratégia coletiva, sem garantia de premiação.</p>'+
+    '<h2>7. Taxa Administrativa</h2>'+
+    _clausulaTaxaAdministrativa(s)+
+    '<h2>8. Distribuição das Premiações</h2>'+
+    '<p>As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada '+
+    'participante, após a dedução da taxa administrativa (quando aplicável).</p>'+
+    '<h2>9. Pagamento das Premiações</h2>'+
+    '<p>Os pagamentos serão realizados preferencialmente por PIX, utilizando chave vinculada ao CPF do '+
+    'participante.</p>'+
+    '<h2>10. Prazos e Validação das Apostas</h2>'+
+    '<p>Pagamentos realizados após o prazo limite do concurso ou com valor divergente do valor da cota poderão '+
+    'ser desconsiderados para o concurso vigente e estornados.</p>'+
+    '<h2>11. Resultado Oficial</h2>'+
+    '<p>Para fins de conferência das apostas e premiações, será considerado exclusivamente o resultado oficial '+
+    'divulgado pelas Loterias Caixa.</p>'+
+    '<h2>12. Validade das Apostas</h2>'+
+    '<p>A validade das apostas depende do registro efetivo em casas lotéricas autorizadas ou sistemas oficiais '+
+    'das Loterias Caixa.</p>'+
+    '<h2>13. Privacidade e Proteção de Dados</h2>'+
+    '<p>Os dados pessoais serão tratados conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018), '+
+    'com finalidade de identificação dos participantes, organização do bolão, pagamento de premiações e '+
+    'prestação de contas.</p>'+
+    '<h2>14. Prestação de Contas</h2>'+
+    '<p>O administrador poderá disponibilizar relatórios contendo valores arrecadados, quantidade de cotas, '+
+    'jogos realizados, resultados obtidos e premiações distribuídas.</p>'+
+    '<h2>15. Limitação de Responsabilidade</h2>'+
+    '<p>O administrador não se responsabiliza por resultados dos sorteios, falhas de sistemas bancários, '+
+    'indisponibilidade do PIX, erros operacionais de casas lotéricas ou falhas de sistemas de terceiros.</p>'+
+    '<h2>16. Caso Fortuito ou Força Maior</h2>'+
+    '<p>Eventos fora do controle do administrador caracterizam caso fortuito ou força maior, incluindo falhas '+
+    'tecnológicas ou operacionais de terceiros.</p>'+
+    '<h2>17. Restituição de Pagamento Indevido</h2>'+
+    '<p>Caso ocorra pagamento indevido, duplicado ou em valor superior ao devido, o participante deverá realizar '+
+    'a devolução imediata do valor recebido (Código Civil, art. 876).</p>'+
+    '<h2>18. Prevenção a Fraudes</h2>'+
+    '<p>O administrador poderá realizar verificações para prevenir fraudes, incluindo validação de identidade, '+
+    'verificação de pagamentos e auditoria de operações.</p>'+
+    '<h2>19. Erro Material</h2>'+
+    '<p>Caso seja identificado erro material em registros ou relatórios, o administrador poderá realizar as '+
+    'correções necessárias.</p>'+
+    '<h2>20. Divergência entre Pagamento e Cotas</h2>'+
+    '<p>Caso haja divergência entre o valor transferido e o número de cotas registradas, prevalecerá o valor '+
+    'efetivamente recebido e validado pela administração, sendo realizados ajustes conforme necessário.</p>'+
+    '<h2>21. Conduta nos Grupos</h2>'+
+    '<p>Nos grupos oficiais não são permitidos linguagem ofensiva, ataques pessoais, propaganda política ou '+
+    'divulgação comercial não autorizada.</p>'+
+    '<h2>22. Cancelamento de Participação</h2>'+
+    '<p>O administrador poderá suspender ou cancelar a participação de usuários que descumpram as regras ou '+
+    'prejudiquem o funcionamento do bolão.</p>'+
+    '<h2>23. Alteração dos Termos</h2>'+
+    '<p>Estes Termos poderão ser atualizados sempre que necessário, passando a valer para concursos futuros.</p>'+
+    '<h2>24. Auditoria e Governança</h2>'+
+    '<p>A administração poderá realizar verificações internas para garantir transparência e integridade das '+
+    'operações.</p>'+
+    '<h2>25. Prevenção à Lavagem de Dinheiro</h2>'+
+    '<p>A administração poderá recusar participações ou transações que apresentem indícios de irregularidade, '+
+    'fraude ou violação da legislação aplicável.</p>'+
+    '<h2>26. Aceitação dos Termos</h2>'+
+    '<p>O pagamento da cota via PIX e/ou o aceite destes termos no aplicativo caracterizam aceitação automática '+
+    'e integral deste documento.</p>'+
+    '<h2>27. Resolução de Conflitos</h2>'+
+    '<p>Eventuais conflitos deverão ser inicialmente resolvidos de forma administrativa e amigável entre as '+
+    'partes.</p>'+
+    '<h2>28. Foro</h2>'+
+    '<p>Para dirimir controvérsias decorrentes destes Termos, fica eleito o foro da comarca de domicílio do '+
+    'administrador, com renúncia a qualquer outro.</p>'+
+  '</body></html>';
+
   var w=window.open('','_blank');
   if(!w){ toast('Permita pop-ups para imprimir.'); return; }
   w.document.write(html); w.document.close();
@@ -18962,7 +19149,8 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     return { id:p.id, nome:p.nome, admin:p.is_admin?p.nome:(b.admin_nome||''), cotas:p.cotas,
       valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status,
       isento:!!p.isento, convite_status:p.convite_status||'pendente',
-      participante_user_id:p.participante_user_id||null };
+      participante_user_id:p.participante_user_id||null,
+      email:p.email||'', whatsapp:p.whatsapp||'', cpf:p.cpf||'' };
   });
 
   var porChave={};
@@ -19013,10 +19201,12 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
 
   var estado={
     nome:b.nome,
-    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf',
-      cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0) },
+    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf', cpf:b.admin_cpf||'',
+      cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0),
+      percentualPremio:b.admin_percentual_premio==null?10:parseFloat(b.admin_percentual_premio) },
     modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
     concurso:b.concurso||'', participantes:participantes, editId:novoId, loteria:b.loteria||currentKey,
+    ativadoEm:b.ativado_em||null,
     numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
     concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
     arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
@@ -19191,7 +19381,8 @@ var BolaoJogosRepo = {
     return {
       nome: registro.nome, loteria: registro.loteria||null,
       admin_nome: adm.nome||null, admin_telefone: adm.telefone||null,
-      admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null,
+      admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null, admin_cpf: adm.cpf||null,
+      admin_percentual_premio: adm.percentualPremio==null?10:adm.percentualPremio,
       admin_cotas: adm.cotasAdmin||1, admin_paga: !!adm.adminPaga,
       tipo_organizacao: adm.tipoOrganizacao||null, valor_fixo_organizacao: adm.valorFixoOrganizacao||0,
       modalidade: registro.modalidade||null, sorteio: registro.sorteio||null,
@@ -19269,7 +19460,12 @@ var BolaoJogosRepo = {
           var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
           var row={ bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
             is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
-            valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou' };
+            valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou',
+            // CPF é só evidência documental pro Termo de Constituição do
+            // Bolão — opcional, sem risco de "overwrite" como
+            // e-mail/whatsapp (que ficam de fora daqui de propósito, ver
+            // comentário acima), então entra na sincronização normal.
+            cpf:(p.cpf||'').trim()||null };
           // Colunas de convite/contato NUNCA entram aqui — omitir da
           // upsert preserva o valor já gravado (convite aceito etc.) em vez
           // de sobrescrever com o estado local, que nem carrega esses campos.
