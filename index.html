@@ -16009,7 +16009,7 @@ function renderFormBolao(){
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text)">🧑‍🤝‍🧑 Participantes</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button onclick="'+(bolaoFinalizado?'':"document.getElementById(\'bol-file\').click()")+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível importar novos participantes"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">📥 Importar Lista</button>'+
+        '<button onclick="'+(bolaoFinalizado?'':"document.getElementById(\'bol-file\').click()")+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível importar novos participantes"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">📥 Importar Lista</button>'+
         '<button onclick="salvarBolao()" style="border:none;border-radius:8px;padding:6px 12px;background:'+cor+';color:#fff;font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Lista</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
@@ -16018,10 +16018,17 @@ function renderFormBolao(){
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
-    // Adicionar manual (bloqueado se o bolão já foi finalizado)
+    // Adicionar manual (bloqueado se o bolão já foi finalizado). E-mail e
+    // WhatsApp são obrigatórios desde o cadastro (não mais pedidos depois,
+    // via prompt() só na hora de convidar) — evita que o organizador reuse
+    // o próprio contato como placeholder pra vários participantes, o que
+    // fazia o auto-vínculo por contato (Fase 8) linkar pessoas diferentes
+    // à mesma conta dentro do mesmo bolão.
     (bolaoFinalizado?'':(
     '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">'+
       '<input id="np-nome" style="'+inp+';flex:2;min-width:140px;width:auto" placeholder="Nome do participante"/>'+
+      '<input id="np-email" type="email" style="'+inp+';flex:2;min-width:160px;width:auto" placeholder="E-mail *"/>'+
+      '<input id="np-whatsapp" type="text" inputmode="tel" style="'+inp+';flex:1;min-width:130px;width:auto" placeholder="WhatsApp (DDD) *"/>'+
       '<input id="np-cotas" type="number" min="1" value="1" style="'+inp+';width:70px;flex:0 0 70px" placeholder="Cotas" title="Quantidade de cotas (para fins de % do prêmio)"/>'+
       '<div style="position:relative;flex:0 0 110px">'+
         '<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none">R$</span>'+
@@ -16062,8 +16069,16 @@ function _calcCustoTotalBolao(s){
 
 function _esc(t){ return String(t==null?'':t).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
+// E-mail e WhatsApp validados no cadastro (não são só "recomendados") —
+// são o contato que o auto-vínculo (Fase 8, backend) usa pra reconhecer a
+// mesma pessoa em bolões diferentes. Contato solto/reaproveitado como
+// placeholder linkava pessoas diferentes à mesma conta indevidamente.
+function _emailValido(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function _whatsappValido(v){ var d=(v||'').replace(/\D/g,''); return d.length===10||d.length===11; }
 function addParticipanteBol(){
   var nome=(document.getElementById('np-nome').value||'').trim();
+  var email=(document.getElementById('np-email').value||'').trim();
+  var whatsapp=(document.getElementById('np-whatsapp').value||'').trim();
   var cotas=parseInt(document.getElementById('np-cotas').value)||1;
   var valorCotaInput=document.getElementById('np-valor-cota');
   // valorCota = quanto este participante específico está pagando para
@@ -16073,8 +16088,12 @@ function addParticipanteBol(){
   // _calcArrecadacaoPorCotas), não mais um número digitado à parte.
   var valorCota=valorCotaInput?_parseMoeda(valorCotaInput.value):0;
   if(!nome){ toast('Informe o nome do participante.'); return; }
-  _boloesState.participantes.push({ nome:nome, admin:_boloesState.admin.nome||'', cotas:cotas, valorCota:valorCota, statusPart:'ativo', statusPag:'naopagou' });
+  if(!email||!_emailValido(email)){ toast('Informe um e-mail válido do participante.'); return; }
+  if(!whatsapp||!_whatsappValido(whatsapp)){ toast('Informe o WhatsApp com DDD (10 ou 11 dígitos).'); return; }
+  _boloesState.participantes.push({ nome:nome, email:email, whatsapp:whatsapp.replace(/\D/g,''), admin:_boloesState.admin.nome||'', cotas:cotas, valorCota:valorCota, statusPart:'ativo', statusPag:'naopagou' });
   document.getElementById('np-nome').value='';
+  document.getElementById('np-email').value='';
+  document.getElementById('np-whatsapp').value='';
   document.getElementById('np-cotas').value='1';
   if(valorCotaInput) valorCotaInput.value='';
   _ordenarParticipantes();
@@ -16735,24 +16754,35 @@ async function importarParticipantes(file){
     else if(ext==='doc'||ext==='docx'){ nomes=await _importDOCX(file); }
     else { toast('Formato não suportado.'); return; }
     if(!nomes.length){ toast('Nenhum nome encontrado no arquivo.'); return; }
-    // Importação simplificada: só o nome vem do arquivo. Cotas e
-    // Contribuição começam zerados/padrão e são preenchidos manualmente na
-    // tabela depois — evita interpretar errado outras colunas da planilha.
+    // E-mail e WhatsApp são obrigatórios pro mesmo motivo do cadastro manual
+    // (addParticipanteBol) — é o contato que o auto-vínculo do backend usa
+    // pra reconhecer a mesma pessoa em bolões diferentes. Mesmo padrão
+    // aqui: linha sem os dois válidos (colunas 2 e 3 da planilha: Nome,
+    // E-mail, WhatsApp) é REJEITADA, não entra na lista — corrija a
+    // planilha e importe de novo, igual ao bloqueio do cadastro manual.
+    var importados=0, rejeitados=[];
     nomes.forEach(function(n){
-      _boloesState.participantes.push({ nome:n.nome, admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
+      var emailOk=n.email&&_emailValido(n.email);
+      var whatsappOk=n.whatsapp&&_whatsappValido(n.whatsapp);
+      if(!emailOk||!whatsappOk){ rejeitados.push(n.nome); return; }
+      importados++;
+      _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:n.whatsapp.replace(/\D/g,''), admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
     });
     _ordenarParticipantes();
     renderParticipantesBoloes();
-    toast('✓ '+nomes.length+' participante(s) importado(s)');
+    if(!importados){ toast('Nenhum participante importado — a planilha precisa ter Nome, E-mail e WhatsApp (com DDD) nas 3 primeiras colunas.'); return; }
+    toast(rejeitados.length
+      ? '✓ '+importados+' importado(s) · '+rejeitados.length+' rejeitado(s) por falta de e-mail/WhatsApp válido: '+rejeitados.slice(0,5).join(', ')+(rejeitados.length>5?'…':'')
+      : '✓ '+importados+' participante(s) importado(s)');
   }catch(e){ console.error(e); toast('Erro ao importar: '+e.message); }
   document.getElementById('bol-file').value='';
 }
 
 function _parseLinhas(linhas){
-  // Importação simplificada: lê SOMENTE o nome do participante (1ª célula
-  // de cada linha). Qualquer outra coluna na planilha/CSV/PDF (cotas,
-  // observações, valores etc.) é ignorada — esses dados, quando
-  // necessários, são preenchidos manualmente depois na própria tabela.
+  // Lê Nome (coluna 1), E-mail (coluna 2) e WhatsApp (coluna 3) de cada
+  // linha — mesmo contato exigido no cadastro manual (addParticipanteBol).
+  // Outras colunas (cotas, valores, observações) continuam ignoradas —
+  // preenchidas manualmente depois na própria tabela.
   var out=[];
   linhas.forEach(function(cells){
     var arr=Array.isArray(cells)?cells:String(cells).split(/[;,\t]/);
@@ -16761,7 +16791,7 @@ function _parseLinhas(linhas){
     var low=nome.toLowerCase();
     // Ignora cabeçalhos e linhas de totais
     if(/^(nome|participante|valor|total|participantes|pgto|pagto|cota|situa)/.test(low)) return;
-    out.push({ nome:nome });
+    out.push({ nome:nome, email:(arr[1]||'').toString().trim(), whatsapp:(arr[2]||'').toString().trim() });
   });
   return out;
 }
