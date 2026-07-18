@@ -14664,26 +14664,29 @@ function novoBolao(){
 
 
 // ── Helpers de semana para Bolão Semanal / Mensal ──
-// Gera as semanas (dom-sáb) que cobrem o MÊS INTEIRO. Um mês civil quase
-// nunca cabe em exatamente 4 semanas dom-sáb — pode precisar de 5 ou até 6
-// (ex.: julho/2026 vai de 28/06 a 01/08, abrangendo 5 semanas). Usar um
+// Gera as semanas (seg-dom) que cobrem o MÊS INTEIRO. Um mês civil quase
+// nunca cabe em exatamente 4 semanas seg-dom — pode precisar de 5 ou até 6
+// (ex.: julho/2026 vai de 29/06 a 02/08, abrangendo 5 semanas). Usar um
 // número fixo de 4 deixava os últimos dias do mês fora de qualquer semana
 // calculada, e jogos vinculados nesses dias sumiam do Histórico de
 // Rodadas/Gastos Diários do bolão mensal (não tinham semana correspondente).
+// Semana passou de dom-sáb para seg-dom porque a CAIXA passou a sortear aos
+// domingos — o domingo agora fecha a semana, não abre.
 function _calcSemanasDoMes(mesRef){
   var partes=(mesRef||new Date().toISOString().slice(0,7)).split('-');
   var ano=parseInt(partes[0]); var mes=parseInt(partes[1])-1;
   var primeiroDia=new Date(ano,mes,1);
   var ultimoDia=new Date(ano,mes+1,0);
-  var dow=primeiroDia.getDay(); // 0=Dom
-  var primeiroDom=new Date(ano,mes,1-dow);
+  var dow=primeiroDia.getDay(); // 0=Dom 1=Seg ... 6=Sáb
+  var diasDesdeSegunda=(dow+6)%7;
+  var primeiraSegunda=new Date(ano,mes,1-diasDesdeSegunda);
   var fmt=function(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
   var semanas=[];
   var i=0;
   do{
-    var dom=new Date(primeiroDom.getFullYear(),primeiroDom.getMonth(),primeiroDom.getDate()+i*7);
-    var sab=new Date(dom.getFullYear(),dom.getMonth(),dom.getDate()+6);
-    semanas.push({inicio:fmt(dom),fim:fmt(sab),valorJogos:0});
+    var seg=new Date(primeiraSegunda.getFullYear(),primeiraSegunda.getMonth(),primeiraSegunda.getDate()+i*7);
+    var dom=new Date(seg.getFullYear(),seg.getMonth(),seg.getDate()+6);
+    semanas.push({inicio:fmt(seg),fim:fmt(dom),valorJogos:0});
     i++;
   }while(semanas[semanas.length-1] && new Date(semanas[semanas.length-1].fim.split('/').reverse().join('-'))<ultimoDia);
   return semanas;
@@ -14694,18 +14697,21 @@ function _calcSemanasDeducoes(semanas){
 function _calcSemanaAtual(){
   return _calcSemanaDeData(new Date());
 }
-// Calcula domingo/sábado da semana que CONTÉM a data informada (em vez de
+// Calcula segunda/domingo da semana que CONTÉM a data informada (em vez de
 // sempre usar "hoje"). Usado para preencher automaticamente as datas de
 // início/fim da semana de um bolão com Concurso Especial: a semana deve
 // ser a da DATA DO CONCURSO ESPECIAL, não a semana em que o administrador
 // está cadastrando o bolão (que pode ser bem antes do sorteio acontecer).
+// Semana seg-dom (não mais dom-sáb) — a CAIXA passou a sortear aos
+// domingos, então o domingo fecha a semana em vez de abri-la.
 function _calcSemanaDeData(data){
   var d=new Date(data); d.setHours(0,0,0,0);
   var dow=d.getDay(); // 0=Dom 1=Seg ... 6=Sáb
-  var dom=new Date(d); dom.setDate(d.getDate()-dow); dom.setHours(0,0,0,0);
-  var sab=new Date(dom); sab.setDate(dom.getDate()+6);
+  var diasDesdeSegunda=(dow+6)%7;
+  var seg=new Date(d); seg.setDate(d.getDate()-diasDesdeSegunda); seg.setHours(0,0,0,0);
+  var dom=new Date(seg); dom.setDate(seg.getDate()+6);
   var fmt=function(x){return x.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
-  return {inicio:fmt(dom),fim:fmt(sab),inicioISO:dom.toISOString().split('T')[0],fimISO:sab.toISOString().split('T')[0]};
+  return {inicio:fmt(seg),fim:fmt(dom),inicioISO:seg.toISOString().split('T')[0],fimISO:dom.toISOString().split('T')[0]};
 }
 // Converte uma data no formato "DD/MM/AAAA" (como vem das APIs de
 // resultado) para um objeto Date válido. Retorna null se o formato não
@@ -15660,9 +15666,9 @@ function renderFormBolao(){
         '<input id="bol-nome" style="'+inp+'" value="'+_esc(s.nome)+'" placeholder="Ex: Mega da Virada 2026" oninput="_boloesState.nome=this.value"/>'+
       '</div>'+
       '<div><label style="'+lbl+'">Data início da semana (Dom)</label>'+
-        '<input id="bol-sem-ini" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
+        '<input id="bol-sem-ini" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio||'')+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
       '<div><label style="'+lbl+'">Data fim da semana (Sáb)</label>'+
-        '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (sábado da semana atual)"/></div>'+
+        '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
     '</div>'+
 
     // Linha 2: Tipo de sorteio | Modalidade
@@ -15921,9 +15927,9 @@ function renderFormBolao(){
       // Datas da semana
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
         '<div><label style="'+lbl+'">Início da semana</label>'+
-          '<input id="bol-sem-ini" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio)+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
+          '<input id="bol-sem-ini" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio)+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
         '<div><label style="'+lbl+'">Fim da semana</label>'+
-          '<input id="bol-sem-fim" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim)+'" readonly title="Preenchido automaticamente (sábado da semana atual)"/></div>'+
+          '<input id="bol-sem-fim" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim)+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
       '</div>'+
       // Campo Arrecadação Total — agora SOMENTE LEITURA, derivado da soma
       // das Contribuições de cada participante (ver tabela abaixo).
