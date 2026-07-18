@@ -17920,9 +17920,12 @@ function imprimirTermoConstituicao(){
   var v=function(x){ return x?_esc(x):'<span style="color:#999">—</span>'; };
 
   var linhasParticipantes=ativos.map(function(p){
+    var celAssinatura=p.termosAssinaturaPng
+      ? '<td style="text-align:center;padding:2px 7px"><img src="'+_esc(p.termosAssinaturaPng)+'" style="max-height:30px;max-width:120px"/><div style="font-size:8px;color:#888">assinado em '+(p.termosAceitosEm?new Date(p.termosAceitosEm).toLocaleDateString('pt-BR'):'')+'</div></td>'
+      : '<td style="border-bottom:1px solid #333;height:36px"></td>';
     return '<tr><td>'+_esc(p.nome)+'</td><td>'+v(p.cpf)+'</td><td style="text-align:center">'+(p.cotas||1)+'</td>'+
       '<td style="text-align:center">'+pct(p.cotas||1)+'%</td><td style="text-align:right">'+_bMoney(p.valorCota||0)+'</td>'+
-      '<td style="border-bottom:1px solid #333;height:36px"></td></tr>';
+      celAssinatura+'</tr>';
   }).join('');
 
   var concursosVinc=(s.concursos||[]).map(function(cc){
@@ -19190,7 +19193,8 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
       valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status,
       isento:!!p.isento, convite_status:p.convite_status||'pendente',
       participante_user_id:p.participante_user_id||null,
-      email:p.email||'', whatsapp:p.whatsapp||'', cpf:p.cpf||'' };
+      email:p.email||'', whatsapp:p.whatsapp||'', cpf:p.cpf||'',
+      termosAssinaturaPng:p.termos_assinatura_png||null, termosAceitosEm:p.termos_aceitos_em||null };
   });
 
   var porChave={};
