@@ -15677,14 +15677,17 @@ function renderFormBolao(){
         '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
     '</div>'+
 
-    // Encerramento do bolão: quando definido, dispara aviso automático
-    // por push 10 minutos antes — mensagem editável (padrão se em branco).
+    // Prazo de pagamento (NÃO é o encerramento do bolão em si — esse é
+    // sempre o fim da semana/mês, via semanaFim/mesReferencia). Este
+    // prazo acontece ANTES da ativação, define até quando o participante
+    // pode pagar a cota; quando definido, dispara aviso automático por
+    // push 10 minutos antes — mensagem editável (padrão se em branco).
     '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:10px;align-items:end">'+
-      '<div><label style="'+lbl+'">Data de encerramento</label>'+
+      '<div><label style="'+lbl+'">Data limite p/ pagamento</label>'+
         '<input id="bol-data-encerr" type="date" style="'+inp+'" value="'+_esc(s.dataEncerramento||'')+'" onchange="_boloesState.dataEncerramento=this.value"/></div>'+
-      '<div><label style="'+lbl+'">Hora de encerramento</label>'+
+      '<div><label style="'+lbl+'">Hora limite p/ pagamento</label>'+
         '<input id="bol-hora-encerr" type="time" style="'+inp+'" value="'+_esc(s.horaEncerramento||'')+'" onchange="_boloesState.horaEncerramento=this.value"/></div>'+
-      '<button onclick="_editarAvisoEncerramento()" title="Personalize o texto do aviso automático (padrão: \'Bolão encerrando!\' se deixar em branco)" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ Aviso 10min antes</button>'+
+      '<button onclick="_editarAvisoEncerramento()" title="Personalize o texto do aviso automático (padrão: \'Prazo de pagamento encerrando!\' se deixar em branco) — funciona mesmo antes de ativar o bolão" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ Aviso 10min antes</button>'+
     '</div>'+
 
     // Linha 2: Tipo de sorteio | Modalidade
@@ -16075,7 +16078,7 @@ function renderFormBolao(){
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
         '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
         (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
-        (_boloesState.ativadoEm && _boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já ativou notificações no app (participantes que já tem conta vinculada)" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
+        (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já tem conta vinculada e ativou notificações no app — funciona mesmo antes de ativar o bolão (ex.: lembrete de prazo de pagamento)" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
         '<span title="Avisa o participante automaticamente quando o prêmio dele (por cota) passar deste valor" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 Avisar prêmio &gt; R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>por cota</span>'+
         (_boloesState.ativadoEm
           ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
