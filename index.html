@@ -17892,12 +17892,23 @@ async function _imprimirBolaoImpl(soPremiados){
 // 2 assinaturas por linha, com 10mm de espaço em branco entre elas (a
 // demarcação central pedida) e cada nome centralizado sob sua própria
 // linha de assinatura — nunca um nome só espalhado pela largura toda.
-function _htmlLinhasAssinaturas(nomes){
+// Quem já assinou digitalmente pelo app (mesma imagem da coluna
+// "Assinatura" da tabela) mostra a assinatura aqui também em vez de uma
+// linha em branco pra assinar de novo à caneta — evita pedir a mesma
+// assinatura duas vezes no mesmo documento.
+function _htmlLinhasAssinaturas(itens){
   var linhas=[];
-  for(var i=0;i<nomes.length;i+=2){
-    var par=nomes.slice(i,i+2);
+  for(var i=0;i<itens.length;i+=2){
+    var par=itens.slice(i,i+2);
     linhas.push('<div class="assinaturas-linha">'+
-      par.map(function(n){ return '<div class="assinatura"><div class="linha">'+n+'</div></div>'; }).join('')+
+      par.map(function(it){
+        return '<div class="assinatura">'+
+          (it.png
+            ? '<img src="'+_esc(it.png)+'" style="max-height:34px;max-width:60%;display:block;margin:32px auto 4px"/>'+
+              '<div class="linha" style="border-top:none;margin-top:0;padding-top:0">'+_esc(it.nome)+' <span style="color:#888;font-size:9px">(assinado digitalmente'+(it.data?' em '+it.data:'')+')</span></div>'
+            : '<div class="linha">'+_esc(it.nome)+'</div>')+
+        '</div>';
+      }).join('')+
     '</div>');
   }
   return linhas.join('');
@@ -17978,7 +17989,9 @@ function imprimirTermoConstituicao(){
     'Os participantes reconhecem que os valores pertencem ao grupo desde a realização da aposta.</p>'+
     '<h2>Data e Assinaturas</h2>'+
     '<p>'+_esc(s.nome)+', '+dataEmissao+'.</p>'+
-    _htmlLinhasAssinaturas([_esc(s.admin.nome||'Administrador')+' (Administrador)'].concat(ativos.map(function(p){ return _esc(p.nome); })))+
+    _htmlLinhasAssinaturas([{nome:(s.admin.nome||'Administrador')+' (Administrador)',png:null,data:null}].concat(ativos.map(function(p){
+      return {nome:p.nome, png:p.termosAssinaturaPng||null, data:p.termosAceitosEm?new Date(p.termosAceitosEm).toLocaleDateString('pt-BR'):null};
+    })))+
     '</body></html>';
 
   var w=window.open('','_blank');
