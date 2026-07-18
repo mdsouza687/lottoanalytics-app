@@ -14632,6 +14632,7 @@ function abrirPaginaBoloes(){
     '<div style="display:flex;gap:8px">'+
       '<button onclick="novoBolao()" style="border:none;border-radius:9px;padding:9px 16px;background:'+cor+';color:#fff;font-family:var(--font-head);font-weight:800;font-size:13px;cursor:pointer">➕ Criar Bolão</button>'+
       '<button onclick="listarBoloesSalvos()" style="border:1px solid var(--glass-border);border-radius:9px;padding:9px 16px;background:var(--glass-bg);color:var(--text);font-family:var(--font-head);font-weight:700;font-size:13px;cursor:pointer">📂 Bolões Salvos</button>'+
+      '<button onclick="abrirMensagensGerais()" title="Envia notificação push independente de estar editando um bolão — pra um bolão específico, um participante específico ou todos" style="border:1px solid var(--glass-border);border-radius:9px;padding:9px 16px;background:var(--glass-bg);color:var(--text);font-family:var(--font-head);font-weight:700;font-size:13px;cursor:pointer">📣 Mensagens</button>'+
     '</div>'+
   '</div>'+
   '<div id="boloes-conteudo"></div>';
@@ -17152,18 +17153,94 @@ function _editarAvisoEncerramento(){
 // (bolão ativado, prêmio por cota > R$500). Só chega em quem já ativou
 // notificações push no app (rpc_admin_enviar_push_bolao ignora
 // silenciosamente quem não tem inscrição salva).
-async function abrirEnviarMensagemBolao(){
+function abrirEnviarMensagemBolao(){
   var s=_boloesState;
   if(!s.editId){ toast('Salve o bolão antes de enviar mensagens.'); return; }
-  var titulo=prompt('Título da notificação:', '📣 Aviso do organizador');
-  if(!titulo) return;
-  var corpo=prompt('Mensagem:', '');
-  if(!corpo) return;
+  abrirMensagensGerais('bolao', s.editId);
+}
+
+// Área comum de mensagens (Fase 28) — não presa a nenhum bolão aberto,
+// acessível direto da tela de lista de Bolões (abrirPaginaBoloes) e
+// também reaproveitada por abrirEnviarMensagemBolao (atalho de dentro
+// de um bolão, com esse bolão já pré-selecionado). Três modos: um
+// bolão específico, um participante específico (pessoa, independente
+// de bolão) ou todos os participantes de todos os bolões do
+// organizador — cada um tem sua utilidade própria.
+async function abrirMensagensGerais(modoInicial,bolaoIdInicial){
+  var sb=_getSbClient(); if(!sb){ toast('Supabase indisponível'); return; }
+  var modalId='modal-mensagens-gerais';
+  var modalEl=document.getElementById(modalId); if(modalEl) modalEl.remove();
+  var div=document.createElement('div');
+  div.innerHTML='<div id="'+modalId+'" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
+    '<div style="background:var(--bg,#12151f);border:1px solid var(--glass-border);border-radius:16px;max-width:460px;width:100%;max-height:85vh;overflow-y:auto">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-border)">'+
+        '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">📣 Enviar Mensagem</div>'+
+        '<button onclick="document.getElementById(\''+modalId+'\').remove()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
+      '</div>'+
+      '<div style="padding:20px">'+
+        '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Enviar para</label>'+
+        '<select id="mg-modo" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px" onchange="_mgAtualizarSeletor()">'+
+          '<option value="bolao">Um bolão específico</option>'+
+          '<option value="participante">Um participante específico</option>'+
+          '<option value="todos">Todos os participantes</option>'+
+        '</select>'+
+        '<div id="mg-seletor-area" style="margin-bottom:12px"></div>'+
+        '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Título</label>'+
+        '<input id="mg-titulo" value="📣 Aviso do organizador" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px;box-sizing:border-box"/>'+
+        '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Mensagem</label>'+
+        '<textarea id="mg-corpo" rows="4" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:16px;resize:vertical;box-sizing:border-box"></textarea>'+
+        '<button onclick="_mgEnviar()" style="width:100%;border:none;border-radius:9px;padding:11px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-weight:800;font-size:13px;cursor:pointer">Enviar</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(div.firstChild);
+  document.getElementById('mg-modo').value=modoInicial||'bolao';
+  await _mgAtualizarSeletor(bolaoIdInicial);
+}
+async function _mgAtualizarSeletor(bolaoIdPreselecionado){
+  var modo=document.getElementById('mg-modo').value;
+  var area=document.getElementById('mg-seletor-area');
+  if(!area) return;
+  if(modo==='todos'){ area.innerHTML=''; return; }
+  area.innerHTML='<div style="font-size:11px;color:var(--text-muted)">Carregando…</div>';
+  var sb=_getSbClient(); if(!sb) return;
+  if(modo==='bolao'){
+    var { data:userData }=await sb.auth.getUser();
+    var uid=userData&&userData.user&&userData.user.id;
+    var { data, error }=uid?await sb.from('boloes').select('id,nome').eq('user_id',uid).is('deleted_at',null).order('nome'):{data:null,error:null};
+    if(error){ area.innerHTML='<div style="color:#e0503c;font-size:12px">Erro ao carregar bolões: '+_esc(error.message)+'</div>'; return; }
+    var opts=(data||[]).map(function(b){ return '<option value="'+b.id+'"'+(b.id===bolaoIdPreselecionado?' selected':'')+'>'+_esc(b.nome)+'</option>'; }).join('');
+    area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Bolão</label>'+
+      '<select id="mg-bolao-id" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts||'<option value="">Nenhum bolão salvo</option>')+'</select>';
+  } else if(modo==='participante'){
+    var { data:pData, error:pErr }=await sb.rpc('rpc_admin_listar_participantes_vinculados');
+    if(pErr){ area.innerHTML='<div style="color:#e0503c;font-size:12px">Erro ao carregar participantes: '+_esc(pErr.message)+'</div>'; return; }
+    var opts2=(pData||[]).map(function(p){ return '<option value="'+p.participante_user_id+'">'+_esc(p.nome)+'</option>'; }).join('');
+    area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Participante</label>'+
+      '<select id="mg-participante-id" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts2||'<option value="">Nenhum participante com conta vinculada ainda</option>')+'</select>';
+  }
+}
+async function _mgEnviar(){
+  var modo=document.getElementById('mg-modo').value;
+  var titulo=(document.getElementById('mg-titulo').value||'').trim();
+  var corpo=(document.getElementById('mg-corpo').value||'').trim();
+  if(!titulo||!corpo){ toast('Preencha título e mensagem.'); return; }
+  var params={ p_modo:modo, p_bolao_id:null, p_participante_user_id:null, p_titulo:titulo, p_corpo:corpo };
+  if(modo==='bolao'){
+    var sel=document.getElementById('mg-bolao-id');
+    if(!sel||!sel.value){ toast('Escolha um bolão.'); return; }
+    params.p_bolao_id=sel.value;
+  } else if(modo==='participante'){
+    var sel2=document.getElementById('mg-participante-id');
+    if(!sel2||!sel2.value){ toast('Escolha um participante.'); return; }
+    params.p_participante_user_id=sel2.value;
+  }
   try{
     var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível');
-    var { error }=await sb.rpc('rpc_admin_enviar_push_bolao',{ p_bolao_id:s.editId, p_titulo:titulo, p_corpo:corpo });
+    var { error }=await sb.rpc('rpc_admin_enviar_push',params);
     if(error) throw error;
     toast('✓ Mensagem enviada — chega em quem já ativou notificações no app.');
+    var modalEl=document.getElementById('modal-mensagens-gerais'); if(modalEl) modalEl.remove();
   }catch(e){ console.error(e); toast('Erro ao enviar: '+e.message); }
 }
 
