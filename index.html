@@ -14604,6 +14604,14 @@ function _maskPixTipo(el){
 
 function _setPixHint(t){ var h=document.getElementById('pix-hint'); if(h) h.textContent=t?('Tipo: '+t):''; }
 
+function _maskDocAdmin(el){
+  var tipo=_boloesState.admin.cpfTipo||'cpf';
+  var t=el.value;
+  if(tipo==='cnpj'){ var c=t.replace(/\D/g,'').slice(0,14); el.value=c.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'); }
+  else { var d=t.replace(/\D/g,'').slice(0,11); el.value=d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4'); }
+  _boloesState.admin.cpf=el.value;
+}
+
 function abrirPaginaBoloes(){
   var p = document.getElementById('boloes-panel');
   if(!p) return;
@@ -14640,7 +14648,7 @@ function abrirPaginaBoloes(){
 function novoBolao(){
   var _mesAtual=new Date().toISOString().slice(0,7);
   var _semAtual=_calcSemanaAtual();
-  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
+  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cpfTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
     semanaInicio:_semAtual.inicio, semanaFim:_semAtual.fim, arrecadacaoTotal:0, rodadas:[],
     mesReferencia:_mesAtual, semanas:_calcSemanasDoMes(_mesAtual), dataSorteio:'',
     concursos:[], jogosVinculados:[], numDezBolao:0, loteria:currentKey };
@@ -15949,7 +15957,19 @@ function renderFormBolao(){
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">'+
       '<div><label style="'+lbl+'">Nome *</label><input id="adm-nome" style="'+inp+'" value="'+_esc(s.admin.nome)+'" oninput="_boloesState.admin.nome=this.value"/></div>'+
       '<div><label style="'+lbl+'">Telefone *</label><input id="adm-tel" style="'+inp+'" value="'+_esc(s.admin.telefone)+'" placeholder="(00) 00000-0000" maxlength="16" oninput="_maskTel(this)"/></div>'+
-      '<div><label style="'+lbl+'">CPF (opcional)</label><input id="adm-cpf" style="'+inp+'" value="'+_esc(s.admin.cpf||'')+'" placeholder="000.000.000-00" title="Usado só no Termo de Constituição do Bolão — não é obrigatório" oninput="_boloesState.admin.cpf=this.value"/></div>'+
+      (function(){
+        var docObrig=(s.participantes||[]).length>3;
+        var docTipo=s.admin.cpfTipo||'cpf';
+        return '<div><label style="'+lbl+'">Documento'+(docObrig?' *':' (opcional)')+'</label>'+
+          '<div style="display:flex;gap:5px">'+
+            '<select id="adm-doc-tipo" style="'+inp+';flex:0 0 80px;width:80px" onchange="_boloesState.admin.cpfTipo=this.value;_boloesState.admin.cpf=\'\';renderFormBolao()">'+
+              '<option value="cpf"'+(docTipo==='cpf'?' selected':'')+'>CPF</option>'+
+              '<option value="cnpj"'+(docTipo==='cnpj'?' selected':'')+'>CNPJ</option>'+
+            '</select>'+
+            '<input id="adm-cpf" style="'+inp+';flex:1" value="'+_esc(s.admin.cpf||'')+'" placeholder="'+(docTipo==='cnpj'?'00.000.000/0000-00':'000.000.000-00')+'" '+
+              'title="'+(docObrig?'Obrigatório em bolões com mais de 3 participantes (Termo de Constituição)':'Usado só no Termo de Constituição do Bolão — não é obrigatório')+'" oninput="_maskDocAdmin(this)"/>'+
+          '</div></div>';
+      })()+
       '<div><label style="'+lbl+'">PIX *</label>'+
         '<div style="display:flex;gap:5px">'+
           '<select id="adm-pix-tipo" style="'+inp+';flex:0 0 96px;width:96px" onchange="_boloesState.admin.pixTipo=this.value;_boloesState.admin.pix=\'\';renderFormBolao()">'+
@@ -16940,6 +16960,7 @@ async function _salvarBolaoImpl(){
   if(!s.nome.trim()){ toast('Informe o nome do bolão.'); return; }
   if(!s.admin.nome.trim()||!s.admin.telefone.trim()||!s.admin.pix.trim()){ toast('Preencha nome, telefone e PIX do administrador.'); return; }
   if(!s.participantes.length){ toast('Adicione ao menos um participante.'); return; }
+  if(s.participantes.length>3 && !s.admin.cpf.trim()){ toast('Bolões com mais de 3 participantes exigem CPF ou CNPJ do administrador.'); return; }
   var registro={
     id: s.editId||undefined,
     _novoSchemaId: s.editId||null,
@@ -17861,6 +17882,19 @@ async function _imprimirBolaoImpl(soPremiados){
   setTimeout(function(){ w.print(); }, 500);
 }
 
+// 2 assinaturas por linha, com 10mm de espaço em branco entre elas (a
+// demarcação central pedida) e cada nome centralizado sob sua própria
+// linha de assinatura — nunca um nome só espalhado pela largura toda.
+function _htmlLinhasAssinaturas(nomes){
+  var linhas=[];
+  for(var i=0;i<nomes.length;i+=2){
+    var par=nomes.slice(i,i+2);
+    linhas.push('<div class="assinaturas-linha">'+
+      par.map(function(n){ return '<div class="assinatura"><div class="linha">'+n+'</div></div>'; }).join('')+
+    '</div>');
+  }
+  return linhas.join('');
+}
 // Fase 14: Termo de Constituição de Bolão Particular — documento de
 // governança/comprovação (baseado em orientação sobre como demonstrar à
 // Receita Federal que um prêmio pago numa conta pessoal pertence, de
@@ -17901,7 +17935,9 @@ function imprimirTermoConstituicao(){
     'th{background:#f0f0f0;text-align:left;padding:5px 7px;border-bottom:1px solid #999}'+
     'td{padding:5px 7px;border-bottom:1px solid #ddd}'+
     '.box{background:#f7f7f5;border:1px solid #e0e0dc;border-radius:5px;padding:8px 12px;margin-bottom:6px}'+
-    '.assinatura{margin-top:34px;text-align:center;width:260px;display:inline-block}'+
+    '.assinaturas-linha{display:flex;justify-content:center;margin-top:34px}'+
+    '.assinatura{flex:0 0 45%;text-align:center}'+
+    '.assinatura+.assinatura{margin-left:10mm}'+
     '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
@@ -17914,7 +17950,7 @@ function imprimirTermoConstituicao(){
     '<p>Pelo presente instrumento, os participantes abaixo identificados constituem, de comum acordo, um bolão particular '+
     'destinado à realização de apostas nas Loterias CAIXA, nos termos e condições descritos a seguir.</p>'+
     '<h2>Administrador do Bolão</h2>'+
-    '<div class="box"><b>Nome:</b> '+v(s.admin.nome)+' &nbsp;·&nbsp; <b>CPF:</b> '+v(s.admin.cpf)+'</div>'+
+    '<div class="box"><b>Nome:</b> '+v(s.admin.nome)+' &nbsp;·&nbsp; <b>'+((s.admin.cpfTipo||'cpf')==='cnpj'?'CNPJ':'CPF')+':</b> '+v(s.admin.cpf)+'</div>'+
     '<h2>Participantes</h2>'+
     '<table><thead><tr><th>Nome</th><th>CPF</th><th style="text-align:center">Cotas</th><th style="text-align:center">Percentual</th><th style="text-align:right">Valor pago</th><th>Assinatura</th></tr></thead>'+
     '<tbody>'+linhasParticipantes+'</tbody></table>'+
@@ -17932,10 +17968,7 @@ function imprimirTermoConstituicao(){
     'Os participantes reconhecem que os valores pertencem ao grupo desde a realização da aposta.</p>'+
     '<h2>Data e Assinaturas</h2>'+
     '<p>'+_esc(s.nome)+', '+dataEmissao+'.</p>'+
-    '<div style="text-align:center;margin-top:10px">'+
-      '<div class="assinatura"><div class="linha">'+_esc(s.admin.nome||'Administrador')+' (Administrador)</div></div>'+
-      ativos.map(function(p){ return '<div class="assinatura"><div class="linha">'+_esc(p.nome)+'</div></div>'; }).join('')+
-    '</div>'+
+    _htmlLinhasAssinaturas([_esc(s.admin.nome||'Administrador')+' (Administrador)'].concat(ativos.map(function(p){ return _esc(p.nome); })))+
     '</body></html>';
 
   var w=window.open('','_blank');
@@ -17991,13 +18024,13 @@ function imprimirTermosCondicoes(){
       '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>Termos e Condições</h1>'+
-    '<div class="sub">'+_esc(s.nome||'Bolão')+' · Administrador: '+v(s.admin.nome)+' (CPF '+v(s.admin.cpf)+')</div>'+
+    '<div class="sub">'+_esc(s.nome||'Bolão')+' · Administrador: '+v(s.admin.nome)+' ('+((s.admin.cpfTipo||'cpf')==='cnpj'?'CNPJ':'CPF')+' '+v(s.admin.cpf)+')</div>'+
     '<p>Este documento estabelece os Termos e Condições de participação no bolão acima identificado, definindo '+
     'direitos, deveres e responsabilidades entre o <b>ADMINISTRADOR</b> e os <b>PARTICIPANTES</b>. Ao realizar o '+
     'pagamento de qualquer cota via PIX e/ou ao aceitar estes termos no aplicativo, o participante declara que leu, '+
     'compreendeu e concorda integralmente com este documento.</p>'+
     '<h2>1. Identificação do Administrador</h2>'+
-    '<p>O bolão é administrado por pessoa física, '+v(s.admin.nome)+', CPF '+v(s.admin.cpf)+', responsável pela '+
+    '<p>O bolão é administrado por '+((s.admin.cpfTipo||'cpf')==='cnpj'?'pessoa jurídica':'pessoa física')+', '+v(s.admin.nome)+', '+((s.admin.cpfTipo||'cpf')==='cnpj'?'CNPJ':'CPF')+' '+v(s.admin.cpf)+', responsável pela '+
     'organização operacional do bolão e gestão das apostas coletivas.</p>'+
     '<h2>2. Natureza do Serviço</h2>'+
     '<p>O administrador atua exclusivamente como organizador de apostas coletivas entre participantes nas '+
@@ -19201,7 +19234,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
 
   var estado={
     nome:b.nome,
-    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf', cpf:b.admin_cpf||'',
+    admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf', cpf:b.admin_cpf||'', cpfTipo:b.admin_cpf_tipo||'cpf',
       cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0),
       percentualPremio:b.admin_percentual_premio==null?10:parseFloat(b.admin_percentual_premio) },
     modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
@@ -19381,7 +19414,7 @@ var BolaoJogosRepo = {
     return {
       nome: registro.nome, loteria: registro.loteria||null,
       admin_nome: adm.nome||null, admin_telefone: adm.telefone||null,
-      admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null, admin_cpf: adm.cpf||null,
+      admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null, admin_cpf: adm.cpf||null, admin_cpf_tipo: adm.cpfTipo||'cpf',
       admin_percentual_premio: adm.percentualPremio==null?10:adm.percentualPremio,
       admin_cotas: adm.cotasAdmin||1, admin_paga: !!adm.adminPaga,
       tipo_organizacao: adm.tipoOrganizacao||null, valor_fixo_organizacao: adm.valorFixoOrganizacao||0,
