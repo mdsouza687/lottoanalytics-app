@@ -14556,6 +14556,11 @@ var _boloesState = {
   rodadas: [],
   mesReferencia: '',
   semanas: [],
+  pushLimitePremioCota: 500,
+  dataEncerramento: '',
+  horaEncerramento: '',
+  pushEncerramentoTitulo: '',
+  pushEncerramentoCorpo: '',
   dataSorteio: ''
 };
 
@@ -15672,6 +15677,16 @@ function renderFormBolao(){
         '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
     '</div>'+
 
+    // Encerramento do bolão: quando definido, dispara aviso automático
+    // por push 10 minutos antes — mensagem editável (padrão se em branco).
+    '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:10px;align-items:end">'+
+      '<div><label style="'+lbl+'">Data de encerramento</label>'+
+        '<input id="bol-data-encerr" type="date" style="'+inp+'" value="'+_esc(s.dataEncerramento||'')+'" onchange="_boloesState.dataEncerramento=this.value"/></div>'+
+      '<div><label style="'+lbl+'">Hora de encerramento</label>'+
+        '<input id="bol-hora-encerr" type="time" style="'+inp+'" value="'+_esc(s.horaEncerramento||'')+'" onchange="_boloesState.horaEncerramento=this.value"/></div>'+
+      '<button onclick="_editarAvisoEncerramento()" title="Personalize o texto do aviso automático (padrão: \'Bolão encerrando!\' se deixar em branco)" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ Aviso 10min antes</button>'+
+    '</div>'+
+
     // Linha 2: Tipo de sorteio | Modalidade
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
       '<div><label style="'+lbl+'">Tipo de sorteio</label>'+
@@ -16060,6 +16075,8 @@ function renderFormBolao(){
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
         '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
         (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
+        (_boloesState.ativadoEm && _boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já ativou notificações no app (participantes que já tem conta vinculada)" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
+        '<span title="Avisa o participante automaticamente quando o prêmio dele (por cota) passar deste valor" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 Avisar prêmio &gt; R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>por cota</span>'+
         (_boloesState.ativadoEm
           ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
           : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — confira os participantes ativos/pagos antes" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
@@ -17113,6 +17130,40 @@ async function abrirConfirmacaoAtivarBolao(){
   }catch(e){ console.error(e); toast('Erro ao ativar: '+e.message); }
 }
 
+// Aviso automático de encerramento (Fase 26) — texto customizável; se
+// deixado em branco, a Edge Function usa um padrão genérico na hora do
+// disparo (não precisa preencher pra a data/hora de encerramento funcionar).
+function _editarAvisoEncerramento(){
+  var s=_boloesState;
+  var titulo=prompt('Título do aviso (deixe em branco pro padrão):', s.pushEncerramentoTitulo||'');
+  if(titulo===null) return;
+  var corpo=prompt('Mensagem do aviso (deixe em branco pro padrão):', s.pushEncerramentoCorpo||'');
+  if(corpo===null) return;
+  s.pushEncerramentoTitulo=titulo;
+  s.pushEncerramentoCorpo=corpo;
+  toast('✓ Texto do aviso atualizado — salve o bolão para gravar.');
+}
+
+// Mensagem avulsa (Fase 25) — campo pra avisar os participantes na hora
+// que o organizador achar necessário, além dos dois avisos automáticos
+// (bolão ativado, prêmio por cota > R$500). Só chega em quem já ativou
+// notificações push no app (rpc_admin_enviar_push_bolao ignora
+// silenciosamente quem não tem inscrição salva).
+async function abrirEnviarMensagemBolao(){
+  var s=_boloesState;
+  if(!s.editId){ toast('Salve o bolão antes de enviar mensagens.'); return; }
+  var titulo=prompt('Título da notificação:', '📣 Aviso do organizador');
+  if(!titulo) return;
+  var corpo=prompt('Mensagem:', '');
+  if(!corpo) return;
+  try{
+    var sb=_getSbClient(); if(!sb) throw new Error('Supabase indisponível');
+    var { error }=await sb.rpc('rpc_admin_enviar_push_bolao',{ p_bolao_id:s.editId, p_titulo:titulo, p_corpo:corpo });
+    if(error) throw error;
+    toast('✓ Mensagem enviada — chega em quem já ativou notificações no app.');
+  }catch(e){ console.error(e); toast('Erro ao enviar: '+e.message); }
+}
+
 /* ── Impressão ── */
 // Abre o modal de opções (Todos os jogos vs Só premiados) antes de gerar o
 // relatório — válido para qualquer tipo de bolão (Único, Semanal, Mensal,
@@ -18065,7 +18116,9 @@ function imprimirTermosCondicoes(){
     '<p>O bolão não possui vínculo institucional com a Caixa Econômica Federal. As apostas são realizadas nas '+
     'loterias oficiais operadas pela Caixa, conforme a Lei nº 13.756/2018.</p>'+
     '<h2>4. Participação</h2>'+
-    '<p>Para participar, o interessado deve realizar o pagamento via PIX dentro do prazo informado, respeitar o '+
+    '<p>Para participar, o interessado deve realizar o pagamento via PIX dentro do prazo informado'+
+    ((s.dataEncerramento&&s.horaEncerramento) ? ' — <b>encerramento em '+new Date(s.dataEncerramento+'T'+s.horaEncerramento+':00').toLocaleDateString('pt-BR')+' às '+s.horaEncerramento+'</b>' : '')+
+    ', respeitar o '+
     'valor oficial da cota e manter o comprovante da transferência. O titular da conta que realizou o PIX será '+
     'considerado o participante oficial.</p>'+
     '<h2>5. Restrição de Idade</h2>'+
@@ -19267,7 +19320,12 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
     concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
     arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
-    mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||''
+    mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||'',
+    pushLimitePremioCota:b.push_limite_premio_cota==null?500:parseFloat(b.push_limite_premio_cota),
+    dataHoraEncerramentoOriginal:b.data_hora_encerramento||null,
+    dataEncerramento:b.data_hora_encerramento?new Date(b.data_hora_encerramento).toISOString().slice(0,10):'',
+    horaEncerramento:b.data_hora_encerramento?new Date(b.data_hora_encerramento).toTimeString().slice(0,5):'',
+    pushEncerramentoTitulo:b.push_encerramento_titulo||'', pushEncerramentoCorpo:b.push_encerramento_corpo||''
   };
   estado.semanas=_calcSemanasDoMes(estado.mesReferencia);
   return {ok:true, estado:estado};
@@ -19435,7 +19493,16 @@ var BolaoJogosRepo = {
   // um bolão novo no schema novo a cada edição.
   _camposBolaoParaLinha: function(registro){
     var adm=registro.admin||{};
-    return {
+    var novaDataHoraEncerr=(registro.dataEncerramento && registro.horaEncerramento)
+      ? new Date(registro.dataEncerramento+'T'+registro.horaEncerramento+':00').toISOString() : null;
+    // Se o organizador MUDAR a data/hora de encerramento depois que o
+    // aviso automático já disparou pra ela, reabre a janela (zera o
+    // "já enviado") — senão o aviso nunca mais dispararia pro novo
+    // horário. Só reseta quando o valor realmente muda (comparado ao
+    // que foi carregado do banco), pra não reabrir a janela toda vez
+    // que o bolão é salvo por qualquer outro motivo.
+    var mudouEncerramento=novaDataHoraEncerr!==(registro.dataHoraEncerramentoOriginal||null);
+    var linha={
       nome: registro.nome, loteria: registro.loteria||null,
       admin_nome: adm.nome||null, admin_telefone: adm.telefone||null,
       admin_pix: adm.pix||null, admin_pix_tipo: adm.pixTipo||null, admin_cpf: adm.cpf||null, admin_cpf_tipo: adm.cpfTipo||'cpf',
@@ -19448,8 +19515,13 @@ var BolaoJogosRepo = {
       arrecadacao_total: registro.arrecadacaoTotal||0, mes_referencia: registro.mesReferencia||null,
       data_sorteio: registro.dataSorteio||null, semana_inicio: registro.semanaInicio||null,
       semana_fim: registro.semanaFim||null, rodadas: registro.rodadas||[],
-      num_dez: registro.numDez||0, updated_at: new Date().toISOString()
+      num_dez: registro.numDez||0, push_limite_premio_cota: registro.pushLimitePremioCota==null?500:registro.pushLimitePremioCota,
+      data_hora_encerramento: novaDataHoraEncerr,
+      push_encerramento_titulo: registro.pushEncerramentoTitulo||null, push_encerramento_corpo: registro.pushEncerramentoCorpo||null,
+      updated_at: new Date().toISOString()
     };
+    if(mudouEncerramento) linha.push_encerramento_enviado_em=null;
+    return linha;
   },
   espelharBolaoDual: async function(registro){
     if(!JogosCommon.escritaNovoSchemaAtiva()) return null;
