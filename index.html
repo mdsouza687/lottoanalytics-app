@@ -12995,7 +12995,8 @@ async function _salvarJogosManuaisImpl(){
     _manualSel=new Set();
     closeModal('modal-manuais');
   }catch(e){
-    toast('Erro ao salvar: '+e.message);
+    var _dupManual=/jogos_content_hash_unique|duplicate key/i.test(e.message||'');
+    toast(_dupManual?'Este jogo já existe (mesmas dezenas) — atualize o resultado da loteria antes de tentar de novo, o concurso vigente pode estar desatualizado.':('Erro ao salvar: '+e.message));
   }
 }
 
