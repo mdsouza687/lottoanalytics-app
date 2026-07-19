@@ -14653,8 +14653,14 @@ function abrirPaginaBoloes(){
 // crescer depois do corte final. Código morto.
 
 function novoBolao(){
-  var _mesAtual=new Date().toISOString().slice(0,7);
   var _semAtual=_calcSemanaAtual();
+  // Mesma regra do bolão semanal (domingo ≥12h já conta como a semana
+  // seguinte, ver _calcSemanaAtual) aplicada ao mensal: o mês de
+  // referência segue o mês da segunda-feira da semana EFETIVA, não o mês
+  // do instante exato "agora" — senão um bolão mensal criado no domingo à
+  // tarde/noite da última semana do mês nasceria vinculado ao mês que já
+  // está fechando, em vez do mês seguinte que a semana efetiva pertence.
+  var _mesAtual=_semAtual.inicioISO.slice(0,7);
   _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cpfTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
     semanaInicio:_semAtual.inicio, semanaFim:_semAtual.fim, arrecadacaoTotal:0, rodadas:[],
     mesReferencia:_mesAtual, semanas:_calcSemanasDoMes(_mesAtual), dataSorteio:'',
