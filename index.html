@@ -16235,7 +16235,7 @@ var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 async function convidarParticipanteBol(i){
   var p=_boloesState.participantes[i]; if(!p) return;
   if(!p.id){ toast('Salve o bolão antes de convidar este participante.'); return; }
-  if(_boloesState.ativadoEm){ toast('Bolão já ativado — não é mais possível enviar convites.'); return; }
+  if(_boloesState.ativadoEm && p.convite_status!=='aceito'){ toast('Bolão já ativado — não é mais possível enviar convites.'); return; }
   var whatsapp=p.whatsapp;
   if(!whatsapp){
     whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
@@ -16711,11 +16711,18 @@ function renderParticipantesBoloes(){
       // na 1ª linha (cota extra não é uma "pessoa" própria) e só depois do
       // participante já ter sido salvo (precisa de id pra vincular o
       // convite). aceito/pendente refletem bolao_participantes.convite_status.
+      // Instalado = já se cadastrou no app (convite_status==='aceito'). O
+      // botão continua funcional (permite reenviar convite) mesmo depois
+      // disso — só muda de cor (azul) pra sinalizar "já instalou", sem
+      // travar a ação. Só trava (cinza, disabled) quando o bolão já foi
+      // ativado E o participante ainda não instalou.
+      var _instalou=p.convite_status==='aceito';
+      var _convCor=_instalou?'#2563eb':'var(--accent,#3a9b4e)';
+      var _convBg=_instalou?'rgba(37,99,235,.12)':'rgba(58,155,78,.12)';
       var colConvite = !primeira ? '<span></span>'
         : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
-        : p.convite_status==='aceito' ? '<span title="Participante já está no app" style="font-size:16px;text-align:center;display:block">✅</span>'
-        : s.ativadoEm ? '<span title="Bolão já ativado — convite não pode mais ser enviado" style="font-size:16px;text-align:center;display:block;opacity:.4">📨</span>'
-        : '<button onclick="convidarParticipanteBol('+i+')" title="Convidar para o app do participante (abre o WhatsApp)" style="border:1px solid var(--accent,#3a9b4e);border-radius:6px;background:rgba(58,155,78,.12);color:var(--accent,#3a9b4e);cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;width:100%">📨</button>';
+        : (s.ativadoEm && !_instalou) ? '<span title="Bolão já ativado — convite não pode mais ser enviado" style="font-size:16px;text-align:center;display:block;opacity:.4">📨</span>'
+        : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?'Já instalou o app — clique para reenviar o convite':'Convidar para o app do participante (abre o WhatsApp)')+'" style="border:1px solid '+_convCor+';border-radius:6px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;width:100%">📨</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
       // colunas próprias do participante (não é mais calculado a partir de
