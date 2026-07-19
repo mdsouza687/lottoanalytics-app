@@ -17072,6 +17072,11 @@ async function _salvarBolaoImpl(){
     var okParticipantes=await BolaoJogosRepo.sincronizarParticipantesDual(novoId,registro.participantes);
     _boloesState.editId=novoId;
     _registrarAuditoria(s.editId?'editar_bolao':'criar_bolao',{bolaoId:novoId});
+    // Participantes novos recebem o id do banco dentro de
+    // sincronizarParticipantesDual, mas isso só atualiza o objeto em
+    // memória — sem re-render, a coluna de convite (que depende de p.id)
+    // continua mostrando o estado antigo na tela mesmo com o save certo.
+    renderParticipantesBoloes();
     if(okParticipantes!==false) toast('✓ Bolão salvo');
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
 }
