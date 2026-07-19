@@ -19695,10 +19695,20 @@ var BolaoJogosRepo = {
   sincronizarParticipantesDual: async function(bolaoIdNovo,participantesArr){
     if(!JogosCommon.escritaNovoSchemaAtiva()||!bolaoIdNovo) return;
     try{
-      var sb=_getSbClient(); if(!sb) return;
-      var _u=await sb.auth.getUser();
-      var _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
-      if(!_uid) return;
+      var sb=_getSbClient(); if(!sb){ toast('Erro ao sincronizar participantes: Supabase indisponível.'); return; }
+      // getSession() lê a sessão já guardada localmente (sem chamada de rede
+      // pro servidor de auth) — mais confiável que getUser() aqui: uma falha
+      // de rede transitória no getUser() fazia essa função sair calada, sem
+      // gravar nenhum participante, enquanto o resto do save (tabela boloes,
+      // que não depende dessa chamada) seguia funcionando normalmente. Isso
+      // causava perda silenciosa de participantes novos entre saves.
+      var _s=await sb.auth.getSession();
+      var _uid=_s&&_s.data&&_s.data.session&&_s.data.session.user?_s.data.session.user.id:null;
+      if(!_uid){
+        var _u=await sb.auth.getUser();
+        _uid=_u&&_u.data&&_u.data.user?_u.data.user.id:null;
+      }
+      if(!_uid){ toast('Erro ao sincronizar participantes: sessão não autenticada. Faça login novamente.'); return; }
       // CORREÇÃO (Fase 0 do app mobile de participante, 2026-07-15): este
       // método antes apagava TODOS os participantes e reinseria com uuids
       // novos a cada save do bolão — inofensivo enquanto bolao_participantes
@@ -19710,7 +19720,7 @@ var BolaoJogosRepo = {
       // id: quem já existe é atualizado (preserva id/convite/vínculo);
       // só quem realmente foi removido da lista local é deletado.
       var existentes=await sb.from('bolao_participantes').select('id').eq('bolao_id',bolaoIdNovo);
-      if(existentes.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] select',existentes.error.message); return; }
+      if(existentes.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] select',existentes.error.message); toast('Erro ao ler participantes: '+existentes.error.message); return; }
       var idsAntigos=(existentes.data||[]).map(function(r){return r.id;});
       var idsAtuais=(participantesArr||[]).filter(function(p){return p.id;}).map(function(p){return p.id;});
       if(participantesArr&&participantesArr.length){
@@ -19738,7 +19748,7 @@ var BolaoJogosRepo = {
           return row;
         });
         var ups=await sb.from('bolao_participantes').upsert(rows,{onConflict:'id'}).select('id');
-        if(ups.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert',ups.error.message); return; }
+        if(ups.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert',ups.error.message); toast('Erro ao salvar participantes: '+ups.error.message); return; }
         // Participantes novos (sem id local ainda) recebem o uuid gerado
         // pelo banco — grava de volta no array local na mesma ordem em que
         // foi enviado, pra não duplicar a linha se o usuário salvar de novo
@@ -19750,7 +19760,7 @@ var BolaoJogosRepo = {
         var del=await sb.from('bolao_participantes').delete().in('id',idsRemover);
         if(del.error) console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] delete',del.error.message);
       }
-    }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); }
+    }catch(e){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual]',e.message); toast('Erro ao sincronizar participantes: '+e.message); }
   },
   // Metadados de um concurso vinculado (status/custo/data/semana) — sem
   // isso, o schema novo tinha os JOGOS de cada concurso mas nenhuma das
