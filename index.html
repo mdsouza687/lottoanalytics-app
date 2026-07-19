@@ -14701,8 +14701,16 @@ function _calcSemanasDoMes(mesRef){
 function _calcSemanasDeducoes(semanas){
   return (semanas||[]).reduce(function(a,s){return a+(s.valorJogos||0);},0);
 }
+// Bolões criados a partir de domingo 12h já contam como pertencentes à
+// próxima semana válida (seg a dom seguinte) — domingo à tarde/noite é,
+// na prática, véspera da nova rodada, então antecipa o rollover em vez
+// de esperar a virada de dia.
 function _calcSemanaAtual(){
-  return _calcSemanaDeData(new Date());
+  var agora=new Date();
+  if(agora.getDay()===0 && agora.getHours()>=12){
+    agora=new Date(agora.getFullYear(),agora.getMonth(),agora.getDate()+1);
+  }
+  return _calcSemanaDeData(agora);
 }
 // Calcula segunda/domingo da semana que CONTÉM a data informada (em vez de
 // sempre usar "hoje"). Usado para preencher automaticamente as datas de
