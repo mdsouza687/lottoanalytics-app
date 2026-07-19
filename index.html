@@ -16082,6 +16082,8 @@ function renderFormBolao(){
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
         '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
         '<button onclick="salvarBolao()" style="border:none;border-radius:8px;padding:6px 12px;background:'+cor+';color:#fff;font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Lista</button>'+
+        '<button onclick="salvarListaParticipantesModelo()" title="Guarda nome/e-mail/WhatsApp/CPF dos participantes deste bolão para reutilizar em outros, sem precisar redigitar tudo" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📌 Salvar p/ Reuso</button>'+
+        '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar p/ Reuso\' — evita redigitar participantes recorrentes"')+' style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
@@ -16181,6 +16183,43 @@ function addParticipanteBol(){
   renderParticipantesBoloes();
 }
 
+// Modelo reutilizável de participantes (nome/e-mail/WhatsApp/CPF) — guardado
+// no localStorage do navegador, fora de qualquer bolão específico, pra não
+// precisar redigitar a mesma turma de participantes em todo bolão novo.
+// Cotas/valorCota/status ficam de fora do modelo: são específicos de cada
+// bolão, não da pessoa.
+var LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY='lottoanalytics_modelo_participantes';
+function salvarListaParticipantesModelo(){
+  var lista=(_boloesState.participantes||[]).map(function(p){
+    return { nome:p.nome, email:p.email, whatsapp:p.whatsapp, cpf:p.cpf||'' };
+  });
+  if(!lista.length){ toast('Não há participantes para salvar.'); return; }
+  try{
+    localStorage.setItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY, JSON.stringify(lista));
+    toast('✓ '+lista.length+' participante(s) salvos para reuso em outros bolões.');
+  }catch(e){ console.error(e); toast('Erro ao salvar lista para reuso.'); }
+}
+function carregarListaParticipantesModelo(){
+  var raw=null;
+  try{ raw=localStorage.getItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY); }catch(e){}
+  if(!raw){ toast('Nenhuma lista salva ainda — use "📌 Salvar p/ Reuso" em um bolão primeiro.'); return; }
+  var lista; try{ lista=JSON.parse(raw); }catch(e){ lista=null; }
+  if(!lista||!lista.length){ toast('Lista salva está vazia ou inválida.'); return; }
+  var existentes={};
+  (_boloesState.participantes||[]).forEach(function(p){ if(p.whatsapp) existentes[p.whatsapp]=true; });
+  var adicionados=0, jaExistiam=0;
+  lista.forEach(function(n){
+    if(n.whatsapp && existentes[n.whatsapp]){ jaExistiam++; return; }
+    _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:n.whatsapp, cpf:n.cpf||'', admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
+    if(n.whatsapp) existentes[n.whatsapp]=true;
+    adicionados++;
+  });
+  _ordenarParticipantes();
+  renderParticipantesBoloes();
+  toast(adicionados
+    ? '✓ '+adicionados+' participante(s) carregados'+(jaExistiam?' · '+jaExistiam+' já estavam na lista':'')
+    : 'Todos os participantes da lista salva já estão neste bolão.');
+}
 function removerParticipanteBol(i){ _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes(); }
 function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
 
@@ -16196,6 +16235,7 @@ var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 async function convidarParticipanteBol(i){
   var p=_boloesState.participantes[i]; if(!p) return;
   if(!p.id){ toast('Salve o bolão antes de convidar este participante.'); return; }
+  if(_boloesState.ativadoEm){ toast('Bolão já ativado — não é mais possível enviar convites.'); return; }
   var whatsapp=p.whatsapp;
   if(!whatsapp){
     whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
@@ -16674,6 +16714,7 @@ function renderParticipantesBoloes(){
       var colConvite = !primeira ? '<span></span>'
         : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
         : p.convite_status==='aceito' ? '<span title="Participante já está no app" style="font-size:16px;text-align:center;display:block">✅</span>'
+        : s.ativadoEm ? '<span title="Bolão já ativado — convite não pode mais ser enviado" style="font-size:16px;text-align:center;display:block;opacity:.4">📨</span>'
         : '<button onclick="convidarParticipanteBol('+i+')" title="Convidar para o app do participante (abre o WhatsApp)" style="border:1px solid var(--accent,#3a9b4e);border-radius:6px;background:rgba(58,155,78,.12);color:var(--accent,#3a9b4e);cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;width:100%">📨</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
