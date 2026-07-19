@@ -19728,37 +19728,57 @@ var BolaoJogosRepo = {
       if(existentes.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] select',existentes.error.message); toast('Erro ao ler participantes: '+existentes.error.message); return false; }
       var idsAntigos=(existentes.data||[]).map(function(r){return r.id;});
       var idsAtuais=(participantesArr||[]).filter(function(p){return p.id;}).map(function(p){return p.id;});
+      // is_admin: o schema antigo não tem um booleano próprio — cada
+      // participante carrega o NOME do admin em p.admin, igual em todas as
+      // linhas do bolão; é admin quem tem p.nome===p.admin. Usar p.isAdmin
+      // (que nunca existiu nos dados reais) fazia todo participante ser
+      // gravado como não-admin no schema novo, mesmo o admin de verdade —
+      // mesmo bug de "campo que não existe" já visto hoje em
+      // _vincularSalvoAoBolaoImpl (mês/time).
+      var _montarRow=function(p){
+        var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
+        return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
+          is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
+          valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou',
+          // CPF é só evidência documental pro Termo de Constituição do
+          // Bolão — opcional, sem risco de "overwrite" como e-mail/whatsapp
+          // (que ficam de fora daqui de propósito, ver comentário acima),
+          // então entra na sincronização normal.
+          cpf:(p.cpf||'').trim()||null };
+        // Colunas de convite/contato NUNCA entram aqui — omitir da upsert
+        // preserva o valor já gravado (convite aceito etc.) em vez de
+        // sobrescrever com o estado local, que nem carrega esses campos.
+      };
       if(participantesArr&&participantesArr.length){
-        var rows=participantesArr.map(function(p){
-          // is_admin: o schema antigo não tem um booleano próprio — cada
-          // participante carrega o NOME do admin em p.admin, igual em todas
-          // as linhas do bolão; é admin quem tem p.nome===p.admin. Usar
-          // p.isAdmin (que nunca existiu nos dados reais) fazia todo
-          // participante ser gravado como não-admin no schema novo, mesmo o
-          // admin de verdade — mesmo bug de "campo que não existe" já visto
-          // hoje em _vincularSalvoAoBolaoImpl (mês/time).
-          var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
-          var row={ bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
-            is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
-            valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou',
-            // CPF é só evidência documental pro Termo de Constituição do
-            // Bolão — opcional, sem risco de "overwrite" como
-            // e-mail/whatsapp (que ficam de fora daqui de propósito, ver
-            // comentário acima), então entra na sincronização normal.
-            cpf:(p.cpf||'').trim()||null };
-          // Colunas de convite/contato NUNCA entram aqui — omitir da
-          // upsert preserva o valor já gravado (convite aceito etc.) em vez
-          // de sobrescrever com o estado local, que nem carrega esses campos.
-          if(p.id) row.id=p.id;
-          return row;
-        });
-        var ups=await sb.from('bolao_participantes').upsert(rows,{onConflict:'id'}).select('id');
-        if(ups.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert',ups.error.message); toast('Erro ao salvar participantes: '+ups.error.message); return false; }
-        // Participantes novos (sem id local ainda) recebem o uuid gerado
-        // pelo banco — grava de volta no array local na mesma ordem em que
-        // foi enviado, pra não duplicar a linha se o usuário salvar de novo
-        // sem recarregar a tela.
-        (ups.data||[]).forEach(function(r,idx){ if(participantesArr[idx]&&!participantesArr[idx].id) participantesArr[idx].id=r.id; });
+        // CORREÇÃO (achada em produção, 2026-07-19): um upsert ÚNICO
+        // misturando participantes com id (já salvos) e sem id (novos)
+        // fazia o PostgREST normalizar a coluna 'id' pra aparecer em TODAS
+        // as linhas do lote — as sem id recebiam `null` explícito em vez
+        // de simplesmente omitir a coluna (que deixaria o DEFAULT
+        // gen_random_uuid() do banco assumir). `null` explícito viola a
+        // constraint NOT NULL de bolao_participantes.id, e o UPSERT INTEIRO
+        // falhava — inclusive pros participantes que já existiam, que
+        // ficavam sem atualizar. Era por isso que a lista nunca crescia
+        // além do primeiro save (o único em que TODO participante era novo
+        // — nenhuma linha tinha 'id', então a coluna nem aparecia no lote).
+        // Agora: dois lotes separados, cada um com forma consistente.
+        var existentesLocal=participantesArr.filter(function(p){return p.id;});
+        var novosLocal=participantesArr.filter(function(p){return !p.id;});
+        if(existentesLocal.length){
+          var rowsExistentes=existentesLocal.map(function(p){ var r=_montarRow(p); r.id=p.id; return r; });
+          var upd=await sb.from('bolao_participantes').upsert(rowsExistentes,{onConflict:'id'});
+          if(upd.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert existentes',upd.error.message); toast('Erro ao atualizar participantes: '+upd.error.message); return false; }
+        }
+        if(novosLocal.length){
+          var rowsNovos=novosLocal.map(_montarRow);
+          var ins=await sb.from('bolao_participantes').insert(rowsNovos).select('id');
+          if(ins.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert novos',ins.error.message); toast('Erro ao salvar novos participantes: '+ins.error.message); return false; }
+          // Participantes novos recebem o uuid gerado pelo banco — grava de
+          // volta no array local na mesma ordem em que foi enviado (insert
+          // simples preserva ordem), pra não duplicar a linha se o usuário
+          // salvar de novo sem recarregar a tela.
+          (ins.data||[]).forEach(function(r,idx){ if(novosLocal[idx]) novosLocal[idx].id=r.id; });
+        }
       }
       var idsRemover=idsAntigos.filter(function(id){ return idsAtuais.indexOf(id)<0; });
       if(idsRemover.length){
