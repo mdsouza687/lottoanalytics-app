@@ -18896,6 +18896,67 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
   }catch(e){ console.warn('[excluirJogoDoBolao]',e.message); toast('Erro ao excluir jogo.'); }
 }
 
+// ═══ Foto do bilhete original (Fase 32) ═══
+// Uma foto por RODADA (bolao_concursos, c.id) — um bilhete físico
+// normalmente reúne vários jogos impressos juntos na mesma cota, então
+// anexar por jogo individual seria granularidade demais e obrigaria
+// anexar a mesma foto repetidas vezes. Miniatura clicável quando já
+// existe; botão "📎 Anexar" quando não. O app do participante lê o mesmo
+// campo (bolao_concursos.foto_bilhete_url) via montarJogosDoBolao na
+// Edge Function — não precisa de nenhum passo de "publicar" separado.
+function _botaoBilheteHtml(c){
+  if(!c.id) return ''; // concurso ainda não salvo no banco — nada pra anexar ainda
+  var inputId='bilhete-input-'+c.id;
+  if(c.fotoBilheteUrl){
+    return '<span style="display:inline-flex;align-items:center;gap:4px">'+
+      '<img src="'+_esc(c.fotoBilheteUrl)+'" onclick="window.open(\''+_esc(c.fotoBilheteUrl)+'\',\'_blank\')" title="Ver foto do bilhete em tamanho real" style="width:26px;height:26px;border-radius:5px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border)"/>'+
+      '<label style="font-size:10px;color:var(--text-muted);cursor:pointer;text-decoration:underline">Trocar'+
+        '<input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="anexarFotoBilhete(\''+c.id+'\',this)"/>'+
+      '</label>'+
+    '</span>';
+  }
+  return '<label style="font-size:10px;color:var(--text-muted);cursor:pointer;border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;white-space:nowrap">📎 Anexar bilhete'+
+    '<input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="anexarFotoBilhete(\''+c.id+'\',this)"/>'+
+  '</label>';
+}
+function _redimensionarImagemBilhete(file, maxLado){
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width, h=img.height;
+      if(w>h && w>maxLado){ h=Math.round(h*maxLado/w); w=maxLado; }
+      else if(h>=w && h>maxLado){ w=Math.round(w*maxLado/h); h=maxLado; }
+      var canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(function(blob){ blob?resolve(blob):reject(new Error('Falha ao processar imagem')); }, 'image/jpeg', 0.85);
+    };
+    img.onerror=function(){ reject(new Error('Arquivo não é uma imagem válida')); };
+    img.src=URL.createObjectURL(file);
+  });
+}
+async function anexarFotoBilhete(concursoId, inputEl){
+  var file=inputEl.files&&inputEl.files[0];
+  if(!file) return;
+  var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
+  toast('Enviando foto do bilhete…');
+  try{
+    var blob=await _redimensionarImagemBilhete(file,1600);
+    var { data:{ user } }=await sb.auth.getUser();
+    if(!user){ toast('Sessão expirada — faça login novamente.'); return; }
+    var caminho=user.id+'/'+concursoId+'.jpg';
+    var up=await sb.storage.from('bilhetes').upload(caminho,blob,{upsert:true,contentType:'image/jpeg'});
+    if(up.error) throw up.error;
+    var pub=sb.storage.from('bilhetes').getPublicUrl(caminho);
+    var url=pub.data.publicUrl+'?v='+Date.now();
+    var { error }=await sb.from('bolao_concursos').update({foto_bilhete_url:url}).eq('id',concursoId);
+    if(error) throw error;
+    var c=(_boloesState.concursos||[]).find(function(x){return x.id===concursoId;});
+    if(c) c.fotoBilheteUrl=url;
+    toast('✓ Foto do bilhete anexada.');
+    verJogosVinculados();
+  }catch(e){ toast('Erro ao anexar foto: '+e.message); }
+}
 async function verJogosVinculados(){
   var s=_boloesState;
   // Corte final (Item 3, 2026-07-12): a limpeza de concursos vazios que
@@ -19052,6 +19113,7 @@ async function verJogosVinculados(){
             '<option value="Conferido"'+(c.status==='Conferido'?' selected':'')+'>Conferido</option>'+
             '<option value="Finalizado"'+(c.status==='Finalizado'?' selected':'')+'>Finalizado</option>'+
           '</select>'+
+          _botaoBilheteHtml(c),
           '<button onclick="excluirRodadaDoBolao('+ci+')" title="Excluir TODOS os jogos desta rodada de uma vez (devolve o valor total ao saldo)" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑 Excluir toda a rodada</button>'+
         '</div>'+
       '</div>'+
@@ -19469,9 +19531,10 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     var chave=c.concurso_ref+'|'+c.loteria;
     var chaveT=c.teimosinha_origem!=null?(c.teimosinha_origem+'|'+c.loteria):null;
     var todos=(chaveT&&gruposTeim[chaveT]&&gruposTeim[chaveT].length>1)?gruposTeim[chaveT].slice().sort(function(a,b){return a-b;}):null;
-    return { num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
+    return { id:c.id, num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
       status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
-      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos };
+      vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos,
+      fotoBilheteUrl:c.foto_bilhete_url||null };
   });
 
   var estado={
