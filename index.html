@@ -16117,6 +16117,7 @@ function renderFormBolao(){
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
         (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
+        (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="Comprovantes de PIX enviados pelos participantes — disponível principalmente antes de ativar o bolão" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 Comprovantes</button>' : '')+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
         '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
         (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
@@ -19008,6 +19009,52 @@ async function verBilhetesBolao(){
       '</div>'+
     '</div>';
   var old=document.getElementById('modal-bilhetes-bolao');
+  if(old) old.remove();
+  var div=document.createElement('div'); div.innerHTML=modalHtml;
+  document.body.appendChild(div.firstChild);
+}
+// ═══ Comprovantes de PIX enviados pelos participantes (Fase 34) ═══
+// Só o participante consegue ANEXAR (app mobile, RLS trava pra antes de
+// ativado_em) — aqui é só leitura, marcada com o nome de quem enviou
+// (join em memória com _boloesState.participantes, já carregado). Fica
+// disponível pro organizador o tempo todo (não só pré-ativação) — útil
+// como registro histórico de quem pagou o quê.
+async function verComprovantesPix(){
+  var bolaoId=_boloesState.editId;
+  if(!bolaoId){ toast('Salve o bolão antes de consultar comprovantes.'); return; }
+  var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
+  var { data, error }=await sb.from('bolao_comprovantes_pix').select('id,bolao_participante_id,foto_url,created_at').eq('bolao_id',bolaoId).order('created_at',{ascending:false});
+  if(error){ toast('Erro ao carregar comprovantes: '+error.message); return; }
+  var lista=data||[];
+  var participantesPorId={};
+  (_boloesState.participantes||[]).forEach(function(p){ participantesPorId[p.id]=p; });
+  var cor=MULTI_LOTERIA_COR;
+  var itensHtml=lista.length
+    ? lista.map(function(c){
+        var p=participantesPorId[c.bolao_participante_id];
+        var nome=p?p.nome:'(participante removido)';
+        var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border)">'+
+          '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"/>'+
+          '<div><div style="font-weight:700;font-size:12px;color:var(--text)">'+_esc(nome)+'</div>'+
+          '<div style="font-size:10px;color:var(--text-muted)">'+quando+'</div></div>'+
+        '</div>';
+      }).join('')
+    : '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">Nenhum comprovante enviado ainda.</div>';
+  var modalHtml=
+    '<div id="modal-comprovantes-pix" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
+      '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:560px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-border);background:'+cor+'14">'+
+          '<div>'+
+            '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">🧾 Comprovantes PIX</div>'+
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+(_boloesState.nome||'(sem nome)')+' · '+lista.length+' comprovante'+(lista.length!==1?'s':'')+'</div>'+
+          '</div>'+
+          '<button onclick="document.getElementById(\'modal-comprovantes-pix\').remove()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
+        '</div>'+
+        '<div style="padding:16px 20px;overflow-y:auto;flex:1">'+itensHtml+'</div>'+
+      '</div>'+
+    '</div>';
+  var old=document.getElementById('modal-comprovantes-pix');
   if(old) old.remove();
   var div=document.createElement('div'); div.innerHTML=modalHtml;
   document.body.appendChild(div.firstChild);
