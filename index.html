@@ -16116,6 +16116,7 @@ function renderFormBolao(){
         '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar p/ Reuso\' — evita redigitar participantes recorrentes"')+' style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
+        (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
         '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
         (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
@@ -18913,29 +18914,14 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
   }catch(e){ console.warn('[excluirJogoDoBolao]',e.message); toast('Erro ao excluir jogo.'); }
 }
 
-// ═══ Foto do bilhete original (Fase 32) ═══
-// Uma foto por RODADA (bolao_concursos, c.id) — um bilhete físico
-// normalmente reúne vários jogos impressos juntos na mesma cota, então
-// anexar por jogo individual seria granularidade demais e obrigaria
-// anexar a mesma foto repetidas vezes. Miniatura clicável quando já
-// existe; botão "📎 Anexar" quando não. O app do participante lê o mesmo
-// campo (bolao_concursos.foto_bilhete_url) via montarJogosDoBolao na
-// Edge Function — não precisa de nenhum passo de "publicar" separado.
-function _botaoBilheteHtml(c){
-  if(!c.id) return ''; // concurso ainda não salvo no banco — nada pra anexar ainda
-  var inputId='bilhete-input-'+c.id;
-  if(c.fotoBilheteUrl){
-    return '<span style="display:inline-flex;align-items:center;gap:4px">'+
-      '<img src="'+_esc(c.fotoBilheteUrl)+'" onclick="window.open(\''+_esc(c.fotoBilheteUrl)+'\',\'_blank\')" title="Ver foto do bilhete em tamanho real" style="width:26px;height:26px;border-radius:5px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border)"/>'+
-      '<label style="font-size:10px;color:var(--text-muted);cursor:pointer;text-decoration:underline">Trocar'+
-        '<input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="anexarFotoBilhete(\''+c.id+'\',this)"/>'+
-      '</label>'+
-    '</span>';
-  }
-  return '<label style="font-size:10px;color:var(--text-muted);cursor:pointer;border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;white-space:nowrap">📎 Anexar bilhete'+
-    '<input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="anexarFotoBilhete(\''+c.id+'\',this)"/>'+
-  '</label>';
-}
+// ═══ Galeria de bilhetes do bolão (Fase 33) ═══
+// Substitui a tentativa da Fase 32 de anexar por RODADA (bolao_concursos)
+// — não funcionava antes de existir jogo vinculado, o que na prática
+// deixava o botão inútil logo após criar o bolão, que é justamente
+// quando a foto do bilhete recém-comprado é tirada. Agora é uma galeria
+// própria (tabela bolao_bilhetes), independente de jogo/concurso —
+// funciona do início ao fim do período do bolão, só precisa do bolão já
+// ter sido salvo (editId).
 function _redimensionarImagemBilhete(file, maxLado){
   return new Promise(function(resolve,reject){
     var img=new Image();
@@ -18952,27 +18938,79 @@ function _redimensionarImagemBilhete(file, maxLado){
     img.src=URL.createObjectURL(file);
   });
 }
-async function anexarFotoBilhete(concursoId, inputEl){
+async function _adicionarBilheteBolao(inputEl){
   var file=inputEl.files&&inputEl.files[0];
   if(!file) return;
+  var bolaoId=_boloesState.editId;
+  if(!bolaoId){ toast('Salve o bolão antes de anexar fotos.'); return; }
   var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
   toast('Enviando foto do bilhete…');
   try{
     var blob=await _redimensionarImagemBilhete(file,1600);
     var { data:{ user } }=await sb.auth.getUser();
     if(!user){ toast('Sessão expirada — faça login novamente.'); return; }
-    var caminho=user.id+'/'+concursoId+'.jpg';
-    var up=await sb.storage.from('bilhetes').upload(caminho,blob,{upsert:true,contentType:'image/jpeg'});
+    var nomeArq=bolaoId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
+    var caminho=user.id+'/'+nomeArq;
+    var up=await sb.storage.from('bilhetes').upload(caminho,blob,{contentType:'image/jpeg'});
     if(up.error) throw up.error;
     var pub=sb.storage.from('bilhetes').getPublicUrl(caminho);
     var url=pub.data.publicUrl+'?v='+Date.now();
-    var { error }=await sb.from('bolao_concursos').update({foto_bilhete_url:url}).eq('id',concursoId);
+    var { error }=await sb.from('bolao_bilhetes').insert({bolao_id:bolaoId,user_id:user.id,foto_url:url});
     if(error) throw error;
-    var c=(_boloesState.concursos||[]).find(function(x){return x.id===concursoId;});
-    if(c) c.fotoBilheteUrl=url;
     toast('✓ Foto do bilhete anexada.');
-    verJogosVinculados();
+    verBilhetesBolao();
   }catch(e){ toast('Erro ao anexar foto: '+e.message); }
+}
+async function _excluirBilheteBolao(bilheteId){
+  if(!confirm('Excluir esta foto do bilhete?')) return;
+  var sb=_getSbClient(); if(!sb) return;
+  try{
+    var { error }=await sb.from('bolao_bilhetes').delete().eq('id',bilheteId);
+    if(error) throw error;
+    toast('Foto removida.');
+    verBilhetesBolao();
+  }catch(e){ toast('Erro ao excluir: '+e.message); }
+}
+async function verBilhetesBolao(){
+  var bolaoId=_boloesState.editId;
+  if(!bolaoId){ toast('Salve o bolão antes de anexar fotos.'); return; }
+  var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
+  var { data, error }=await sb.from('bolao_bilhetes').select('id,foto_url,created_at').eq('bolao_id',bolaoId).order('created_at',{ascending:false});
+  if(error){ toast('Erro ao carregar bilhetes: '+error.message); return; }
+  var lista=data||[];
+  var cor=MULTI_LOTERIA_COR;
+  var gradeHtml=lista.length
+    ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">'+
+        lista.map(function(b){
+          return '<div style="position:relative">'+
+            '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"/>'+
+            '<button onclick="_excluirBilheteBolao(\''+b.id+'\')" title="Excluir" style="position:absolute;top:4px;right:4px;border:none;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button>'+
+          '</div>';
+        }).join('')+
+      '</div>'
+    : '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">Nenhuma foto anexada ainda.</div>';
+  var modalHtml=
+    '<div id="modal-bilhetes-bolao" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
+      '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:560px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-border);background:'+cor+'14">'+
+          '<div>'+
+            '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">📎 Bilhetes do Bolão</div>'+
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+(_boloesState.nome||'(sem nome)')+' · '+lista.length+' foto'+(lista.length!==1?'s':'')+'</div>'+
+          '</div>'+
+          '<button onclick="document.getElementById(\'modal-bilhetes-bolao\').remove()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
+        '</div>'+
+        '<div style="padding:16px 20px;overflow-y:auto;flex:1">'+
+          '<label style="display:block;text-align:center;border:1px dashed '+cor+'88;border-radius:10px;padding:14px;margin-bottom:14px;cursor:pointer;color:'+cor+';font-weight:700;font-size:12px">➕ Adicionar foto'+
+            '<input type="file" accept="image/*" style="display:none" onchange="_adicionarBilheteBolao(this)"/>'+
+          '</label>'+
+          gradeHtml+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  var old=document.getElementById('modal-bilhetes-bolao');
+  if(old) old.remove();
+  var div=document.createElement('div'); div.innerHTML=modalHtml;
+  document.body.appendChild(div.firstChild);
 }
 async function verJogosVinculados(){
   var s=_boloesState;
@@ -19130,7 +19168,6 @@ async function verJogosVinculados(){
             '<option value="Conferido"'+(c.status==='Conferido'?' selected':'')+'>Conferido</option>'+
             '<option value="Finalizado"'+(c.status==='Finalizado'?' selected':'')+'>Finalizado</option>'+
           '</select>'+
-          _botaoBilheteHtml(c),
           '<button onclick="excluirRodadaDoBolao('+ci+')" title="Excluir TODOS os jogos desta rodada de uma vez (devolve o valor total ao saldo)" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑 Excluir toda a rodada</button>'+
         '</div>'+
       '</div>'+
