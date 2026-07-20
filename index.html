@@ -15404,6 +15404,21 @@ function _atualizarArrecadacaoAposRodada(custo){
   renderFormBolao();
 }
 
+// Achado ao vivo em produção (2026-07-20): pelo menos um bolão foi salvo
+// com semana_inicio/semana_fim em branco (causa exata não identificada —
+// os campos são preenchidos automaticamente em novoBolao() e nunca
+// ficam editáveis pelo usuário, então não há como ele ter apagado à
+// mão). Sem nenhuma forma de corrigir na tela, o campo ficava
+// permanentemente vazio pra sempre nesse bolão. Botão "🔄" ao lado dos
+// campos recalcula a partir de hoje — não salva sozinho, precisa clicar
+// em "Salvar Bolão" depois, igual a qualquer outra edição do formulário.
+function _recalcularSemanaBolao(){
+  var sem=_calcSemanaAtual();
+  _boloesState.semanaInicio=sem.inicio;
+  _boloesState.semanaFim=sem.fim;
+  toast('Semana recalculada — clique em "Salvar Bolão" para confirmar.');
+  renderFormBolao();
+}
 function encerrarSemana(){
   if(!confirm('Encerrar a semana atual? Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
   var alterados=0;
@@ -15689,7 +15704,7 @@ function renderFormBolao(){
     '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text);margin-bottom:12px">Dados do Bolão</div>'+
 
     // Linha 1: Nome | Data início | Data fim + botão
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;margin-bottom:10px;align-items:end">'+
       '<div><label style="'+lbl+'">Nome do Bolão</label>'+
         '<input id="bol-nome" style="'+inp+'" value="'+_esc(s.nome)+'" placeholder="Ex: Mega da Virada 2026" oninput="_boloesState.nome=this.value"/>'+
       '</div>'+
@@ -15697,6 +15712,7 @@ function renderFormBolao(){
         '<input id="bol-sem-ini" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio||'')+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
       '<div><label style="'+lbl+'">Data fim da semana (Dom)</label>'+
         '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
+      '<button onclick="_recalcularSemanaBolao()" title="Recalcular data de início/fim da semana atual — use se os campos ficaram em branco" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
     '</div>'+
 
     // Prazo de pagamento (NÃO é o encerramento do bolão em si — esse é
@@ -15966,11 +15982,12 @@ function renderFormBolao(){
         '<button onclick="encerrarSemana()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">Encerrar Semana</button>'+
       '</div>'+
       // Datas da semana
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px;align-items:end">'+
         '<div><label style="'+lbl+'">Início da semana</label>'+
-          '<input id="bol-sem-ini" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio)+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
+          '<input style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio)+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
         '<div><label style="'+lbl+'">Fim da semana</label>'+
-          '<input id="bol-sem-fim" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim)+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
+          '<input style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim)+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
+        '<button onclick="_recalcularSemanaBolao()" title="Recalcular data de início/fim da semana atual — use se os campos ficaram em branco" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
       '</div>'+
       // Campo Arrecadação Total — agora SOMENTE LEITURA, derivado da soma
       // das Contribuições de cada participante (ver tabela abaixo).
