@@ -5027,7 +5027,14 @@ const LA_ORDER=['megasena','lotofacil','quina','lotomania','duplasena','diasorte
 // Mega-Sena, Lotofácil, Quina, Dia de Sorte, Timemania; Sexta = Super Sete,
 // Dupla Sena, Lotofácil, Quina, Lotomania; Sábado = Mega-Sena, Lotofácil,
 // Quina, Dia de Sorte, Timemania, +Milionária.
-const LA_DIAS_NUMS={megasena:[2,4,6],lotofacil:[1,2,3,4,5,6],quina:[1,2,3,4,5,6],lotomania:[1,3,5],duplasena:[1,3,5],diasorte:[1,2,3,4,5,6],supersete:[1,3,5],timemania:[2,4,6],maismilionaria:[3,6]};
+// A partir de 19/07/2026 a Caixa moveu os sorteios de sábado(6) para
+// domingo(0) — Mega-Sena, Lotofácil, Quina, Timemania, Dia de Sorte e
+// +Milionária (mesma mudança já refletida no texto informativo LA_DIAS
+// acima). Esse array numérico é quem de fato calcula as datas da
+// Teimosinha (calcDatasTeimosinha) — ficar com o 6 antigo gerava
+// concursos futuros com data de sábado, um dia que a Caixa não sorteia
+// mais para essas loterias.
+const LA_DIAS_NUMS={megasena:[2,4,0],lotofacil:[1,2,3,4,5,0],quina:[1,2,3,4,5,0],lotomania:[1,3,5],duplasena:[1,3,5],diasorte:[1,2,3,4,5,0],supersete:[1,3,5],timemania:[2,4,0],maismilionaria:[3,0]};
 // A partir de 19/07/2026 a Caixa moveu os sorteios de sábado para domingo,
 // 11h (Mega-Sena, Lotofácil, Quina, Timemania, Dia de Sorte, +Milionária) —
 // confirmado em fontes oficiais/imprensa (Metrópoles, InfoMoney, CNN
