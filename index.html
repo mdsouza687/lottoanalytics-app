@@ -2992,6 +2992,20 @@ async function renderPainelAdmin(msg,msgTipo){
   const sb=_getSbClient();
   const body=document.getElementById('body-admin');
   const {data:perfis,error}=await sb.from('perfis').select('id,nome_completo,email,permanente,is_admin,trial_inicio,created_at').order('created_at',{ascending:false});
+  // Fase 34: fila de "esqueci minha senha" — workaround pro SMTP do
+  // Supabase Auth estar bloqueado (sem domínio próprio ainda). O
+  // participante/organizador deixa e-mail+WhatsApp em
+  // reset_senha_solicitacoes; aqui o admin gera uma senha nova (Edge
+  // Function admin-resetar-senha-participante, usa a Admin API do Auth) e
+  // repassa manualmente por WhatsApp — faz o papel do e-mail de
+  // confirmação até dar pra configurar SMTP de verdade.
+  const {data:solicitacoes}=await sb.from('reset_senha_solicitacoes').select('id,email,whatsapp,criado_em').is('atendido_em',null).order('criado_em',{ascending:true});
+  const linhasSolic=(solicitacoes||[]).map(s=>`<tr style="border-bottom:1px solid var(--glass-border)">
+      <td style="padding:8px 10px;font-size:12px">${_esc(s.email)}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--text-muted)">${_esc(s.whatsapp||'—')}</td>
+      <td style="padding:8px 10px;font-size:11px;color:var(--text-muted)">${new Date(s.criado_em).toLocaleString('pt-BR')}</td>
+      <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}')">Gerar senha nova</button></td>
+    </tr>`).join('');
   const linhas=(perfis||[]).map(p=>{
     const trialFim=new Date(new Date(p.trial_inicio).getTime()+AG_TRIAL_DIAS*24*60*60*1000);
     const trialAtivo=Date.now()<=trialFim.getTime();
@@ -3018,6 +3032,16 @@ async function renderPainelAdmin(msg,msgTipo){
         <span id="adm-max-jogos-msg" style="font-size:11px;color:#4ade80"></span>
       </div>
     </div>
+    <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px">🔑 Solicitações de Nova Senha (${(solicitacoes||[]).length})</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">SMTP bloqueado — o e-mail de redefinição não é entregue. Gere uma senha nova aqui e repasse por WhatsApp.</div>
+      ${(solicitacoes||[]).length ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
+          <th style="padding:8px 10px;font-size:11px">E-mail</th><th style="padding:8px 10px;font-size:11px">WhatsApp</th><th style="padding:8px 10px;font-size:11px">Pedido em</th><th></th>
+        </tr></thead>
+        <tbody>${linhasSolic}</tbody>
+      </table></div>` : '<div style="font-size:12px;color:var(--text-muted)">Nenhuma solicitação pendente.</div>'}
+    </div>
     <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ Criar usuário de teste (já confirmado, sem precisar clicar em link de e-mail)</div>
       ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
@@ -3042,6 +3066,26 @@ async function renderPainelAdmin(msg,msgTipo){
   `;
 }
 
+// Gera uma senha nova via Edge Function admin-resetar-senha-participante
+// (Admin API do Supabase Auth, service role) e mostra pra copiar/repassar
+// por WhatsApp — não sai daqui, não é enviada automaticamente por nada
+// (o SMTP está bloqueado, é exatamente esse o motivo desta tela existir).
+async function adminResetarSenha(solicitacaoId,email){
+  const sb=_getSbClient();
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ await renderPainelAdmin('Sessão expirada — faça login novamente.','err'); return; }
+    const r=await fetch(`${SUPABASE_CONFIG.url}/functions/v1/admin-resetar-senha-participante`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':SUPABASE_CONFIG.key},
+      body:JSON.stringify({solicitacao_id:solicitacaoId,email})
+    });
+    const out=await r.json();
+    if(!r.ok){ await renderPainelAdmin(out.error||'Falha ao gerar senha nova.','err'); return; }
+    prompt(`Senha nova para ${email} — copie e envie por WhatsApp:`, out.novaSenha);
+    await renderPainelAdmin(`✓ Senha nova gerada para ${email}.`,'ok');
+  }catch(e){ await renderPainelAdmin('Erro de conexão: '+e.message,'err'); }
+}
 async function adminTogglePermanente(id,valor){
   const sb=_getSbClient();
   const {error}=await sb.from('perfis').update({permanente:valor}).eq('id',id);
