@@ -3083,7 +3083,10 @@ async function adminResetarSenha(solicitacaoId,email,whatsapp){
       body:JSON.stringify({solicitacao_id:solicitacaoId,email})
     });
     const out=await r.json();
-    if(!r.ok){ await renderPainelAdmin(out.error||'Falha ao gerar link de troca.','err'); return; }
+    if(!r.ok){
+      var msgErro=(out.error||'Falha ao gerar link de troca.')+' — debug: '+JSON.stringify(out);
+      await renderPainelAdmin(msgErro,'err'); return;
+    }
     const link=`${PARTICIPANTE_APP_URL}/?trocarSenha=${out.token}`;
     const texto=`Olá! Aqui está o link para você definir uma nova senha no LottoAnalytics (válido por 1h, uso único):\n${link}`;
     if(whatsapp){
