@@ -3004,7 +3004,7 @@ async function renderPainelAdmin(msg,msgTipo){
       <td style="padding:8px 10px;font-size:12px">${_esc(s.email)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--text-muted)">${_esc(s.whatsapp||'—')}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--text-muted)">${new Date(s.criado_em).toLocaleString('pt-BR')}</td>
-      <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}')">Gerar link de troca</button></td>
+      <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}','${(s.whatsapp||'').replace(/\D/g,'')}')">Gerar link de troca</button></td>
     </tr>`).join('');
   const linhas=(perfis||[]).map(p=>{
     const trialFim=new Date(new Date(p.trial_inicio).getTime()+AG_TRIAL_DIAS*24*60*60*1000);
@@ -3068,14 +3068,15 @@ async function renderPainelAdmin(msg,msgTipo){
 
 // Gera um TOKEN de uso único via Edge Function admin-resetar-senha-
 // participante (não uma senha — o admin nunca deve conhecer a senha de
-// ninguém). Monta o link pro app do participante e mostra pra copiar e
-// enviar por WhatsApp; quem escolhe e digita a senha nova é a própria
+// ninguém). Monta o link pro app do participante e já abre o WhatsApp
+// (wa.me) com a mensagem pronta pro número da solicitação — só falta
+// clicar em enviar. Quem escolhe e digita a senha nova é a própria
 // pessoa, do outro lado do link.
-async function adminResetarSenha(solicitacaoId,email){
+async function adminResetarSenha(solicitacaoId,email,whatsapp){
   const sb=_getSbClient();
   try{
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session){ await renderPainelAdmin('Sessão expirada — faça login novamente.','err'); return; }
+    const {data:{session},error:sessErr}=await sb.auth.getSession();
+    if(sessErr||!session){ await renderPainelAdmin('Sessão expirada — faça login novamente.','err'); return; }
     const r=await fetch(`${SUPABASE_CONFIG.url}/functions/v1/admin-resetar-senha-participante`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':SUPABASE_CONFIG.key},
@@ -3084,7 +3085,12 @@ async function adminResetarSenha(solicitacaoId,email){
     const out=await r.json();
     if(!r.ok){ await renderPainelAdmin(out.error||'Falha ao gerar link de troca.','err'); return; }
     const link=`${PARTICIPANTE_APP_URL}/?trocarSenha=${out.token}`;
-    prompt(`Link de troca de senha para ${email} — copie e envie por WhatsApp (válido por 1h, uso único):`, link);
+    const texto=`Olá! Aqui está o link para você definir uma nova senha no LottoAnalytics (válido por 1h, uso único):\n${link}`;
+    if(whatsapp){
+      window.open(`https://wa.me/55${whatsapp}?text=${encodeURIComponent(texto)}`,'_blank');
+    } else {
+      prompt(`WhatsApp não cadastrado nesta solicitação — copie e envie manualmente pra ${email}:`, link);
+    }
     await renderPainelAdmin(`✓ Link de troca gerado para ${email}.`,'ok');
   }catch(e){ await renderPainelAdmin('Erro de conexão: '+e.message,'err'); }
 }
