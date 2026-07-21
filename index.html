@@ -3034,7 +3034,7 @@ async function renderPainelAdmin(msg,msgTipo){
     </div>
     <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">🔑 Solicitações de Nova Senha (${(solicitacoes||[]).length})</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">SMTP bloqueado — o e-mail de redefinição não é entregue. Gere uma senha nova aqui e repasse por WhatsApp.</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">SMTP bloqueado — o e-mail de redefinição não é entregue. Gere um link de troca (válido 1h, uso único) e repasse por WhatsApp — a pessoa define a própria senha nova pelo link, você não vê nem escolhe a senha dela.</div>
       ${(solicitacoes||[]).length ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
         <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
           <th style="padding:8px 10px;font-size:11px">E-mail</th><th style="padding:8px 10px;font-size:11px">WhatsApp</th><th style="padding:8px 10px;font-size:11px">Pedido em</th><th></th>
