@@ -18997,22 +18997,27 @@ async function _adicionarBilheteBolao(inputEl){
   var bolaoId=_boloesState.editId;
   if(!bolaoId){ toast('Salve o bolão antes de anexar fotos.'); return; }
   var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
-  toast('Enviando foto do bilhete…');
+  toast('Enviando bilhete…');
   try{
-    var blob=await _redimensionarImagemBilhete(file,1600);
+    // PDF vai direto, sem passar pelo canvas (que só sabe redimensionar
+    // imagem) — mantém o arquivo original, só imagem passa por resize.
+    var ehPdf=file.type==='application/pdf';
+    var blob = ehPdf ? file : await _redimensionarImagemBilhete(file,1600);
+    var contentType = ehPdf ? 'application/pdf' : 'image/jpeg';
+    var ext = ehPdf ? 'pdf' : 'jpg';
     var { data:{ user } }=await sb.auth.getUser();
     if(!user){ toast('Sessão expirada — faça login novamente.'); return; }
-    var nomeArq=bolaoId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
+    var nomeArq=bolaoId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
     var caminho=user.id+'/'+nomeArq;
-    var up=await sb.storage.from('bilhetes').upload(caminho,blob,{contentType:'image/jpeg'});
+    var up=await sb.storage.from('bilhetes').upload(caminho,blob,{contentType:contentType});
     if(up.error) throw up.error;
     var pub=sb.storage.from('bilhetes').getPublicUrl(caminho);
     var url=pub.data.publicUrl+'?v='+Date.now();
     var { error }=await sb.from('bolao_bilhetes').insert({bolao_id:bolaoId,user_id:user.id,foto_url:url});
     if(error) throw error;
-    toast('✓ Foto do bilhete anexada.');
+    toast('✓ Bilhete anexado.');
     verBilhetesBolao();
-  }catch(e){ toast('Erro ao anexar foto: '+e.message); }
+  }catch(e){ toast('Erro ao anexar: '+e.message); }
 }
 async function _excluirBilheteBolao(bilheteId){
   if(!confirm('Excluir esta foto do bilhete?')) return;
@@ -19035,8 +19040,11 @@ async function verBilhetesBolao(){
   var gradeHtml=lista.length
     ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">'+
         lista.map(function(b){
-          return '<div style="position:relative">'+
-            '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"/>'+
+          var ehPdf=/\.pdf(\?|$)/i.test(b.foto_url);
+          var thumb=ehPdf
+            ? '<div onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="Abrir PDF" style="width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"><span style="font-size:32px">📄</span><span style="font-size:9px;color:var(--text-muted);font-weight:700">PDF</span></div>'
+            : '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"/>';
+          return '<div style="position:relative">'+thumb+
             '<button onclick="_excluirBilheteBolao(\''+b.id+'\')" title="Excluir" style="position:absolute;top:4px;right:4px;border:none;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button>'+
           '</div>';
         }).join('')+
@@ -19053,8 +19061,8 @@ async function verBilhetesBolao(){
           '<button onclick="document.getElementById(\'modal-bilhetes-bolao\').remove()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
         '</div>'+
         '<div style="padding:16px 20px;overflow-y:auto;flex:1">'+
-          '<label style="display:block;text-align:center;border:1px dashed '+cor+'88;border-radius:10px;padding:14px;margin-bottom:14px;cursor:pointer;color:'+cor+';font-weight:700;font-size:12px">➕ Adicionar foto'+
-            '<input type="file" accept="image/*" style="display:none" onchange="_adicionarBilheteBolao(this)"/>'+
+          '<label style="display:block;text-align:center;border:1px dashed '+cor+'88;border-radius:10px;padding:14px;margin-bottom:14px;cursor:pointer;color:'+cor+';font-weight:700;font-size:12px">➕ Adicionar foto ou PDF'+
+            '<input type="file" accept="image/png,image/jpeg,application/pdf" style="display:none" onchange="_adicionarBilheteBolao(this)"/>'+
           '</label>'+
           gradeHtml+
         '</div>'+
