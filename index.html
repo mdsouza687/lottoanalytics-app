@@ -2624,10 +2624,24 @@ const CONCURSOS_ESPECIAIS = {
   // atualização do prêmio estimado (que muda com frequência maior nos dias
   // que antecedem o sorteio especial).
   quina: new Set([2627,2925,3221,3517,3814,4114,4412,4706,5002,5299,5590,5881,6172,6462,6760,7051]),
-  // Lotofácil da Independência (~07/09)
-  lotofacil: new Set([801,952,1102,1255,1408,1557,1708,1861,2030,2320,2610,2900,3190,3480]),
+  // Lotofácil da Independência (~07/09). 3780 (2026, sorteio 15/09) —
+  // confirmado no site da Caixa/imprensa em 21/07/2026, vendas já abertas
+  // desde 19/07/2026. Mesmo tipo de gap que o 7051 da Quina: sem o número
+  // cadastrado, o app não reconhece o concurso como especial.
+  lotofacil: new Set([801,952,1102,1255,1408,1557,1708,1861,2030,2320,2610,2900,3190,3480,3780]),
   // Dupla Sena de Páscoa (vésperas da Páscoa)
   duplasena: new Set([1630,1771,1925,2070,2212,2355,2499,2643,2797]),
+};
+
+// Data confirmada do sorteio, só para as edições especiais FUTURAS mais
+// recentes cadastradas em CONCURSOS_ESPECIAIS acima — usada por
+// _atualizarConcursoPremio() pra preencher a semana do bolão com a data
+// real do sorteio especial (a API só informa a data do PRÓXIMO concurso
+// do dia a dia, que não é a mesma coisa quando o especial ainda está a
+// semanas/meses de distância). Atualizar aqui junto sempre que um novo
+// número for adicionado em CONCURSOS_ESPECIAIS.
+const CONCURSOS_ESPECIAIS_DATA = {
+  lotofacil: {3780:'15/09/2026'},
 };
 
 /* ════ APOSTA ESPELHO ════
@@ -16375,6 +16389,17 @@ async function _setSorteioBolao(sorteio){
   await _atualizarConcursoPremio();
   renderFormBolao();
 }
+// Concurso especial já conhecido (cadastrado em CONCURSOS_ESPECIAIS) mas
+// ainda não sorteado — usado por _atualizarConcursoPremio pra travar o
+// bolão no número certo (ex.: 3780 da Lotofácil da Independência) em vez
+// do "próximo concurso" cru da API, que é sempre o do dia a dia.
+function _proximoEspecialConhecido(key){
+  var set=CONCURSOS_ESPECIAIS[key];
+  if(!set) return null;
+  var atual=(typeof resultados!=='undefined'&&resultados[key])?parseInt(resultados[key].concurso):0;
+  var futuros=Array.from(set).filter(function(n){return n>atual;}).sort(function(a,b){return a-b;});
+  return futuros.length?futuros[0]:null;
+}
 async function _atualizarConcursoPremio(){
   var key=_sorteioParaLoteria(_boloesState.sorteio,_boloesState);
   try{
@@ -16384,9 +16409,21 @@ async function _atualizarConcursoPremio(){
       res=resultados[key];
     }
     if(res){
-      _boloesState.concurso=res.proximoConcursoNum||res.concurso||'';
-      // Data do próximo sorteio — vem da API da Caixa/americana
-      if(res.proximoConcurso) _boloesState.dataSorteio=res.proximoConcurso;
+      // Sorteio especial (ex.: Lotofácil da Independência) já catalogado
+      // mas ainda longe de acontecer: a API só sabe informar o "próximo
+      // concurso" do dia a dia (ex.: 3741), não o número do especial em
+      // si (3780) — sem isso, o bolão ficava vinculado ao concurso ERRADO
+      // se criado semanas/meses antes do sorteio especial de verdade.
+      var especialNum=(_boloesState.sorteio&&_boloesState.sorteio!=='normal')?_proximoEspecialConhecido(key):null;
+      if(especialNum){
+        _boloesState.concurso=String(especialNum);
+        var dataConhecida=(CONCURSOS_ESPECIAIS_DATA[key]||{})[especialNum];
+        if(dataConhecida) _boloesState.dataSorteio=dataConhecida;
+      }else{
+        _boloesState.concurso=res.proximoConcursoNum||res.concurso||'';
+        // Data do próximo sorteio — vem da API da Caixa/americana
+        if(res.proximoConcurso) _boloesState.dataSorteio=res.proximoConcurso;
+      }
       var est=res.estimativa&&res.estimativa!=='—'?res.estimativa:(res.acumulado&&res.acumulado!=='—'?res.acumulado:'');
       if(est){ var num=parseFloat(String(est).replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.')); if(!isNaN(num)) _boloesState.premio=num; }
       // Concurso Especial: preenche Início/Fim da semana automaticamente
@@ -18538,12 +18575,18 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     // em vez de "proximoConcursoNum" cru, para não atribuir o jogo a um
     // concurso que já foi sorteado quando o cache local está desatualizado.
     var _calcS=(typeof calcConcursoVigente==='function')?calcConcursoVigente(_resS):{concursoNum:null,concursoData:null};
-    var _novoNumS=_calcS.concursoNum||g.concurso||'?';
+    // Sorteio especial já catalogado (ex.: Lotofácil da Independência):
+    // trava no número certo do especial, não no "concurso vigente" do dia
+    // a dia — sem isso, vincular um jogo a um bolão criado semanas antes
+    // do sorteio especial gravava o concurso ERRADO.
+    var _especialFixoS=(typeof _proximoEspecialConhecido==='function' && g.sorteio && g.sorteio!=='normal')?_proximoEspecialConhecido(loteriaItem):null;
+    var _novoNumS=_especialFixoS?String(_especialFixoS):(_calcS.concursoNum||g.concurso||'?');
     // Bolão "Único" com concurso já fixado: mantém o MESMO número de
     // concurso da primeira vinculação, em vez do "concurso vigente" atual
     // (que pode já ter avançado se essa vinculação ocorrer dias depois).
     if(g.modalidade==='unico' && g.concursos.length){ _novoNumS=g.concursos[0].num; }
-    var _dataSorteioS=_calcS.concursoData&&_calcS.concursoData!=='—'?_calcS.concursoData:(_resS?(_resS.proximoConcurso||_resS.data||''):'');
+    var _dataConhecidaEspS=_especialFixoS?(CONCURSOS_ESPECIAIS_DATA[loteriaItem]||{})[_especialFixoS]:null;
+    var _dataSorteioS=_dataConhecidaEspS||(_calcS.concursoData&&_calcS.concursoData!=='—'?_calcS.concursoData:(_resS?(_resS.proximoConcurso||_resS.data||''):''));
     var _semLabelS=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
     var _custoS=(_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0;
     // uuids dos jogos avulsos originais que vão ser vinculados — capturado
@@ -20311,14 +20354,20 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // em vez de "proximoConcursoNum" cru, para não atribuir o jogo a um
     // concurso que já foi sorteado quando o cache local está desatualizado.
     var _calc=(typeof calcConcursoVigente==='function')?calcConcursoVigente(res):{concursoNum:null,concursoData:null};
-    var _novoNum=_calc.concursoNum||g.concurso||'?';
+    // Sorteio especial já catalogado (ex.: Lotofácil da Independência):
+    // trava no número certo do especial, não no "concurso vigente" do dia
+    // a dia — sem isso, vincular um jogo a um bolão criado semanas antes
+    // do sorteio especial gravava o concurso ERRADO.
+    var _especialFixo=(typeof _proximoEspecialConhecido==='function' && g.sorteio && g.sorteio!=='normal')?_proximoEspecialConhecido(loteriaKey):null;
+    var _novoNum=_especialFixo?String(_especialFixo):(_calc.concursoNum||g.concurso||'?');
     // Bolão "Único" com concurso já fixado: usa o MESMO número de concurso
     // da primeira vinculação, ignorando o "concurso vigente" calculado acima
     // — isso evita que uma segunda vinculação dias depois (quando o concurso
     // vigente já avançou) seja erroneamente atribuída a um concurso diferente
     // do que o bolão foi originalmente criado para representar.
     if(g.modalidade==='unico' && g.concursos.length){ _novoNum=g.concursos[0].num; }
-    var _dataSorteio=_calc.concursoData&&_calc.concursoData!=='—'?_calc.concursoData:(res?(res.proximoConcurso||res.data||''):'');
+    var _dataConhecidaEsp=_especialFixo?(CONCURSOS_ESPECIAIS_DATA[loteriaKey]||{})[_especialFixo]:null;
+    var _dataSorteio=_dataConhecidaEsp||(_calc.concursoData&&_calc.concursoData!=='—'?_calc.concursoData:(res?(res.proximoConcurso||res.data||''):''));
     var _semLabel=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
     var _custoG=(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):0;
     // Teimosinha: CADA concurso da sequência (jogo._teimosinhaConcursos) vira
