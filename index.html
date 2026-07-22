@@ -17335,6 +17335,20 @@ function _editarAvisoEncerramento(){
   toast('✓ Texto do aviso atualizado — salve o bolão para gravar.');
 }
 
+// Push automático (Fase 39) reaproveitando a MESMA RPC da mensagem
+// manual (rpc_admin_enviar_push, modo 'bolao') — dispara sozinho quando
+// o organizador vincula jogos novos ou anexa um bilhete a um bolão já
+// ativado, sem precisar abrir o modal de mensagem e escrever à mão toda
+// vez. "fire and forget": se falhar (ex.: bolão ainda sem nenhum
+// participante com push ativado), não trava nem avisa o organizador —
+// a ação principal (salvar jogo/bilhete) já terá tido sucesso de
+// qualquer forma.
+function _notificarBolao(bolaoId, titulo, corpo){
+  if(!bolaoId) return;
+  var sb=_getSbClient(); if(!sb) return;
+  sb.rpc('rpc_admin_enviar_push', { p_modo:'bolao', p_bolao_id:bolaoId, p_participante_user_id:null, p_titulo:titulo, p_corpo:corpo })
+    .catch(function(e){ console.warn('[push automático]', e.message); });
+}
 // Mensagem avulsa (Fase 25) — campo pra avisar os participantes na hora
 // que o organizador achar necessário, além dos dois avisos automáticos
 // (bolão ativado, prêmio por cota > R$500). Só chega em quem já ativou
@@ -18666,6 +18680,7 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     }
     _registrarAuditoria('vincular_jogo_salvo',{jogoId:itemId,bolaoId:bolaoId,detalhes:'concurso '+_novoNumS});
     toast('✓ Jogos vinculados ao bolão "'+g.nome+'" · Concurso '+_novoNumS);
+    _notificarBolao(bolaoId, '🎲 Novos jogos adicionados', jogos.length+' jogo'+(jogos.length>1?'s':'')+' novo'+(jogos.length>1?'s':'')+' da '+(_dBolaoS?_dBolaoS.nome:loteriaItem)+' (concurso '+_novoNumS+') foram adicionados ao bolão '+(g.nome||'')+'.');
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
       _boloesState.concursos=g.concursos;
@@ -19059,6 +19074,7 @@ async function _adicionarBilheteBolao(inputEl){
     var { error }=await sb.from('bolao_bilhetes').insert({bolao_id:bolaoId,user_id:user.id,foto_url:url});
     if(error) throw error;
     toast('✓ Bilhete anexado.');
+    _notificarBolao(bolaoId, '📎 Novo bilhete', 'Um novo bilhete foi adicionado ao bolão '+(_boloesState.nome||'')+'.');
     verBilhetesBolao();
   }catch(e){ toast('Erro ao anexar: '+e.message); }
 }
@@ -20424,6 +20440,7 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
       }
     }
     toast('✓ '+jogos.length+' jogos vinculados ao bolão "'+g.nome+'"');
+    _notificarBolao(bolaoId, '🎲 Novos jogos adicionados', jogos.length+' jogo'+(jogos.length>1?'s':'')+' novo'+(jogos.length>1?'s':'')+' da '+(d?d.nome:loteriaKey)+' (concurso '+_novoNum+') foram adicionados ao bolão '+(g.nome||'')+'.');
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
 
