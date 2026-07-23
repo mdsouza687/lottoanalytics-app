@@ -16333,7 +16333,12 @@ var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 async function convidarParticipanteBol(i){
   var p=_boloesState.participantes[i]; if(!p) return;
   if(!p.id){ toast('Salve o bolão antes de convidar este participante.'); return; }
-  if(_boloesState.ativadoEm && p.convite_status!=='aceito'){ toast('Bolão já ativado — não é mais possível enviar convites.'); return; }
+  // Só trava quem foi cadastrado DEPOIS da ativação (impede adicionar
+  // gente nova quando o resultado já pode estar saindo) — quem já estava
+  // no bolão desde antes de ativar continua podendo receber/reenviar
+  // convite, mesmo sem ter aceitado ainda.
+  var _cadastradoAntesAtivacaoConv = !_boloesState.ativadoEm || !p.created_at || new Date(p.created_at) <= new Date(_boloesState.ativadoEm);
+  if(_boloesState.ativadoEm && p.convite_status!=='aceito' && !_cadastradoAntesAtivacaoConv){ toast('Bolão já ativado — não é mais possível convidar participantes adicionados depois.'); return; }
   var whatsapp=p.whatsapp;
   if(!whatsapp){
     whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
@@ -16836,13 +16841,18 @@ function renderParticipantesBoloes(){
       // botão continua funcional (permite reenviar convite) mesmo depois
       // disso — só muda de cor (azul) pra sinalizar "já instalou", sem
       // travar a ação. Só trava (cinza, disabled) quando o bolão já foi
-      // ativado E o participante ainda não instalou.
+      // ativado E o participante ainda não instalou E foi cadastrado DEPOIS
+      // da ativação — travar geral impedia reenviar convite pra quem já
+      // estava no bolão (cadastrado/ativo/pago) desde antes de ativar, só
+      // não tinha aceitado o convite ainda; a intenção original era só
+      // impedir adicionar gente NOVA depois que o resultado já pode sair.
       var _instalou=p.convite_status==='aceito';
+      var _cadastradoAntesAtivacao = !s.ativadoEm || !p.created_at || new Date(p.created_at) <= new Date(s.ativadoEm);
       var _convCor=_instalou?'#2563eb':'var(--accent,#3a9b4e)';
       var _convBg=_instalou?'rgba(37,99,235,.12)':'rgba(58,155,78,.12)';
       var colConvite = !primeira ? '<span></span>'
         : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
-        : (s.ativadoEm && !_instalou) ? '<span title="Bolão já ativado — convite não pode mais ser enviado" style="font-size:16px;text-align:center;display:block;opacity:.4">📨</span>'
+        : (s.ativadoEm && !_instalou && !_cadastradoAntesAtivacao) ? '<span title="Participante adicionado depois da ativação — convite não pode mais ser enviado" style="font-size:16px;text-align:center;display:block;opacity:.4">📨</span>'
         : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?'Já instalou o app — clique para reenviar o convite':'Convidar para o app do participante (abre o WhatsApp)')+'" style="border:1px solid '+_convCor+';border-radius:6px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;width:100%">📨</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
@@ -17343,11 +17353,20 @@ function _editarAvisoEncerramento(){
 // participante com push ativado), não trava nem avisa o organizador —
 // a ação principal (salvar jogo/bilhete) já terá tido sucesso de
 // qualquer forma.
-function _notificarBolao(bolaoId, titulo, corpo){
+async function _notificarBolao(bolaoId, titulo, corpo){
   if(!bolaoId) return;
   var sb=_getSbClient(); if(!sb) return;
-  sb.rpc('rpc_admin_enviar_push', { p_modo:'bolao', p_bolao_id:bolaoId, p_participante_user_id:null, p_titulo:titulo, p_corpo:corpo })
-    .catch(function(e){ console.warn('[push automático]', e.message); });
+  try{
+    // sb.rpc(...) devolve um "thenable" do supabase-js, não uma Promise de
+    // verdade — não tem método .catch() próprio, só .then()/await. Chamar
+    // .catch() direto nele quebra com "catch is not a function" e, como
+    // isso acontecia DENTRO de _adicionarBilheteBolao/vincular (mesmo
+    // try/catch da ação principal), tornava o bilhete/jogo "não salvo" na
+    // tela mesmo already gravado no banco — daí o aviso nunca saía e o
+    // toast de erro aparecia por cima do de sucesso.
+    var { error } = await sb.rpc('rpc_admin_enviar_push', { p_modo:'bolao', p_bolao_id:bolaoId, p_participante_user_id:null, p_titulo:titulo, p_corpo:corpo });
+    if(error) console.warn('[push automático]', error.message);
+  }catch(e){ console.warn('[push automático]', e.message); }
 }
 // Mensagem avulsa (Fase 25) — campo pra avisar os participantes na hora
 // que o organizador achar necessário, além dos dois avisos automáticos
