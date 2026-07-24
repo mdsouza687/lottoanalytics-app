@@ -1337,6 +1337,82 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
   .la-home #laAurora b{animation:none}
   .la-ball,.la-chip{animation:none;opacity:1;transform:none}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ÁREA DE PARTICIPANTE — shell fixo, mesmo padrão de .la-home:
+   100vh/overflow:hidden em desktop (≥981px), com o painel de
+   conteúdo (.pt-body) fazendo overflow-y:auto próprio — listas de
+   tamanho variável (bolões, avisos, jogos) rolam ali dentro, sem
+   nunca fazer a página inteira rolar. Reaproveita os mesmos tokens
+   visuais do Desktop (--bg/--glass-*/--ac/--font-*), não importa
+   nada do CSS do app participante (lottoanalytics-participante).
+   ══════════════════════════════════════════════════════════════ */
+#participante-shell{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column;background:linear-gradient(180deg,var(--bg),var(--bg2))}
+@media (min-width:981px){ #participante-shell{height:100vh;overflow:hidden} }
+#participante-shell.active{display:flex}
+.pt-nav{display:flex;align-items:center;gap:10px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid var(--glass-border);flex-shrink:0}
+.pt-nav-tabs{display:flex;gap:6px;margin-left:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;flex-shrink:0}
+.pt-tab{font-family:var(--font-head);font-weight:700;font-size:12px;white-space:nowrap;padding:9px 14px;border-radius:999px;cursor:pointer;border:1px solid transparent;color:var(--text-muted);background:transparent;transition:var(--btn-transition);display:inline-flex;align-items:center;gap:6px}
+.pt-tab:hover{color:var(--text);background:var(--glass-bg)}
+.pt-tab.active{color:#fff;background:var(--ac);box-shadow:0 4px 16px -4px var(--ac)}
+.pt-tab .pt-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block}
+.pt-nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pt-body{flex:1;min-height:0;display:flex;justify-content:center;overflow-y:auto;scrollbar-width:thin}
+.pt-body::-webkit-scrollbar{width:6px}
+.pt-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
+.pt-main{width:100%;max-width:720px;padding:22px 24px 40px;box-sizing:border-box}
+.pt-card{border:1px solid var(--glass-border);border-radius:var(--radius-xl);background:var(--glass-bg);backdrop-filter:var(--blur);padding:18px 20px;margin-bottom:14px}
+.pt-empty{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 10px}
+.pt-spinner{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0}
+.pt-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--glass-border);font-size:13px}
+.pt-row:last-child{border-bottom:none}
+.pt-row .k{color:var(--text-muted)}
+.pt-row .v{font-weight:700;color:var(--text)}
+.pt-section-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px}
+.pt-bolao-card{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:var(--radius-lg);background:var(--bg2);border:1px solid var(--glass-border);margin-bottom:10px;cursor:pointer;transition:var(--btn-transition)}
+.pt-bolao-card:hover{transform:translateY(-2px);border-color:var(--glass-hover)}
+.pt-bolao-card.encerrado{opacity:.65}
+.pt-bolao-nome{font-weight:700;font-size:14px;color:var(--text)}
+.pt-bolao-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+.pt-badge{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:700;white-space:nowrap}
+.pt-badge.aceito{background:rgba(0,201,122,.15);color:var(--green)}
+.pt-badge.pendente{background:rgba(245,200,66,.15);color:var(--gold)}
+.pt-badge.recusado{background:rgba(255,77,109,.15);color:var(--red)}
+.pt-msg{font-size:12px;padding:10px 14px;border-radius:var(--radius-md);margin-top:10px}
+.pt-msg.err{background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.3)}
+.pt-msg.ok{background:rgba(0,201,122,.12);color:var(--green);border:1px solid rgba(0,201,122,.3)}
+.pt-msg.warn{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
+.pt-backlink{display:inline-block;margin-bottom:14px;color:var(--text-muted);text-decoration:none;font-size:13px;cursor:pointer}
+.pt-notif-card{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--glass-border);cursor:pointer}
+.pt-notif-card:last-child{border-bottom:none}
+.pt-notif-card.nao-lida{background:rgba(58,155,78,.06)}
+.pt-notif-card .ico{font-size:16px}
+.pt-notif-card .txt{flex:1;font-size:13px;color:var(--text)}
+.pt-notif-card .quando{font-size:10px;color:var(--text-muted);margin-top:2px}
+.pt-relatorio-card{border-radius:var(--radius-lg);background:var(--bg2);border:1px solid var(--glass-border);padding:16px;margin-bottom:12px}
+.pt-relatorio-card.premio{border-color:rgba(0,201,122,.4);background:rgba(0,201,122,.05)}
+.pt-relatorio-titulo{font-weight:700;font-size:13px;margin-bottom:8px;color:var(--text)}
+.pt-relatorio-titulo.premio{color:var(--green)}
+.pt-relatorio-sub{font-size:11px;color:var(--text-muted)}
+.pt-chip{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg2);color:var(--text-muted);border:1px solid var(--glass-border);vertical-align:middle}
+.pt-chip.premio{background:rgba(0,201,122,.15);color:var(--green);border-color:rgba(0,201,122,.35)}
+.pt-filtro-jogos{display:flex;gap:4px;flex-wrap:wrap}
+.pt-chip-filtro{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg2);color:var(--text-muted);border:1px solid var(--glass-border);cursor:pointer;white-space:nowrap}
+.pt-chip-filtro.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pt-premios-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pt-premios-grid .pt-card{margin-bottom:0}
+.pt-premios-grid .pt-card:first-child{grid-column:1 / -1}
+.pt-encerrados-toggle{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:10px 2px;user-select:none}
+.pt-encerrados-toggle::-webkit-details-marker{display:none}
+.pt-encerrados-toggle::before{content:'▸ ';display:inline-block}
+details[open] > .pt-encerrados-toggle::before{content:'▾ '}
+.pt-field{margin-bottom:10px}
+.pt-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.pt-field input,.pt-field select{width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box}
+.pt-btn-link{background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;padding:8px 0;display:inline-block}
+.pt-avatar{border-radius:50%;object-fit:cover;vertical-align:middle}
+@media (max-width:680px){ .pt-main{padding:16px 14px 32px} .pt-premios-grid{grid-template-columns:1fr} .pt-nav{padding:10px 14px} }
+
 /* ══ Auth Gate (login/cadastro sob demanda — mesmo padrão visual dos
    outros modais do app: usa .modal-overlay/.open, herda as cores do tema
    ativo via variáveis CSS, então se adapta automaticamente aos temas
@@ -1683,6 +1759,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
     </div>
     <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
     <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
+    <button class="btn-sm" id="btn-ver-participante" onclick="showParticipanteArea()" title="Ver sua área de participante" style="display:none"><span class="emoji-ico">🎟️</span> Ver como Participante</button>
     <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
@@ -1745,6 +1822,33 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
       </div>
     </div>
   </main>
+</div>
+
+<!-- ÁREA DE PARTICIPANTE — segunda "porta de entrada" do Desktop, mesma
+     conta/sessão Supabase, detectada automaticamente após o login (ver
+     _agAposLogin). Reaproveita as mesmas RPCs participante-scoped já
+     usadas no app mobile (lottoanalytics-participante); nenhum backend
+     novo. Shell fixo (mesmo padrão .la-home), só o painel de conteúdo
+     (.pt-body) rola quando a lista não cabe. -->
+<div id="participante-shell">
+  <div class="pt-nav">
+    <div class="dash-brand" style="cursor:pointer" onclick="ptIrPara('boloes')">
+      <span style="font-family:var(--font-head);font-weight:900;font-size:16px;color:var(--text);white-space:nowrap">LOTTO<span style="color:var(--ac)">ANALYTICS</span></span>
+    </div>
+    <span style="font-size:9px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;flex-shrink:0">Participante</span>
+    <div class="pt-nav-tabs">
+      <button class="pt-tab" data-pt-tab="boloes" onclick="ptIrPara('boloes')">🎟 Bolões</button>
+      <button class="pt-tab" data-pt-tab="notif" onclick="ptIrPara('notif')"><span id="pt-tab-notif-ico">🔔</span> Avisos</button>
+      <button class="pt-tab" data-pt-tab="relatorios" onclick="ptIrPara('relatorios')">📋 Relatórios</button>
+      <button class="pt-tab" data-pt-tab="historico" onclick="ptIrPara('historico')">📜 Histórico</button>
+    </div>
+    <div class="pt-nav-right">
+      <button class="btn-sm" id="pt-btn-perfil" onclick="ptIrPara('perfil')" title="Seu perfil"><span class="emoji-ico">👤</span> Perfil</button>
+      <button class="btn-sm" id="pt-btn-alternar" onclick="ptAlternarParaOrganizador()" title="Ver como Organizador" style="display:none"><span class="emoji-ico">🔁</span> Ver como Organizador</button>
+      <button class="btn-sm" onclick="agFazerLogout()" title="Sair da conta"><span class="emoji-ico">🚪</span> Sair</button>
+    </div>
+  </div>
+  <div class="pt-body"><div class="pt-main" id="pt-content"></div></div>
 </div>
 
 <!-- CARD PAGE -->
@@ -2889,17 +2993,44 @@ async function _agAposLogin(user){
   const trialInicio=perfil&&perfil.trial_inicio?new Date(perfil.trial_inicio):new Date();
   const diasPassados=(Date.now()-trialInicio.getTime())/(1000*60*60*24);
   const permanente=!!(perfil&&(perfil.permanente||perfil.is_admin));
-  if(!permanente && diasPassados>AG_TRIAL_DIAS){
+  // Detecção de papel (organizador/participante) — o mesmo trigger que cria
+  // o perfil em public.perfis roda para QUALQUER cadastro novo, inclusive
+  // quem se cadastrou só pelo app participante (lottoanalytics-participante).
+  // Sem isso, uma conta 100% participante seria barrada abaixo pelo bloqueio
+  // de trial de 10 dias, que não faz sentido pra quem nunca usou o Desktop
+  // como organizador.
+  let souOrganizador=false, souParticipante=false;
+  try{
+    const [orgResp,partResp]=await Promise.all([
+      sb.from('boloes').select('id',{count:'exact',head:true}).eq('user_id',user.id).is('deleted_at',null),
+      sb.from('bolao_participantes').select('id',{count:'exact',head:true}).eq('participante_user_id',user.id).is('deleted_at',null)
+    ]);
+    souOrganizador=(orgResp.count||0)>0 || !!(perfil&&perfil.is_admin);
+    souParticipante=(partResp.count||0)>0;
+  }catch(e){}
+  // O bloqueio de trial só faz sentido pra quem usa o Desktop como
+  // organizador — uma conta participante-pura nunca é barrada por ele.
+  if(souOrganizador && !permanente && diasPassados>AG_TRIAL_DIAS){
     _agMostrarTrialExpirado();
     return;
   }
-  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin)};
+  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin),papeis:{organizador:souOrganizador,participante:souParticipante}};
   closeModal('auth-gate');
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
   const btnLogout=document.getElementById('btn-logout'); if(btnLogout) btnLogout.style.display='';
   const btnConta=document.getElementById('btn-ja-tenho-conta'); if(btnConta) btnConta.style.display='none';
   const btnGratis=document.getElementById('btn-experimente-gratis'); if(btnGratis) btnGratis.style.display='none';
+  const btnVerParticipante=document.getElementById('btn-ver-participante');
+  if(btnVerParticipante) btnVerParticipante.style.display=(souOrganizador&&souParticipante)?'':'none';
+  // Conta 100% participante (nunca organizou nenhum bolão) — pula direto
+  // pra área nova, sem passar pelo dashboard do organizador. Quem tem os
+  // dois papéis continua caindo no dashboard de sempre, com o botão "Ver
+  // como Participante" disponível pra alternar sem novo login.
+  if(souParticipante && !souOrganizador){
+    if(typeof showParticipanteArea==='function') showParticipanteArea();
+    return;
+  }
   // Se o login/cadastro foi disparado ao tentar abrir uma ferramenta
   // (Gerar Jogos, Bolões, trocar de loteria etc.), retoma exatamente essa
   // ação agora que o usuário está autenticado — em vez de simplesmente
@@ -19157,6 +19288,16 @@ async function verBilhetesBolao(){
 // (join em memória com _boloesState.participantes, já carregado). Fica
 // disponível pro organizador o tempo todo (não só pré-ativação) — útil
 // como registro histórico de quem pagou o quê.
+async function _excluirComprovantePix(comprovanteId){
+  if(!confirm('Excluir este comprovante?')) return;
+  var sb=_getSbClient(); if(!sb) return;
+  try{
+    var { error }=await sb.from('bolao_comprovantes_pix').delete().eq('id',comprovanteId);
+    if(error) throw error;
+    toast('Comprovante removido.');
+    verComprovantesPix();
+  }catch(e){ toast('Erro ao excluir: '+e.message); }
+}
 async function verComprovantesPix(){
   var bolaoId=_boloesState.editId;
   if(!bolaoId){ toast('Salve o bolão antes de consultar comprovantes.'); return; }
@@ -19172,10 +19313,15 @@ async function verComprovantesPix(){
         var p=participantesPorId[c.bolao_participante_id];
         var nome=p?p.nome:'(participante removido)';
         var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        var ehPdfComp=/\.pdf(\?|$)/i.test(c.foto_url);
+        var thumbComp=ehPdfComp
+          ? '<div onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Abrir PDF" style="width:52px;height:52px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--glass-bg);cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"><span style="font-size:20px">📄</span><span style="font-size:8px;color:var(--text-muted);font-weight:700">PDF</span></div>'
+          : '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"/>';
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border)">'+
-          '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"/>'+
-          '<div><div style="font-weight:700;font-size:12px;color:var(--text)">'+_esc(nome)+'</div>'+
+          thumbComp+
+          '<div style="flex:1"><div style="font-weight:700;font-size:12px;color:var(--text)">'+_esc(nome)+'</div>'+
           '<div style="font-size:10px;color:var(--text-muted)">'+quando+'</div></div>'+
+          '<button onclick="_excluirComprovantePix(\''+c.id+'\')" title="Excluir" style="border:none;background:transparent;color:#dc2626;cursor:pointer;font-size:15px;padding:4px 6px;flex-shrink:0">✕</button>'+
         '</div>';
       }).join('')
     : '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">Nenhum comprovante enviado ainda.</div>';
@@ -20476,6 +20622,845 @@ function gerarJogosParaBolao(bolaoId){
   setTimeout(function(){
     if(typeof switchGenAba==='function') switchGenAba('bolao');
   }, 200);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ÁREA DE PARTICIPANTE (Fase 43) — segunda "porta de entrada" do
+   Desktop pra quem participa de bolões, além de/independente de
+   organizá-los. Mesma conta/sessão Supabase de sempre (_getSbClient),
+   reaproveitando 100% as RPCs participante-scoped e a Edge Function
+   "publicar-resultados-automatico" já em produção pelo app mobile
+   (lottoanalytics-participante) — RLS é por auth.uid(), não por
+   origem da chamada, então não precisou de nenhum backend novo.
+   Fora de escopo aqui (registrado no plano aprovado): notificação
+   push, biometria e assinatura digital em tela — o app participante
+   continua sendo o canal pra esses três. Todo identificador é
+   prefixado "pt" pra não colidir com nomes já usados no resto deste
+   arquivo (ex.: toast/_esc/CFG são REAPROVEITADOS, não duplicados). */
+var _ptState={tela:'boloes',gen:0,naoLidas:0};
+var _ptJogosPorSecao={};
+var _ptPremiosCache=null,_ptPremiosCacheEm=0;
+var _ptMinhaFotoUrl=null;
+var _ptPerfilCpfPix=null;
+var _ptPixTipo='cpf';
+
+function ptLoterianome(l){
+  return {megasena:'Mega-Sena',lotofacil:'Lotofácil',quina:'Quina',lotomania:'Lotomania',
+    duplasena:'Dupla Sena',diasorte:'Dia de Sorte',supersete:'Super Sete',timemania:'Timemania',
+    maismilionaria:'+Milionária',powerball:'Powerball',megamillions:'Mega Millions'}[l]||l||'—';
+}
+// Cores derivadas de CFG (já usado em todo o Desktop) — evita uma segunda
+// lista de hexadecimais que poderia dessincronizar se a marca mudar.
+function ptLoteriaCor(l){
+  var c=CFG[l];
+  return c ? {bg:c.cor,fg:c.corTexto||null} : {bg:'#3A9B4E',fg:null};
+}
+var PT_TREVO_COR=(CFG.maismilionaria&&CFG.maismilionaria.trevoCor)||'#0fae8a';
+function ptBolaExtraCor(l){ var c=CFG[l]; return (c&&c.bolaExtraCor)||'#00BCD4'; }
+var PT_COR_ACERTO='#b8860b';
+var PT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function ptBolinha(n,corFundo,corTexto,acertou){
+  var bg=acertou?PT_COR_ACERTO:corFundo;
+  var fg=acertou?'#fff':(corTexto||'#fff');
+  return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bg+';color:'+fg+';font-size:11px;font-weight:800;margin:2px;flex-shrink:0">'+String(n).padStart(2,'0')+'</span>';
+}
+function ptBolinhaLoteria(n,loteria,acertou){
+  var c=ptLoteriaCor(loteria);
+  return ptBolinha(n,c.bg,c.fg,acertou);
+}
+function ptStatusJogoChip(j){
+  if(j.status==='sorteado') return ' <span title="Concurso já sorteado (finalizado)" style="display:inline-block;color:#dc2626;font-weight:900;font-size:14px;transform:scaleX(1.35);vertical-align:middle">✓</span>';
+  if(j.status==='vigente') return ' <span title="Concurso ainda vigente (aguardando sorteio)" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a;vertical-align:middle"></span>';
+  return '';
+}
+function ptRenderJogo(j,idx){
+  var loteria=j.loteria, extras=j.extras||{};
+  var sorteadas=(j.status==='sorteado'&&j.dezenasSorteadas)?new Set(j.dezenasSorteadas.map(Number)):null;
+  var trevosSort=(j.status==='sorteado'&&j.trevosSorteados)?new Set(j.trevosSorteados.map(Number)):null;
+  var extraSort=(j.status==='sorteado'&&j.bolaExtraSorteada!=null)?Number(j.bolaExtraSorteada):null;
+  var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
+  var trevos=(j.trevos&&j.trevos.length)?' <span style="font-size:10px;color:var(--text-muted)">T:</span> '+j.trevos.map(function(n){return ptBolinha(n,PT_TREVO_COR,null,trevosSort?trevosSort.has(Number(n)):false);}).join(''):'';
+  var extra=(extras.extra!=null)?' <span style="font-size:10px;color:var(--text-muted)">+</span> '+ptBolinha(extras.extra,ptBolaExtraCor(loteria),null,extraSort!=null?extraSort===Number(extras.extra):false):'';
+  var mesTime='';
+  if(extras.mes!=null) mesTime=' <span class="pt-chip">Mês: '+_esc(PT_MESES[extras.mes-1]||extras.mes)+'</span>';
+  if(extras.time!=null) mesTime=' <span class="pt-chip">Time #'+_esc(extras.time)+'</span>';
+  var status=ptStatusJogoChip(j);
+  var premio=j.premiado?' <span style="color:#b8860b;font-weight:800;font-size:11px;white-space:nowrap">🏆 R$ '+Number(j.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span>':'';
+  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:9px 10px;border:1px solid var(--glass-border);border-radius:var(--radius-md);background:var(--bg2);margin-bottom:6px;font-size:11px">'+
+    '<span style="color:var(--text-muted);margin-right:4px;font-weight:700">'+(idx+1)+'.</span>'+bolinhas+trevos+extra+mesTime+status+premio+
+  '</div>';
+}
+function pt_assinaturaAposta(j){
+  var e=j.extras||{};
+  return [j.loteria,JSON.stringify(j.numeros||[]),JSON.stringify(j.trevos||null),e.mes||'',e.time||'',e.extra||'',JSON.stringify(e.ssCols||null)].join('§');
+}
+function ptLinhaTeimosinhaConcurso(fam,jRow,concurso){
+  var loteria=fam.loteria, extras=fam.extras||{};
+  var sorteadas=(jRow&&jRow.status==='sorteado'&&jRow.dezenasSorteadas)?new Set(jRow.dezenasSorteadas.map(Number)):null;
+  var trevosSort=(jRow&&jRow.status==='sorteado'&&jRow.trevosSorteados)?new Set(jRow.trevosSorteados.map(Number)):null;
+  var extraSort=(jRow&&jRow.status==='sorteado'&&jRow.bolaExtraSorteada!=null)?Number(jRow.bolaExtraSorteada):null;
+  var bolinhas=(fam.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
+  var trevos=(fam.trevos&&fam.trevos.length)?' <span style="font-size:10px;color:var(--text-muted)">T:</span> '+fam.trevos.map(function(n){return ptBolinha(n,PT_TREVO_COR,null,trevosSort?trevosSort.has(Number(n)):false);}).join(''):'';
+  var extra=(extras.extra!=null)?' <span style="font-size:10px;color:var(--text-muted)">+</span> '+ptBolinha(extras.extra,ptBolaExtraCor(loteria),null,extraSort!=null?extraSort===Number(extras.extra):false):'';
+  var status=jRow?ptStatusJogoChip(jRow):'';
+  var premio=(jRow&&jRow.premiado)?' <span style="color:#b8860b;font-weight:800;font-size:11px;white-space:nowrap">🏆 R$ '+Number(jRow.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span>':'';
+  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px 0;border-top:1px dashed var(--glass-border)">'+
+    '<span class="pt-chip" style="margin-right:4px">'+_esc(concurso)+'</span>'+bolinhas+trevos+extra+status+premio+
+  '</div>';
+}
+function ptRenderFamiliaTeimosinha(fam,idx){
+  var extras=fam.extras||{};
+  var mesTime='';
+  if(extras.mes!=null) mesTime=' <span class="pt-chip">Mês: '+_esc(PT_MESES[extras.mes-1]||extras.mes)+'</span>';
+  if(extras.time!=null) mesTime=' <span class="pt-chip">Time #'+_esc(extras.time)+'</span>';
+  var concursosOrdenados=fam.concursos.slice().sort(function(a,b){ return parseInt(b,10)-parseInt(a,10); });
+  var linhas=concursosOrdenados.map(function(c){ return ptLinhaTeimosinhaConcurso(fam,fam.porConcurso[c],c); }).join('');
+  return '<div style="padding:9px 10px;border:1px solid var(--glass-border);border-radius:var(--radius-md);background:var(--bg2);margin-bottom:6px;font-size:11px">'+
+    '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:2px">'+
+      '<span style="color:var(--text-muted);margin-right:4px;font-weight:700">'+(idx+1)+'.</span>'+
+      '<span class="pt-chip" style="background:rgba(58,155,78,.14);color:var(--ac);border-color:rgba(58,155,78,.3)">🔁 Teimosinha ('+fam.concursos.length+')</span>'+mesTime+
+    '</div>'+linhas+
+  '</div>';
+}
+function ptRenderGrupoJogos(g){
+  return '<div style="font-size:10px;font-weight:700;color:var(--text-muted);margin:8px 0 2px">'+_esc(ptLoterianome(g.loteria))+' — Concurso '+_esc(g.concurso)+'</div>'+
+    g.itens.map(function(j,idx){ return ptRenderJogo(j,idx); }).join('');
+}
+// Concursos vigentes ficam sempre visíveis; finalizados entram num único
+// dropdown recolhido. Jogo "teimosinha" (mesma aposta repetida em vários
+// concursos) chega do backend como uma linha por concurso — agrupado aqui
+// pela ASSINATURA da aposta (não pelo concurso), igual ao app participante.
+function ptRenderJogosAgrupados(jogos){
+  var porAssinatura={},ordemAssinatura=[];
+  jogos.forEach(function(j){
+    var chave=pt_assinaturaAposta(j);
+    if(!porAssinatura[chave]){ porAssinatura[chave]={loteria:j.loteria,numeros:j.numeros,trevos:j.trevos,extras:j.extras,concursos:[],porConcurso:{}}; ordemAssinatura.push(chave); }
+    var fam=porAssinatura[chave];
+    if(!fam.porConcurso[j.concurso]) fam.concursos.push(j.concurso);
+    fam.porConcurso[j.concurso]=j;
+  });
+  var itensTeim=[],avulsos=[];
+  ordemAssinatura.forEach(function(chave){
+    var fam=porAssinatura[chave];
+    if(fam.concursos.length>1){
+      fam.tipo='teimosinha';
+      var statusValores=fam.concursos.map(function(c){ return fam.porConcurso[c].status; });
+      fam.status=statusValores.indexOf('vigente')!==-1?'vigente':'finalizado';
+      fam.concursoOrdenacao=Math.max.apply(null,fam.concursos.map(function(c){ return parseInt(c,10)||0; }));
+      itensTeim.push(fam);
+    } else {
+      avulsos.push(fam.porConcurso[fam.concursos[0]]);
+    }
+  });
+  var gruposAvulsos={},ordemAvulsos=[];
+  avulsos.forEach(function(j){
+    var chave=j.loteria+'|'+j.concurso;
+    if(!gruposAvulsos[chave]){ gruposAvulsos[chave]={tipo:'avulso',loteria:j.loteria,concurso:j.concurso,status:j.status,itens:[]}; ordemAvulsos.push(chave); }
+    gruposAvulsos[chave].itens.push(j);
+  });
+  var todosItens=ordemAvulsos.map(function(c){ return gruposAvulsos[c]; }).concat(itensTeim);
+  todosItens.sort(function(a,b){
+    if(a.loteria!==b.loteria) return a.loteria<b.loteria?-1:1;
+    var ca=a.tipo==='teimosinha'?a.concursoOrdenacao:parseInt(a.concurso,10);
+    var cb=b.tipo==='teimosinha'?b.concursoOrdenacao:parseInt(b.concurso,10);
+    return cb-ca;
+  });
+  var vigentes=todosItens.filter(function(it){ return it.status==='vigente'; });
+  var finalizados=todosItens.filter(function(it){ return it.status!=='vigente'; });
+  function _render(it,idx){ return it.tipo==='teimosinha'?ptRenderFamiliaTeimosinha(it,idx):ptRenderGrupoJogos(it); }
+  var html=vigentes.map(_render).join('');
+  if(finalizados.length){
+    html+='<details><summary class="pt-encerrados-toggle">Concursos finalizados ('+finalizados.length+')</summary>'+
+      finalizados.map(_render).join('')+'</details>';
+  }
+  return html;
+}
+function ptSecaoJogosComFiltro(chave,jogos,titulo){
+  _ptJogosPorSecao[chave]=jogos;
+  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px;flex-wrap:wrap">'+
+    '<div class="pt-section-title" style="margin:0">'+titulo+' ('+jogos.length+')</div>'+
+    '<div class="pt-filtro-jogos">'+
+      '<button type="button" class="pt-chip-filtro active" data-chave="'+chave+'" data-modo="todos" onclick="ptFiltrarSecaoJogos(this)">Todos</button>'+
+      '<button type="button" class="pt-chip-filtro" data-chave="'+chave+'" data-modo="premiados" onclick="ptFiltrarSecaoJogos(this)">🏆 Premiados</button>'+
+    '</div></div>'+
+    '<div id="pt-secao-jogos-'+chave+'">'+ptRenderJogosAgrupados(jogos)+'</div>';
+}
+function ptFiltrarSecaoJogos(btn){
+  var chave=btn.dataset.chave, modo=btn.dataset.modo;
+  var jogos=_ptJogosPorSecao[chave]||[];
+  var filtrados=modo==='premiados'?jogos.filter(function(j){ return j.premiado; }):jogos;
+  var el=document.getElementById('pt-secao-jogos-'+chave);
+  if(el) el.innerHTML=filtrados.length?ptRenderJogosAgrupados(filtrados):'<div class="pt-empty" style="font-size:11px;padding:8px 0">Nenhum jogo premiado ainda.</div>';
+  Array.prototype.forEach.call(btn.parentElement.children,function(b){ b.classList.toggle('active',b===btn); });
+}
+function ptSecaoBilhetesHtml(bilhetes){
+  if(!bilhetes||!bilhetes.length) return '';
+  return '<div class="pt-card">'+
+    '<div class="pt-section-title" style="margin-top:0">📎 Bilhetes</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px">'+
+      bilhetes.map(function(b){
+        var ehPdf=/\.pdf(\?|$)/i.test(b.fotoUrl);
+        if(ehPdf){
+          return '<div onclick="window.open(\''+_esc(b.fotoUrl)+'\',\'_blank\')" title="Abrir PDF" style="width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--bg2);border-radius:var(--radius-md);cursor:pointer;border:1px solid var(--glass-border)"><span style="font-size:24px">📄</span><span style="font-size:9px;color:var(--text-muted);font-weight:700">PDF</span></div>';
+        }
+        return '<img src="'+_esc(b.fotoUrl)+'" onclick="window.open(\''+_esc(b.fotoUrl)+'\',\'_blank\')" title="Ver em tamanho real" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius-md);cursor:pointer;border:1px solid var(--glass-border)"/>';
+      }).join('')+
+    '</div></div>';
+}
+function ptBMoney(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+function ptFmtBRL(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+function ptFmtData(iso){
+  if(!iso) return '';
+  var d=new Date(iso);
+  return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+// Estimativa do que a cota valeria HOJE, se o bolão fosse sorteado agora —
+// mesma fórmula de desconto do administrador usada no cálculo real
+// pós-sorteio (Edge Function publicar-resultados-automatico).
+function ptCalcPremioProporcional(estimativaBRL,info){
+  if(!estimativaBRL||info.pct_cota==null) return null;
+  var bruto=parseFloat(String(estimativaBRL).replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.'));
+  if(isNaN(bruto)) return null;
+  var liquido=bruto;
+  if(info.tipo_organizacao==='percentual'){
+    var pct=info.admin_percentual_premio==null?10:Number(info.admin_percentual_premio);
+    liquido=bruto*(1-pct/100);
+  }else if(info.tipo_organizacao==='fixo'&&info.valor_fixo_organizacao){
+    liquido=Math.max(0,bruto-Number(info.valor_fixo_organizacao));
+  }
+  return liquido*(Number(info.pct_cota)/100);
+}
+var PT_LOTERIAS_HOME=['megasena','lotofacil','quina','lotomania','duplasena','diasorte','supersete','timemania','maismilionaria','powerball','megamillions'];
+// Cache de 5min (mesmo TTL do app participante) — o valor só muda quando a
+// Edge Function atualizar-resultados roda, algumas vezes por dia.
+async function ptBuscarPremiosTodos(){
+  var agora=Date.now();
+  if(_ptPremiosCache&&(agora-_ptPremiosCacheEm)<5*60*1000) return _ptPremiosCache;
+  var sb=_getSbClient(); var mapa={};
+  try{
+    var [rBr,rUs]=await Promise.all([
+      sb.from('resultados').select('loteria,dados'),
+      sb.from('us_jackpots').select('loteria,jackpot,cash')
+    ]);
+    (rBr.data||[]).forEach(function(r){
+      var v=r.dados&&r.dados.valorEstimadoProximoConcurso;
+      if(v) mapa[r.loteria]={estimativa:ptFmtBRL(v),cash:null};
+    });
+    (rUs.data||[]).forEach(function(r){
+      mapa[r.loteria]={estimativa:r.jackpot||null,cash:r.cash||null};
+    });
+    _ptPremiosCache=mapa; _ptPremiosCacheEm=agora;
+  }catch(e){ console.warn('[pt premios]',e.message); }
+  return mapa;
+}
+async function ptBuscarPremioAtual(loteria){
+  if(!loteria) return null;
+  var todos=await ptBuscarPremiosTodos();
+  return todos[loteria]||null;
+}
+function ptPremioAtualHtml(loteria,premio){
+  if(!loteria) return '';
+  var d=ptLoteriaCor(loteria);
+  var cashHtml=(premio&&premio.cash)?' <span style="font-size:11px;color:#39FF14;font-weight:800">· CASH '+_esc(premio.cash)+'</span>':'';
+  return '<div class="pt-card" style="border-left:4px solid '+d.bg+'">'+
+    '<div style="font-size:11px;font-weight:700;color:'+d.bg+';text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">'+_esc(ptLoterianome(loteria))+'</div>'+
+    '<div style="font-size:15px;color:var(--text)">Prêmio estimado: <strong>'+(premio&&premio.estimativa?_esc(premio.estimativa):'—')+'</strong>'+cashHtml+'</div>'+
+  '</div>';
+}
+async function ptSecaoPremiosEstimadosHtml(){
+  var resultados=await Promise.all(PT_LOTERIAS_HOME.map(function(l){
+    return ptBuscarPremioAtual(l).then(function(p){ return {loteria:l,premio:p}; });
+  }));
+  var cards=resultados.map(function(r){ return ptPremioAtualHtml(r.loteria,r.premio); }).filter(Boolean);
+  if(!cards.length) return '';
+  return '<div class="pt-section-title">💰 Prêmios Estimados</div><div class="pt-premios-grid">'+cards.join('')+'</div>';
+}
+// Um bolão Multi-Loteria mistura jogos de loterias diferentes — o card
+// "quanto você ganharia" de cada loteria fica bem ACIMA dos jogos daquela
+// loteria específica, não amontoado no topo antes de qualquer jogo.
+function ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info){
+  if(!jogosAoVivo||!jogosAoVivo.length) return '';
+  var porLoteria={},ordem=[];
+  jogosAoVivo.forEach(function(j){
+    if(!porLoteria[j.loteria]){ porLoteria[j.loteria]=[]; ordem.push(j.loteria); }
+    porLoteria[j.loteria].push(j);
+  });
+  var premioPorLoteria={};
+  (cardsPremioProporcional||[]).forEach(function(c){ premioPorLoteria[c.loteria]=c; });
+  return ordem.map(function(loteria){
+    var c=premioPorLoteria[loteria];
+    var premioHtml=c?(
+      '<div class="pt-card" style="border-left:4px solid '+ptLoteriaCor(loteria).bg+'">'+
+        '<div class="pt-section-title" style="margin-top:0">🏆 Se ganhar na '+_esc(ptLoterianome(loteria))+' hoje</div>'+
+        '<div style="font-size:19px;font-weight:800;color:#b8860b">'+ptBMoney(c.proporcional)+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Sua parte estimada ('+_esc(info.pct_cota)+'% do bolão), se o bolão for o ÚNICO ganhador do prêmio de '+_esc(c.estimativa)+'. Se houver mais apostas vencedoras no país, o valor real é dividido entre elas — só se sabe depois do sorteio. Estimativa muda todo dia.</div>'+
+      '</div>'
+    ):'';
+    var secaoJogos='<div class="pt-card">'+ptSecaoJogosComFiltro('detalhe-'+bolaoId+'-'+loteria,porLoteria[loteria],'🎲 '+_esc(ptLoterianome(loteria)))+'</div>';
+    return premioHtml+secaoJogos;
+  }).join('');
+}
+// Busca os jogos do bolão DIRETO do banco, calculados na hora, via a MESMA
+// Edge Function que o app participante já usa (publicar-resultados-
+// automatico, modo "consulta ao vivo") — zero lógica de premiação
+// duplicada aqui. Devolve {jogos, bilhetes}.
+async function ptBuscarDadosBolaoAoVivo(bolaoId){
+  var sb=_getSbClient();
+  var {data:sessionData}=await sb.auth.getSession();
+  var token=sessionData&&sessionData.session&&sessionData.session.access_token;
+  if(!token) return null;
+  try{
+    var r=await fetch(SUPABASE_CONFIG.url+'/functions/v1/publicar-resultados-automatico',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({bolao_id:bolaoId})
+    });
+    if(!r.ok) return null;
+    var j=await r.json();
+    return {jogos:j.jogos||null,bilhetes:j.bilhetes||[]};
+  }catch(e){ console.warn('[pt dados bolão ao vivo]',e.message); return null; }
+}
+async function ptBuscarJogosBolaoAoVivo(bolaoId){
+  var d=await ptBuscarDadosBolaoAoVivo(bolaoId);
+  return d?d.jogos:null;
+}
+
+/* ── Comprovante de PIX (upload com barra de progresso real, via XHR bruto
+   — supabase-js .storage.upload() não expõe progresso de envio) ── */
+async function ptCarregarComprovantesPix(bolaoParticipanteId){
+  if(!bolaoParticipanteId) return [];
+  var sb=_getSbClient();
+  var {data,error}=await sb.from('bolao_comprovantes_pix')
+    .select('id,foto_url,created_at').eq('bolao_participante_id',bolaoParticipanteId)
+    .order('created_at',{ascending:false});
+  if(error){ console.warn('[pt comprovantes]',error.message); return []; }
+  return data||[];
+}
+function ptRedimensionarImagem(file,maxLado){
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      if(w>h&&w>maxLado){ h=Math.round(h*maxLado/w); w=maxLado; }
+      else if(h>=w&&h>maxLado){ w=Math.round(w*maxLado/h); h=maxLado; }
+      var canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(function(blob){ blob?resolve(blob):reject(new Error('Falha ao processar imagem')); },'image/jpeg',0.85);
+    };
+    img.onerror=function(){ reject(new Error('Arquivo não é uma imagem válida')); };
+    img.src=URL.createObjectURL(file);
+  });
+}
+function ptUploadComProgresso(bucket,caminho,blob,contentType,onProgress){
+  var sb=_getSbClient();
+  return sb.auth.getSession().then(function(r){
+    var token=r.data&&r.data.session&&r.data.session.access_token;
+    if(!token) throw new Error('Sessão expirada — entre novamente.');
+    return new Promise(function(resolve,reject){
+      var xhr=new XMLHttpRequest();
+      xhr.open('POST',SUPABASE_CONFIG.url+'/storage/v1/object/'+bucket+'/'+caminho,true);
+      xhr.setRequestHeader('Authorization','Bearer '+token);
+      xhr.setRequestHeader('apikey',SUPABASE_CONFIG.key);
+      xhr.setRequestHeader('Content-Type',contentType);
+      if(xhr.upload&&onProgress){ xhr.upload.onprogress=function(e){ if(e.lengthComputable) onProgress(Math.round((e.loaded/e.total)*100)); }; }
+      xhr.onload=function(){ if(xhr.status>=200&&xhr.status<300) resolve(); else reject(new Error('Falha no upload (HTTP '+xhr.status+').')); };
+      xhr.onerror=function(){ reject(new Error('Falha de rede no upload.')); };
+      xhr.send(blob);
+    });
+  });
+}
+async function ptEnviarComprovantePix(bolaoParticipanteId,bolaoId,inputEl,aoTerminar,progressoPrefix){
+  var file=inputEl.files&&inputEl.files[0];
+  if(!file) return;
+  var sb=_getSbClient();
+  var prefix=progressoPrefix||'pt-comp-progresso';
+  var wrap=document.getElementById(prefix+'-wrap');
+  var barId=prefix+'-bar';
+  if(wrap) wrap.style.display='block';
+  try{
+    var ehPdf=file.type==='application/pdf';
+    var blob=ehPdf?file:await ptRedimensionarImagem(file,1600);
+    var contentType=ehPdf?'application/pdf':'image/jpeg';
+    var ext=ehPdf?'pdf':'jpg';
+    var {data:{user}}=await sb.auth.getUser();
+    if(!user){ toast('Sessão expirada — entre novamente.'); return; }
+    var caminho=user.id+'/'+bolaoId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+    await ptUploadComProgresso('comprovantes',caminho,blob,contentType,function(pct){
+      var bar=document.getElementById(barId);
+      if(bar) bar.style.width=Math.max(0,Math.min(100,pct||0))+'%';
+    });
+    var pub=sb.storage.from('comprovantes').getPublicUrl(caminho);
+    var url=pub.data.publicUrl+'?v='+Date.now();
+    var {error}=await sb.from('bolao_comprovantes_pix').insert({
+      bolao_id:bolaoId,bolao_participante_id:bolaoParticipanteId,participante_user_id:user.id,foto_url:url
+    });
+    if(error) throw error;
+    toast('✓ Comprovante enviado.');
+    if(typeof aoTerminar==='function') aoTerminar(); else ptRenderDetalheBolao(bolaoId);
+  }catch(e){
+    toast('Erro ao enviar comprovante: '+e.message);
+    if(wrap) wrap.style.display='none';
+  }
+}
+function ptSecaoComprovantePixHtml(comprovantes,bolaoParticipanteId,bolaoId,podeEnviar){
+  var lista=comprovantes||[];
+  if(!lista.length&&!podeEnviar) return '';
+  var grade=lista.length
+    ?'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:10px">'+
+      lista.map(function(c){
+        var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
+        if(ehPdf){
+          return '<div onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Abrir PDF" style="width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--bg2);border-radius:var(--radius-md);cursor:pointer;border:1px solid var(--glass-border)"><span style="font-size:24px">📄</span><span style="font-size:9px;color:var(--text-muted);font-weight:700">PDF</span></div>';
+        }
+        return '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="Ver em tamanho real" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius-md);cursor:pointer;border:1px solid var(--glass-border)"/>';
+      }).join('')+'</div>'
+    :'';
+  return '<div class="pt-card">'+
+    '<div class="pt-section-title" style="margin-top:0">🧾 Comprovante de Pagamento</div>'+
+    (podeEnviar
+      ?'<label class="pt-btn-link" style="cursor:pointer">📎 Enviar comprovante do PIX'+
+        '<input type="file" accept="image/*,application/pdf" style="display:none" onchange="ptEnviarComprovantePix(\''+bolaoParticipanteId+'\',\''+bolaoId+'\',this)"/></label>'
+      :(lista.length?'':'<div class="pt-empty" style="padding:8px 0;font-size:12px">Nenhum comprovante enviado.</div>'))+
+    '<div id="pt-comp-progresso-wrap" style="display:none;margin-top:8px;height:6px;border-radius:3px;background:var(--glass-border);overflow:hidden"><div id="pt-comp-progresso-bar" style="height:100%;width:0;background:var(--ac);transition:width .15s linear"></div></div>'+
+    grade+
+  '</div>';
+}
+// Comprovantes de TODOS os bolões numa lista só, no Perfil, com seletor de
+// bolão pra escolher a quem o próximo envio pertence (Fase 40 do app
+// participante, mesma tabela bolao_comprovantes_pix).
+function ptComprovantesPerfilHtml(meusBoloes,comprovantes){
+  var boloes=meusBoloes||[];
+  if(!boloes.length) return '';
+  var lista=comprovantes||[];
+  var optsBoloes=boloes.map(function(b){ return '<option value="'+_esc(b.participante_id)+'|'+_esc(b.bolao_id)+'">'+_esc(b.nome)+'</option>'; }).join('');
+  var itens=lista.map(function(c){
+    var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
+    var thumb=ehPdf
+      ?'<div style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:8px;border:1px solid var(--glass-border);font-size:18px">📄</div>'
+      :'<img src="'+_esc(c.foto_url)+'" style="width:40px;height:40px;flex:0 0 40px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border)"/>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--glass-border);cursor:pointer" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')">'+
+      thumb+'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(c.bolao_nome)+'</div>'+
+      '<div style="font-size:10px;color:var(--text-muted)">'+_esc(ptFmtData(c.created_at))+'</div></div></div>';
+  }).join('');
+  return '<div class="pt-card">'+
+    '<div class="pt-section-title" style="margin-top:0">🧾 Comprovantes de PIX</div>'+
+    '<div style="font-size:12px;color:var(--text-muted);margin:0 0 10px">Envie o comprovante de qualquer bolão seu, a qualquer momento — mesmo depois de ativado.</div>'+
+    '<div class="pt-field" style="margin-bottom:8px"><select id="pt-perfil-comp-bolao">'+optsBoloes+'</select></div>'+
+    '<label class="pt-btn-link" style="cursor:pointer">📎 Enviar comprovante<input type="file" accept="image/*,application/pdf" style="display:none" onchange="ptEnviarComprovantePixPerfil(this)"/></label>'+
+    '<div id="pt-perfil-comp-progresso-wrap" style="display:none;margin-top:8px;height:6px;border-radius:3px;background:var(--glass-border);overflow:hidden"><div id="pt-perfil-comp-progresso-bar" style="height:100%;width:0;background:var(--ac);transition:width .15s linear"></div></div>'+
+    (itens?'<div style="margin-top:8px">'+itens+'</div>':'<div class="pt-empty" style="margin-top:8px;font-size:12px">Nenhum comprovante enviado ainda.</div>')+
+  '</div>';
+}
+async function ptEnviarComprovantePixPerfil(inputEl){
+  var sel=document.getElementById('pt-perfil-comp-bolao');
+  if(!sel||!sel.value){ toast('Escolha um bolão.'); return; }
+  var partes=sel.value.split('|');
+  await ptEnviarComprovantePix(partes[0],partes[1],inputEl,function(){ ptRenderPerfil(); },'pt-perfil-comp-progresso');
+}
+
+/* ── Tela: Meus Bolões (lista) ── */
+function ptBolaoCardHtml(b){
+  var numCota=(b.cota_inicio!=null&&b.cota_fim!=null)
+    ?(b.cota_inicio===b.cota_fim?('Cota Nº '+b.cota_inicio):('Cotas Nº '+b.cota_inicio+' a '+b.cota_fim))
+    :null;
+  return '<div class="pt-bolao-card'+(b.encerrado?' encerrado':'')+'" onclick="ptRenderDetalheBolao(\''+b.bolao_id+'\')">'+
+    '<div><div class="pt-bolao-nome">'+_esc(b.nome)+'</div>'+
+    '<div class="pt-bolao-meta">'+_esc(ptLoterianome(b.loteria))+(b.concurso?' · Concurso '+_esc(b.concurso):'')+(numCota?' · '+_esc(numCota):'')+
+      (!b.ativado_em?' · <span style="color:var(--gold)">⏳ Aguardando ativação</span>':'')+
+    '</div></div>'+
+    '<span class="pt-badge '+_esc(b.convite_status)+'">'+_esc(b.convite_status)+'</span>'+
+  '</div>';
+}
+async function ptRenderMeusBoloes(){
+  var myGen=++_ptState.gen; ptSetActiveTab('boloes');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando seus bolões…</div>';
+  var sb=_getSbClient();
+  var [{data,error},{data:notifs},premiosHtml]=await Promise.all([
+    sb.rpc('rpc_participante_meus_boloes'),
+    sb.rpc('rpc_participante_minhas_notificacoes'),
+    ptSecaoPremiosEstimadosHtml()
+  ]);
+  if(myGen!==_ptState.gen) return;
+  if(error){
+    content.innerHTML='<div class="pt-card"><div class="pt-msg err">Erro ao carregar bolões: '+_esc(error.message)+'</div></div>';
+    return;
+  }
+  var lista=data||[];
+  ptAtualizarContadorNaoLidas(notifs);
+  var html='';
+  if(!lista.length){
+    html+='<div class="pt-card"><div class="pt-empty">Você ainda não está em nenhum bolão.<br/>Peça ao organizador um link de convite.</div></div>';
+  } else {
+    var ativos=lista.filter(function(b){ return !b.encerrado; });
+    var encerrados=lista.filter(function(b){ return b.encerrado; });
+    html+=ativos.map(ptBolaoCardHtml).join('');
+    if(!ativos.length&&encerrados.length){
+      html+='<div class="pt-card"><div class="pt-empty">Nenhum bolão ativo no momento.</div></div>';
+    }
+    if(encerrados.length){
+      html+='<details><summary class="pt-encerrados-toggle">Encerrados ('+encerrados.length+')</summary>'+encerrados.map(ptBolaoCardHtml).join('')+'</details>';
+    }
+  }
+  html+=premiosHtml;
+  content.innerHTML=html;
+}
+
+/* ── Tela: Avisos (notificações) ── */
+function ptTituloNotificacao(tipo){
+  return {confirmacao_pagamento:'Seu pagamento foi confirmado',resultado_sem_premio:'Resultado do concurso disponível',
+    resultado_com_premio:'🎉 Seu bolão foi premiado!',convite_criado:'Você foi convidado para um bolão',
+    convite_aceito:'Convite aceito',novo_bolao:'Você foi adicionado a um novo bolão'}[tipo]||tipo;
+}
+function ptAtualizarContadorNaoLidas(lista){
+  _ptState.naoLidas=(lista||[]).filter(function(n){ return !n.lido_em; }).length;
+  var tabBtn=document.querySelector('.pt-tab[data-pt-tab="notif"]');
+  if(!tabBtn) return;
+  var existingDot=tabBtn.querySelector('.pt-dot');
+  if(_ptState.naoLidas>0&&!existingDot) tabBtn.insertAdjacentHTML('beforeend',' <span class="pt-dot"></span>');
+  else if(_ptState.naoLidas===0&&existingDot) existingDot.remove();
+}
+async function ptRenderNotificacoes(){
+  var myGen=++_ptState.gen; ptSetActiveTab('notif');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  var sb=_getSbClient();
+  var {data,error}=await sb.rpc('rpc_participante_minhas_notificacoes');
+  if(myGen!==_ptState.gen) return;
+  var lista=data||[];
+  var html='';
+  if(error){ html='<div class="pt-card"><div class="pt-msg err">Erro ao carregar avisos.</div></div>'; }
+  else if(!lista.length){ html='<div class="pt-card"><div class="pt-empty">Nenhum aviso por enquanto.</div></div>'; }
+  else{
+    var iconePorTipo={confirmacao_pagamento:'✅',resultado_sem_premio:'📄',resultado_com_premio:'🏆',convite_criado:'📨',novo_bolao:'🎉'};
+    html='<div class="pt-card">'+lista.map(function(n){
+      var lida=!!n.lido_em;
+      return '<div class="pt-notif-card'+(lida?'':' nao-lida')+'" onclick="ptAbrirNotificacao(\''+n.id+'\',\''+_esc(n.bolao_id||'')+'\')">'+
+        '<span class="ico">'+(iconePorTipo[n.tipo]||'🔔')+'</span>'+
+        '<div class="txt">'+_esc(ptTituloNotificacao(n.tipo))+'<div class="quando">'+ptFmtData(n.enviado_em)+'</div></div>'+
+      '</div>';
+    }).join('')+'</div>';
+  }
+  content.innerHTML=html;
+  ptAtualizarContadorNaoLidas(lista);
+}
+async function ptAbrirNotificacao(notifId,bolaoId){
+  var sb=_getSbClient();
+  await sb.rpc('rpc_participante_marcar_notificacao_lida',{p_notificacao_id:notifId});
+  if(bolaoId) ptRenderDetalheBolao(bolaoId); else ptRenderNotificacoes();
+}
+
+/* ── Tela: Relatórios ── */
+async function ptRenderRelatorios(){
+  var myGen=++_ptState.gen; ptSetActiveTab('relatorios');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  var sb=_getSbClient();
+  var {data,error}=await sb.rpc('rpc_participante_meus_relatorios');
+  if(myGen!==_ptState.gen) return;
+  var lista=data||[];
+  var html='';
+  if(error){ html='<div class="pt-card"><div class="pt-msg err">Erro ao carregar relatórios.</div></div>'; }
+  else if(!lista.length){ html='<div class="pt-card"><div class="pt-empty">Nenhum relatório ainda.<br/>Eles aparecem aqui após a confirmação do pagamento e depois de cada sorteio conferido.</div></div>'; }
+  else{ html=lista.map(ptRenderRelatorioCard).join(''); }
+  content.innerHTML=html;
+}
+function ptRenderHistoricoRodadas(lista){
+  if(!lista||!lista.length) return '';
+  return '<div style="margin-top:8px">'+lista.map(function(h){
+    return '<div class="pt-row" style="font-size:11px"><span class="k">'+_esc(ptLoterianome(h.loteria))+' · Conc. '+_esc(h.concurso)+'</span>'+
+      '<span class="v" style="font-weight:600">R$ '+Number(h.custo||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+(h.dataSorteio?' · '+_esc(h.dataSorteio):'')+'</span></div>';
+  }).join('')+'</div>';
+}
+function ptRenderRelatorioCard(r){
+  var c=r.conteudo||{};
+  if(r.tipo==='confirmacao_pagamento'){
+    return '<div class="pt-relatorio-card">'+
+      '<div class="pt-relatorio-titulo">✅ Pagamento confirmado</div>'+
+      '<div class="pt-row"><span class="k">Cotas</span><span class="v">'+_esc(c.quantidade_cotas||'—')+'</span></div>'+
+      '<div class="pt-row"><span class="k">Valor pago</span><span class="v">R$ '+Number(c.valor_pago||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>'+
+      '<div class="pt-relatorio-sub">'+ptFmtData(r.gerado_em)+'</div></div>';
+  }
+  if(r.tipo==='resultado_sem_premio'||r.tipo==='resultado_com_premio'){
+    var premiado=r.tipo==='resultado_com_premio';
+    var numCota=(c.cotaInicio!=null&&c.cotaFim!=null)?(c.cotaInicio===c.cotaFim?('Nº '+c.cotaInicio):('Nº '+c.cotaInicio+' a '+c.cotaFim)):null;
+    var jogos=c.jogos||[];
+    var html='<div class="pt-relatorio-card'+(premiado?' premio':'')+'">'+
+      '<div class="pt-relatorio-titulo'+(premiado?' premio':'')+'">'+(premiado?'🏆':'📄')+' '+_esc(ptLoterianome(c.loteria))+' — Concurso '+_esc(c.concurso||'')+(premiado?' — premiado!':' — sem premiação')+'</div>';
+    if(numCota) html+='<div class="pt-row"><span class="k">Sua cota</span><span class="v">'+_esc(numCota)+'</span></div>';
+    if(premiado){
+      html+='<div class="pt-row"><span class="k">Seu valor líquido</span><span class="v" style="color:var(--green)">R$ '+Number(c.valor_liquido_participante||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
+      if(c.pct_cota!=null) html+='<div class="pt-row"><span class="k">% da sua cota</span><span class="v">'+_esc(c.pct_cota)+'%</span></div>';
+    } else {
+      html+='<div class="pt-row"><span class="k">Jogos conferidos</span><span class="v">'+_esc(c.quantidade_jogos||jogos.length||0)+'</span></div>';
+    }
+    if(c.valor_cota!=null) html+='<div class="pt-row"><span class="k">Valor da cota</span><span class="v">R$ '+Number(c.valor_cota||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
+    if(c.taxa_admin_valor!=null&&c.taxa_admin_valor>0) html+='<div class="pt-row"><span class="k">Taxa de administração</span><span class="v">R$ '+Number(c.taxa_admin_valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
+    if(c.memoria_calculo) html+='<div class="pt-relatorio-sub" style="margin-top:6px">'+_esc(c.memoria_calculo)+'</div>';
+    if(jogos.length) html+=ptSecaoJogosComFiltro('rel-'+r.id,jogos,'🎲 Jogos do Bolão');
+    if(c.historicoRodadas&&c.historicoRodadas.length){
+      html+='<div class="pt-section-title">Histórico de Rodadas</div>'+ptRenderHistoricoRodadas(c.historicoRodadas);
+    }
+    html+='<div class="pt-relatorio-sub" style="margin-top:8px">'+ptFmtData(r.gerado_em)+'</div></div>';
+    return html;
+  }
+  return '';
+}
+
+/* ── Tela: Histórico ── */
+function ptHeaderParticipacaoHistorico(p){
+  var pago=p.status_pag==='pago';
+  return '<div class="pt-row" style="border-bottom:none;padding-bottom:2px"><span class="k" style="font-weight:700;color:var(--text)">'+_esc(p.nome)+'</span>'+
+    '<span class="v" style="color:'+(pago?'var(--green)':'var(--gold)')+'">'+(pago?'✓ Pago':'Pendente')+'</span></div>'+
+    '<div class="pt-row"><span class="k">Cotas</span><span class="v">'+_esc(p.cotas)+'</span></div>'+
+    (p.valor_ganho>0?'<div class="pt-row"><span class="k">Valor Ganho</span><span class="v" style="font-weight:800;color:var(--green)">🏆 '+ptBMoney(p.valor_ganho)+'</span></div>':'');
+}
+function ptRenderRelatoriosSecao(rels){
+  var html='<div class="pt-section-title">Relatórios recebidos</div>';
+  var relatorios=rels||[];
+  if(!relatorios.length){ html+='<div class="pt-card"><div class="pt-empty">Nenhum relatório ainda.</div></div>'; }
+  else{ html+=relatorios.map(ptRenderRelatorioCard).join(''); }
+  return html;
+}
+async function ptRenderHistorico(){
+  var myGen=++_ptState.gen; ptSetActiveTab('historico');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  var sb=_getSbClient();
+  var [{data:hist,error:errHist},{data:rels,error:errRel}]=await Promise.all([
+    sb.rpc('rpc_participante_meu_historico'),
+    sb.rpc('rpc_participante_meus_relatorios')
+  ]);
+  if(myGen!==_ptState.gen) return;
+  if(errHist||errRel){ content.innerHTML='<div class="pt-card"><div class="pt-msg err">Erro ao carregar histórico.</div></div>'; return; }
+  var participacoes=(hist&&hist.participacoes)||[];
+  var html='<div class="pt-section-title" style="margin-top:0">Participações</div>';
+  if(!participacoes.length){ html+='<div class="pt-card"><div class="pt-empty">Nenhuma participação registrada ainda.</div></div>'; }
+  else{
+    html+=participacoes.map(function(p,i){
+      return '<div class="pt-card" id="pt-hist-bolao-'+i+'">'+ptHeaderParticipacaoHistorico(p)+'<div class="pt-spinner" style="padding:10px 0;font-size:11px">Carregando jogos…</div></div>';
+    }).join('');
+  }
+  html+=ptRenderRelatoriosSecao(rels);
+  content.innerHTML=html;
+  participacoes.forEach(function(p,i){
+    ptBuscarJogosBolaoAoVivo(p.bolao_id).then(function(jogos){
+      if(myGen!==_ptState.gen) return;
+      var el=document.getElementById('pt-hist-bolao-'+i);
+      if(!el) return;
+      el.innerHTML=ptHeaderParticipacaoHistorico(p)+(jogos&&jogos.length
+        ?'<div style="margin-top:6px">'+ptSecaoJogosComFiltro('hist-'+i,jogos,'🎲 Jogos')+'</div>'
+        :'<div class="pt-empty" style="margin-top:8px;font-size:11px">Nenhum jogo vinculado ainda.</div>');
+    });
+  });
+}
+
+/* ── Tela: Detalhe do bolão (acessada a partir de "Meus Bolões") ── */
+async function ptRenderDetalheBolao(bolaoId){
+  var myGen=++_ptState.gen; ptSetActiveTab('boloes');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  var sb=_getSbClient();
+  var [{data,error},dadosAoVivo]=await Promise.all([
+    sb.rpc('rpc_participante_status_pagamento',{p_bolao_id:bolaoId}),
+    ptBuscarDadosBolaoAoVivo(bolaoId)
+  ]);
+  if(myGen!==_ptState.gen) return;
+  var jogosAoVivo=dadosAoVivo?dadosAoVivo.jogos:null;
+  var bilhetesAoVivo=dadosAoVivo?dadosAoVivo.bilhetes:null;
+  var info=(data&&data[0])||null;
+  var html='<a class="pt-backlink" onclick="ptRenderMeusBoloes()">← Meus bolões</a>';
+  if(error||!info){
+    html+='<div class="pt-card"><div class="pt-msg err">Não foi possível carregar os dados deste bolão.</div></div>';
+    content.innerHTML=html;
+    return;
+  }
+  var ativado=!!info.ativado_em;
+  var loteriasVigentes=Array.from(new Set((jogosAoVivo||[]).filter(function(j){return j.status==='vigente';}).map(function(j){return j.loteria;})));
+  var [comprovantes,premiosPorLoteria]=await Promise.all([
+    ptCarregarComprovantesPix(info.bolao_participante_id),
+    Promise.all(loteriasVigentes.map(function(l){ return ptBuscarPremioAtual(l).then(function(p){ return {loteria:l,premio:p}; }); }))
+  ]);
+  if(myGen!==_ptState.gen) return;
+  var cardsPremioProporcional=premiosPorLoteria.map(function(r){
+    var prop=(r.premio&&r.premio.estimativa)?ptCalcPremioProporcional(r.premio.estimativa,info):null;
+    return prop==null?null:{loteria:r.loteria,estimativa:r.premio.estimativa,proporcional:prop};
+  }).filter(Boolean);
+  if(!ativado){
+    html+='<div class="pt-card"><div class="pt-msg warn" style="margin-top:0">⏳ Bolão ainda não ativado pelo organizador — pague sua cota e envie o comprovante abaixo. Jogos e histórico aparecem aqui assim que ele ativar.</div></div>';
+  }
+  var pago=info.status_pag==='pago';
+  var numCota=(info.cota_inicio!=null&&info.cota_fim!=null)?(info.cota_inicio===info.cota_fim?('Nº '+info.cota_inicio):('Nº '+info.cota_inicio+' a '+info.cota_fim)):null;
+  html+='<div class="pt-card">'+
+    (numCota?'<div class="pt-row"><span class="k">Sua cota</span><span class="v" style="font-weight:800">'+_esc(numCota)+'</span></div>':'')+
+    '<div class="pt-row"><span class="k">Cotas</span><span class="v">'+_esc(info.cotas)+'</span></div>'+
+    '<div class="pt-row"><span class="k">Valor da cota</span><span class="v">R$ '+Number(info.valor_cota||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>'+
+    (info.pct_cota!=null?'<div class="pt-row" title="Sua fatia do bolão, considerando as cotas já pagas por todos"><span class="k">% do bolão</span><span class="v" style="font-weight:800">'+_esc(info.pct_cota)+'%</span></div>':'')+
+    '<div class="pt-row"><span class="k">Pagamento</span><span class="v" style="color:'+(pago?'var(--green)':'var(--gold)')+'">'+(pago?'✓ Pago':'Pendente')+'</span></div>'+
+    (info.meu_saldo!=null?(
+      '<div class="pt-row" title="Contribuição paga menos sua parte no custo das rodadas já vinculadas ao bolão"><span class="k">Meu Saldo</span><span class="v" style="font-weight:800;color:'+(Number(info.meu_saldo)>=0?'var(--green)':'var(--red)')+'">'+(Number(info.meu_saldo)<0?'-':'')+'R$ '+Math.abs(Number(info.meu_saldo)).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>'+
+      (info.valor_ganho>0?'<div class="pt-row" title="Soma de todos os prêmios líquidos já recebidos por você neste bolão"><span class="k">Valor Ganho</span><span class="v" style="font-weight:800;color:var(--green)">🏆 '+ptBMoney(info.valor_ganho)+'</span></div>':'')
+    ):'')+
+    (info.admin_pix?(
+      '<div class="pt-row"><span class="k">PIX ('+_esc(info.admin_pix_tipo||'chave')+')</span><span class="v">'+_esc(info.admin_pix)+'</span></div>'+
+      '<div class="pt-row"><span class="k">Organizador</span><span class="v">'+_esc(info.admin_nome||'—')+'</span></div>'
+    ):'')+
+  '</div>';
+  if(!pago&&info.admin_pix){
+    html+='<div class="pt-card"><div class="pt-msg ok" style="margin-top:0">Pague sua cota via PIX para o organizador e aguarde a confirmação — o status atualiza aqui assim que ele confirmar.</div></div>';
+  }
+  // Comprovante de PIX sempre disponível pra envio (mesma regra do app
+  // participante, Fase 40 lá) — não depende de o bolão já estar ativado.
+  html+=ptSecaoComprovantePixHtml(comprovantes,info.bolao_participante_id,bolaoId,true);
+  html+=ptSecaoBilhetesHtml(bilhetesAoVivo);
+  html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
+  content.innerHTML=html;
+}
+
+/* ── Tela: Perfil ── */
+async function ptCarregarMinhaFoto(){
+  var sb=_getSbClient();
+  var {data}=await sb.rpc('rpc_participante_obter_foto');
+  _ptMinhaFotoUrl=data||null;
+  return _ptMinhaFotoUrl;
+}
+function ptAvatarHtml(tamanho){
+  tamanho=tamanho||36;
+  if(_ptMinhaFotoUrl) return '<img src="'+_esc(_ptMinhaFotoUrl)+'" class="pt-avatar" style="width:'+tamanho+'px;height:'+tamanho+'px"/>';
+  return '<span class="pt-avatar" style="display:inline-flex;align-items:center;justify-content:center;width:'+tamanho+'px;height:'+tamanho+'px;background:var(--bg2);border:1px solid var(--glass-border);font-size:'+Math.round(tamanho*0.5)+'px">👤</span>';
+}
+async function ptEnviarFotoPerfil(input){
+  var file=input.files&&input.files[0];
+  if(!file) return;
+  var sb=_getSbClient();
+  toast('Enviando foto…');
+  try{
+    var blob=await ptRedimensionarImagem(file,400);
+    var {data:{user}}=await sb.auth.getUser();
+    var caminho=user.id+'/avatar.jpg';
+    var up=await sb.storage.from('avatars').upload(caminho,blob,{upsert:true,contentType:'image/jpeg'});
+    if(up.error) throw up.error;
+    var pub=sb.storage.from('avatars').getPublicUrl(caminho);
+    var url=pub.data.publicUrl+'?v='+Date.now();
+    var {error}=await sb.rpc('rpc_participante_salvar_foto',{p_foto_url:url});
+    if(error) throw error;
+    _ptMinhaFotoUrl=url;
+    toast('✓ Foto atualizada.');
+    ptRenderPerfil();
+  }catch(e){ toast('Erro ao enviar foto: '+e.message); }
+}
+async function ptCarregarPerfilCpfPix(){
+  var sb=_getSbClient();
+  try{
+    var {data,error}=await sb.rpc('rpc_participante_obter_perfil');
+    if(error) throw error;
+    _ptPerfilCpfPix=(data&&data[0])||{cpf:null,pix:null,pix_tipo:null};
+  }catch(e){ console.warn('[pt perfil cpf/pix]',e.message); _ptPerfilCpfPix={cpf:null,pix:null,pix_tipo:null}; }
+  return _ptPerfilCpfPix;
+}
+function ptMaskCpf(el){
+  var d=el.value.replace(/\D/g,'').slice(0,11);
+  el.value=d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4');
+}
+function ptMaskPix(el){
+  var tipo=_ptPixTipo||'cpf';
+  var t=el.value;
+  if(tipo==='cpf'){ var d=t.replace(/\D/g,'').slice(0,11); el.value=d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4'); }
+  else if(tipo==='cnpj'){ var c=t.replace(/\D/g,'').slice(0,14); el.value=c.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'); }
+}
+function ptCpfPixCardHtml(p){
+  p=p||{};
+  var tipo=p.pix_tipo||'cpf';
+  return '<div class="pt-card">'+
+    '<div class="pt-section-title" style="margin-top:0">CPF e PIX</div>'+
+    '<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Usados pra identificar seus recebimentos e facilitar o pagamento das cotas — ficam salvos na sua conta, valem pra qualquer bolão.</div>'+
+    '<div class="pt-field"><label>CPF</label><input id="pt-perfil-cpf" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" value="'+_esc(p.cpf||'')+'" oninput="ptMaskCpf(this)"/></div>'+
+    '<div class="pt-field"><label>PIX</label><div style="display:flex;gap:6px">'+
+      '<select id="pt-perfil-pix-tipo" style="flex:0 0 112px" onchange="_ptPixTipo=this.value;document.getElementById(\'pt-perfil-pix\').value=\'\'">'+
+        ['cpf','cnpj','telefone','email','aleatoria'].map(function(v){
+          var nomes={cpf:'CPF',cnpj:'CNPJ',telefone:'Telefone',email:'E-mail',aleatoria:'Aleatória'};
+          return '<option value="'+v+'"'+(tipo===v?' selected':'')+'>'+nomes[v]+'</option>';
+        }).join('')+
+      '</select>'+
+      '<input id="pt-perfil-pix" style="flex:1" value="'+_esc(p.pix||'')+'" placeholder="Chave PIX" oninput="ptMaskPix(this)"/>'+
+    '</div></div>'+
+    '<button class="la-btn primary" onclick="ptSalvarCpfPix()">Salvar</button>'+
+  '</div>';
+}
+async function ptSalvarCpfPix(){
+  var sb=_getSbClient();
+  var cpf=(document.getElementById('pt-perfil-cpf').value||'').trim();
+  var pix=(document.getElementById('pt-perfil-pix').value||'').trim();
+  var tipoSel=document.getElementById('pt-perfil-pix-tipo');
+  var tipo=(tipoSel&&tipoSel.value)||'cpf';
+  var nomesTipo={cpf:'CPF',cnpj:'CNPJ',telefone:'Telefone',email:'E-mail',aleatoria:'Aleatória'};
+  var resumo='CPF: '+(cpf||'(em branco)')+'\nPIX ('+(nomesTipo[tipo]||tipo)+'): '+(pix||'(em branco)');
+  if(!confirm('Confirma que os dados estão certos?\n\n'+resumo)) return;
+  try{
+    var {error}=await sb.rpc('rpc_participante_salvar_perfil_inicial',{p_cpf:cpf,p_pix:pix,p_pix_tipo:tipo});
+    if(error) throw error;
+    toast('✓ CPF/PIX salvos.');
+    _ptPerfilCpfPix={cpf:cpf||_ptPerfilCpfPix.cpf,pix:pix||_ptPerfilCpfPix.pix,pix_tipo:tipo};
+  }catch(e){ toast('Erro ao salvar: '+e.message); }
+}
+async function ptRenderPerfil(){
+  var myGen=++_ptState.gen; ptSetActiveTab('');
+  var content=document.getElementById('pt-content');
+  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  var sb=_getSbClient();
+  var [_fotoV,_perfilV,boloesResp,comprovantesResp]=await Promise.all([
+    ptCarregarMinhaFoto(),
+    ptCarregarPerfilCpfPix(),
+    sb.rpc('rpc_participante_meus_boloes'),
+    sb.rpc('rpc_participante_meus_comprovantes')
+  ]);
+  if(myGen!==_ptState.gen) return;
+  var meusBoloesPerfil=boloesResp.data||[];
+  var meusComprovantesPerfil=comprovantesResp.data||[];
+  var html='<a class="pt-backlink" onclick="ptRenderMeusBoloes()">← Meus bolões</a>';
+  html+='<div class="pt-card" style="text-align:center">'+
+    ptAvatarHtml(84)+
+    '<div style="margin-top:12px"><label class="pt-btn-link" style="cursor:pointer">📷 '+(_ptMinhaFotoUrl?'Trocar foto':'Adicionar foto')+
+      '<input type="file" accept="image/*" style="display:none" onchange="ptEnviarFotoPerfil(this)"/></label></div>'+
+  '</div>';
+  html+=ptCpfPixCardHtml(_ptPerfilCpfPix);
+  html+=ptComprovantesPerfilHtml(meusBoloesPerfil,meusComprovantesPerfil);
+  content.innerHTML=html;
+}
+
+/* ── Navegação/shell ── */
+function ptSetActiveTab(tela){
+  document.querySelectorAll('.pt-tab').forEach(function(b){ b.classList.toggle('active',b.dataset.ptTab===tela); });
+}
+function ptIrPara(tela){
+  _ptState.tela=tela;
+  if(tela==='boloes') ptRenderMeusBoloes();
+  else if(tela==='notif') ptRenderNotificacoes();
+  else if(tela==='relatorios') ptRenderRelatorios();
+  else if(tela==='historico') ptRenderHistorico();
+  else if(tela==='perfil') ptRenderPerfil();
+}
+// Chamado pelo dashboard (botão "Ver como Participante") e por
+// _agAposLogin quando a conta é 100% participante — esconde o dashboard/
+// card-page do organizador e mostra o shell fixo da área de participante.
+function showParticipanteArea(){
+  var dash=document.getElementById('dashboard'); if(dash) dash.style.display='none';
+  var cardPage=document.getElementById('card-page'); if(cardPage) cardPage.style.display='none';
+  var geradorPanel=document.getElementById('gerador-beta-panel'); if(geradorPanel) geradorPanel.classList.remove('active');
+  var analisePanelHome=document.getElementById('analise-panel'); if(analisePanelHome) analisePanelHome.classList.remove('active');
+  var shell=document.getElementById('participante-shell');
+  if(shell) shell.classList.add('active');
+  var btnAlt=document.getElementById('pt-btn-alternar');
+  var papeis=window._usuarioAtual&&window._usuarioAtual.papeis;
+  if(btnAlt) btnAlt.style.display=(papeis&&papeis.organizador)?'':'none';
+  ptIrPara(_ptState.tela||'boloes');
+}
+function ptAlternarParaOrganizador(){
+  var shell=document.getElementById('participante-shell');
+  if(shell) shell.classList.remove('active');
+  if(typeof showDashboard==='function') showDashboard();
 }
 
 </script>
