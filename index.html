@@ -1347,9 +1347,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
    visuais do Desktop (--bg/--glass-*/--ac/--font-*), não importa
    nada do CSS do app participante (lottoanalytics-participante).
    ══════════════════════════════════════════════════════════════ */
-#participante-shell{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column;background:linear-gradient(180deg,var(--bg),var(--bg2))}
-@media (min-width:981px){ #participante-shell{height:100vh;overflow:hidden} }
-#participante-shell.active{display:flex}
+#participante-shell{display:none}
+#participante-shell.active{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--bg),var(--bg2))}
+@media (min-width:981px){ #participante-shell.active{height:100vh;overflow:hidden} }
 .pt-nav{display:flex;align-items:center;gap:10px;padding:14px 24px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid var(--glass-border);flex-shrink:0}
 .pt-nav-tabs{display:flex;gap:6px;margin-left:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;flex-shrink:0}
 .pt-tab{font-family:var(--font-head);font-weight:700;font-size:12px;white-space:nowrap;padding:9px 14px;border-radius:999px;cursor:pointer;border:1px solid transparent;color:var(--text-muted);background:transparent;transition:var(--btn-transition);display:inline-flex;align-items:center;gap:6px}
@@ -1357,10 +1357,34 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-tab.active{color:#fff;background:var(--ac);box-shadow:0 4px 16px -4px var(--ac)}
 .pt-tab .pt-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block}
 .pt-nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.pt-body{flex:1;min-height:0;display:flex;justify-content:center;overflow-y:auto;scrollbar-width:thin}
+.pt-body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .pt-body::-webkit-scrollbar{width:6px}
 .pt-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:99px}
-.pt-main{width:100%;max-width:720px;padding:22px 24px 40px;box-sizing:border-box}
+.pt-main{width:100%;max-width:880px;margin:0 auto;padding:22px 24px 40px;box-sizing:border-box}
+/* Tela Bolões (master-detail) — não usa a coluna central estreita das
+   outras telas: ocupa 100% da largura logo abaixo do menu, com os
+   prêmios estimados numa faixa compacta e "Meus Bolões" lado a lado
+   com o painel de detalhe (comprovante + bilhetes lado a lado ali
+   dentro). É o padrão pedido explicitamente: aproveitar a largura toda
+   da tela, evitar rolagem da página (só os painéis internos rolam). */
+.pt-main.pt-wide{max-width:none;margin:0;padding:0;height:100%;display:flex;flex-direction:column;min-height:0}
+.pt-premios-strip{flex-shrink:0;padding:18px 24px 6px;border-bottom:1px solid var(--glass-border)}
+.pt-premios-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.pt-premio-mini{flex:0 0 152px;height:80px;border-radius:var(--radius-lg);border:1px solid var(--glass-border);background:var(--glass-bg);padding:9px 12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden}
+.pt-premio-mini .nome{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-premio-mini .val{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-premio-mini .cash{font-size:9.5px;font-weight:700;color:#39FF14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-boloes-split{flex:1;min-height:0;display:flex}
+.pt-boloes-sidebar{width:300px;flex-shrink:0;overflow-y:auto;scrollbar-width:thin;padding:16px;border-right:1px solid var(--glass-border)}
+.pt-boloes-detail{flex:1;min-width:0;overflow-y:auto;scrollbar-width:thin;padding:20px 28px 40px}
+.pt-detail-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pt-detail-cols .pt-card{margin-bottom:0;height:100%;box-sizing:border-box}
+.pt-bolao-card.selected{border-color:var(--ac);background:var(--glass-hover)}
+@media (max-width:980px){
+  .pt-boloes-split{flex-direction:column}
+  .pt-boloes-sidebar{width:100%;max-height:240px;border-right:none;border-bottom:1px solid var(--glass-border)}
+  .pt-detail-cols{grid-template-columns:1fr}
+}
 .pt-card{border:1px solid var(--glass-border);border-radius:var(--radius-xl);background:var(--glass-bg);backdrop-filter:var(--blur);padding:18px 20px;margin-bottom:14px}
 .pt-empty{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 10px}
 .pt-spinner{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0}
@@ -1399,9 +1423,6 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-filtro-jogos{display:flex;gap:4px;flex-wrap:wrap}
 .pt-chip-filtro{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg2);color:var(--text-muted);border:1px solid var(--glass-border);cursor:pointer;white-space:nowrap}
 .pt-chip-filtro.active{background:var(--ac);color:#fff;border-color:var(--ac)}
-.pt-premios-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.pt-premios-grid .pt-card{margin-bottom:0}
-.pt-premios-grid .pt-card:first-child{grid-column:1 / -1}
 .pt-encerrados-toggle{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:10px 2px;user-select:none}
 .pt-encerrados-toggle::-webkit-details-marker{display:none}
 .pt-encerrados-toggle::before{content:'▸ ';display:inline-block}
@@ -1411,7 +1432,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .pt-field input,.pt-field select{width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box}
 .pt-btn-link{background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;padding:8px 0;display:inline-block}
 .pt-avatar{border-radius:50%;object-fit:cover;vertical-align:middle}
-@media (max-width:680px){ .pt-main{padding:16px 14px 32px} .pt-premios-grid{grid-template-columns:1fr} .pt-nav{padding:10px 14px} }
+@media (max-width:680px){ .pt-main{padding:16px 14px 32px} .pt-nav{padding:10px 14px} .pt-premios-strip{padding:14px 14px 4px} }
 
 /* ══ Auth Gate (login/cadastro sob demanda — mesmo padrão visual dos
    outros modais do app: usa .modal-overlay/.open, herda as cores do tema
@@ -1759,7 +1780,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     </div>
     <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> Atualizar</button>
     <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" style="display:none"><span class="emoji-ico">🛠️</span> Admin</button>
-    <button class="btn-sm" id="btn-ver-participante" onclick="showParticipanteArea()" title="Ver sua área de participante" style="display:none"><span class="emoji-ico">🎟️</span> Ver como Participante</button>
+    <button class="btn-sm" id="btn-ver-participante" onclick="showParticipanteArea()" title="Ver sua área de participante" style="display:none"><span class="emoji-ico">🎟️</span> Participante</button>
     <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" style="display:none"><span class="emoji-ico">🚪</span> Sair</button>
   </div>
 
@@ -1844,7 +1865,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     </div>
     <div class="pt-nav-right">
       <button class="btn-sm" id="pt-btn-perfil" onclick="ptIrPara('perfil')" title="Seu perfil"><span class="emoji-ico">👤</span> Perfil</button>
-      <button class="btn-sm" id="pt-btn-alternar" onclick="ptAlternarParaOrganizador()" title="Ver como Organizador" style="display:none"><span class="emoji-ico">🔁</span> Ver como Organizador</button>
+      <button class="btn-sm" id="pt-btn-alternar" onclick="ptAlternarParaOrganizador()" title="Ver como Organizador" style="display:none"><span class="emoji-ico">🔁</span> Organizador</button>
       <button class="btn-sm" onclick="agFazerLogout()" title="Sair da conta"><span class="emoji-ico">🚪</span> Sair</button>
     </div>
   </div>
@@ -20637,7 +20658,7 @@ function gerarJogosParaBolao(bolaoId){
    continua sendo o canal pra esses três. Todo identificador é
    prefixado "pt" pra não colidir com nomes já usados no resto deste
    arquivo (ex.: toast/_esc/CFG são REAPROVEITADOS, não duplicados). */
-var _ptState={tela:'boloes',gen:0,naoLidas:0};
+var _ptState={tela:'boloes',gen:0,detailGen:0,naoLidas:0,bolaoSelecionado:null};
 var _ptJogosPorSecao={};
 var _ptPremiosCache=null,_ptPremiosCacheEm=0;
 var _ptMinhaFotoUrl=null;
@@ -20859,13 +20880,18 @@ async function ptBuscarPremioAtual(loteria){
   var todos=await ptBuscarPremiosTodos();
   return todos[loteria]||null;
 }
+// Card fixo (152x80) — mesmo tamanho pra todas as loterias, mesmo as que
+// têm linha extra de CASH (Powerball/Mega Millions): texto que não cabe é
+// cortado com reticências em vez de esticar o card. Pedido explícito do
+// usuário: "padroniza o tamanho de todos os cards pelos de menor tamanho".
 function ptPremioAtualHtml(loteria,premio){
   if(!loteria) return '';
   var d=ptLoteriaCor(loteria);
-  var cashHtml=(premio&&premio.cash)?' <span style="font-size:11px;color:#39FF14;font-weight:800">· CASH '+_esc(premio.cash)+'</span>':'';
-  return '<div class="pt-card" style="border-left:4px solid '+d.bg+'">'+
-    '<div style="font-size:11px;font-weight:700;color:'+d.bg+';text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">'+_esc(ptLoterianome(loteria))+'</div>'+
-    '<div style="font-size:15px;color:var(--text)">Prêmio estimado: <strong>'+(premio&&premio.estimativa?_esc(premio.estimativa):'—')+'</strong>'+cashHtml+'</div>'+
+  var cashHtml=(premio&&premio.cash)?'<div class="cash">CASH '+_esc(premio.cash)+'</div>':'';
+  return '<div class="pt-premio-mini" style="border-top:3px solid '+d.bg+'">'+
+    '<div class="nome" style="color:'+d.bg+'">'+_esc(ptLoterianome(loteria))+'</div>'+
+    '<div class="val">'+(premio&&premio.estimativa?_esc(premio.estimativa):'—')+'</div>'+
+    cashHtml+
   '</div>';
 }
 async function ptSecaoPremiosEstimadosHtml(){
@@ -20874,7 +20900,8 @@ async function ptSecaoPremiosEstimadosHtml(){
   }));
   var cards=resultados.map(function(r){ return ptPremioAtualHtml(r.loteria,r.premio); }).filter(Boolean);
   if(!cards.length) return '';
-  return '<div class="pt-section-title">💰 Prêmios Estimados</div><div class="pt-premios-grid">'+cards.join('')+'</div>';
+  return '<div class="pt-premios-strip"><div class="pt-section-title" style="text-align:center;margin-top:0">💰 Prêmios Estimados</div>'+
+    '<div class="pt-premios-row">'+cards.join('')+'</div></div>';
 }
 // Um bolão Multi-Loteria mistura jogos de loterias diferentes — o card
 // "quanto você ganharia" de cada loteria fica bem ACIMA dos jogos daquela
@@ -21065,7 +21092,8 @@ function ptBolaoCardHtml(b){
   var numCota=(b.cota_inicio!=null&&b.cota_fim!=null)
     ?(b.cota_inicio===b.cota_fim?('Cota Nº '+b.cota_inicio):('Cotas Nº '+b.cota_inicio+' a '+b.cota_fim))
     :null;
-  return '<div class="pt-bolao-card'+(b.encerrado?' encerrado':'')+'" onclick="ptRenderDetalheBolao(\''+b.bolao_id+'\')">'+
+  var sel=_ptState.bolaoSelecionado===b.bolao_id;
+  return '<div class="pt-bolao-card'+(b.encerrado?' encerrado':'')+(sel?' selected':'')+'" data-bolao-id="'+b.bolao_id+'" onclick="ptRenderDetalheBolao(\''+b.bolao_id+'\')">'+
     '<div><div class="pt-bolao-nome">'+_esc(b.nome)+'</div>'+
     '<div class="pt-bolao-meta">'+_esc(ptLoterianome(b.loteria))+(b.concurso?' · Concurso '+_esc(b.concurso):'')+(numCota?' · '+_esc(numCota):'')+
       (!b.ativado_em?' · <span style="color:var(--gold)">⏳ Aguardando ativação</span>':'')+
@@ -21073,9 +21101,16 @@ function ptBolaoCardHtml(b){
     '<span class="pt-badge '+_esc(b.convite_status)+'">'+_esc(b.convite_status)+'</span>'+
   '</div>';
 }
-async function ptRenderMeusBoloes(){
+// Tela Bolões = master-detail: nav (fixo) → faixa de prêmios estimados
+// (compacta, centralizada) → "Meus Bolões" (sidebar) lado a lado com o
+// painel de detalhe do bolão selecionado (comprovante + bilhetes lado a
+// lado ali dentro, jogos abaixo). Usa 100% da largura da tela — layout
+// pedido explicitamente pelo usuário depois que a primeira versão (coluna
+// central estreita, no estilo do app mobile) desperdiçava a tela toda.
+async function ptRenderMeusBoloes(bolaoIdSelecionado){
   var myGen=++_ptState.gen; ptSetActiveTab('boloes');
   var content=document.getElementById('pt-content');
+  content.classList.add('pt-wide');
   content.innerHTML='<div class="pt-spinner">Carregando seus bolões…</div>';
   var sb=_getSbClient();
   var [{data,error},{data:notifs},premiosHtml]=await Promise.all([
@@ -21085,27 +21120,34 @@ async function ptRenderMeusBoloes(){
   ]);
   if(myGen!==_ptState.gen) return;
   if(error){
-    content.innerHTML='<div class="pt-card"><div class="pt-msg err">Erro ao carregar bolões: '+_esc(error.message)+'</div></div>';
+    content.innerHTML='<div class="pt-card" style="margin:20px 24px"><div class="pt-msg err">Erro ao carregar bolões: '+_esc(error.message)+'</div></div>';
     return;
   }
   var lista=data||[];
   ptAtualizarContadorNaoLidas(notifs);
-  var html='';
+  var alvo=bolaoIdSelecionado||_ptState.bolaoSelecionado;
+  if(alvo && !lista.some(function(b){ return b.bolao_id===alvo; })) alvo=null;
+  if(!alvo){ var ativosIni=lista.filter(function(b){ return !b.encerrado; }); alvo=ativosIni.length?ativosIni[0].bolao_id:(lista.length?lista[0].bolao_id:null); }
+  _ptState.bolaoSelecionado=alvo;
+  var sidebarHtml;
   if(!lista.length){
-    html+='<div class="pt-card"><div class="pt-empty">Você ainda não está em nenhum bolão.<br/>Peça ao organizador um link de convite.</div></div>';
+    sidebarHtml='<div class="pt-empty">Você ainda não está em nenhum bolão.<br/>Peça ao organizador um link de convite.</div>';
   } else {
     var ativos=lista.filter(function(b){ return !b.encerrado; });
     var encerrados=lista.filter(function(b){ return b.encerrado; });
-    html+=ativos.map(ptBolaoCardHtml).join('');
-    if(!ativos.length&&encerrados.length){
-      html+='<div class="pt-card"><div class="pt-empty">Nenhum bolão ativo no momento.</div></div>';
-    }
+    sidebarHtml=ativos.map(ptBolaoCardHtml).join('');
+    if(!ativos.length&&encerrados.length){ sidebarHtml+='<div class="pt-empty">Nenhum bolão ativo no momento.</div>'; }
     if(encerrados.length){
-      html+='<details><summary class="pt-encerrados-toggle">Encerrados ('+encerrados.length+')</summary>'+encerrados.map(ptBolaoCardHtml).join('')+'</details>';
+      sidebarHtml+='<details'+(ativos.length?'':' open')+'><summary class="pt-encerrados-toggle">Encerrados ('+encerrados.length+')</summary>'+encerrados.map(ptBolaoCardHtml).join('')+'</details>';
     }
   }
-  html+=premiosHtml;
-  content.innerHTML=html;
+  content.innerHTML=premiosHtml+
+    '<div class="pt-boloes-split">'+
+      '<div class="pt-boloes-sidebar" id="pt-boloes-sidebar">'+sidebarHtml+'</div>'+
+      '<div class="pt-boloes-detail" id="pt-boloes-detail"><div class="pt-spinner">Carregando…</div></div>'+
+    '</div>';
+  if(alvo) ptRenderDetalheBolao(alvo);
+  else document.getElementById('pt-boloes-detail').innerHTML='<div class="pt-empty" style="padding:60px 20px">Selecione um bolão à esquerda.</div>';
 }
 
 /* ── Tela: Avisos (notificações) ── */
@@ -21125,6 +21167,7 @@ function ptAtualizarContadorNaoLidas(lista){
 async function ptRenderNotificacoes(){
   var myGen=++_ptState.gen; ptSetActiveTab('notif');
   var content=document.getElementById('pt-content');
+  content.classList.remove('pt-wide');
   content.innerHTML='<div class="pt-spinner">Carregando…</div>';
   var sb=_getSbClient();
   var {data,error}=await sb.rpc('rpc_participante_minhas_notificacoes');
@@ -21156,6 +21199,7 @@ async function ptAbrirNotificacao(notifId,bolaoId){
 async function ptRenderRelatorios(){
   var myGen=++_ptState.gen; ptSetActiveTab('relatorios');
   var content=document.getElementById('pt-content');
+  content.classList.remove('pt-wide');
   content.innerHTML='<div class="pt-spinner">Carregando…</div>';
   var sb=_getSbClient();
   var {data,error}=await sb.rpc('rpc_participante_meus_relatorios');
@@ -21199,7 +21243,14 @@ function ptRenderRelatorioCard(r){
     if(c.valor_cota!=null) html+='<div class="pt-row"><span class="k">Valor da cota</span><span class="v">R$ '+Number(c.valor_cota||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
     if(c.taxa_admin_valor!=null&&c.taxa_admin_valor>0) html+='<div class="pt-row"><span class="k">Taxa de administração</span><span class="v">R$ '+Number(c.taxa_admin_valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
     if(c.memoria_calculo) html+='<div class="pt-relatorio-sub" style="margin-top:6px">'+_esc(c.memoria_calculo)+'</div>';
-    if(jogos.length) html+=ptSecaoJogosComFiltro('rel-'+r.id,jogos,'🎲 Jogos do Bolão');
+    // Só os jogos ainda ativos (vigentes) — o relatório já documenta o
+    // resultado deste concurso específico nos campos acima (valor líquido,
+    // % da cota etc.); repetir TODO o histórico de jogos já sorteados aqui
+    // (mesma config do app mobile faria isso via o dropdown "finalizados",
+    // mas empilhado card após card na tela de Relatórios virava rolagem
+    // sem fim) só engorda a tela sem informação nova.
+    var jogosAtivosRel=jogos.filter(function(j){ return j.status==='vigente'; });
+    if(jogosAtivosRel.length) html+=ptSecaoJogosComFiltro('rel-'+r.id,jogosAtivosRel,'🎲 Jogos Ativos do Bolão');
     if(c.historicoRodadas&&c.historicoRodadas.length){
       html+='<div class="pt-section-title">Histórico de Rodadas</div>'+ptRenderHistoricoRodadas(c.historicoRodadas);
     }
@@ -21227,6 +21278,7 @@ function ptRenderRelatoriosSecao(rels){
 async function ptRenderHistorico(){
   var myGen=++_ptState.gen; ptSetActiveTab('historico');
   var content=document.getElementById('pt-content');
+  content.classList.remove('pt-wide');
   content.innerHTML='<div class="pt-spinner">Carregando…</div>';
   var sb=_getSbClient();
   var [{data:hist,error:errHist},{data:rels,error:errRel}]=await Promise.all([
@@ -21257,24 +21309,37 @@ async function ptRenderHistorico(){
   });
 }
 
-/* ── Tela: Detalhe do bolão (acessada a partir de "Meus Bolões") ── */
+/* ── Painel de detalhe do bolão selecionado (dentro do master-detail de
+   "Meus Bolões" — ver ptRenderMeusBoloes) ── */
+function ptMarcarBolaoSelecionado(bolaoId){
+  document.querySelectorAll('.pt-bolao-card').forEach(function(c){ c.classList.toggle('selected',c.dataset.bolaoId===bolaoId); });
+}
 async function ptRenderDetalheBolao(bolaoId){
-  var myGen=++_ptState.gen; ptSetActiveTab('boloes');
+  ptSetActiveTab('boloes');
   var content=document.getElementById('pt-content');
-  content.innerHTML='<div class="pt-spinner">Carregando…</div>';
+  // Se o shell (faixa de prêmios + sidebar) ainda não estiver montado —
+  // ex.: veio de um clique direto num Aviso/notificação, sem passar por
+  // "Meus Bolões" antes — monta tudo primeiro; ptRenderMeusBoloes já
+  // chama de volta esta função com o bolão certo pré-selecionado.
+  if(!content.classList.contains('pt-wide') || !document.getElementById('pt-boloes-detail')){
+    return ptRenderMeusBoloes(bolaoId);
+  }
+  _ptState.bolaoSelecionado=bolaoId;
+  ptMarcarBolaoSelecionado(bolaoId);
+  var myGen=++_ptState.detailGen;
+  var detailEl=document.getElementById('pt-boloes-detail');
+  detailEl.innerHTML='<div class="pt-spinner">Carregando…</div>';
   var sb=_getSbClient();
   var [{data,error},dadosAoVivo]=await Promise.all([
     sb.rpc('rpc_participante_status_pagamento',{p_bolao_id:bolaoId}),
     ptBuscarDadosBolaoAoVivo(bolaoId)
   ]);
-  if(myGen!==_ptState.gen) return;
+  if(myGen!==_ptState.detailGen) return;
   var jogosAoVivo=dadosAoVivo?dadosAoVivo.jogos:null;
   var bilhetesAoVivo=dadosAoVivo?dadosAoVivo.bilhetes:null;
   var info=(data&&data[0])||null;
-  var html='<a class="pt-backlink" onclick="ptRenderMeusBoloes()">← Meus bolões</a>';
   if(error||!info){
-    html+='<div class="pt-card"><div class="pt-msg err">Não foi possível carregar os dados deste bolão.</div></div>';
-    content.innerHTML=html;
+    detailEl.innerHTML='<div class="pt-card"><div class="pt-msg err">Não foi possível carregar os dados deste bolão.</div></div>';
     return;
   }
   var ativado=!!info.ativado_em;
@@ -21283,13 +21348,14 @@ async function ptRenderDetalheBolao(bolaoId){
     ptCarregarComprovantesPix(info.bolao_participante_id),
     Promise.all(loteriasVigentes.map(function(l){ return ptBuscarPremioAtual(l).then(function(p){ return {loteria:l,premio:p}; }); }))
   ]);
-  if(myGen!==_ptState.gen) return;
+  if(myGen!==_ptState.detailGen) return;
   var cardsPremioProporcional=premiosPorLoteria.map(function(r){
     var prop=(r.premio&&r.premio.estimativa)?ptCalcPremioProporcional(r.premio.estimativa,info):null;
     return prop==null?null:{loteria:r.loteria,estimativa:r.premio.estimativa,proporcional:prop};
   }).filter(Boolean);
+  var html='';
   if(!ativado){
-    html+='<div class="pt-card"><div class="pt-msg warn" style="margin-top:0">⏳ Bolão ainda não ativado pelo organizador — pague sua cota e envie o comprovante abaixo. Jogos e histórico aparecem aqui assim que ele ativar.</div></div>';
+    html+='<div class="pt-card"><div class="pt-msg warn" style="margin-top:0">⏳ Bolão ainda não ativado pelo organizador — pague sua cota e envie o comprovante ao lado. Jogos e histórico aparecem aqui assim que ele ativar.</div></div>';
   }
   var pago=info.status_pag==='pago';
   var numCota=(info.cota_inicio!=null&&info.cota_fim!=null)?(info.cota_inicio===info.cota_fim?('Nº '+info.cota_inicio):('Nº '+info.cota_inicio+' a '+info.cota_fim)):null;
@@ -21313,10 +21379,14 @@ async function ptRenderDetalheBolao(bolaoId){
   }
   // Comprovante de PIX sempre disponível pra envio (mesma regra do app
   // participante, Fase 40 lá) — não depende de o bolão já estar ativado.
-  html+=ptSecaoComprovantePixHtml(comprovantes,info.bolao_participante_id,bolaoId,true);
-  html+=ptSecaoBilhetesHtml(bilhetesAoVivo);
+  // Lado a lado com Bilhetes (pedido explícito: usar a largura da tela em
+  // vez de empilhar tudo numa coluna estreita).
+  html+='<div class="pt-detail-cols">'+
+    ptSecaoComprovantePixHtml(comprovantes,info.bolao_participante_id,bolaoId,true)+
+    ptSecaoBilhetesHtml(bilhetesAoVivo)+
+  '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
-  content.innerHTML=html;
+  detailEl.innerHTML=html;
 }
 
 /* ── Tela: Perfil ── */
@@ -21408,6 +21478,7 @@ async function ptSalvarCpfPix(){
 async function ptRenderPerfil(){
   var myGen=++_ptState.gen; ptSetActiveTab('');
   var content=document.getElementById('pt-content');
+  content.classList.remove('pt-wide');
   content.innerHTML='<div class="pt-spinner">Carregando…</div>';
   var sb=_getSbClient();
   var [_fotoV,_perfilV,boloesResp,comprovantesResp]=await Promise.all([
