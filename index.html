@@ -20953,6 +20953,252 @@ async function ptBuscarJogosBolaoAoVivo(bolaoId){
   return d?d.jogos:null;
 }
 
+/* ── Documentos (Termos e Condições / Termo de Constituição) ── Mesmos dois
+   documentos já usados no app participante — reconstruídos AO VIVO a
+   partir de dados buscados agora (participantes, cotas, concursos), sem
+   depender de um snapshot salvo que ficaria desatualizado. Só visualização/
+   impressão aqui — assinatura digital em tela continua fora do escopo do
+   Desktop (quem já assinou pelo app participante aparece assinado no
+   documento; não dá pra assinar por aqui). */
+var _ptUltimoInfoBolao=null;
+function ptClausulaTaxaAdministrativa(info){
+  var tipo=info.tipo_organizacao;
+  if(tipo==='percentual'){
+    var pct=info.admin_percentual_premio==null?10:info.admin_percentual_premio;
+    return '<p>A remuneração do administrador ocorre por meio de <b>taxa administrativa de '+pct+'% sobre o valor bruto da premiação</b>, '+
+      'aplicada somente quando houver prêmio e descontada antes da divisão entre os participantes. '+
+      'Essa taxa <b>não incide sobre o valor arrecadado das cotas</b> — o administrador não recebe nada além dela.</p>';
+  }
+  if(tipo==='cotas'){
+    var qtd=info.admin_cotas==null?1:info.admin_cotas;
+    return '<p>A remuneração do administrador ocorre por meio de <b>'+qtd+' cota'+(qtd>1?'s':'')+' isenta'+(qtd>1?'s':'')+'</b> — '+
+      'o custo correspondente é diluído entre os demais participantes no rateio do jogo. '+
+      'Não há cobrança adicional sobre as premiações obtidas.</p>';
+  }
+  if(tipo==='fixo'){
+    return '<p>A remuneração do administrador ocorre por meio de um <b>valor fixo de organização</b> ('+ptBMoney(info.valor_fixo_organizacao)+' '+
+      'para o período do bolão), rateado entre os participantes. Não há cobrança adicional sobre as premiações obtidas.</p>';
+  }
+  return '<p>O administrador <b>não cobra qualquer taxa administrativa</b> — não retém valor sobre as cotas nem sobre eventuais premiações.</p>';
+}
+function ptAbrirDocumento(html){
+  var w=window.open('','_blank');
+  if(!w){ toast('Permita pop-ups para abrir o documento.'); return; }
+  w.document.write(html); w.document.close();
+}
+function ptAbrirTermosCondicoes(){
+  var info=_ptUltimoInfoBolao;
+  if(!info){ toast('Carregando dados do bolão — tente novamente em instantes.'); return; }
+  var v=function(x){ return x?_esc(x):'<span style="color:#999">[A PREENCHER]</span>'; };
+  var html='<html><head><meta charset="utf-8"><title>Termos e Condições — '+_esc(info.bolao_nome||'Bolão')+'</title>'+
+    '<style>@page{size:A4;margin:14mm}'+
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.55;font-size:12px}'+
+    'h1{font-size:17px;margin:0 0 4px}h2{font-size:12.5px;margin:16px 0 4px;color:#1a1a1a}'+
+    '.sub{color:#666;font-size:10px;margin-bottom:16px}'+
+    'ul{margin:4px 0;padding-left:20px}li{margin-bottom:2px}'+
+    'p{margin:4px 0 10px}'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
+    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
+      '<span style="font-size:12px;color:#ccc">Modelo padrão — recomenda-se revisão por advogado antes do uso.</span>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
+    '</div><div id="print-spacer" style="height:52px"></div>'+
+    '<h1>Termos e Condições</h1>'+
+    '<div class="sub">'+_esc(info.bolao_nome||'Bolão')+' · Administrador: '+v(info.admin_nome)+' ('+((info.admin_cpf_tipo||'cpf')==='cnpj'?'CNPJ':'CPF')+' '+v(info.admin_cpf)+')</div>'+
+    '<p>Este documento estabelece os Termos e Condições de participação no bolão acima identificado, definindo '+
+    'direitos, deveres e responsabilidades entre o <b>ADMINISTRADOR</b> e os <b>PARTICIPANTES</b>. Ao realizar o '+
+    'pagamento de qualquer cota via PIX e/ou ao aceitar estes termos no aplicativo, o participante declara que leu, '+
+    'compreendeu e concorda integralmente com este documento.</p>'+
+    '<h2>1. Identificação do Administrador</h2>'+
+    '<p>O bolão é administrado por '+((info.admin_cpf_tipo||'cpf')==='cnpj'?'pessoa jurídica':'pessoa física')+', '+v(info.admin_nome)+', '+((info.admin_cpf_tipo||'cpf')==='cnpj'?'CNPJ':'CPF')+' '+v(info.admin_cpf)+', responsável pela '+
+    'organização operacional do bolão e gestão das apostas coletivas.</p>'+
+    '<h2>2. Natureza do Serviço</h2>'+
+    '<p>O administrador atua exclusivamente como organizador de apostas coletivas entre participantes nas '+
+    'loterias oficiais, não realizando sorteios nem operando loterias. Suas atividades incluem:</p>'+
+    '<ul><li>organização dos participantes;</li><li>arrecadação das cotas;</li><li>elaboração das apostas;</li>'+
+    '<li>registro das apostas em casas lotéricas ou plataformas oficiais;</li><li>acompanhamento dos resultados;</li>'+
+    '<li>resgate das premiações;</li><li>repasse proporcional dos valores aos participantes.</li></ul>'+
+    '<h2>3. Ausência de Vínculo com a Caixa Econômica Federal</h2>'+
+    '<p>O bolão não possui vínculo institucional com a Caixa Econômica Federal. As apostas são realizadas nas '+
+    'loterias oficiais operadas pela Caixa, conforme a Lei nº 13.756/2018.</p>'+
+    '<h2>4. Participação</h2>'+
+    '<p>Para participar, o interessado deve realizar o pagamento via PIX dentro do prazo informado'+
+    (info.data_hora_encerramento?' — <b>encerramento em '+new Date(info.data_hora_encerramento).toLocaleDateString('pt-BR')+' às '+new Date(info.data_hora_encerramento).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</b>':'')+
+    ', respeitar o '+
+    'valor oficial da cota e manter o comprovante da transferência. O titular da conta que realizou o PIX será '+
+    'considerado o participante oficial.</p>'+
+    '<h2>5. Restrição de Idade</h2>'+
+    '<p>É proibida a participação de menores de 18 anos, conforme legislação brasileira aplicável às loterias.</p>'+
+    '<h2>6. Elaboração dos Jogos e Valor da Cota</h2>'+
+    '<p>Os jogos são elaborados pela administração utilizando estratégias estatísticas, probabilísticas ou '+
+    'operacionais. O valor da cota pode variar conforme a quantidade de dezenas selecionadas, o volume de apostas '+
+    'e a modalidade da loteria. O participante declara estar ciente de que o valor da cota representa a '+
+    'participação em uma estratégia coletiva, sem garantia de premiação.</p>'+
+    '<h2>7. Taxa Administrativa</h2>'+
+    ptClausulaTaxaAdministrativa(info)+
+    '<h2>8. Distribuição das Premiações</h2>'+
+    '<p>As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada '+
+    'participante, após a dedução da taxa administrativa (quando aplicável).</p>'+
+    '<h2>9. Pagamento das Premiações</h2>'+
+    '<p>Os pagamentos serão realizados preferencialmente por PIX, utilizando chave vinculada ao CPF do '+
+    'participante.</p>'+
+    '<h2>10. Prazos e Validação das Apostas</h2>'+
+    '<p>Pagamentos realizados após o prazo limite do concurso ou com valor divergente do valor da cota poderão '+
+    'ser desconsiderados para o concurso vigente e estornados.</p>'+
+    '<h2>11. Resultado Oficial</h2>'+
+    '<p>Para fins de conferência das apostas e premiações, será considerado exclusivamente o resultado oficial '+
+    'divulgado pelas Loterias Caixa.</p>'+
+    '<h2>12. Validade das Apostas</h2>'+
+    '<p>A validade das apostas depende do registro efetivo em casas lotéricas autorizadas ou sistemas oficiais '+
+    'das Loterias Caixa.</p>'+
+    '<h2>13. Privacidade e Proteção de Dados</h2>'+
+    '<p>Os dados pessoais serão tratados conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018), '+
+    'com finalidade de identificação dos participantes, organização do bolão, pagamento de premiações e '+
+    'prestação de contas.</p>'+
+    '<h2>14. Prestação de Contas</h2>'+
+    '<p>O administrador poderá disponibilizar relatórios contendo valores arrecadados, quantidade de cotas, '+
+    'jogos realizados, resultados obtidos e premiações distribuídas.</p>'+
+    '<h2>15. Limitação de Responsabilidade</h2>'+
+    '<p>O administrador não se responsabiliza por resultados dos sorteios, falhas de sistemas bancários, '+
+    'indisponibilidade do PIX, erros operacionais de casas lotéricas ou falhas de sistemas de terceiros.</p>'+
+    '<h2>16. Caso Fortuito ou Força Maior</h2>'+
+    '<p>Eventos fora do controle do administrador caracterizam caso fortuito ou força maior, incluindo falhas '+
+    'tecnológicas ou operacionais de terceiros.</p>'+
+    '<h2>17. Restituição de Pagamento Indevido</h2>'+
+    '<p>Caso ocorra pagamento indevido, duplicado ou em valor superior ao devido, o participante deverá realizar '+
+    'a devolução imediata do valor recebido (Código Civil, art. 876).</p>'+
+    '<h2>18. Prevenção a Fraudes</h2>'+
+    '<p>O administrador poderá realizar verificações para prevenir fraudes, incluindo validação de identidade, '+
+    'verificação de pagamentos e auditoria de operações.</p>'+
+    '<h2>19. Erro Material</h2>'+
+    '<p>Caso seja identificado erro material em registros ou relatórios, o administrador poderá realizar as '+
+    'correções necessárias.</p>'+
+    '<h2>20. Divergência entre Pagamento e Cotas</h2>'+
+    '<p>Caso haja divergência entre o valor transferido e o número de cotas registradas, prevalecerá o valor '+
+    'efetivamente recebido e validado pela administração, sendo realizados ajustes conforme necessário.</p>'+
+    '<h2>21. Conduta nos Grupos</h2>'+
+    '<p>Nos grupos oficiais não são permitidos linguagem ofensiva, ataques pessoais, propaganda política ou '+
+    'divulgação comercial não autorizada.</p>'+
+    '<h2>22. Cancelamento de Participação</h2>'+
+    '<p>O administrador poderá suspender ou cancelar a participação de usuários que descumpram as regras ou '+
+    'prejudiquem o funcionamento do bolão.</p>'+
+    '<h2>23. Alteração dos Termos</h2>'+
+    '<p>Estes Termos poderão ser atualizados sempre que necessário, passando a valer para concursos futuros.</p>'+
+    '<h2>24. Auditoria e Governança</h2>'+
+    '<p>A administração poderá realizar verificações internas para garantir transparência e integridade das '+
+    'operações.</p>'+
+    '<h2>25. Prevenção à Lavagem de Dinheiro</h2>'+
+    '<p>A administração poderá recusar participações ou transações que apresentem indícios de irregularidade, '+
+    'fraude ou violação da legislação aplicável.</p>'+
+    '<h2>26. Aceitação dos Termos</h2>'+
+    '<p>O pagamento da cota via PIX e/ou o aceite destes termos no aplicativo caracterizam aceitação automática '+
+    'e integral deste documento.</p>'+
+    '<h2>27. Resolução de Conflitos</h2>'+
+    '<p>Eventuais conflitos deverão ser inicialmente resolvidos de forma administrativa e amigável entre as '+
+    'partes.</p>'+
+    '<h2>28. Foro</h2>'+
+    '<p>Para dirimir controvérsias decorrentes destes Termos, fica eleito o foro da comarca de domicílio do '+
+    'administrador, com renúncia a qualquer outro.</p>'+
+  '</body></html>';
+  ptAbrirDocumento(html);
+}
+function ptHtmlLinhasAssinaturas(itens){
+  var linhas=[];
+  for(var i=0;i<itens.length;i+=2){
+    var par=itens.slice(i,i+2);
+    linhas.push('<div class="assinaturas-linha">'+
+      par.map(function(it){
+        return '<div class="assinatura">'+
+          (it.png
+            ?'<img src="'+_esc(it.png)+'" style="max-height:34px;max-width:60%;display:block;margin:32px auto 4px"/>'+
+              '<div class="linha" style="border-top:none;margin-top:0;padding-top:0">'+_esc(it.nome)+' <span style="color:#888;font-size:9px">(assinado digitalmente'+(it.data?' em '+it.data:'')+')</span></div>'
+            :'<div class="linha">'+_esc(it.nome)+'</div>')+
+        '</div>';
+      }).join('')+
+    '</div>');
+  }
+  return linhas.join('');
+}
+async function ptAbrirTermoConstituicao(bolaoId){
+  var info=_ptUltimoInfoBolao;
+  if(!info){ toast('Carregando dados do bolão — tente novamente em instantes.'); return; }
+  var sb=_getSbClient();
+  var {data,error}=await sb.rpc('rpc_participante_lista_bolao',{p_bolao_id:bolaoId});
+  if(error||!data){ toast('Não foi possível carregar o Termo de Constituição: '+(error?error.message:'')); return; }
+  var participantes=data.participantes||[];
+  var concursos=data.concursos||[];
+  var totalCotas=participantes.reduce(function(a,p){return a+(p.cotas||1);},0)
+    +(info.tipo_organizacao==='cotas'?(info.admin_cotas==null?1:info.admin_cotas):0);
+  var pct=function(cotas){ return totalCotas>0?((cotas/totalCotas)*100).toFixed(2):'0,00'; };
+  var v=function(x){ return x?_esc(x):'<span style="color:#999">—</span>'; };
+  var linhasParticipantes=participantes.map(function(p){
+    var celAssinatura=p.termos_assinatura_png
+      ?'<td style="text-align:center;padding:2px 7px"><img src="'+_esc(p.termos_assinatura_png)+'" style="max-height:30px;max-width:120px"/><div style="font-size:8px;color:#888">assinado em '+ptFmtData(p.termos_aceitos_em)+'</div></td>'
+      :'<td style="border-bottom:1px solid #333;height:36px"></td>';
+    return '<tr><td>'+_esc(p.nome)+'</td><td>'+v(p.cpf)+'</td><td style="text-align:center">'+(p.cotas||1)+'</td>'+
+      '<td style="text-align:center">'+pct(p.cotas||1)+'%</td><td style="text-align:right">'+ptBMoney(p.valor_cota)+'</td>'+
+      celAssinatura+'</tr>';
+  }).join('');
+  var concursosVinc=concursos.map(function(c){
+    return _esc(ptLoterianome(c.loteria))+' — Concurso '+_esc(c.concurso)+(c.data?' ('+_esc(c.data)+')':'');
+  });
+  var dataEmissao=new Date().toLocaleDateString('pt-BR');
+  var html='<html><head><meta charset="utf-8"><title>Termo de Constituição — '+_esc(info.bolao_nome||'Bolão')+'</title>'+
+    '<style>@page{size:A4;margin:14mm}'+
+    'body{font-family:Georgia,\'Times New Roman\',serif;color:#111;padding:0;line-height:1.55;font-size:12.5px}'+
+    'h1{font-size:16px;text-align:center;letter-spacing:.03em;margin:0 0 4px}'+
+    '.sub{text-align:center;color:#666;font-size:10px;margin-bottom:18px}'+
+    'h2{font-size:12.5px;margin:16px 0 6px;border-bottom:1px solid #ccc;padding-bottom:2px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}'+
+    'th{background:#f0f0f0;text-align:left;padding:5px 7px;border-bottom:1px solid #999}'+
+    'td{padding:5px 7px;border-bottom:1px solid #ddd}'+
+    '.box{background:#f7f7f5;border:1px solid #e0e0dc;border-radius:5px;padding:8px 12px;margin-bottom:6px}'+
+    '.assinaturas-linha{display:flex;justify-content:center;margin-top:34px}'+
+    '.assinatura{flex:0 0 45%;text-align:center}'+
+    '.assinatura+.assinatura{margin-left:10mm}'+
+    '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
+    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
+      '<span style="font-size:12px;color:#ccc">Documento de governança/comprovação — não substitui orientação de contador ou advogado.</span>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
+    '</div><div id="print-spacer" style="height:52px"></div>'+
+    '<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
+    '<div class="sub">'+_esc(info.bolao_nome||'Bolão')+' · Emitido em '+dataEmissao+'</div>'+
+    '<p>Pelo presente instrumento, os participantes abaixo identificados constituem, de comum acordo, um bolão particular '+
+    'destinado à realização de apostas nas Loterias CAIXA, nos termos e condições descritos a seguir.</p>'+
+    '<h2>Administrador do Bolão</h2>'+
+    '<div class="box"><b>Nome:</b> '+v(info.admin_nome)+' &nbsp;·&nbsp; <b>'+((info.admin_cpf_tipo||'cpf')==='cnpj'?'CNPJ':'CPF')+':</b> '+v(info.admin_cpf)+'</div>'+
+    '<h2>Participantes</h2>'+
+    '<table><thead><tr><th>Nome</th><th>CPF</th><th style="text-align:center">Cotas</th><th style="text-align:center">Percentual</th><th style="text-align:right">Valor pago</th><th>Assinatura</th></tr></thead>'+
+    '<tbody>'+linhasParticipantes+'</tbody></table>'+
+    '<h2>Objeto</h2>'+
+    '<p>O presente bolão tem por finalidade a realização de apostas nas modalidades administradas pela CAIXA, '+
+    'utilizando exclusivamente recursos financeiros provenientes dos participantes acima relacionados'+
+    (concursosVinc.length?', nos seguintes concursos: '+_esc(concursosVinc.join('; '))+'.':'.')+'</p>'+
+    '<h2>Responsabilidade do Administrador</h2>'+
+    '<p>O administrador será responsável apenas por receber as contribuições, registrar as apostas, armazenar os '+
+    'comprovantes e prestar contas aos participantes, podendo receber eventual prêmio em razão da impossibilidade '+
+    'técnica de divisão automática pela plataforma utilizada. Todos os participantes reconhecem que o administrador '+
+    'não é proprietário exclusivo das apostas.</p>'+
+    '<h2>Divisão dos Prêmios</h2>'+
+    '<p>Todo prêmio será dividido proporcionalmente ao percentual de participação constante neste documento. '+
+    'Os participantes reconhecem que os valores pertencem ao grupo desde a realização da aposta.</p>'+
+    '<h2>Declaração de Consentimento</h2>'+
+    '<p>Ao realizar o pagamento via Pix referente à cota, o participante reconhece ter lido, compreendido e '+
+    'aceitado integralmente as regras deste bolão, aderindo de forma livre e voluntária às condições '+
+    'estabelecidas. Trata-se de acordo privado, consensual e informal entre as partes, sem qualquer vínculo, '+
+    'parceria ou representação da Caixa Econômica Federal, regido pelos princípios da liberdade contratual '+
+    '(art. 421 e seguintes do Código Civil) e da boa-fé objetiva (art. 422 do Código Civil).</p>'+
+    '<h2>Data e Assinaturas</h2>'+
+    '<p>'+_esc(info.bolao_nome||'Bolão')+', '+dataEmissao+'.</p>'+
+    ptHtmlLinhasAssinaturas([{nome:(info.admin_nome||'Administrador')+' (Administrador)',png:null,data:null}].concat(participantes.map(function(p){
+      return {nome:p.nome,png:p.termos_assinatura_png||null,data:p.termos_aceitos_em?ptFmtData(p.termos_aceitos_em):null};
+    })))+
+  '</body></html>';
+  ptAbrirDocumento(html);
+}
+
 /* ── Comprovante de PIX (upload com barra de progresso real, via XHR bruto
    — supabase-js .storage.upload() não expõe progresso de envio) ── */
 async function ptCarregarComprovantesPix(bolaoParticipanteId){
@@ -21384,6 +21630,12 @@ async function ptRenderDetalheBolao(bolaoId){
   html+='<div class="pt-detail-cols">'+
     ptSecaoComprovantePixHtml(comprovantes,info.bolao_participante_id,bolaoId,true)+
     ptSecaoBilhetesHtml(bilhetesAoVivo)+
+  '</div>';
+  _ptUltimoInfoBolao=info;
+  html+='<div class="pt-card">'+
+    '<div class="pt-section-title" style="margin-top:0">📄 Documentos</div>'+
+    '<button class="pt-btn-link" onclick="ptAbrirTermosCondicoes()" style="display:block;width:100%;text-align:left;padding:8px 0">📜 Termos e Condições</button>'+
+    '<button class="pt-btn-link" onclick="ptAbrirTermoConstituicao(\''+bolaoId+'\')" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Termo de Constituição do Bolão</button>'+
   '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
   detailEl.innerHTML=html;
