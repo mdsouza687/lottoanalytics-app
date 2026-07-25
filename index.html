@@ -14888,7 +14888,7 @@ function novoBolao(){
   var _mesAtual=_semAtual.inicioISO.slice(0,7);
   _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cpfTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
     semanaInicio:_semAtual.inicio, semanaFim:_semAtual.fim, arrecadacaoTotal:0, rodadas:[],
-    mesReferencia:_mesAtual, semanas:_calcSemanasDoMes(_mesAtual), dataSorteio:'',
+    mesReferencia:_mesAtual, semanas:_calcSemanasFixas(_semAtual.inicio,4), dataSorteio:'',
     concursos:[], jogosVinculados:[], numDezBolao:0, loteria:currentKey };
   renderFormBolao();
   // Bolão nasce virgem (Doc 2): NÃO chama mais _atualizarConcursoPremio()
@@ -14970,6 +14970,62 @@ function _parseDataBR(str){
   return isNaN(dt.getTime())?null:dt;
 }
 function _semanaLabel(ini,fim){ return ini&&fim?'Semana '+ini+' a '+fim:'—'; }
+// Converte "AAAA-MM-DD" (valor nativo de <input type="date">) para
+// "DD/MM/AAAA" (formato usado em todo o resto do app para semanaInicio/Fim).
+function _isoParaDdmm(iso){
+  if(!iso) return '';
+  var p=iso.split('-');
+  return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):'';
+}
+// Converte "DD/MM/AAAA" para "AAAA-MM-DD" (valor nativo de <input type="date">).
+function _ddmmParaIso(ddmm){
+  var d=_parseDataBR(ddmm);
+  if(!d) return '';
+  var pad=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+// Gera N semanas consecutivas (segunda a domingo) de 7 dias a partir de
+// uma data de início (DD/MM/AAAA) — usado no bolão mensal (N=4, "4
+// semanas de 7 dias", pedido explícito do usuário), substituindo o
+// cálculo antigo por mês-calendário (que podia gerar 4 ou 5 semanas
+// dependendo de quantos dias o mês tinha, e nunca alinhava exatamente
+// com "início manual + 4 semanas fixas"). Mesmo formato de retorno de
+// _calcSemanasDoMes ({inicio,fim,valorJogos}) para continuar
+// compatível com toda a lógica existente de gasto/prêmio por semana.
+function _calcSemanasFixas(inicioStr, n){
+  n = n||4;
+  var base=_parseDataBR(inicioStr);
+  if(!base) return _calcSemanasDoMes(new Date().toISOString().slice(0,7));
+  var fmt=function(x){return x.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
+  var semanas=[];
+  for(var i=0;i<n;i++){
+    var seg=new Date(base.getFullYear(),base.getMonth(),base.getDate()+i*7);
+    var dom=new Date(seg.getFullYear(),seg.getMonth(),seg.getDate()+6);
+    semanas.push({inicio:fmt(seg),fim:fmt(dom),valorJogos:0});
+  }
+  return semanas;
+}
+// Ponto único que mantém semanaFim/semanas coerentes com semanaInicio,
+// chamado sempre que semanaInicio muda por QUALQUER motivo (edição
+// manual, botão de recalcular, ou a regra própria dos sorteios
+// especiais em _atualizarConcursoPremio) — bolão mensal passa a ter
+// SEMPRE 4 semanas fixas de 7 dias a partir do início (regra nova);
+// semanal/único continuam com uma única semana de 7 dias.
+function _sincronizarPeriodoBolao(s){
+  s=s||_boloesState;
+  if(!s.semanaInicio) return;
+  if(s.modalidade==='mensal'){
+    s.semanas=_calcSemanasFixas(s.semanaInicio,4);
+    s.semanaFim=s.semanas[s.semanas.length-1].fim;
+    s.mesReferencia=_ddmmParaIso(s.semanaInicio).slice(0,7); // só informativo/legado, não usado pra calcular mais nada
+  } else {
+    var base=_parseDataBR(s.semanaInicio);
+    if(base){
+      var dom=new Date(base.getFullYear(),base.getMonth(),base.getDate()+6);
+      s.semanaFim=dom.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    }
+  }
+}
 // Detecta se o concurso vinculado ao bolão JÁ FOI REALIZADO — ou seja, o
 // resultado oficial dele já saiu E o dia do sorteio já passou. Usado para
 // bloquear edição (datas, participantes, contribuições etc.) depois que o
@@ -14998,18 +15054,13 @@ function _semanaLabel(ini,fim){ return ini&&fim?'Semana '+ini+' a '+fim:'—'; }
 function _bolaoConcursoJaRealizado(s){
   if(!s) return false;
   if(s.modalidade==='semanal'||s.modalidade==='mensal'){
-    var fimPeriodo=null;
-    if(s.modalidade==='mensal'){
-      // Fim do período mensal = último dia do MÊS CALENDÁRIO (ex.: 31/07),
-      // não o sábado da 4ª semana do bloco semanal — esse sábado pode cair
-      // antes ou depois do fim real do mês, então usá-lo finalizaria o
-      // bolão mensal cedo ou tarde demais.
-      var mesRef=(s.mesReferencia||new Date().toISOString().slice(0,7)).split('-');
-      var ano=parseInt(mesRef[0]),mesIdx=parseInt(mesRef[1])-1;
-      fimPeriodo=(ano&&!isNaN(mesIdx))?new Date(ano,mesIdx+1,0):null; // dia 0 do mês seguinte = último dia do mês atual
-    } else {
-      fimPeriodo=_parseDataBR(s.semanaFim);
-    }
+    // Fim do período (semanal ou mensal) = semanaFim, que agora é sempre
+    // calculado a partir da Data de Início (uma semana pro semanal, 4
+    // semanas fixas de 7 dias pro mensal — ver _sincronizarPeriodoBolao).
+    // Antes o mensal usava o último dia do MÊS CALENDÁRIO como fim, o que
+    // podia cair antes ou depois do fim real do bloco de 4 semanas quando
+    // a data de início não coincidia com o 1º dia do mês.
+    var fimPeriodo=_parseDataBR(s.semanaFim);
     if(!fimPeriodo) return false;
     fimPeriodo.setHours(0,0,0,0);
     var hojePeriodo=new Date(); hojePeriodo.setHours(0,0,0,0);
@@ -15633,8 +15684,25 @@ function _atualizarArrecadacaoAposRodada(custo){
 function _recalcularSemanaBolao(){
   var sem=_calcSemanaAtual();
   _boloesState.semanaInicio=sem.inicio;
-  _boloesState.semanaFim=sem.fim;
+  _sincronizarPeriodoBolao();
   toast('Semana recalculada — clique em "Salvar Bolão" para confirmar.');
+  renderFormBolao();
+}
+// Data de Início agora editável manualmente (pedido do usuário) — antes o
+// campo era só leitura, sempre travado na segunda-feira da semana atual.
+// Deixado em branco, cai de volta na "regra atual" (segunda-feira atual).
+// Bolão mensal passa a contar sempre 4 semanas fixas de 7 dias a partir
+// dessa data (_sincronizarPeriodoBolao), no lugar do cálculo por mês
+// calendário. Não interfere na regra própria dos sorteios especiais
+// (_atualizarConcursoPremio), que também chama _sincronizarPeriodoBolao
+// depois de definir a semana pela data real do sorteio especial.
+function _atualizarDataInicioBolao(valorIso){
+  if(valorIso){
+    _boloesState.semanaInicio=_isoParaDdmm(valorIso);
+  } else {
+    _boloesState.semanaInicio=_calcSemanaAtual().inicio;
+  }
+  _sincronizarPeriodoBolao();
   renderFormBolao();
 }
 function encerrarSemana(){
@@ -15647,7 +15715,7 @@ function encerrarSemana(){
   // Avança 7 dias para próxima semana
   var addDays=function(iso,n){var d=new Date(iso);d.setDate(d.getDate()+n);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
   _boloesState.semanaInicio=addDays(prox.inicioISO,7);
-  _boloesState.semanaFim=addDays(prox.fimISO,7);
+  _sincronizarPeriodoBolao();
   salvarBolao().then(function(){ toast('✓ Semana encerrada. '+alterados+' participante'+(alterados!==1?'s':'')+' eventual'+(alterados!==1?'is':'')+' inativado'+(alterados!==1?'s':'')+'.'); });
   renderFormBolao();
   renderParticipantesBoloes();
@@ -15896,14 +15964,11 @@ function renderFormBolao(){
     _blocoMensal=
       '<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
-          '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#c4b5fd">Semanas do Bolão Mensal &mdash; Dom a Sab</div>'+
-          '<div style="display:flex;align-items:center;gap:8px">'+
-            '<span style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Mes</span>'+
-            '<input type="month" id="bol-mes-ref" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--font-body)" value="'+(s.mesReferencia||new Date().toISOString().slice(0,7))+'" onchange="_boloesState.mesReferencia=this.value;_boloesState.semanas=_calcSemanasDoMes(this.value);renderFormBolao()"/>'+
-          '</div>'+
+          '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#c4b5fd">Semanas do Bolão Mensal &mdash; Seg a Dom</div>'+
+          '<div style="font-size:11px;color:var(--text-muted)">'+(s.semanaInicio&&s.semanaFim?_esc(s.semanaInicio)+' a '+_esc(s.semanaFim):'—')+'</div>'+
         '</div>'+
         '<div style="display:grid;grid-template-columns:40px 1fr 180px 180px;gap:8px;padding:4px 10px 6px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">'+
-          '<span></span><span>Período (Dom - Sab)</span><span style="text-align:right">Prêmios da semana (R$)</span><span style="text-align:right">Gasto na semana (R$)</span>'+
+          '<span></span><span>Período (Seg - Dom)</span><span style="text-align:right">Prêmios da semana (R$)</span><span style="text-align:right">Gasto na semana (R$)</span>'+
         '</div>'+
         _rows+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px;margin-top:8px">'+
@@ -15926,11 +15991,11 @@ function renderFormBolao(){
       '<div><label style="'+lbl+'">Nome do Bolão</label>'+
         '<input id="bol-nome" style="'+inp+'" value="'+_esc(s.nome)+'" placeholder="Ex: Mega da Virada 2026" oninput="_boloesState.nome=this.value"/>'+
       '</div>'+
-      '<div><label style="'+lbl+'">Data início da semana (Seg)</label>'+
-        '<input id="bol-sem-ini" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio||'')+'" readonly title="Preenchido automaticamente (segunda-feira da semana atual)"/></div>'+
-      '<div><label style="'+lbl+'">Data fim da semana (Dom)</label>'+
-        '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Preenchido automaticamente (domingo da semana atual)"/></div>'+
-      '<button onclick="_recalcularSemanaBolao()" title="Recalcular data de início/fim da semana atual — use se os campos ficaram em branco" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
+      '<div><label style="'+lbl+'">'+(s.modalidade==='mensal'?'Data de início do bolão':'Data início da semana (Seg)')+'</label>'+
+        '<input id="bol-sem-ini" type="date" style="'+inp+'" value="'+_esc(_ddmmParaIso(s.semanaInicio))+'" onchange="_atualizarDataInicioBolao(this.value)" title="Deixe em branco para usar a regra atual (segunda-feira da semana corrente)"/></div>'+
+      '<div><label style="'+lbl+'">'+(s.modalidade==='mensal'?'Data de fim do bolão (4 semanas)':'Data fim da semana (Dom)')+'</label>'+
+        '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="Calculado automaticamente a partir da data de início"/></div>'+
+      '<button onclick="_recalcularSemanaBolao()" title="Recalcular data de início/fim a partir de hoje — use se quiser voltar pra regra atual" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
     '</div>'+
 
     // Prazo de pagamento (NÃO é o encerramento do bolão em si — esse é
@@ -16594,7 +16659,7 @@ async function _atualizarConcursoPremio(){
         if(dataEspecial){
           var semEsp=_calcSemanaDeData(dataEspecial);
           _boloesState.semanaInicio=semEsp.inicio;
-          _boloesState.semanaFim=semEsp.fim;
+          _sincronizarPeriodoBolao();
         }
       }
     }
@@ -18470,7 +18535,9 @@ function imprimirTermoConstituicao(){
       '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
-    '<div class="sub">'+_esc(s.nome)+' · Emitido em '+dataEmissao+'</div>'+
+    '<div class="sub">'+_esc(s.nome)+' · Emitido em '+dataEmissao+
+      (s.semanaInicio&&s.semanaFim?' · Período do bolão: '+_esc(s.semanaInicio)+' a '+_esc(s.semanaFim):'')+
+    '</div>'+
     '<p>Pelo presente instrumento, os participantes abaixo identificados constituem, de comum acordo, um bolão particular '+
     'destinado à realização de apostas nas Loterias CAIXA, nos termos e condições descritos a seguir.</p>'+
     '<h2>Administrador do Bolão</h2>'+
@@ -19961,7 +20028,13 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     horaEncerramento:b.data_hora_encerramento?new Date(b.data_hora_encerramento).toTimeString().slice(0,5):'',
     pushEncerramentoTitulo:b.push_encerramento_titulo||'', pushEncerramentoCorpo:b.push_encerramento_corpo||''
   };
-  estado.semanas=_calcSemanasDoMes(estado.mesReferencia);
+  // Bolões mensais agora contam sempre 4 semanas fixas de 7 dias a partir
+  // de semana_inicio (regra nova) — mantém o cálculo antigo por mês
+  // calendário só como fallback pra bolões salvos sem semana_inicio
+  // (dado legado de antes desta mudança).
+  estado.semanas=(estado.modalidade==='mensal'&&estado.semanaInicio)
+    ?_calcSemanasFixas(estado.semanaInicio,4)
+    :_calcSemanasDoMes(estado.mesReferencia);
   return {ok:true, estado:estado};
 }
 // Mesmo formato "g" (boloes_v2) que toda a lógica de negócio de vincular
@@ -21164,7 +21237,9 @@ async function ptAbrirTermoConstituicao(bolaoId){
       '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
-    '<div class="sub">'+_esc(info.bolao_nome||'Bolão')+' · Emitido em '+dataEmissao+'</div>'+
+    '<div class="sub">'+_esc(info.bolao_nome||'Bolão')+' · Emitido em '+dataEmissao+
+      (data.semana_inicio&&data.semana_fim?' · Período do bolão: '+_esc(data.semana_inicio)+' a '+_esc(data.semana_fim):'')+
+    '</div>'+
     '<p>Pelo presente instrumento, os participantes abaixo identificados constituem, de comum acordo, um bolão particular '+
     'destinado à realização de apostas nas Loterias CAIXA, nos termos e condições descritos a seguir.</p>'+
     '<h2>Administrador do Bolão</h2>'+
