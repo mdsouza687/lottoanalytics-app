@@ -15729,7 +15729,22 @@ function renderFormBolao(){
   // do Multi-Loteria (não mais a cor da loteria ativa no topo do app).
   var cor = MULTI_LOTERIA_COR;
   var s = _boloesState;
-  // Se o bolão mistura loterias de moedas diferentes (ex.: nacionais + 
+  // Blindagem: garante que semanaFim/semanas de um bolão mensal SEMPRE
+  // reflitam o semanaInicio atual, em toda renderização — não só quando
+  // o campo muda por um dos caminhos conhecidos (edição manual, botão
+  // recalcular, sorteio especial). Sem isso, um bolão carregado do banco
+  // com semana_inicio antigo (salvo antes desta funcionalidade existir)
+  // podia ficar com a tabela de semanas dessincronizada da data mostrada
+  // no campo, até que algum desses caminhos específicos rodasse.
+  if(s.modalidade==='mensal' && s.semanaInicio){
+    var _finsAtuais=_calcSemanasFixas(s.semanaInicio,4);
+    var _fimEsperado=_finsAtuais[_finsAtuais.length-1].fim;
+    if(!s.semanas || !s.semanas.length || s.semanas.length!==_finsAtuais.length
+        || s.semanas[0].inicio!==_finsAtuais[0].inicio || s.semanaFim!==_fimEsperado){
+      _sincronizarPeriodoBolao(s);
+    }
+  }
+  // Se o bolão mistura loterias de moedas diferentes (ex.: nacionais +
   // Powerball/Mega Millions) e o admin usa valor fixo de organização numa
   // moeda diferente de BRL, garante que a cotação do dia esteja disponível
   // para exibir o valor convertido corretamente. Busca em segundo plano,
