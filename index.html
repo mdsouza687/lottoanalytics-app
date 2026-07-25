@@ -20316,19 +20316,30 @@ var BolaoJogosRepo = {
       // gravado como não-admin no schema novo, mesmo o admin de verdade —
       // mesmo bug de "campo que não existe" já visto hoje em
       // _vincularSalvoAoBolaoImpl (mês/time).
-      var _montarRow=function(p){
+      // ehNovo=true (INSERT, participante ainda sem id): inclui e-mail/
+      // whatsapp — é a ÚNICA gravação que esse participante vai ter desses
+      // campos, então omitir aqui (bug encontrado em produção, 2026-07-25)
+      // fazia o convite pedir o WhatsApp de novo pra sempre, mesmo quando
+      // ele já vinha preenchido localmente (digitado à mão ou carregado da
+      // "📌 Lista salva para reuso") — retrabalho evitável.
+      // ehNovo=false/omitido (UPDATE, participante já tem id): continua
+      // omitindo e-mail/whatsapp de propósito, pra não sobrescrever o valor
+      // já gravado no banco (ex.: por criarConviteDual) com o estado local,
+      // que pode estar desatualizado.
+      var _montarRow=function(p,ehNovo){
         var ehAdmin=!!(p.admin&&p.nome&&p.admin===p.nome);
-        return { bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
+        var row={ bolao_id:bolaoIdNovo, user_id:_uid, nome:(p.nome||'?').trim(), cotas:p.cotas>0?p.cotas:1,
           is_admin:ehAdmin, isento:!!p.isento, status:p.statusPart==='inativo'?'inativo':'ativo',
           valor_cota:p.valorCota>0?p.valorCota:0, status_pag:p.statusPag==='pago'?'pago':'naopagou',
           // CPF é só evidência documental pro Termo de Constituição do
-          // Bolão — opcional, sem risco de "overwrite" como e-mail/whatsapp
-          // (que ficam de fora daqui de propósito, ver comentário acima),
-          // então entra na sincronização normal.
+          // Bolão — sem risco de "overwrite" (ver comentário acima sobre
+          // e-mail/whatsapp), então entra na sincronização normal sempre.
           cpf:(p.cpf||'').trim()||null };
-        // Colunas de convite/contato NUNCA entram aqui — omitir da upsert
-        // preserva o valor já gravado (convite aceito etc.) em vez de
-        // sobrescrever com o estado local, que nem carrega esses campos.
+        if(ehNovo){
+          row.email=(p.email||'').trim()||null;
+          row.whatsapp=(p.whatsapp||'').replace(/\D/g,'')||null;
+        }
+        return row;
       };
       if(participantesArr&&participantesArr.length){
         // CORREÇÃO (achada em produção, 2026-07-19): um upsert ÚNICO
@@ -20351,7 +20362,7 @@ var BolaoJogosRepo = {
           if(upd.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] upsert existentes',upd.error.message); toast('Erro ao atualizar participantes: '+upd.error.message); return false; }
         }
         if(novosLocal.length){
-          var rowsNovos=novosLocal.map(_montarRow);
+          var rowsNovos=novosLocal.map(function(p){ return _montarRow(p,true); });
           var ins=await sb.from('bolao_participantes').insert(rowsNovos).select('id');
           if(ins.error){ console.warn('[BolaoJogosRepo.sincronizarParticipantesDual] insert novos',ins.error.message); toast('Erro ao salvar novos participantes: '+ins.error.message); return false; }
           // Participantes novos recebem o uuid gerado pelo banco — grava de
