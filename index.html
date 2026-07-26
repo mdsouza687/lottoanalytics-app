@@ -16044,7 +16044,7 @@ function renderFormBolao(){
         '<input id="bol-data-encerr" type="date" style="'+inp+'" value="'+_esc(s.dataEncerramento||'')+'" onchange="_boloesState.dataEncerramento=this.value"/></div>'+
       '<div><label style="'+lbl+'">Hora limite p/ pagamento</label>'+
         '<input id="bol-hora-encerr" type="time" style="'+inp+'" value="'+_esc(s.horaEncerramento||'')+'" onchange="_boloesState.horaEncerramento=this.value"/></div>'+
-      '<button onclick="_editarAvisoEncerramento()" title="Personalize o texto do aviso automático (padrão: \'Prazo de pagamento encerrando!\' se deixar em branco) — funciona mesmo antes de ativar o bolão" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ Aviso 10min antes</button>'+
+      '<button onclick="_editarAvisoEncerramento()" title="Personalize o texto do aviso automático (padrão: \'Prazo de pagamento encerrando!\' se deixar em branco) — enviado 2h, 1h, 30min e 10min antes do prazo, só pra quem ainda está em débito. Funciona mesmo antes de ativar o bolão" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ Avisos aos devedores (2h/1h/30/10min)</button>'+
     '</div>'+
 
     // Linha 2: Tipo de sorteio | Modalidade
@@ -17447,7 +17447,17 @@ async function _salvarBolaoImpl(){
     dataSorteio: s.dataSorteio||'',
     semanaInicio: s.semanaInicio||'', semanaFim: s.semanaFim||'',
     rodadas: s.rodadas||[],
-    numDez: s.numDezBolao||0
+    numDez: s.numDezBolao||0,
+    // Faltavam aqui — _camposBolaoParaLinha (chamada logo abaixo, via
+    // espelharBolaoDual) lê esses campos de "registro" pra montar
+    // data_hora_encerramento, mas eles nunca eram copiados de volta de
+    // _boloesState. Resultado: o prazo de pagamento sempre gravava como
+    // null, não importa o que o organizador preenchesse no formulário
+    // (achado ao vivo: nenhum bolão em produção tinha essa data salva).
+    pushLimitePremioCota: s.pushLimitePremioCota,
+    dataEncerramento: s.dataEncerramento||'', horaEncerramento: s.horaEncerramento||'',
+    dataHoraEncerramentoOriginal: s.dataHoraEncerramentoOriginal||null,
+    pushEncerramentoTitulo: s.pushEncerramentoTitulo||'', pushEncerramentoCorpo: s.pushEncerramentoCorpo||''
   };
   try{
     var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
@@ -20064,7 +20074,11 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||'',
     pushLimitePremioCota:b.push_limite_premio_cota==null?500:parseFloat(b.push_limite_premio_cota),
     dataHoraEncerramentoOriginal:b.data_hora_encerramento||null,
-    dataEncerramento:b.data_hora_encerramento?new Date(b.data_hora_encerramento).toISOString().slice(0,10):'',
+    // Usa componentes LOCAIS pros dois campos — toISOString() devolve a
+    // data em UTC, que pode cair no dia seguinte/anterior ao horário local
+    // escolhido (ex.: 23h30 local vira 02h30 UTC do dia seguinte), fazendo
+    // o campo "Data limite" mostrar um dia diferente do que foi salvo.
+    dataEncerramento:(function(){ if(!b.data_hora_encerramento) return ''; var dt=new Date(b.data_hora_encerramento); var p=function(n){return String(n).padStart(2,'0');}; return dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate()); })(),
     horaEncerramento:b.data_hora_encerramento?new Date(b.data_hora_encerramento).toTimeString().slice(0,5):'',
     pushEncerramentoTitulo:b.push_encerramento_titulo||'', pushEncerramentoCorpo:b.push_encerramento_corpo||''
   };
@@ -20267,7 +20281,15 @@ var BolaoJogosRepo = {
       push_encerramento_titulo: registro.pushEncerramentoTitulo||null, push_encerramento_corpo: registro.pushEncerramentoCorpo||null,
       updated_at: new Date().toISOString()
     };
-    if(mudouEncerramento) linha.push_encerramento_enviado_em=null;
+    // Fase 53: 4 avisos independentes (2h/1h/30min/10min antes), cada um
+    // com sua própria coluna de dedup — reabre as 4 janelas quando o
+    // prazo muda, não só a antiga (agora sem uso).
+    if(mudouEncerramento){
+      linha.push_encerramento_2h_enviado_em=null;
+      linha.push_encerramento_1h_enviado_em=null;
+      linha.push_encerramento_30min_enviado_em=null;
+      linha.push_encerramento_10min_enviado_em=null;
+    }
     return linha;
   },
   espelharBolaoDual: async function(registro){
