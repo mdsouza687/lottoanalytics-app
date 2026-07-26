@@ -10298,6 +10298,7 @@ function reabrirRelatorioBolao(idx){
 }
 
 async function deletarGrupoBolao(id){
+  if(!confirm('Excluir este bolão salvo? Esta ação não pode ser desfeita.')) return;
   try{ await dbDel('bolao_grupos',id); toast('Bolão removido.'); openModalSalvar(); }
   catch(e){ toast('Erro ao remover bolão.'); }
 }
@@ -10521,6 +10522,7 @@ async function salvarEdicaoConjunto(id){
 }
 
 async function deletarSalvo(id){
+  if(!confirm('Excluir este conjunto de jogos salvos? Esta ação não pode ser desfeita.')) return;
   // Apaga cada jogo do lote individualmente via RPC (soft delete, cada
   // um com sua própria lápide) — não é um registro único como no schema antigo.
   var lista=await JogosSalvosRepo.listarDual();
@@ -16559,7 +16561,11 @@ function carregarListaParticipantesModelo(){
     ? '✓ '+adicionados+' participante(s) carregados'+(jaExistiam?' · '+jaExistiam+' já estavam na lista':'')
     : 'Todos os participantes da lista salva já estão neste bolão.');
 }
-function removerParticipanteBol(i){ _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes(); }
+function removerParticipanteBol(i){
+  var p=_boloesState.participantes[i];
+  if(p && !confirm('Remover "'+(p.nome||'este participante')+'" deste bolão?')) return;
+  _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes();
+}
 function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
 
 var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
