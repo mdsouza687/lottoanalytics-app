@@ -21497,16 +21497,15 @@ async function ptRenderMeusBoloes(bolaoIdSelecionado){
   } else {
     var ativos=lista.filter(function(b){ return !b.encerrado; });
     var encerrados=lista.filter(function(b){ return b.encerrado; });
-    // Filtro Ativos/Todos (substitui o <details> recolhido de "Encerrados"
-    // por um botão explícito, mais visível) — um bolão recém-criado
-    // sempre conta como ativo, só vira "encerrado" 30 dias depois do
-    // último resultado conferido.
+    // Filtro Ativos/Inativos — um bolão recém-criado sempre conta como
+    // ativo, só vira "encerrado" (Inativo) quando o semana_fim do
+    // próprio bolão já passou (ver rpc_participante_meus_boloes).
     sidebarHtml='<div class="pt-filtro-jogos" style="margin-bottom:10px">'+
       '<button type="button" class="pt-chip-filtro'+(_ptState.filtroBoloes==='ativos'?' active':'')+'" onclick="_ptState.filtroBoloes=\'ativos\';ptRenderMeusBoloes()">Ativos ('+ativos.length+')</button>'+
-      '<button type="button" class="pt-chip-filtro'+(_ptState.filtroBoloes==='todos'?' active':'')+'" onclick="_ptState.filtroBoloes=\'todos\';ptRenderMeusBoloes()">Todos ('+lista.length+')</button>'+
+      '<button type="button" class="pt-chip-filtro'+(_ptState.filtroBoloes==='inativos'?' active':'')+'" onclick="_ptState.filtroBoloes=\'inativos\';ptRenderMeusBoloes()">Inativos ('+encerrados.length+')</button>'+
     '</div>';
-    if(_ptState.filtroBoloes==='todos'){
-      sidebarHtml+=lista.map(ptBolaoCardHtml).join('');
+    if(_ptState.filtroBoloes==='inativos'){
+      sidebarHtml+=encerrados.length?encerrados.map(ptBolaoCardHtml).join(''):'<div class="pt-empty">Nenhum bolão inativo no momento.</div>';
     } else if(ativos.length){
       sidebarHtml+=ativos.map(ptBolaoCardHtml).join('');
     } else {
