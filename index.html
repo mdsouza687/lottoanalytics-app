@@ -1471,6 +1471,21 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 </style>
 </head>
 <body>
+<script>
+// Restaura o tema salvo IMEDIATAMENTE, antes de qualquer outra coisa —
+// antes essa restauração só rodava dentro de _bootApp() (perto do fim,
+// depois de carregar cache/IndexedDB etc.), então a página sempre
+// piscava no tema escuro padrão por alguns segundos até o tema salvo
+// ser aplicado. Aqui roda de forma síncrona, no primeiro instante em
+// que o <body> existe, antes do resto da página ser desenhado.
+(function(){
+  try{
+    var t=localStorage.getItem('loterias_theme');
+    if(t==='light') document.body.classList.add('theme-light');
+    else if(t==='colorful') document.body.classList.add('theme-colorful');
+  }catch(e){}
+})();
+</script>
 <div class="page-orb" id="page-orb"></div>
 <div class="page-orb2" id="page-orb2"></div>
 <div class="toast" id="toast"></div>
@@ -15720,23 +15735,25 @@ function _atualizarDataInicioBolao(valorIso){
 // (rolava semanaInicio/semanaFim pra frente), o que mantinha o bolão
 // ATIVO na semana nova — não fazia sentido com o nome do botão
 // ("Encerrar Bolão"), e o usuário via o status continuar Ativo mesmo
-// depois de clicar. Agora finaliza de vez: joga semanaFim pra ontem,
-// o que a regra de status (semana_fim < hoje) já reconhece como
-// Inativo imediatamente. Não avança mais pra semana seguinte — pra
-// continuar o grupo, o organizador cria um bolão novo.
+// depois de clicar. Agora finaliza de vez: joga semanaFim pra HOJE
+// (data exata do encerramento) — a regra de status foi trocada pra
+// semana_fim <= hoje (fase54), então isso já deixa o bolão Inativo
+// imediatamente, sem precisar mentir a data pra ontem. Não avança mais
+// pra semana seguinte — pra continuar o grupo, o organizador cria um
+// bolão novo.
 function encerrarBolao(){
   if(!confirm('Encerrar este bolão definitivamente? Ele ficará Inativo e não avança mais pra próxima semana — pra continuar o grupo, crie um bolão novo. Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
   var alterados=0;
   _boloesState.participantes.forEach(function(p){
     if(p.participacao==='eventual'&&p.statusPart!=='inativo'){ p.statusPart='inativo'; alterados++; }
   });
-  var ontem=new Date(); ontem.setDate(ontem.getDate()-1);
-  var ontemFmt=ontem.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  _boloesState.semanaFim=ontemFmt;
+  var hoje=new Date();
+  var hojeFmt=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  _boloesState.semanaFim=hojeFmt;
   // Evita inverter o período (início depois do fim) se o bolão já
   // estivesse com a semana adiantada por algum motivo.
   var inicioAtual=_parseDataBR(_boloesState.semanaInicio);
-  if(!inicioAtual || inicioAtual>ontem) _boloesState.semanaInicio=ontemFmt;
+  if(!inicioAtual || inicioAtual>hoje) _boloesState.semanaInicio=hojeFmt;
   salvarBolao().then(function(){ toast('✓ Bolão encerrado. '+alterados+' participante'+(alterados!==1?'s':'')+' eventual'+(alterados!==1?'is':'')+' inativado'+(alterados!==1?'s':'')+'.'); });
   renderFormBolao();
   renderParticipantesBoloes();
@@ -17461,7 +17478,7 @@ async function _salvarBolaoImpl(){
   };
   try{
     var novoId=await BolaoJogosRepo.espelharBolaoDual(registro);
-    if(!novoId){ toast('Erro ao salvar bolão.'); return; }
+    if(!novoId){ toast('Erro ao salvar bolão'+(BolaoJogosRepo._ultimoErro?': '+BolaoJogosRepo._ultimoErro:'.')); return; }
     // sincronizarParticipantesDual mostra seu PRÓPRIO toast de erro quando
     // falha — sem esse "ok", o toast('✓ Bolão salvo') abaixo disparava
     // sempre em seguida e sobrescrevia (o elemento #toast só mostra UMA
@@ -20292,7 +20309,13 @@ var BolaoJogosRepo = {
     }
     return linha;
   },
+  // _ultimoErro guarda a mensagem real do último erro pra _salvarBolaoImpl
+  // poder mostrar no toast — antes ficava só no console.warn, escondida do
+  // usuário atrás de um "Erro ao salvar bolão." genérico, impossível de
+  // diagnosticar sem acesso ao console do navegador.
+  _ultimoErro: null,
   espelharBolaoDual: async function(registro){
+    this._ultimoErro=null;
     if(!JogosCommon.escritaNovoSchemaAtiva()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
@@ -20305,7 +20328,7 @@ var BolaoJogosRepo = {
         // válido pra sempre, e o próximo passo (participantes) falharia por
         // violação de chave estrangeira sem nunca se autocorrigir.
         var upd=await sb.from('boloes').update(linha).eq('id',registro._novoSchemaId).select('id');
-        if(upd.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',upd.error.message); return null; }
+        if(upd.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',upd.error.message); this._ultimoErro=upd.error.message; return null; }
         if(upd.data&&upd.data.length) return registro._novoSchemaId;
         console.warn('[BolaoJogosRepo.espelharBolaoDual] _novoSchemaId '+registro._novoSchemaId+' não existe mais — recriando');
       }
@@ -20314,9 +20337,9 @@ var BolaoJogosRepo = {
       if(!_uid) return null;
       linha.user_id=_uid;
       var ins=await sb.from('boloes').insert(linha).select('id').single();
-      if(ins.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',ins.error.message); return null; }
+      if(ins.error){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',ins.error.message); this._ultimoErro=ins.error.message; return null; }
       return ins.data?ins.data.id:null;
-    }catch(e){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',e.message); return null; }
+    }catch(e){ console.warn('[BolaoJogosRepo.espelharBolaoDual]',e.message); this._ultimoErro=e.message; return null; }
   },
   // Espelha a lista de participantes inteira (substituição total: apaga e
   // recria) a cada save do bolão. Participantes não têm id próprio no schema
