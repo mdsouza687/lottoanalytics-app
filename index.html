@@ -4794,7 +4794,12 @@ async function fetchResultado(apiKey, forcarFresh=false){
   ]);
   for(const candidato of [dataExterna,dataOficial]){
     if(!candidato) continue;
-    const numAtual=parseInt(data?.concurso||0);
+    // O registro vindo do Supabase (fetchSupabaseResultado) guarda o dado
+    // BRUTO da API oficial, cujo campo de concurso se chama "numero", não
+    // "concurso" — sem esse fallback, numAtual virava sempre 0 e o dado
+    // fresco do Supabase perdia pra qualquer fonte externa, mesmo desatualizada
+    // (achado ao vivo: Quina já em 7075 no Supabase, Desktop preso em 7074).
+    const numAtual=parseInt(data?.concurso||data?.numero||0);
     const numCand=parseInt(candidato?.concurso||candidato?.numero||0);
     if(numCand>numAtual) data=candidato;
   }
