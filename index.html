@@ -15716,23 +15716,28 @@ function _atualizarDataInicioBolao(valorIso){
   _sincronizarPeriodoBolao();
   renderFormBolao();
 }
-function encerrarSemana(){
-  if(!confirm('Encerrar este bolão? Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
+// Corrigido (2026-07-26): antes AVANÇAVA o bolão pra próxima semana
+// (rolava semanaInicio/semanaFim pra frente), o que mantinha o bolão
+// ATIVO na semana nova — não fazia sentido com o nome do botão
+// ("Encerrar Bolão"), e o usuário via o status continuar Ativo mesmo
+// depois de clicar. Agora finaliza de vez: joga semanaFim pra ontem,
+// o que a regra de status (semana_fim < hoje) já reconhece como
+// Inativo imediatamente. Não avança mais pra semana seguinte — pra
+// continuar o grupo, o organizador cria um bolão novo.
+function encerrarBolao(){
+  if(!confirm('Encerrar este bolão definitivamente? Ele ficará Inativo e não avança mais pra próxima semana — pra continuar o grupo, crie um bolão novo. Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
   var alterados=0;
   _boloesState.participantes.forEach(function(p){
     if(p.participacao==='eventual'&&p.statusPart!=='inativo'){ p.statusPart='inativo'; alterados++; }
   });
-  // Corrigido (2026-07-26): avançava a partir da semana REAL de hoje
-  // (_calcSemanaAtual), não da semana que o próprio bolão já tinha salva —
-  // dois bolões em semanas diferentes, "encerrados" em dias diferentes,
-  // acabavam colados na mesma semana do calendário (achado ao vivo em
-  // produção: "3° semana" e "4° semana" com semana_inicio/fim idênticos).
-  // Agora avança a partir do semanaFim que o próprio bolão já tinha.
-  var fimAtual=_parseDataBR(_boloesState.semanaFim)||new Date();
-  var addDays=function(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
-  _boloesState.semanaInicio=addDays(fimAtual,1);
-  _sincronizarPeriodoBolao();
-  salvarBolao().then(function(){ toast('✓ Semana encerrada. '+alterados+' participante'+(alterados!==1?'s':'')+' eventual'+(alterados!==1?'is':'')+' inativado'+(alterados!==1?'s':'')+'.'); });
+  var ontem=new Date(); ontem.setDate(ontem.getDate()-1);
+  var ontemFmt=ontem.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  _boloesState.semanaFim=ontemFmt;
+  // Evita inverter o período (início depois do fim) se o bolão já
+  // estivesse com a semana adiantada por algum motivo.
+  var inicioAtual=_parseDataBR(_boloesState.semanaInicio);
+  if(!inicioAtual || inicioAtual>ontem) _boloesState.semanaInicio=ontemFmt;
+  salvarBolao().then(function(){ toast('✓ Bolão encerrado. '+alterados+' participante'+(alterados!==1?'s':'')+' eventual'+(alterados!==1?'is':'')+' inativado'+(alterados!==1?'s':'')+'.'); });
   renderFormBolao();
   renderParticipantesBoloes();
 }
@@ -16293,7 +16298,7 @@ function renderFormBolao(){
     return '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
         '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#93c5fd">Controle Semanal</div>'+
-        '<button onclick="encerrarSemana()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">Encerrar Bolão</button>'+
+        '<button onclick="encerrarBolao()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">Encerrar Bolão</button>'+
       '</div>'+
       // Datas da semana
       '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px;align-items:end">'+
