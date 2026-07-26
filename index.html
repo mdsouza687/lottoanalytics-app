@@ -2811,6 +2811,10 @@ const _SUPABASE_EH_DEV = ['localhost','127.0.0.1'].includes(location.hostname);
 const SUPABASE_CONFIG = _SUPABASE_EH_DEV
   ? { url: 'https://ycssmyqhjlhoiomyvkba.supabase.co', key: 'sb_publishable_X9KfKhaSmjnwcjOl4NAdlg_gkflFRRF' }
   : { url: 'https://dcredaebxczrzqdvbwlp.supabase.co', key: 'sb_publishable_59Io3j2Z-lUgFL-SrJYFSw_HQUdNKhp' };
+// Documento institucional fixo (Fase 49) — arquivo publicado uma vez no
+// Storage (bucket documentos-institucionais), não gerado por bolão.
+// Mesma URL independente de DEV/PROD (arquivo público).
+const URL_REGRAS_FUNCIONAMENTO = 'https://dcredaebxczrzqdvbwlp.supabase.co/storage/v1/object/public/documentos-institucionais/regras-de-funcionamento-e-isencao-de-impostos.docx';
 function supabaseAtivo(){ return !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.key); }
 // Limpeza pós-migração (2026-07-12): removidas daqui supabaseSalvar/
 // supabaseCarregar — mecanismo ainda mais antigo (tabela "jogos_loterias",
@@ -20757,7 +20761,7 @@ function gerarJogosParaBolao(bolaoId){
    continua sendo o canal pra esses três. Todo identificador é
    prefixado "pt" pra não colidir com nomes já usados no resto deste
    arquivo (ex.: toast/_esc/CFG são REAPROVEITADOS, não duplicados). */
-var _ptState={tela:'boloes',gen:0,detailGen:0,naoLidas:0,bolaoSelecionado:null};
+var _ptState={tela:'boloes',gen:0,detailGen:0,naoLidas:0,bolaoSelecionado:null,filtroBoloes:'ativos'};
 var _ptJogosPorSecao={};
 var _ptPremiosCache=null,_ptPremiosCacheEm=0;
 var _ptMinhaFotoUrl=null;
@@ -21482,10 +21486,20 @@ async function ptRenderMeusBoloes(bolaoIdSelecionado){
   } else {
     var ativos=lista.filter(function(b){ return !b.encerrado; });
     var encerrados=lista.filter(function(b){ return b.encerrado; });
-    sidebarHtml=ativos.map(ptBolaoCardHtml).join('');
-    if(!ativos.length&&encerrados.length){ sidebarHtml+='<div class="pt-empty">Nenhum bolão ativo no momento.</div>'; }
-    if(encerrados.length){
-      sidebarHtml+='<details'+(ativos.length?'':' open')+'><summary class="pt-encerrados-toggle">Encerrados ('+encerrados.length+')</summary>'+encerrados.map(ptBolaoCardHtml).join('')+'</details>';
+    // Filtro Ativos/Todos (substitui o <details> recolhido de "Encerrados"
+    // por um botão explícito, mais visível) — um bolão recém-criado
+    // sempre conta como ativo, só vira "encerrado" 30 dias depois do
+    // último resultado conferido.
+    sidebarHtml='<div class="pt-filtro-jogos" style="margin-bottom:10px">'+
+      '<button type="button" class="pt-chip-filtro'+(_ptState.filtroBoloes==='ativos'?' active':'')+'" onclick="_ptState.filtroBoloes=\'ativos\';ptRenderMeusBoloes()">Ativos ('+ativos.length+')</button>'+
+      '<button type="button" class="pt-chip-filtro'+(_ptState.filtroBoloes==='todos'?' active':'')+'" onclick="_ptState.filtroBoloes=\'todos\';ptRenderMeusBoloes()">Todos ('+lista.length+')</button>'+
+    '</div>';
+    if(_ptState.filtroBoloes==='todos'){
+      sidebarHtml+=lista.map(ptBolaoCardHtml).join('');
+    } else if(ativos.length){
+      sidebarHtml+=ativos.map(ptBolaoCardHtml).join('');
+    } else {
+      sidebarHtml+='<div class="pt-empty">Nenhum bolão ativo no momento.</div>';
     }
   }
   content.innerHTML=premiosHtml+
@@ -21737,6 +21751,7 @@ async function ptRenderDetalheBolao(bolaoId){
     '<div class="pt-section-title" style="margin-top:0">📄 Documentos</div>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermosCondicoes()" style="display:block;width:100%;text-align:left;padding:8px 0">📜 Termos e Condições</button>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermoConstituicao(\''+bolaoId+'\')" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Termo de Constituição do Bolão</button>'+
+    '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📋 Regras de Funcionamento e Isenção de Impostos</a>'+
   '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
   detailEl.innerHTML=html;
