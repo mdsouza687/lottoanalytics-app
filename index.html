@@ -1430,7 +1430,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .pt-field{margin-bottom:10px}
 .pt-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
 .pt-field input,.pt-field select{width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box}
-.pt-btn-link{background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;padding:8px 0;display:inline-block}
+.pt-btn-link{background:none;border:none;color:var(--ac);font-size:12px;font-family:inherit;cursor:pointer;padding:8px 0;display:inline-block;text-decoration:none}
 .pt-avatar{border-radius:50%;object-fit:cover;vertical-align:middle}
 @media (max-width:680px){ .pt-main{padding:16px 14px 32px} .pt-nav{padding:10px 14px} .pt-premios-strip{padding:14px 14px 4px} }
 
@@ -15710,15 +15710,20 @@ function _atualizarDataInicioBolao(valorIso){
   renderFormBolao();
 }
 function encerrarSemana(){
-  if(!confirm('Encerrar a semana atual? Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
+  if(!confirm('Encerrar este bolão? Participantes com "Part. Eventual" serão automaticamente marcados como Inativos.')) return;
   var alterados=0;
   _boloesState.participantes.forEach(function(p){
     if(p.participacao==='eventual'&&p.statusPart!=='inativo'){ p.statusPart='inativo'; alterados++; }
   });
-  var prox=_calcSemanaAtual();
-  // Avança 7 dias para próxima semana
-  var addDays=function(iso,n){var d=new Date(iso);d.setDate(d.getDate()+n);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
-  _boloesState.semanaInicio=addDays(prox.inicioISO,7);
+  // Corrigido (2026-07-26): avançava a partir da semana REAL de hoje
+  // (_calcSemanaAtual), não da semana que o próprio bolão já tinha salva —
+  // dois bolões em semanas diferentes, "encerrados" em dias diferentes,
+  // acabavam colados na mesma semana do calendário (achado ao vivo em
+  // produção: "3° semana" e "4° semana" com semana_inicio/fim idênticos).
+  // Agora avança a partir do semanaFim que o próprio bolão já tinha.
+  var fimAtual=_parseDataBR(_boloesState.semanaFim)||new Date();
+  var addDays=function(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});};
+  _boloesState.semanaInicio=addDays(fimAtual,1);
   _sincronizarPeriodoBolao();
   salvarBolao().then(function(){ toast('✓ Semana encerrada. '+alterados+' participante'+(alterados!==1?'s':'')+' eventual'+(alterados!==1?'is':'')+' inativado'+(alterados!==1?'s':'')+'.'); });
   renderFormBolao();
@@ -16281,7 +16286,7 @@ function renderFormBolao(){
     return '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
         '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#93c5fd">Controle Semanal</div>'+
-        '<button onclick="encerrarSemana()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">Encerrar Semana</button>'+
+        '<button onclick="encerrarSemana()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">Encerrar Bolão</button>'+
       '</div>'+
       // Datas da semana
       '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px;align-items:end">'+
@@ -21751,7 +21756,7 @@ async function ptRenderDetalheBolao(bolaoId){
     '<div class="pt-section-title" style="margin-top:0">📄 Documentos</div>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermosCondicoes()" style="display:block;width:100%;text-align:left;padding:8px 0">📜 Termos e Condições</button>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermoConstituicao(\''+bolaoId+'\')" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Termo de Constituição do Bolão</button>'+
-    '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📋 Regras de Funcionamento e Isenção de Impostos</a>'+
+    '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📄 Regras de Funcionamento e Isenção de Impostos</a>'+
   '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
   detailEl.innerHTML=html;
