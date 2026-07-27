@@ -10279,7 +10279,7 @@ async function openModalSalvar(escopo){
       // code desde o corte final) — agora reaproveita _boloesNovoV, já
       // buscado do schema novo logo acima (ordenado por created_at desc
       // na própria query, não precisa reordenar aqui).
-      var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+(typeof _boloesNovoV!=='undefined'?_boloesNovoV:[]).map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+      var _optsBolaoFooter='<option value="">— Selecione um bolão —</option>'+(typeof _boloesNovoV!=='undefined'?_boloesNovoV:[]).filter(_bolaoDisponivelParaVincular).map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
       // Pré-seleção vinda de gerarJogosParaBolao() (clique em "🎲 Gerar
       // Jogos" a partir de um card de bolão) — só pré-marca a escolha
       // aqui; o vínculo em si só é gravado se o usuário clicar em Salvar
@@ -12835,7 +12835,10 @@ async function popularDropdownManualBolao(){
     // em openModalSalvar). getBolaoNovoSchema não serve aqui (é por id
     // único) — usa BolaoJogosRepo.listarBoloesDual() direto, que já lê do
     // schema novo com o gate de leitura ambiente-agnóstico correto.
-    const todos=(typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
+    const todosBrutos=(typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
+    // Bolões já encerrados não aparecem aqui — não faz sentido vincular
+    // jogo novo a um bolão finalizado (pedido do usuário).
+    const todos=(todosBrutos||[]).filter(_bolaoDisponivelParaVincular);
     if(!todos||!todos.length) return;
     // listarBoloesDual só devolve {id,nome} — sem loteria/savedAt/concurso
     // pra ordenar/rotular por loteria como antes; lista só por nome,
@@ -14996,6 +14999,19 @@ function _parseDataBR(str){
   return isNaN(dt.getTime())?null:dt;
 }
 function _semanaLabel(ini,fim){ return ini&&fim?'Semana '+ini+' a '+fim:'—'; }
+// Bolão encerrado (mesma regra usada em toda parte pro status Ativo/
+// Inativo — fase54: semana_fim <= hoje) não deve aparecer como opção
+// pra vincular jogos novos — já foi finalizado, não faz sentido receber
+// apostas depois disso. Sem semana_fim definido, não bloqueia (dado
+// legado/bolão sem prazo).
+function _bolaoDisponivelParaVincular(b){
+  if(!b || !b.semana_fim) return true;
+  var fim=_parseDataBR(b.semana_fim);
+  if(!fim) return true;
+  fim.setHours(0,0,0,0);
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  return fim.getTime()>hoje.getTime();
+}
 // Converte "AAAA-MM-DD" (valor nativo de <input type="date">) para
 // "DD/MM/AAAA" (formato usado em todo o resto do app para semanaInicio/Fim).
 function _isoParaDdmm(iso){
@@ -20194,7 +20210,7 @@ var BolaoJogosRepo = {
     if(!JogosCommon.leituraNovoSchemaAtiva()) return null;
     try{
       var sb=_getSbClient(); if(!sb) return null;
-      var {data,error}=await sb.from('boloes').select('id,nome').is('deleted_at',null).order('created_at',{ascending:false});
+      var {data,error}=await sb.from('boloes').select('id,nome,semana_fim').is('deleted_at',null).order('created_at',{ascending:false});
       if(error){ console.warn('[BolaoJogosRepo.listarBoloesDual]',error.message); return null; }
       return data;
     }catch(e){ console.warn('[BolaoJogosRepo.listarBoloesDual]',e.message); return null; }
