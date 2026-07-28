@@ -15195,11 +15195,14 @@ var MIN_PREMIAVEL_POR_LOTERIA={megasena:4,lotofacil:11,quina:2,timemania:3,dupla
 // sabia comparar contra `resultados[key]`, que é sempre só o concurso mais
 // recente. Chave: "loteria|concurso".
 var _historicoConcursoCache={};
-// Separado do cache em si: marca uma chave como "já tentada" mesmo quando a
-// busca não encontra nada (ex.: concurso realmente não existe em
-// `historico`) — sem isso, qualquer chamador que reprocessasse a mesma
-// chave (ex.: renderFormBolao, chamado a cada tecla digitada) tentaria a
-// mesma busca de novo indefinidamente.
+// Separado do cache em si: guarda o TIMESTAMP (não boolean) da última vez
+// que uma chave foi tentada sem sucesso — evita que um chamador que
+// reprocessa a mesma chave o tempo todo (ex.: renderFormBolao, chamado a
+// cada tecla digitada) martele o banco de novo a cada re-render, mas sem
+// bloquear pra sempre: um concurso que ainda não tinha sorteado na 1ª
+// tentativa (historico vazio) precisa poder ser tentado de novo depois que
+// o sorteio sair, mesmo dentro da MESMA sessão/aba — ver cooldown de 60s
+// nos dois lugares que checam isto.
 var _historicoConcursoTentado={};
 // Normaliza um registro de `historico.dados` para o formato que
 // _calcPremioJogo (e o resto do app) espera — o mesmo formato que
@@ -15268,7 +15271,19 @@ async function _prewarmHistoricoConcursos(pares){
     // resultados[key] direto, não precisa buscar nada pra esse caso.
     if(atual&&String(parseInt(atual.concurso))===String(concursoInt)) continue;
     var chave=p.loteria+'|'+concursoInt;
-    if(_historicoConcursoCache[chave]||_historicoConcursoTentado[chave]) continue;
+    // CORREÇÃO: _historicoConcursoTentado guardava true (permanente) — se a
+    // primeira tentativa acontecesse ANTES do sorteio desse concurso (ainda
+    // sem linha em `historico`), a chave ficava marcada "já tentei" pelo
+    // resto da sessão, mesmo depois do sorteio sair e o resultado passar a
+    // existir no banco. Numa aba que fica aberta atravessando o sorteio
+    // (organizador acompanhando o bolão o dia todo), o prêmio nunca mais
+    // era recalculado sem um F5. Agora guarda TIMESTAMP e só pula se a
+    // última tentativa foi há menos de 1 minuto — continua evitando
+    // martelar o banco a cada tecla digitada (renderFormBolao roda a cada
+    // keystroke), mas permite que uma tentativa mais tarde, depois do
+    // sorteio sair, tente de novo e ache o resultado.
+    var _tentadoEm=_historicoConcursoTentado[chave];
+    if(_historicoConcursoCache[chave]||(_tentadoEm&&(Date.now()-_tentadoEm)<60000)) continue;
     try{
       var {data,error}=await sb.from('historico').select('dados').eq('loteria',p.loteria).eq('concurso',String(concursoInt)).maybeSingle();
       if(!error&&data&&data.dados){
@@ -15276,7 +15291,7 @@ async function _prewarmHistoricoConcursos(pares){
         if(_dNorm&&_dNorm.dezenas&&_dNorm.dezenas.length) _historicoConcursoCache[chave]=_dNorm;
       }
     }catch(e){ console.warn('[_prewarmHistoricoConcursos]',e.message); }
-    _historicoConcursoTentado[chave]=true;
+    _historicoConcursoTentado[chave]=Date.now();
   }
 }
 function _calcPremioJogo(loteriaKey,jogo,concursoNum){
@@ -15898,7 +15913,13 @@ function renderFormBolao(){
       var atual=(typeof resultados!=='undefined')?resultados[p.loteria]:null;
       var jaAtual=atual&&String(parseInt(atual.concurso))===String(parseInt(p.concurso));
       var chave=p.loteria+'|'+parseInt(p.concurso);
-      return !jaAtual&&!_historicoConcursoCache[chave]&&!_historicoConcursoTentado[chave];
+      // Mesma correção de _prewarmHistoricoConcursos: _historicoConcursoTentado
+      // agora é um timestamp, não um boolean permanente — sem checar aqui
+      // também, este filtro nunca reincluiria a chave na lista pra
+      // reprocessar, mesmo depois do cooldown lá dentro expirar.
+      var _tentadoEm=_historicoConcursoTentado[chave];
+      var _aindaEmCooldown=_tentadoEm&&(Date.now()-_tentadoEm)<60000;
+      return !jaAtual&&!_historicoConcursoCache[chave]&&!_aindaEmCooldown;
     });
     if(_paresPendentes.length){
       _prewarmHistoricoConcursos(_paresPendentes).then(function(){
