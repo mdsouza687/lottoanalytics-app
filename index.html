@@ -4850,6 +4850,20 @@ function usd(v){return v?'$ '+Number(v).toLocaleString('en-US',{minimumFractionD
 function fmtPremio(v,key){const d=CFG[key||currentKey];return d&&d.americano?usd(v):brl(v);}
 function parseResultado(raw,key){
   if(raw._us) return raw._data;
+  // CORREÇÃO: o resto desta função sempre leu raw.premiacoes (linhas de
+  // ganhadores/prêmio abaixo) — só existe nesse nome quando a fonte já
+  // veio pré-normalizada (ex.: espelhos comunitários). A resposta CRUA da
+  // API da Caixa (e é o que o Supabase guarda em `resultados.dados`,
+  // única fonte que ainda funciona depois dos espelhos saírem do ar) usa
+  // `listaRateioPremio` com nomes de campo diferentes (descricaoFaixa,
+  // numeroDeGanhadores) — raw.premiacoes sempre dava undefined nesse
+  // caso, então TODO resultado vindo do Supabase ficava com premiacoes/
+  // ganhadores permanentemente vazios, mesmo com as dezenas certas
+  // (_calcPremioJogo acertava a contagem de acertos mas nunca achava a
+  // faixa de prêmio pra somar, sempre devolvendo valor 0). Mesmo
+  // normalizador já usado pro histórico (_normalizarDadosHistorico)
+  // resolve isso — reutilizado aqui em vez de duplicar a lógica.
+  raw=_normalizarDadosHistorico(raw)||raw;
   let dezenas=raw.dezenas||raw.listaDezenas||[];
   const dezenas2Raw=raw.dezenasSegundoSorteio||raw.dezenas2||raw.listaDezenas2||raw.segundoSorteio?.dezenas||null;
   let dezenas2=dezenas2Raw?.length?dezenas2Raw.map(n=>parseInt(n)):null;
