@@ -19395,7 +19395,11 @@ async function _adicionarBilheteBolao(inputEl){
     var { error }=await sb.from('bolao_bilhetes').insert({bolao_id:bolaoId,user_id:user.id,foto_url:url});
     if(error) throw error;
     toast('✓ Bilhete anexado.');
-    _notificarBolao(bolaoId, '📎 Novo bilhete', 'Um novo bilhete foi adicionado ao bolão '+(_boloesState.nome||'')+'.');
+    // Fase 57: não notifica mais a cada foto — o organizador costuma
+    // anexar várias em sequência (uma por jogo, por exemplo) e cada uma
+    // virava um push separado. Agora só avisa quando ele clicar em
+    // "Enviar Mensagem" no card, e só sobre o que ainda não foi avisado
+    // (ver _enviarMensagemBilhetesBolao).
     verBilhetesBolao();
   }catch(e){ toast('Erro ao anexar: '+e.message); }
 }
@@ -19409,13 +19413,40 @@ async function _excluirBilheteBolao(bilheteId){
     verBilhetesBolao();
   }catch(e){ toast('Erro ao excluir: '+e.message); }
 }
+// Fase 57: substitui o push automático por foto (incômodo com várias fotos
+// em sequência) por um envio manual — notifica só os bilhetes ainda não
+// notificados (notificado_em is null), marca todos como notificados e
+// fecha o card. Reconsulta o banco em vez de confiar na lista já
+// renderizada, pra não reenviar algo que outra aba/sessão já tenha
+// notificado entretanto.
+async function _enviarMensagemBilhetesBolao(bolaoId){
+  var sb=_getSbClient(); if(!sb) return;
+  try{
+    var { data, error }=await sb.from('bolao_bilhetes').select('id').eq('bolao_id',bolaoId).is('notificado_em',null);
+    if(error) throw error;
+    var pendentes=data||[];
+    if(!pendentes.length){ toast('Nenhum bilhete novo para notificar.'); return; }
+    var qtd=pendentes.length;
+    var corpo=qtd>1
+      ? qtd+' novos bilhetes foram adicionados ao bolão '+(_boloesState.nome||'')+'.'
+      : 'Um novo bilhete foi adicionado ao bolão '+(_boloesState.nome||'')+'.';
+    await _notificarBolao(bolaoId, '📎 Novo bilhete', corpo);
+    var ids=pendentes.map(function(p){return p.id;});
+    var { error:errUpd }=await sb.from('bolao_bilhetes').update({notificado_em:new Date().toISOString()}).in('id',ids);
+    if(errUpd) throw errUpd;
+    toast('✓ Mensagem enviada.');
+    var modal=document.getElementById('modal-bilhetes-bolao');
+    if(modal) modal.remove();
+  }catch(e){ toast('Erro ao enviar mensagem: '+e.message); }
+}
 async function verBilhetesBolao(){
   var bolaoId=_boloesState.editId;
   if(!bolaoId){ toast('Salve o bolão antes de anexar fotos.'); return; }
   var sb=_getSbClient(); if(!sb){ toast('Serviço indisponível no momento.'); return; }
-  var { data, error }=await sb.from('bolao_bilhetes').select('id,foto_url,created_at').eq('bolao_id',bolaoId).order('created_at',{ascending:false});
+  var { data, error }=await sb.from('bolao_bilhetes').select('id,foto_url,created_at,notificado_em').eq('bolao_id',bolaoId).order('created_at',{ascending:false});
   if(error){ toast('Erro ao carregar bilhetes: '+error.message); return; }
   var lista=data||[];
+  var pendentes=lista.filter(function(b){ return !b.notificado_em; });
   var cor=MULTI_LOTERIA_COR;
   var gradeHtml=lista.length
     ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">'+
@@ -19446,6 +19477,11 @@ async function verBilhetesBolao(){
           '</label>'+
           gradeHtml+
         '</div>'+
+        (lista.length ?
+          '<div style="padding:12px 20px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end">'+
+            '<button onclick="_enviarMensagemBilhetesBolao(\''+bolaoId+'\')"'+(pendentes.length?'':' disabled')+' style="border:none;border-radius:8px;padding:9px 16px;background:'+(pendentes.length?cor:'var(--glass-bg)')+';color:'+(pendentes.length?'#fff':'var(--text-muted)')+';font-weight:700;font-size:12px;cursor:'+(pendentes.length?'pointer':'not-allowed')+'">📨 Enviar Mensagem'+(pendentes.length?' ('+pendentes.length+' novo'+(pendentes.length>1?'s':'')+')':'')+'</button>'+
+          '</div>'
+        : '')+
       '</div>'+
     '</div>';
   var old=document.getElementById('modal-bilhetes-bolao');
