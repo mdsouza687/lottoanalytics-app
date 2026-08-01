@@ -15275,6 +15275,14 @@ function _normalizarDadosHistorico(raw){
 async function _prewarmHistoricoConcursos(pares){
   var sb=(typeof _getSbClient==='function')?_getSbClient():null;
   if(!sb) return;
+  // Monta primeiro a lista de chaves que realmente precisam de busca
+  // (deduplicada), depois busca TODAS em paralelo — o loop sequencial
+  // anterior somava um round-trip ao banco por loteria/concurso distinto,
+  // e este caminho roda ao abrir o relatório impresso e o painel de
+  // semanas do bolão mensal (num Multi-Loteria com muitas rodadas, era a
+  // maior parte da espera). Mesma otimização da Fase 41 no servidor
+  // (montarJogosDoBolao, publicar-resultados-automatico/index.ts).
+  var aBuscar=[]; var vistos={};
   for(var i=0;i<(pares||[]).length;i++){
     var p=pares[i];
     if(!p||p.loteria==null||p.concurso==null) continue;
@@ -15285,6 +15293,7 @@ async function _prewarmHistoricoConcursos(pares){
     // resultados[key] direto, não precisa buscar nada pra esse caso.
     if(atual&&String(parseInt(atual.concurso))===String(concursoInt)) continue;
     var chave=p.loteria+'|'+concursoInt;
+    if(vistos[chave]) continue;
     // CORREÇÃO: _historicoConcursoTentado guardava true (permanente) — se a
     // primeira tentativa acontecesse ANTES do sorteio desse concurso (ainda
     // sem linha em `historico`), a chave ficava marcada "já tentei" pelo
@@ -15298,15 +15307,20 @@ async function _prewarmHistoricoConcursos(pares){
     // sorteio sair, tente de novo e ache o resultado.
     var _tentadoEm=_historicoConcursoTentado[chave];
     if(_historicoConcursoCache[chave]||(_tentadoEm&&(Date.now()-_tentadoEm)<60000)) continue;
+    vistos[chave]=true;
+    aBuscar.push({loteria:p.loteria,concursoInt:concursoInt,chave:chave});
+  }
+  if(!aBuscar.length) return;
+  await Promise.all(aBuscar.map(async function(item){
     try{
-      var {data,error}=await sb.from('historico').select('dados').eq('loteria',p.loteria).eq('concurso',String(concursoInt)).maybeSingle();
+      var {data,error}=await sb.from('historico').select('dados').eq('loteria',item.loteria).eq('concurso',String(item.concursoInt)).maybeSingle();
       if(!error&&data&&data.dados){
         var _dNorm=_normalizarDadosHistorico(data.dados);
-        if(_dNorm&&_dNorm.dezenas&&_dNorm.dezenas.length) _historicoConcursoCache[chave]=_dNorm;
+        if(_dNorm&&_dNorm.dezenas&&_dNorm.dezenas.length) _historicoConcursoCache[item.chave]=_dNorm;
       }
     }catch(e){ console.warn('[_prewarmHistoricoConcursos]',e.message); }
-    _historicoConcursoTentado[chave]=Date.now();
-  }
+    _historicoConcursoTentado[item.chave]=Date.now();
+  }));
 }
 function _calcPremioJogo(loteriaKey,jogo,concursoNum){
   if(!loteriaKey||!jogo) return null;
@@ -17567,14 +17581,31 @@ async function listarBoloesSalvos(){
     c.innerHTML='<div style="'+cardStyle+';text-align:center;color:var(--text-muted)">Nenhum bolão salvo ainda. Clique em "Criar Bolão".</div>';
     return;
   }
+  // Performance: antes eram 2 consultas SEQUENCIAIS por bolão dentro do
+  // loop (participantes + concursos) — com N bolões, 2N idas ao banco em
+  // série, e esta tela é a porta de entrada da aba Bolões (multi-segundos
+  // de espera com poucos bolões). Agora são 2 consultas TOTAIS (in) em
+  // paralelo, agrupadas em memória por bolao_id.
+  var idsBoloes=todos.map(function(b){return b.id;});
+  var [particTodosRes,concTodosRes]=await Promise.all([
+    sb.from('bolao_participantes').select('bolao_id,status').in('bolao_id',idsBoloes).is('deleted_at',null),
+    sb.from('bolao_concursos').select('bolao_id,loteria').in('bolao_id',idsBoloes)
+  ]);
+  var ativosPorBolao={}, loteriasPorBolao={};
+  (particTodosRes.data||[]).forEach(function(p){
+    if(p.status!=='inativo') ativosPorBolao[p.bolao_id]=(ativosPorBolao[p.bolao_id]||0)+1;
+  });
+  (concTodosRes.data||[]).forEach(function(cc){
+    if(!cc.loteria) return;
+    if(!loteriasPorBolao[cc.bolao_id]) loteriasPorBolao[cc.bolao_id]=new Set();
+    loteriasPorBolao[cc.bolao_id].add(cc.loteria);
+  });
   var linhas=[];
   for(var i=0;i<todos.length;i++){
     var b=todos[i];
     try{
-      var particRes=await sb.from('bolao_participantes').select('status').eq('bolao_id',b.id).is('deleted_at',null);
-      var ativos=(particRes.data||[]).filter(function(p){return p.status!=='inativo';}).length;
-      var concRes=await sb.from('bolao_concursos').select('loteria').eq('bolao_id',b.id);
-      var loteriasNoBolao=Array.from(new Set((concRes.data||[]).map(function(c){return c.loteria;}).filter(Boolean)));
+      var ativos=ativosPorBolao[b.id]||0;
+      var loteriasNoBolao=Array.from(loteriasPorBolao[b.id]||[]);
       var badgesLoterias=loteriasNoBolao.map(function(lk){
         var dl=(typeof CFG!=='undefined')?CFG[lk]:null; if(!dl) return '';
         return '<span title="'+_esc(dl.nome)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+dl.cor+';margin-right:3px" ></span>';
@@ -20099,14 +20130,20 @@ async function _compararSchemaNovoDual(){
 // uma fonte que parou de ser escrita).
 async function _carregarBolaoNovoSchemaPorUuid(novoId){
   var sb=_getSbClient(); if(!sb) return {erro:'Supabase indisponível.'};
-  var bRes=await sb.from('boloes').select('*').eq('id',novoId).is('deleted_at',null).maybeSingle();
+  // Performance: as 4 consultas filtram todas pelo mesmo novoId e não
+  // dependem umas das outras — antes rodavam em série (4 round-trips
+  // somados a cada "Abrir" de bolão); agora vão em paralelo e a checagem
+  // de existência do bolão acontece depois, com o mesmo comportamento.
+  var [bRes,particRes,concRes,jogosRes]=await Promise.all([
+    sb.from('boloes').select('*').eq('id',novoId).is('deleted_at',null).maybeSingle(),
+    sb.from('bolao_participantes').select('*').eq('bolao_id',novoId).is('deleted_at',null),
+    sb.from('bolao_concursos').select('*').eq('bolao_id',novoId),
+    sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true})
+  ]);
   if(bRes.error||!bRes.data) return {erro:'Bolão não encontrado — '+(bRes.error&&bRes.error.message)};
   var b=bRes.data;
-  var particRes=await sb.from('bolao_participantes').select('*').eq('bolao_id',novoId).is('deleted_at',null);
   var participantesNovo=particRes.data||[];
-  var concRes=await sb.from('bolao_concursos').select('*').eq('bolao_id',novoId);
   var concursosMeta=concRes.data||[];
-  var jogosRes=await sb.from('jogos').select('*').eq('bolao_id',novoId).eq('destino','bolao').is('deleted_at',null).order('created_at',{ascending:true});
   var jogosNovo=jogosRes.data||[];
 
   var participantes=participantesNovo.map(function(p){
