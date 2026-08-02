@@ -13215,7 +13215,7 @@ function atualizarStatusManual(){
   st.textContent=parts.join(' · ');
 }
 
-function adicionarJogoManual(){
+async function adicionarJogoManual(){
   const key=document.getElementById('manual-loteria-sel')?.value;
   const d=key?CFG[key]:null;
   if(!d){toast('Selecione a loteria.');return;}
@@ -13263,8 +13263,26 @@ function adicionarJogoManual(){
   // ou sai com Teimosinha aplicada ou não é adicionado, nunca vira aposta
   // simples sem avisar de forma que dá pra perder.
   if(d.teimosinha&&d.teimosinha.length&&_manualTeimosinha){
-    const {concursoNum}=calcConcursoVigente(resultados[key]);
-    if(!concursoNum){ toast('⚠️ Dados da loteria ainda carregando — aguarde e tente adicionar o jogo de novo (Teimosinha exige o concurso vigente já carregado).'); return; }
+    let {concursoNum}=calcConcursoVigente(resultados[key]);
+    // Fase 66 (2026-08-02, bug real ao vivo): antes, se resultados[key]
+    // ainda não tinha carregado (corrida comum — usuário troca de loteria
+    // e tenta adicionar com Teimosinha rápido demais, antes do fetch em
+    // segundo plano terminar), a função só mostrava um toast passageiro e
+    // desistia — o jogo nunca ia pro carrinho, sem nenhum rastro em lugar
+    // nenhum (nem erro, nem gravação parcial). Em vez de desistir, busca o
+    // resultado desta loteria específica AGORA (mesma fonte usada no
+    // "Atualizar" geral) antes de decidir — só falha de verdade se a busca
+    // em si falhar.
+    if(!concursoNum){
+      try{
+        const raw=await fetchResultado(d.apiKey,true);
+        const p=parseResultado(raw,key);
+        resultados[key]=p;
+        try{ await dbPut('resultados',p); }catch(e){}
+        concursoNum=calcConcursoVigente(p).concursoNum;
+      }catch(e){}
+    }
+    if(!concursoNum){ toast('⚠️ Não foi possível carregar os dados desta loteria agora — tente adicionar o jogo de novo em alguns segundos (Teimosinha exige o concurso vigente já carregado).'); return; }
     jogo._teimosinhaConcursos=calcConcursosTeimosinha(concursoNum,_manualTeimosinha);
   }
 
