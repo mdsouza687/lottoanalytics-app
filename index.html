@@ -10521,13 +10521,21 @@ async function _salvarJogosImpl(){
     }
   }
   let novoId;
+  let linhas;
   try{
-    const linhas=await JogosSalvosRepo.salvarDual(currentKey,jogosFinais,nomeEscolhido);
+    linhas=await JogosSalvosRepo.salvarDual(currentKey,jogosFinais,nomeEscolhido);
     novoId=linhas&&linhas[0]?(linhas[0].lote_id||linhas[0].id):null;
   }catch(e){ toast('Erro ao salvar: '+e.message); return null; }
-  _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${jogosFinais.length} jogo(s) de ${d.nome}, id=${novoId}`});
+  // Fase 64 (2026-08-02): a RPC pula (não aborta o lote) jogos que colidem
+  // com outro já existente — usa a contagem REAL devolvida, não
+  // jogosFinais.length, senão o toast mente quando algum foi ignorado
+  // (mesma causa raiz do bug corrigido em _salvarJogosManuaisImpl).
+  const _qtdSalvaGer=(linhas||[]).length;
+  const _qtdPuladaGer=jogosFinais.length-_qtdSalvaGer;
+  _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalvaGer} jogo(s) de ${d.nome}, id=${novoId}`});
   window._salvarNomeSugerido=null;
-  toast(`✓ ${jogosFinais.length} jogo${jogosFinais.length!==1?'s':''} salvo${jogosFinais.length!==1?'s':''}${temEspelho?' (principais + espelhos)':''}`);openModalSalvar();
+  const _avisoPuladoGer=_qtdPuladaGer?` (${_qtdPuladaGer} jogo${_qtdPuladaGer!==1?'s':''} ignorado${_qtdPuladaGer!==1?'s':''} — mesmas dezenas já existiam)`:'';
+  toast(`✓ ${_qtdSalvaGer} jogo${_qtdSalvaGer!==1?'s':''} salvo${_qtdSalvaGer!==1?'s':''}${temEspelho?' (principais + espelhos)':''}${_avisoPuladoGer}`);openModalSalvar();
   return novoId;
 }
 /* Reanexa bola extra (Powerball/Mega Ball) e trevos (+Milionária) aos jogos de um conjunto salvo */
@@ -10744,6 +10752,21 @@ function _horaFechamentoApostas(loteriaKey){
   if(dias.indexOf(dow)===-1) return null;
   return dow===0 ? 10 : 20;
 }
+// Fase 65 (2026-08-03): dado um sorteio agendado numa data específica desta
+// loteria, diz se ele já FECHOU pra novas apostas — dias anteriores a hoje
+// sempre fecharam; o de HOJE só fechou se já passou do horário de
+// fechamento daquele dia da semana (10h domingo, 20h nos demais dias em
+// que esta loteria sorteia — mesma regra de _horaFechamentoApostas, só que
+// aplicável a uma data qualquer, não só "hoje").
+function _sorteioJaFechado(dataBR,loteriaKey){
+  var m=String(dataBR||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return true; // data inválida/desconhecida — trata como fechado, não trava o avanço do calendário
+  var dt=new Date(+m[3],+m[2]-1,+m[1]);
+  var hojeZero=new Date(); hojeZero.setHours(0,0,0,0);
+  if(dt<hojeZero) return true;
+  if(dt>hojeZero) return false;
+  return new Date().getHours()>=(dt.getDay()===0?10:20);
+}
 /* Calcula qual concurso está REALMENTE em jogo agora (vigente para novas
    apostas), a partir do último resultado conhecido. Não basta usar
    "res.proximoConcursoNum" direto: esse valor reflete o cache do último
@@ -10757,6 +10780,29 @@ function _horaFechamentoApostas(loteriaKey){
 function calcConcursoVigente(res){
   if(!res) return {concursoNum:null, concursoData:null};
   let concursoNum, concursoData;
+  // Fase 65 (2026-08-03, bug real ao vivo): antes, "já passou do
+  // fechamento" só andava UM passo à frente (res.proximoConcursoNum) —
+  // certo quando o cache está fresco (fala do sorteio de ontem/hoje), mas
+  // errado quando o cache ficou parado por mais de um sorteio (ex.: não
+  // abriu a aba desta loteria desde sexta — hoje é domingo, já passou das
+  // 10h, e o "próximo concurso" salvo na sexta é o de HOJE, que JÁ
+  // sorteou; o vigente de verdade é o de depois). Em vez de confiar num
+  // único incremento, caminha pelo calendário real da loteria
+  // (_proximaDataSorteio/DIAS_SORTEIO_NUM — mesma fonte de verdade já
+  // usada pro "Próx. sorteio", Fase 60) a partir da última data conhecida,
+  // contando quantos sorteios já FECHARAM, e soma essa contagem ao
+  // concurso conhecido. Não depende de o cache estar atualizado.
+  if(res.data&&res.loteria&&typeof DIAS_SORTEIO_NUM!=='undefined'&&DIAS_SORTEIO_NUM[res.loteria]){
+    let dataAndando=res.data, concursoAndando=parseInt(res.concurso)||0, guard=0;
+    while(guard<60 && _sorteioJaFechado(dataAndando,res.loteria)){
+      const prox=_proximaDataSorteio(dataAndando,res.loteria);
+      if(!prox) break;
+      dataAndando=prox; concursoAndando++; guard++;
+    }
+    if(concursoAndando>(parseInt(res.concurso)||0)){
+      return {concursoNum:String(concursoAndando), concursoData:dataAndando};
+    }
+  }
   // "Já tem resultado" é o sinal mais confiável de "já saiu" — não
   // depende de acertar o horário certo. O horário de fechamento
   // (_horaFechamentoApostas) é o complemento pro intervalo entre o
@@ -13300,12 +13346,29 @@ async function _salvarJogosManuaisImpl(){
   try{
     var linhas=await JogosSalvosRepo.salvarDual(key,_manualJogos,nome);
     var novoId=linhas&&linhas[0]?(linhas[0].lote_id||linhas[0].id):null;
-    _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_manualJogos.length} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
+    // Fase 64 (2026-08-02, bug real ao vivo): a RPC agora pula (em vez de
+    // abortar o lote inteiro) qualquer jogo que colida com outro já
+    // existente (mesmas dezenas ativas) — mas isso significa que
+    // linhas.length pode ser MENOR que _manualJogos.length. Usar
+    // _manualJogos.length nos toasts abaixo mentia pro usuário que TODOS
+    // os jogos do carrinho foram salvos mesmo quando alguns foram
+    // ignorados (foi exatamente o que aconteceu: um lote de 4 jogos da
+    // Mega-Sena sumiu inteiro por causa de 1 colisão, sem nenhum aviso
+    // de que os outros 3 também tinham sumido).
+    var _qtdSalva=(linhas||[]).length;
+    var _qtdPulada=_manualJogos.length-_qtdSalva;
+    if(!_qtdSalva){
+      toast(_qtdPulada===1?'Este jogo já existe (mesmas dezenas) — nenhum jogo novo foi salvo.':`Os ${_qtdPulada} jogos já existiam (mesmas dezenas) — nenhum jogo novo foi salvo.`);
+      _manualJogos=[]; _manualSel=new Set(); closeModal('modal-manuais');
+      return;
+    }
+    _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalva} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
     // vincId: uuid do bolão (schema novo) — não é mais numérico, parseInt
     // quebraria (NaN||0 nunca vinculava nada, bug que só apareceria em
     // produção porque nenhum teste manual clicou "vincular" nesse fluxo).
     var vincSel=document.getElementById('manual-vinculo-sel');
     var vincId=vincSel?vincSel.value:'';
+    var _avisoPulados=_qtdPulada?` (${_qtdPulada} jogo${_qtdPulada!==1?'s':''} ignorado${_qtdPulada!==1?'s':''} — mesmas dezenas já existiam)`:'';
     if(vincId && typeof vincularSalvoAoBolao==='function'){
       // Antes chamava vincularJogosAoBolao(), que cria um espelho NOVO e
       // independente em Jogos Salvos — o item recém-criado acima (dbPut)
@@ -13316,9 +13379,9 @@ async function _salvarJogosManuaisImpl(){
       // criado — um único jogo, um único registro, exatamente como o
       // fluxo do Gerador de Jogos (_salvarComEscolha) já faz.
       await vincularSalvoAoBolao(novoId, vincId);
-      toast(`✅ ${_manualJogos.length} jogo(s) salvos e vinculados ao bolão`);
+      toast(`✅ ${_qtdSalva} jogo(s) salvos e vinculados ao bolão${_avisoPulados}`);
     } else {
-      toast(`✅ ${_manualJogos.length} jogo${_manualJogos.length!==1?'s':''} manual${_manualJogos.length!==1?'is':''} salvos como "${nome}"`);
+      toast(`✅ ${_qtdSalva} jogo${_qtdSalva!==1?'s':''} manual${_qtdSalva!==1?'is':''} salvos como "${nome}"${_avisoPulados}`);
     }
     _manualJogos=[];
     _manualSel=new Set();
@@ -19051,7 +19114,18 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
     var _dataConhecidaEspS=_especialFixoS?(CONCURSOS_ESPECIAIS_DATA[loteriaItem]||{})[_especialFixoS]:null;
     var _dataSorteioS=_dataConhecidaEspS||(_calcS.concursoData&&_calcS.concursoData!=='—'?_calcS.concursoData:(_resS?(_resS.proximoConcurso||_resS.data||''):''));
     var _semLabelS=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
-    var _custoS=(_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0;
+    // Fase 64 (2026-08-02, bug real ao vivo): _pushConcursoEntry sempre
+    // empurra uma NOVA entrada em g.concursos (nunca mescla numa já
+    // existente), e sincronizarConcursoDual faz um UPSERT que SOBRESCREVE
+    // bolao_concursos.custo inteiro com o que vier nessa entrada — então,
+    // ao adicionar jogos a um concurso que JÁ tinha jogos vinculados antes
+    // (ex.: 3 jogos/R$18 já lá, adiciona mais 1), gravar só o custo DESTA
+    // adição (R$6) apagava/desatualizava o custo dos jogos anteriores em
+    // vez de somar (ficou R$18 de antes intacto por acaso — noutro caso
+    // teria virado R$6, perdendo os R$18). Soma ao custo já existente
+    // deste concurso (se houver) antes de gravar.
+    var _concursoExistenteS=(g.concursos||[]).find(function(c){return String(c.num)===String(_novoNumS)&&c.loteria===loteriaItem;});
+    var _custoS=((_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0)+(_concursoExistenteS?(parseFloat(_concursoExistenteS.custo)||0):0);
     // uuids dos jogos avulsos originais que vão ser vinculados — capturado
     // ANTES de _pushConcursoEntry (que clona jogos internamente pra cada
     // concurso da Teimosinha; o array "jogos" em si não é mutado).
@@ -20926,7 +21000,13 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     var _dataConhecidaEsp=_especialFixo?(CONCURSOS_ESPECIAIS_DATA[loteriaKey]||{})[_especialFixo]:null;
     var _dataSorteio=_dataConhecidaEsp||(_calc.concursoData&&_calc.concursoData!=='—'?_calc.concursoData:(res?(res.proximoConcurso||res.data||''):''));
     var _semLabel=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
-    var _custoG=(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):0;
+    // Fase 64 (2026-08-02): mesma correção de _vincularSalvoAoBolaoImpl —
+    // soma ao custo já existente deste concurso (se houver) em vez de
+    // gravar só o custo desta adição, senão o UPSERT de
+    // sincronizarConcursoDual sobrescreve/perde o custo dos jogos já
+    // vinculados antes.
+    var _concursoExistenteG=(g.concursos||[]).find(function(c){return String(c.num)===String(_novoNum)&&c.loteria===loteriaKey;});
+    var _custoG=((d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):0)+(_concursoExistenteG?(parseFloat(_concursoExistenteG.custo)||0):0);
     // Teimosinha: CADA concurso da sequência (jogo._teimosinhaConcursos) vira
     // sua PRÓPRIA entrada em g.concursos[], com custo e status independentes
     // — é uma aposta separada por sorteio, não uma única aposta "estendida".
