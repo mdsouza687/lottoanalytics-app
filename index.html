@@ -10729,19 +10729,44 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modal-estatisticas'){ const hdr=document.getElementById('hdr-estatisticas'); if(hdr){ hdr.querySelector('.modal-title').textContent='📊 Estatísticas'; if(currentKey&&CFG[currentKey]) setModalHeaderCor('hdr-estatisticas', CFG[currentKey].cor); } } }
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function apos20h(){ const agora=new Date(); return agora.getHours()>=20; }
+// CORREÇÃO (2026-08-02): fechamento de apostas NÃO é sempre 20h — as
+// loterias que sorteavam sábado à noite passaram a sortear DOMINGO 11h
+// (segunda a sexta continuam à noite, ~20h, como sempre foi). Domingo
+// fecha as apostas por volta das 10h, bem mais cedo que o padrão
+// seg-sex. Sem essa distinção, um jogo salvo domingo à tarde continuava
+// sendo tratado como "ainda dá tempo pro concurso de hoje" horas depois
+// do fechamento real. Retorna null se hoje não é dia de sorteio desta
+// loteria (nesse caso o horário do dia é irrelevante).
+function _horaFechamentoApostas(loteriaKey){
+  var dias=(typeof DIAS_SORTEIO_NUM!=='undefined')?DIAS_SORTEIO_NUM[loteriaKey]:null;
+  if(!dias) return null;
+  var dow=new Date().getDay();
+  if(dias.indexOf(dow)===-1) return null;
+  return dow===0 ? 10 : 20;
+}
 /* Calcula qual concurso está REALMENTE em jogo agora (vigente para novas
    apostas), a partir do último resultado conhecido. Não basta usar
    "res.proximoConcursoNum" direto: esse valor reflete o cache do último
    resultado já divulgado, que pode estar um sorteio atrasado em relação à
    realidade (ex.: o sorteio de hoje já ocorreu mas a API ainda não
-   atualizou, ou já passou das 20h e o resultado do dia ainda não chegou).
-   Usado por qualquer fluxo que precise saber "para qual concurso uma
-   aposta feita agora vale" — em especial ao salvar jogos para conferência,
-   para não atribuir um jogo novo a um concurso que já foi sorteado. */
+   atualizou, ou já passou do horário de fechamento e o resultado do dia
+   ainda não chegou). Usado por qualquer fluxo que precise saber "para qual
+   concurso uma aposta feita agora vale" — em especial ao salvar jogos
+   para conferência, para não atribuir um jogo novo a um concurso que já
+   foi sorteado. */
 function calcConcursoVigente(res){
   if(!res) return {concursoNum:null, concursoData:null};
   let concursoNum, concursoData;
-  if(apos20h()){
+  // "Já tem resultado" é o sinal mais confiável de "já saiu" — não
+  // depende de acertar o horário certo. O horário de fechamento
+  // (_horaFechamentoApostas) é o complemento pro intervalo entre o
+  // sorteio de fato acontecer e o cron sincronizar o resultado (até
+  // ~1h) — sem ele, um jogo salvo nesse intervalo ainda colaria no
+  // concurso já encerrado.
+  const jaTemResultado=!!(res.dezenas&&res.dezenas.length);
+  const horaFechamento=_horaFechamentoApostas(res.loteria);
+  const passouFechamento=horaFechamento!=null && new Date().getHours()>=horaFechamento;
+  if(passouFechamento||jaTemResultado){
     concursoNum=res.proximoConcursoNum||String(parseInt(res.concurso)+1);
     concursoData=res.proximoConcurso||'—';
   } else {
