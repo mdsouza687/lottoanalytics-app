@@ -2587,8 +2587,8 @@ garantida entre os jogos">⭐ Score</button>
     <div class="modal-body" style="padding:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;flex-wrap:wrap">
         <label style="font-size:11px;font-weight:700;color:rgba(200,160,255,.9);white-space:nowrap">Quantidade de jogos</label>
-        <input id="ia-qty" type="number" min="1" max="50000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),50000)"/>
-        <span style="font-size:9px;color:var(--text-dim)">máx. 50000</span>
+        <input id="ia-qty" type="number" min="1" max="50000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),_getMaxJogosGeracao())"/>
+        <span id="ia-qty-max-hint" style="font-size:9px;color:var(--text-dim)">máx. 50000</span>
         <button onclick="gerarComIA(window._iaTipo||'jogo')" style="margin-left:auto;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:11px;font-weight:800;padding:7px 14px;cursor:pointer">🤖 Gerar</button>
       </div>
       <!-- Aposta Espelho no modal -->
@@ -3161,6 +3161,16 @@ function _aplicarMaxJogosGeracaoNaUI(){
   const v=_getMaxJogosGeracao();
   const qtyEl=document.getElementById('jogo-qty');
   if(qtyEl){ qtyEl.max=v; qtyEl.placeholder='máx '+v.toLocaleString('pt-BR'); }
+  // Fase 67 (2026-08-02, achado ao vivo): o modal "Gerar com IA" tinha seu
+  // próprio campo (#ia-qty) com limite de 50.000 fixo no HTML — nem o
+  // atributo max, nem a dica visível "máx. 50000" ao lado, nem o clamp do
+  // onchange nunca acompanhavam o limite configurado aqui no admin. Um
+  // admin que reduzisse o limite pra 5.000 continuava vendo (e podendo
+  // usar) 50.000 nesse modal especificamente.
+  const iaQtyEl=document.getElementById('ia-qty');
+  if(iaQtyEl) iaQtyEl.max=v;
+  const iaHintEl=document.getElementById('ia-qty-max-hint');
+  if(iaHintEl) iaHintEl.textContent='máx. '+v.toLocaleString('pt-BR');
 }
 // Limpeza Bucket C (Item 3, corte final, 2026-07-12): adminRodarDiagnostico/
 // adminLimparBoloesDuplicados/adminLimparJogosSalvosDuplicados removidos —
@@ -11436,7 +11446,10 @@ async function gerarFechamentoPorScore(){
   if(!window._fchScoreFiltros || window._fchScoreLoteria!==currentKey){await calcularScoreEPreview();}
   const filtros=window._fchScoreFiltros||{};
   const qtyInput=parseInt(document.getElementById('jogo-qty')?.value)||0;
-  const maxJogos=qtyInput>0?Math.min(qtyInput,50000):50000;
+  // Fase 67 (2026-08-02): limite configurável no admin, não mais 50000
+  // fixo (mesma correção de gerarComIA/_aplicarMaxJogosGeracaoNaUI).
+  const _maxQtyFchScore=_getMaxJogosGeracao();
+  const maxJogos=qtyInput>0?Math.min(qtyInput,_maxQtyFchScore):_maxQtyFchScore;
   const numDezSel=document.getElementById('jogo-dez-wrap');
   const numDez=numDezSel?parseInt(numDezSel.querySelector('select')?.value||d.min):d.min;
   if(numDez<d.min||numDez>d.max){toast(`Para ${d.nome}: de ${d.min} a ${d.max} dezenas.`);return;}
@@ -12130,9 +12143,13 @@ async function gerarComIA(tipo){
   const iaQtyEl=document.getElementById('ia-qty');
   // Sincroniza com o campo do painel até o usuário editar o campo do modal
   if(iaQtyEl&&!window._iaQtyTouched&&qtyEl?.value) iaQtyEl.value=qtyEl.value;
-  // Prioridade: campo do modal IA; fallback: campo do painel. Limite 50000 como todas as loterias.
+  // Prioridade: campo do modal IA; fallback: campo do painel. Limite
+  // configurável no admin (Fase 67: antes era 50000 fixo, ignorando o
+  // limite que o admin tivesse configurado).
   let qty=parseInt(iaQtyEl?.value)||parseInt(qtyEl?.value)||5;
-  qty=Math.min(Math.max(qty,1),50000);
+  const _maxQtyIA=_getMaxJogosGeracao();
+  if(qty>_maxQtyIA) toast('Limite máximo de '+_maxQtyIA.toLocaleString('pt-BR')+' jogos por geração (configurável no Painel de Administração).');
+  qty=Math.min(Math.max(qty,1),_maxQtyIA);
   if(iaQtyEl) iaQtyEl.value=qty;
   // wrapId: mesma observação de gerarJogos() — 'bolao' usa 'jogo-dez-wrap',
   // não existe 'bolao-dez-wrap' no HTML (confirmado em auditoria de código
