@@ -1693,6 +1693,32 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   </div>
 </div>
 
+<!-- ══ MODAL PRÊMIO → SALDO ══
+     Credita parte (ou o total) do prêmio REAL já apurado do bolão ao
+     saldo, dividido pelas cotas dos participantes ativos e pagos. -->
+<div class="modal-overlay" id="modal-premio-saldo">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-hdr"><span class="modal-title">🏆 Prêmio → Saldo</span><button class="modal-close" onclick="closeModal('modal-premio-saldo')">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">O valor informado é dividido proporcionalmente pelas cotas dos participantes ativos e já pagos, e somado à Contribuição de cada um.</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:12px">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Prêmio apurado (total)</span><span id="premio-saldo-apurado" style="font-weight:800">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Já creditado ao saldo</span><span id="premio-saldo-ja-creditado" style="font-weight:800">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Disponível para creditar</span><span id="premio-saldo-disponivel" style="font-weight:800;color:#16a34a">—</span></div>
+      </div>
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Valor a creditar</label>
+      <div style="display:flex;gap:6px">
+        <input id="premio-saldo-valor" type="text" placeholder="0,00" style="flex:1;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;box-sizing:border-box"/>
+        <button id="premio-saldo-usar-total" disabled style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 10px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">Usar total</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="result-hdr-btn" onclick="confirmarCreditoPremio()">✓ Creditar ao Saldo</button>
+      <button class="result-hdr-btn" onclick="closeModal('modal-premio-saldo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL ESTATÍSTICAS ══ -->
 <div class="modal-overlay" id="modal-estatisticas">
   <div class="modal" style="max-width:600px;">
@@ -14980,6 +15006,7 @@ var _boloesState = {
   semanaInicio: '',
   semanaFim: '',
   arrecadacaoTotal: 0,
+  premioCreditado: 0,
   rodadas: [],
   mesReferencia: '',
   semanas: [],
@@ -16698,6 +16725,7 @@ function renderFormBolao(){
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
         '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
         '<button onclick="salvarBolao()" style="border:none;border-radius:8px;padding:6px 12px;background:'+cor+';color:#fff;font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Lista</button>'+
+        (s.editId?'<button onclick="abrirModalPremioSaldo()" title="Credita um valor do prêmio já apurado ao saldo, dividido pelas cotas de quem já pagou" style="border:1px solid #16a34a;border-radius:8px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 Prêmio → Saldo</button>':'')+
         '<button onclick="salvarListaParticipantesModelo()" title="Guarda nome/e-mail/WhatsApp/CPF dos participantes deste bolão para reutilizar em outros, sem precisar redigitar tudo" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">📌 Salvar p/ Reuso</button>'+
         '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar p/ Reuso\' — evita redigitar participantes recorrentes"')+' style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
@@ -17711,6 +17739,7 @@ async function _salvarBolaoImpl(){
     cotas: s.cotas, premio: s.premio,
     participantes: s.participantes,
     arrecadacaoTotal: s.arrecadacaoTotal||0,
+    premioCreditado: s.premioCreditado||0,
     mesReferencia: s.mesReferencia||'',
     dataSorteio: s.dataSorteio||'',
     semanaInicio: s.semanaInicio||'', semanaFim: s.semanaFim||'',
@@ -17745,6 +17774,90 @@ async function _salvarBolaoImpl(){
     renderParticipantesBoloes();
     if(okParticipantes!==false) toast('✓ Bolão salvo');
   }catch(e){ console.error(e); toast('Erro ao salvar: '+e.message); }
+}
+
+// ── Prêmio → Saldo ──
+// Credita ao saldo do bolão um valor do prêmio REAL já apurado (conferido
+// jogo a jogo contra o resultado oficial via _calcPremioJogo — a mesma
+// função usada no relatório impresso, NÃO a estimativa de jackpot antes do
+// sorteio), dividido proporcionalmente pelas cotas dos participantes
+// ATIVOS e PAGOS (mesma base já usada pro % de cota / Meu Saldo). O valor
+// vira Contribuição extra de cada um: aumenta a Arrecadação Total e o Meu
+// Saldo individual, nos dois apps, assim que salvarBolao() sincroniza (é o
+// mesmo caminho autoritativo do botão "💾 Salvar Lista", só disparado
+// automaticamente aqui). premioCreditado é persistido pra lembrar quanto
+// do prêmio apurado já foi usado, evitando creditar o mesmo prêmio duas
+// vezes se o botão for aberto de novo depois.
+async function _calcPremioApuradoBolaoAsync(s){
+  var porLoteria={};
+  (s.concursos||[]).forEach(function(cc){
+    var lk=cc.loteria||(s.loteria||currentKey);
+    (cc.jogos||[]).forEach(function(jg){
+      (porLoteria[lk]=porLoteria[lk]||[]).push({jg:jg,num:cc.num});
+    });
+  });
+  var loterias=Object.keys(porLoteria);
+  if(typeof atualizarLoteria==='function'){
+    await Promise.all(loterias.map(function(lk){ return atualizarLoteria(lk).catch(function(){}); }));
+  }
+  if(typeof _prewarmHistoricoConcursos==='function'){
+    var pares=(s.concursos||[]).map(function(cc){ return {loteria:cc.loteria||(s.loteria||currentKey),concurso:cc.num}; });
+    await _prewarmHistoricoConcursos(pares);
+  }
+  var total=0;
+  loterias.forEach(function(lk){
+    porLoteria[lk].forEach(function(item){
+      var r=(typeof _calcPremioJogo==='function')?_calcPremioJogo(lk,item.jg,item.num):null;
+      if(r&&r.premiado) total+=r.valor;
+    });
+  });
+  return total;
+}
+function abrirModalPremioSaldo(){
+  var s=_boloesState;
+  if(!s.editId){ toast('Salve o bolão antes de creditar prêmio ao saldo.'); return; }
+  var elApurado=document.getElementById('premio-saldo-apurado');
+  var elJaCred=document.getElementById('premio-saldo-ja-creditado');
+  var elDisp=document.getElementById('premio-saldo-disponivel');
+  var elValor=document.getElementById('premio-saldo-valor');
+  var elUsarTotal=document.getElementById('premio-saldo-usar-total');
+  if(!elApurado||!elJaCred||!elDisp||!elValor||!elUsarTotal) return;
+  elApurado.textContent='Calculando...';
+  elJaCred.textContent=_bMoney(s.premioCreditado||0);
+  elDisp.textContent='—';
+  elValor.value='';
+  elUsarTotal.disabled=true;
+  openModal('modal-premio-saldo');
+  _calcPremioApuradoBolaoAsync(s).then(function(total){
+    var disponivel=Math.max(0,total-(s.premioCreditado||0));
+    elApurado.textContent=_bMoney(total);
+    elDisp.textContent=_bMoney(disponivel);
+    elUsarTotal.disabled=disponivel<=0;
+    elUsarTotal.onclick=function(){ elValor.value=disponivel.toFixed(2).replace('.',','); };
+  }).catch(function(e){
+    console.warn('[abrirModalPremioSaldo]',e.message);
+    elApurado.textContent='Erro ao calcular';
+  });
+}
+async function confirmarCreditoPremio(){
+  var s=_boloesState;
+  var raw=document.getElementById('premio-saldo-valor').value;
+  var valor=_parseMoedaPorTipo(raw,'BRL');
+  if(!valor||isNaN(valor)||valor<=0){ toast('Informe um valor válido.'); return; }
+  var elegiveis=(s.participantes||[]).filter(function(p){return p.statusPart!=='inativo'&&p.statusPag==='pago';});
+  var totalCotas=elegiveis.reduce(function(a,p){return a+(p.cotas||0);},0);
+  if(!totalCotas){ toast('Nenhum participante ativo e pago para creditar o prêmio.'); return; }
+  var valorPorCota=valor/totalCotas;
+  elegiveis.forEach(function(p){ p.valorCota=(p.valorCota||0)+valorPorCota*(p.cotas||0); });
+  s.premioCreditado=(s.premioCreditado||0)+valor;
+  _registrarAuditoria('creditar_premio_saldo',{bolaoId:s.editId,detalhes:'R$ '+valor.toFixed(2)+' dividido entre '+elegiveis.length+' participante(s) pago(s)'});
+  closeModal('modal-premio-saldo');
+  renderFormBolao();
+  renderParticipantesBoloes();
+  toast('Creditando R$ '+valor.toFixed(2)+' ao saldo...');
+  await salvarBolao();
+  _notificarBolao(s.editId, '🏆 Prêmio creditado ao saldo!',
+    'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2})+' do prêmio de "'+(s.nome||'')+'" foi creditado ao saldo do bolão, dividido proporcionalmente entre os participantes. Confira seu novo saldo no app.');
 }
 
 // Corte final (Item 3, 2026-07-12): lê só do schema novo (public.boloes) —
@@ -20408,7 +20521,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     ativadoEm:b.ativado_em||null,
     numDezBolao:b.num_dez||0, jogosVinculados:concursos.reduce(function(a,c){return a.concat(c.jogos||[]);},[]),
     concursos:concursos, semanaInicio:b.semana_inicio||'', semanaFim:b.semana_fim||'',
-    arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), rodadas:b.rodadas||[],
+    arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), premioCreditado:parseFloat(b.premio_creditado||0), rodadas:b.rodadas||[],
     mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||'',
     pushLimitePremioCota:b.push_limite_premio_cota==null?500:parseFloat(b.push_limite_premio_cota),
     dataHoraEncerramentoOriginal:b.data_hora_encerramento||null,
@@ -20611,7 +20724,7 @@ var BolaoJogosRepo = {
       modalidade: registro.modalidade||null, sorteio: registro.sorteio||null,
       concurso: registro.concurso!=null?String(registro.concurso):null,
       cotas: registro.cotas||{}, premio: registro.premio||0,
-      arrecadacao_total: registro.arrecadacaoTotal||0, mes_referencia: registro.mesReferencia||null,
+      arrecadacao_total: registro.arrecadacaoTotal||0, premio_creditado: registro.premioCreditado||0, mes_referencia: registro.mesReferencia||null,
       data_sorteio: registro.dataSorteio||null, semana_inicio: registro.semanaInicio||null,
       semana_fim: registro.semanaFim||null, rodadas: registro.rodadas||[],
       num_dez: registro.numDez||0, push_limite_premio_cota: registro.pushLimitePremioCota==null?500:registro.pushLimitePremioCota,
