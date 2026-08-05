@@ -15757,12 +15757,34 @@ function _calcArrecadacaoPorContribuicoes(s){
   s=s||_boloesState;
   return _calcSomaContribuicoes(s)+_calcSaldoOrcamentoAdmin(s);
 }
+// Sincroniza arrecadacao_total ao vivo com o schema novo (tabela boloes),
+// pra o app mobile de participante nunca mostrar Saldo Disponível
+// desatualizado enquanto o organizador não clica em "💾 Salvar Lista". Os
+// jogos vinculados/excluídos já sincronizam ao vivo (vincularDual/
+// desvincularDual), mas arrecadacao_total antes só era gravado dentro do
+// Salvar — mistura de metade viva + metade congelada fazia o saldo do
+// mobile divergir do Desktop sempre que só jogos ou só contribuições
+// mudavam sem um Salvar logo em seguida. Debounced porque um dos
+// chamadores (_atualizarValoresDerivadosUI) roda a cada tecla digitada no
+// campo de Contribuição. Best-effort: erro só vai pro console, igual aos
+// outros métodos "Dual" — o Salvar continua sendo a gravação autoritativa.
+var _syncArrecTimer=null;
+function _sincronizarArrecadacaoLive(valor){
+  if(!_boloesState.editId) return;
+  clearTimeout(_syncArrecTimer);
+  _syncArrecTimer=setTimeout(function(){
+    var sb=_getSbClient(); if(!sb) return;
+    sb.from('boloes').update({arrecadacao_total:valor||0}).eq('id',_boloesState.editId)
+      .then(function(r){ if(r&&r.error) console.warn('[_sincronizarArrecadacaoLive]',r.error.message); });
+  },800);
+}
 // Atualiza, ao vivo, os campos derivados (Arrecadação Total, Valor/Cota) e
 // a tabela de participantes, sem re-renderizar o formulário inteiro.
 function _atualizarCotaUI(){
   var s=_boloesState;
   var arrec=_calcArrecadacaoPorContribuicoes(s);
   s.arrecadacaoTotal=arrec; // mantém sincronizado para qualquer leitura legada
+  _sincronizarArrecadacaoLive(arrec);
   var elArrec=document.getElementById('bol-arrec-main')||document.getElementById('bol-arrec');
   if(elArrec) elArrec.value=arrec?arrec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
   var vc=_calcValorCotaAuto();
@@ -16036,6 +16058,7 @@ function renderFormBolao(){
   // s.arrecadacaoTotal sincronizado para qualquer leitura legada.
   var arrec=_calcArrecadacaoPorContribuicoes(s);
   s.arrecadacaoTotal=arrec;
+  _sincronizarArrecadacaoLive(arrec);
   var arrecFmtMain=arrec?arrec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
 
   // ── Bloco Semanas Mensais ──
@@ -16352,6 +16375,7 @@ function renderFormBolao(){
     (s.modalidade==='unico'?(function(){
     var arrec=_calcArrecadacaoPorContribuicoes(s);
     s.arrecadacaoTotal=arrec;
+    _sincronizarArrecadacaoLive(arrec);
     var custRod=_calcCustoTotalBolao(s);
     var saldo=arrec-custRod;
     var corSaldo=saldo>=0?'#4ade80':'#f87171';
@@ -16455,6 +16479,7 @@ function renderFormBolao(){
     // sincronizada em s.arrecadacaoTotal para qualquer leitura legada.
     var arrec=_calcArrecadacaoPorContribuicoes(s);
     s.arrecadacaoTotal=arrec;
+    _sincronizarArrecadacaoLive(arrec);
     var arrecFmt=arrec?arrec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
     // Custo das apostas = soma do valor de TODOS os jogos vinculados ao bolão
     // (acumulativo conforme jogos vão sendo vinculados), não apenas das
@@ -17086,6 +17111,7 @@ function _atualizarValoresDerivadosUI(){
   var s=_boloesState;
   var arrec=_calcArrecadacaoPorContribuicoes(s);
   s.arrecadacaoTotal=arrec;
+  _sincronizarArrecadacaoLive(arrec);
   var elArrec=document.getElementById('bol-arrec-main')||document.getElementById('bol-arrec');
   if(elArrec) elArrec.value=arrec?arrec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
   var d=_calcDadosFinanceirosBolao(s);
