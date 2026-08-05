@@ -18935,6 +18935,24 @@ function _htmlLinhasAssinaturas(itens){
   }
   return linhas.join('');
 }
+// Quando o administrador também é participante do mesmo bolão (comum:
+// ele entra com cotas próprias), casa o registro de participante que
+// corresponde a ele — por CPF primeiro (mais confiável), com fallback pro
+// nome normalizado quando não há CPF preenchido dos dois lados. Usado pra
+// reaproveitar a MESMA assinatura digital (já capturada quando ele aceitou
+// os Termos e Condições como participante) também na linha de assinatura
+// do "Administrador" — sem isso, essa linha ficava sempre em branco
+// mesmo quando a pessoa já tinha assinado digitalmente como participante.
+function _acharParticipanteQueEhAdmin(lista,cpfAdmin,nomeAdmin,getCpf,getNome){
+  var cpfN=(cpfAdmin||'').replace(/\D/g,'');
+  if(cpfN){
+    var porCpf=(lista||[]).filter(function(p){ return (getCpf(p)||'').replace(/\D/g,'')===cpfN; })[0];
+    if(porCpf) return porCpf;
+  }
+  var nomeN=(nomeAdmin||'').trim().toLowerCase();
+  if(!nomeN) return null;
+  return (lista||[]).filter(function(p){ return (getNome(p)||'').trim().toLowerCase()===nomeN; })[0]||null;
+}
 // Fase 14: Termo de Constituição de Bolão Particular — documento de
 // governança/comprovação (baseado em orientação sobre como demonstrar à
 // Receita Federal que um prêmio pago numa conta pessoal pertence, de
@@ -19024,9 +19042,16 @@ function imprimirTermoConstituicao(retornarHtml){
     '(art. 421 e seguintes do Código Civil) e da boa-fé objetiva (art. 422 do Código Civil).</p>'+
     '<h2>Data e Assinaturas</h2>'+
     '<p>'+_esc(s.nome)+', '+dataEmissao+'.</p>'+
-    _htmlLinhasAssinaturas([{nome:(s.admin.nome||'Administrador')+' (Administrador)',png:null,data:null}].concat(ativos.map(function(p){
-      return {nome:p.nome, png:p.termosAssinaturaPng||null, data:p.termosAceitosEm?new Date(p.termosAceitosEm).toLocaleDateString('pt-BR'):null};
-    })));
+    (function(){
+      var _pAdmin=_acharParticipanteQueEhAdmin(ativos, s.admin.cpf, s.admin.nome, function(p){return p.cpf;}, function(p){return p.nome;});
+      return _htmlLinhasAssinaturas([{
+        nome:(s.admin.nome||'Administrador')+' (Administrador)',
+        png:_pAdmin?(_pAdmin.termosAssinaturaPng||null):null,
+        data:_pAdmin&&_pAdmin.termosAceitosEm?new Date(_pAdmin.termosAceitosEm).toLocaleDateString('pt-BR'):null
+      }].concat(ativos.map(function(p){
+        return {nome:p.nome, png:p.termosAssinaturaPng||null, data:p.termosAceitosEm?new Date(p.termosAceitosEm).toLocaleDateString('pt-BR'):null};
+      })));
+    })();
 
   if(retornarHtml){ return {titulo:'Termo de Constituição — '+s.nome, corpo:corpo}; }
   var html=headStyle+printBar+corpo+'</body></html>';
@@ -21922,9 +21947,16 @@ async function ptAbrirTermoConstituicao(bolaoId){
     '(art. 421 e seguintes do Código Civil) e da boa-fé objetiva (art. 422 do Código Civil).</p>'+
     '<h2>Data e Assinaturas</h2>'+
     '<p>'+_esc(info.bolao_nome||'Bolão')+', '+dataEmissao+'.</p>'+
-    ptHtmlLinhasAssinaturas([{nome:(info.admin_nome||'Administrador')+' (Administrador)',png:null,data:null}].concat(participantes.map(function(p){
-      return {nome:p.nome,png:p.termos_assinatura_png||null,data:p.termos_aceitos_em?ptFmtData(p.termos_aceitos_em):null};
-    })))+
+    (function(){
+      var _pAdmin=_acharParticipanteQueEhAdmin(participantes, info.admin_cpf, info.admin_nome, function(p){return p.cpf;}, function(p){return p.nome;});
+      return ptHtmlLinhasAssinaturas([{
+        nome:(info.admin_nome||'Administrador')+' (Administrador)',
+        png:_pAdmin?(_pAdmin.termos_assinatura_png||null):null,
+        data:_pAdmin&&_pAdmin.termos_aceitos_em?ptFmtData(_pAdmin.termos_aceitos_em):null
+      }].concat(participantes.map(function(p){
+        return {nome:p.nome,png:p.termos_assinatura_png||null,data:p.termos_aceitos_em?ptFmtData(p.termos_aceitos_em):null};
+      })));
+    })()+
   '</body></html>';
   ptAbrirDocumento(html);
 }
