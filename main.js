@@ -45,7 +45,8 @@ function createWindow() {
       // loterias) funcionarem normalmente, igual a um navegador comum.
       webSecurity: true
     },
-    autoHideMenuBar: true
+    autoHideMenuBar: true,
+    show: false
   });
 
   win.loadFile('index.html');
@@ -55,6 +56,20 @@ function createWindow() {
   win.setMenuBarVisibility(false);
 
   attachExternalLinkHandling(win);
+
+  // A janela nascia com o tamanho fixo (1400x900) acima, sem maximizar e
+  // sem zoom nenhum — bem menor/mais difícil de ler que uma aba de
+  // navegador maximizada no mesmo monitor. Só afeta o app instalado (o
+  // site continua usando o zoom que o próprio navegador do usuário já
+  // controla). Maximiza só depois de pronta pra mostrar (evita o flash de
+  // janela pequena antes de crescer).
+  win.once('ready-to-show', () => {
+    win.maximize();
+    win.show();
+  });
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.setZoomFactor(1.2);
+  });
 
   return win;
 }
