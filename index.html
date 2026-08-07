@@ -21872,7 +21872,7 @@ function ptHtmlLinhasAssinaturas(itens){
   }
   return linhas.join('');
 }
-async function ptAbrirTermoConstituicao(bolaoId){
+async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
   var info=_ptUltimoInfoBolao;
   if(!info){ toast('Carregando dados do bolão — tente novamente em instantes.'); return; }
   var sb=_getSbClient();
@@ -21896,7 +21896,7 @@ async function ptAbrirTermoConstituicao(bolaoId){
     return _esc(ptLoterianome(c.loteria))+' — Concurso '+_esc(c.concurso)+(c.data?' ('+_esc(c.data)+')':'');
   });
   var dataEmissao=new Date().toLocaleDateString('pt-BR');
-  var html='<html><head><meta charset="utf-8"><title>Termo de Constituição — '+_esc(info.bolao_nome||'Bolão')+'</title>'+
+  var headStyle='<html><head><meta charset="utf-8"><title>Termo de Constituição — '+_esc(info.bolao_nome||'Bolão')+'</title>'+
     '<style>@page{size:A4;margin:14mm}'+
     'body{font-family:Georgia,\'Times New Roman\',serif;color:#111;padding:0;line-height:1.55;font-size:12.5px}'+
     'h1{font-size:16px;text-align:center;letter-spacing:.03em;margin:0 0 4px}'+
@@ -21910,13 +21910,13 @@ async function ptAbrirTermoConstituicao(bolaoId){
     '.assinatura{flex:0 0 45%;text-align:center}'+
     '.assinatura+.assinatura{margin-left:10mm}'+
     '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
-    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
-    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>';
+  var printBar='<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
       '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
       '<span style="font-size:12px;color:#ccc">Documento de governança/comprovação — não substitui orientação de contador ou advogado.</span>'+
       '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
-    '</div><div id="print-spacer" style="height:52px"></div>'+
-    '<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
+    '</div><div id="print-spacer" style="height:52px"></div>';
+  var corpo='<h1>TERMO DE CONSTITUIÇÃO DE BOLÃO PARTICULAR</h1>'+
     '<div class="sub">'+_esc(info.bolao_nome||'Bolão')+' · Emitido em '+dataEmissao+
       (data.semana_inicio&&data.semana_fim?' · Período do bolão: '+_esc(data.semana_inicio)+' a '+_esc(data.semana_fim):'')+
     '</div>'+
@@ -21956,8 +21956,127 @@ async function ptAbrirTermoConstituicao(bolaoId){
       }].concat(participantes.map(function(p){
         return {nome:p.nome,png:p.termos_assinatura_png||null,data:p.termos_aceitos_em?ptFmtData(p.termos_aceitos_em):null};
       })));
-    })()+
-  '</body></html>';
+    })();
+  if(retornarHtml){ return {titulo:'Termo de Constituição — '+(info.bolao_nome||'Bolão'), corpo:corpo}; }
+  var html=headStyle+printBar+corpo+'</body></html>';
+  ptAbrirDocumento(html);
+}
+
+// Seção "Jogos Premiados" do Dossiê do Prêmio no app do participante —
+// busca os jogos do bolão AO VIVO (mesma Edge Function já usada pra
+// montar o detalhe do bolão, ver ptBuscarDadosBolaoAoVivo), filtra só os
+// premiados e monta uma lista compacta com as mesmas bolinhas coloridas
+// já usadas no resto do app (ptBolinhaLoteria etc. — cores fixas, não
+// dependem de variável CSS, então funcionam numa janela de impressão à
+// parte). Ao contrário do Desktop do organizador, aqui não há acesso à
+// contribuição/saldo de cada participante — só a lista de jogos e prêmios.
+async function _ptBuildHtmlJogosPremiados(bolaoId){
+  var d=await ptBuscarDadosBolaoAoVivo(bolaoId);
+  var jogos=((d&&d.jogos)||[]).filter(function(j){ return j.premiado; });
+  var corpo='<h1>Jogos Premiados</h1>';
+  if(!jogos.length){
+    corpo+='<p style="color:#999">Nenhum jogo premiado encontrado neste bolão até o momento.</p>';
+    return {titulo:'Jogos Premiados', corpo:corpo};
+  }
+  var porGrupo={}, ordem=[];
+  jogos.forEach(function(j){
+    var k=j.loteria+'|'+j.concurso;
+    if(!porGrupo[k]){ porGrupo[k]={loteria:j.loteria,concurso:j.concurso,itens:[]}; ordem.push(k); }
+    porGrupo[k].itens.push(j);
+  });
+  var totalPremio=jogos.reduce(function(a,j){return a+(j.valor||0);},0);
+  corpo+='<div class="sub">Total premiado neste bolão: '+ptBMoney(totalPremio)+' · '+jogos.length+' jogo'+(jogos.length!==1?'s':'')+' premiado'+(jogos.length!==1?'s':'')+'</div>';
+  corpo+=ordem.map(function(k){
+    var g=porGrupo[k];
+    return '<div class="grupo-loteria">'+_esc(ptLoterianome(g.loteria))+' — Concurso '+_esc(g.concurso)+'</div>'+
+      g.itens.map(function(j,idx){
+        var sorteadas=(j.dezenasSorteadas)?new Set(j.dezenasSorteadas.map(Number)):null;
+        var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,j.loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
+        var premio=' <span style="color:#b8860b;font-weight:800;font-size:12px;white-space:nowrap">\U0001f3c6 '+ptBMoney(j.valor)+'</span>';
+        return '<div class="linha-jogo">'+bolinhas+premio+'</div>';
+      }).join('');
+  }).join('');
+  return {titulo:'Jogos Premiados', corpo:corpo};
+}
+// Seção "Comprovantes de Depósito" do Dossiê do Prêmio no app do
+// participante — via rpc_participante_comprovantes_bolao (fase 72),
+// nova RPC que devolve os comprovantes de TODOS os participantes do
+// bolão (a RLS direta na tabela só deixa cada um ver o próprio). Mesma
+// grade densa (4 por linha) já usada no Dossiê do Desktop.
+async function _ptBuildHtmlComprovantes(bolaoId){
+  var sb=_getSbClient();
+  var {data,error}=await sb.rpc('rpc_participante_comprovantes_bolao',{p_bolao_id:bolaoId});
+  var lista=(!error&&data)?data:[];
+  var itens=lista.map(function(c){
+    var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
+    var midia=ehPdf
+      ? '<div class="item-pdf">\U0001f4c4 Anexo em PDF — não incluído na impressão</div>'
+      : '<img src="'+_esc(c.foto_url)+'"/>';
+    return '<div class="item">'+midia+'<div class="cap">'+_esc(c.nome)+'<br>'+quando+'</div></div>';
+  }).join('');
+  var corpo='<h1>Comprovantes de Depósito</h1>'+
+    '<div class="sub">'+lista.length+' comprovante'+(lista.length!==1?'s':'')+' anexado'+(lista.length!==1?'s':'')+' a este bolão</div>'+
+    (lista.length ? '<div class="grid">'+itens+'</div>' : '<p style="color:#999">Nenhum comprovante de depósito anexado a este bolão até o momento.</p>');
+  return {titulo:'Comprovantes de Depósito', corpo:corpo};
+}
+// "Dossiê do Prêmio" no app do participante — mesma ideia do botão já
+// existente no Desktop (fase 70): reúne, numa impressão só, o Termo de
+// Constituição, os jogos premiados e os comprovantes de depósito de
+// TODOS os participantes do bolão. Cada participante pode gerar sua
+// própria cópia, sem depender do organizador. Sempre disponível assim
+// que o bolão está ativado (mesmo gate do Termo de Constituição).
+async function ptAbrirDossiePremio(bolaoId){
+  toast('Gerando dossiê...');
+  var termo, jogos, comprovantes;
+  try{
+    termo=await ptAbrirTermoConstituicao(bolaoId, true);
+    jogos=await _ptBuildHtmlJogosPremiados(bolaoId);
+    comprovantes=await _ptBuildHtmlComprovantes(bolaoId);
+  }catch(e){ console.warn('[ptAbrirDossiePremio]',e.message); toast('Erro ao gerar dossiê: '+e.message); return; }
+
+  var secoes=[
+    '<div class="dossie-sec sec-termo">'+(termo?termo.corpo:'<h1>Termo de Constituição</h1><p style="color:#999">Indisponível.</p>')+'</div>',
+    '<div class="dossie-sec sec-jogos">'+jogos.corpo+'</div>',
+    '<div class="dossie-sec sec-comprovantes">'+comprovantes.corpo+'</div>'
+  ];
+  var nomeBolao=(_ptUltimoInfoBolao&&_ptUltimoInfoBolao.bolao_nome)||'Bolão';
+  var html='<html><head><meta charset="utf-8"><title>Dossiê do Prêmio — '+_esc(nomeBolao)+'</title>'+
+    '<style>@page{size:A4;margin:12mm}'+
+    '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'+
+    'body{padding:0;margin:0;font-family:Arial,sans-serif;color:#111}'+
+    '.dossie-sec{padding:10px 14px;page-break-before:always}.dossie-sec:first-child{page-break-before:auto}'+
+    '.sec-termo{font-family:Georgia,\'Times New Roman\',serif;line-height:1.55;font-size:12.5px}'+
+    '.sec-termo h1{font-size:16px;text-align:center;letter-spacing:.03em;margin:0 0 4px}'+
+    '.sec-termo .sub{text-align:center;color:#666;font-size:10px;margin-bottom:18px}'+
+    '.sec-termo h2{font-size:12.5px;margin:16px 0 6px;border-bottom:1px solid #ccc;padding-bottom:2px}'+
+    '.sec-termo table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}'+
+    '.sec-termo th{background:#f0f0f0;text-align:left;padding:5px 7px;border-bottom:1px solid #999}'+
+    '.sec-termo td{padding:5px 7px;border-bottom:1px solid #ddd}'+
+    '.sec-termo .box{background:#f7f7f5;border:1px solid #e0e0dc;border-radius:5px;padding:8px 12px;margin-bottom:6px}'+
+    '.sec-termo .assinaturas-linha{display:flex;justify-content:center;margin-top:34px}'+
+    '.sec-termo .assinatura{flex:0 0 45%;text-align:center}'+
+    '.sec-termo .assinatura+.assinatura{margin-left:10mm}'+
+    '.sec-termo .assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
+    '.sec-jogos h1{margin:0 0 2px;font-size:18px}'+
+    '.sec-jogos .sub{color:#555;font-size:11px;margin-bottom:10px}'+
+    '.sec-jogos .grupo-loteria{font-weight:700;font-size:10px;color:#666;margin:10px 0 4px}'+
+    '.sec-jogos .linha-jogo{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;margin-bottom:5px}'+
+    '.sec-comprovantes h1{margin:0 0 2px;font-size:18px}'+
+    '.sec-comprovantes .sub{color:#555;font-size:11px;margin-bottom:10px}'+
+    '.sec-comprovantes .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5mm}'+
+    '.sec-comprovantes .item{border:1px solid #ddd;border-radius:4px;padding:3px;break-inside:avoid;page-break-inside:avoid}'+
+    '.sec-comprovantes .item img{width:100%;height:58mm;object-fit:contain;display:block}'+
+    '.sec-comprovantes .item-pdf{height:58mm;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;color:#555;padding:4px}'+
+    '.sec-comprovantes .cap{font-size:8px;color:#555;text-align:center;margin-top:2px;line-height:1.3}'+
+    '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
+    '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
+      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
+      '<span style="font-size:12px;color:#ccc">Termo de Constituição + Jogos Premiados + Comprovantes de Depósito, num documento só.</span>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
+    '</div><div id="print-spacer" style="height:52px"></div>'+
+    secoes.join('')+
+    '</body></html>';
   ptAbrirDocumento(html);
 }
 
@@ -22407,6 +22526,7 @@ async function ptRenderDetalheBolao(bolaoId){
     '<div class="pt-section-title" style="margin-top:0">📄 Documentos</div>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermosCondicoes()" style="display:block;width:100%;text-align:left;padding:8px 0">📜 Termos e Condições</button>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermoConstituicao(\''+bolaoId+'\')" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Termo de Constituição do Bolão</button>'+
+    '<button class="pt-btn-link" onclick="ptAbrirDossiePremio(\''+bolaoId+'\')" title="Termo de Constituição + jogos premiados + comprovantes de depósito, num documento só" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Dossiê do Prêmio</button>'+
     '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📄 Regras de Funcionamento e Isenção de Impostos</a>'+
   '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
