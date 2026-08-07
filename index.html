@@ -21698,7 +21698,7 @@ async function ptBuscarDadosBolaoAoVivo(bolaoId){
     });
     if(!r.ok) return null;
     var j=await r.json();
-    return {jogos:j.jogos||null,bilhetes:j.bilhetes||[]};
+    return {jogos:j.jogos||null,bilhetes:j.bilhetes||[],rodadas:j.rodadas||[]};
   }catch(e){ console.warn('[pt dados bolão ao vivo]',e.message); return null; }
 }
 async function ptBuscarJogosBolaoAoVivo(bolaoId){
@@ -21962,41 +21962,169 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
   ptAbrirDocumento(html);
 }
 
-// Seção "Jogos Premiados" do Dossiê do Prêmio no app do participante —
-// busca os jogos do bolão AO VIVO (mesma Edge Function já usada pra
-// montar o detalhe do bolão, ver ptBuscarDadosBolaoAoVivo), filtra só os
-// premiados e monta uma lista compacta com as mesmas bolinhas coloridas
-// já usadas no resto do app (ptBolinhaLoteria etc. — cores fixas, não
+// Seção "Relatório do Bolão" do Dossiê do Prêmio no app do participante —
+// réplica do relatório impresso do Desktop (_imprimirBolaoImpl), montada
+// só com dados que o próprio participante já tem acesso: ficha financeira
+// de todos os participantes (Refer./Nome/Qtd.Cotas/Valor pago/Meu
+// Saldo/Organização/Cota/Pagamento), tabela de % / Cota + Prêmio por
+// loteria, Somatório dos Prêmios Recebidos, lista dos jogos premiados
+// (com as mesmas bolinhas coloridas do resto do app — cores fixas, não
 // dependem de variável CSS, então funcionam numa janela de impressão à
-// parte). Ao contrário do Desktop do organizador, aqui não há acesso à
-// contribuição/saldo de cada participante — só a lista de jogos e prêmios.
+// parte), Histórico de Rodadas e Gastos Diários. status_pag/cotas/
+// valor_cota de cada participante vêm de rpc_participante_lista_bolao
+// (fase 73 — antes só devolvia o status_pag do próprio usuário logado).
+// A coluna "Organização" (rateio do orçamento fixo do admin) sempre sai
+// R$0,00 aqui: os campos de que ela depende (admin_participa_cotas/
+// cotas_proprias) não são sincronizados pro schema novo, então não tem
+// como calcular certo pelo lado do participante — mesmo valor que a
+// maioria dos bolões (que não usa orçamento fixo) já mostra no Desktop.
 async function _ptBuildHtmlJogosPremiados(bolaoId){
+  var info=_ptUltimoInfoBolao;
   var d=await ptBuscarDadosBolaoAoVivo(bolaoId);
-  var jogos=((d&&d.jogos)||[]).filter(function(j){ return j.premiado; });
-  var corpo='<h1>Jogos Premiados</h1>';
-  if(!jogos.length){
-    corpo+='<p style="color:#999">Nenhum jogo premiado encontrado neste bolão até o momento.</p>';
-    return {titulo:'Jogos Premiados', corpo:corpo};
+  var todosJogos=(d&&d.jogos)||[];
+  var jogos=todosJogos.filter(function(j){ return j.premiado; });
+  var rodadas=(d&&d.rodadas)||[];
+  var corpo='<h1>Relatório do Bolão</h1>';
+
+  var participantesDiv=[], cotasAdminDiv=0, pctPorCotaDiv=0, fatorPercentualDiv=1;
+  try{
+    var sb=_getSbClient();
+    var {data:listaData,error:listaErr}=await sb.rpc('rpc_participante_lista_bolao',{p_bolao_id:bolaoId});
+    if(!listaErr&&listaData&&info){
+      participantesDiv=(listaData.participantes||[]);
+      var tipoOrgDiv=info.tipo_organizacao;
+      cotasAdminDiv=(tipoOrgDiv==='cotas')?(info.admin_cotas==null?1:info.admin_cotas):0;
+      fatorPercentualDiv=(tipoOrgDiv==='percentual')?(1-((info.admin_percentual_premio==null?10:info.admin_percentual_premio)/100)):1;
+      var pagosDiv=participantesDiv.filter(function(p){return p.status_pag==='pago';});
+      var cotasPagasDiv=pagosDiv.reduce(function(a,p){return a+(p.cotas||0);},0)+cotasAdminDiv;
+      pctPorCotaDiv=cotasPagasDiv>0?(100/cotasPagasDiv):0;
+
+      var valorCotaReal=info.valor_cota_real||0;
+      var refSeq=0, linhasFinanc='';
+      if(cotasAdminDiv>0){
+        linhasFinanc+='<tr style="background:#fff7e0"><td>—</td><td>⭐ '+_esc(info.admin_nome||'(Administrador)')+'</td>'+
+          '<td style="text-align:center">'+cotasAdminDiv+'</td><td style="text-align:right">—</td><td style="text-align:right">—</td>'+
+          '<td style="text-align:center">—</td><td style="text-align:right">—</td>'+
+          '<td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>';
+      }
+      participantesDiv.forEach(function(p){
+        var pago=p.status_pag==='pago';
+        var qtd=Math.max(1,p.cotas||1);
+        var meuSaldoP=(pago?(p.valor_cota||0):0)-valorCotaReal*qtd;
+        for(var c=0;c<qtd;c++){
+          refSeq++;
+          var primeira=(c===0);
+          linhasFinanc+='<tr>'+
+            '<td style="text-align:center;color:#888">'+refSeq+'</td>'+
+            '<td>'+(primeira?_esc(p.nome):'<span style="color:#888;font-style:italic">'+_esc(p.nome)+'</span>')+'</td>'+
+            '<td style="text-align:center">'+(primeira?qtd:('cota '+(c+1)))+'</td>'+
+            '<td style="text-align:right">'+(pago?ptBMoney(valorCotaReal):ptBMoney(0))+'</td>'+
+            '<td style="text-align:right;color:'+(primeira?(meuSaldoP>=0?'#16a34a':'#dc2626'):'#888')+';font-weight:700">'+(primeira?(meuSaldoP>=0?'':'-')+ptBMoney(Math.abs(meuSaldoP)):'—')+'</td>'+
+            '<td style="text-align:center;color:#16a34a">'+ptBMoney(0)+'</td>'+
+            '<td style="text-align:right">'+ptBMoney(pago?valorCotaReal:0)+'</td>'+
+            '<td style="text-align:center;color:'+(pago?'#16a34a':'#dc2626')+';font-weight:700">'+(pago?'PAGO':'PENDENTE')+'</td>'+
+          '</tr>';
+        }
+      });
+      corpo+='<table><thead><tr><th>Refer.</th><th>Nome</th><th style="text-align:center">Qtd. Cotas</th><th style="text-align:right">Valor pago</th><th style="text-align:right">Meu Saldo</th><th style="text-align:center">Organização</th><th style="text-align:right">Cota</th><th style="text-align:center">Pagamento</th></tr></thead><tbody>'+linhasFinanc+'</tbody></table>';
+    }
+  }catch(e){ console.warn('[_ptBuildHtmlJogosPremiados ficha financeira]',e.message); }
+
+  if(!todosJogos.length && !rodadas.length){
+    corpo+='<p style="color:#999">Nenhum jogo vinculado a este bolão até o momento.</p>';
+    return {titulo:'Relatório do Bolão', corpo:corpo};
   }
-  var porGrupo={}, ordem=[];
-  jogos.forEach(function(j){
-    var k=j.loteria+'|'+j.concurso;
-    if(!porGrupo[k]){ porGrupo[k]={loteria:j.loteria,concurso:j.concurso,itens:[]}; ordem.push(k); }
-    porGrupo[k].itens.push(j);
+
+  var jogosPorLoteria={}, ordemLoteria=[];
+  todosJogos.forEach(function(j){
+    if(!jogosPorLoteria[j.loteria]){ jogosPorLoteria[j.loteria]={premioReal:0}; ordemLoteria.push(j.loteria); }
+    if(j.premiado) jogosPorLoteria[j.loteria].premioReal+=(j.valor||0);
   });
-  var totalPremio=jogos.reduce(function(a,j){return a+(j.valor||0);},0);
-  corpo+='<div class="sub">Total premiado neste bolão: '+ptBMoney(totalPremio)+' · '+jogos.length+' jogo'+(jogos.length!==1?'s':'')+' premiado'+(jogos.length!==1?'s':'')+'</div>';
-  corpo+=ordem.map(function(k){
-    var g=porGrupo[k];
-    return '<div class="grupo-loteria">'+_esc(ptLoterianome(g.loteria))+' — Concurso '+_esc(g.concurso)+'</div>'+
-      g.itens.map(function(j,idx){
-        var sorteadas=(j.dezenasSorteadas)?new Set(j.dezenasSorteadas.map(Number)):null;
-        var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,j.loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
-        var premio=' <span style="color:#b8860b;font-weight:800;font-size:12px;white-space:nowrap">\U0001f3c6 '+ptBMoney(j.valor)+'</span>';
-        return '<div class="linha-jogo">'+bolinhas+premio+'</div>';
+  if(participantesDiv.length && pctPorCotaDiv>0){
+    var pagosL=participantesDiv.filter(function(p){return p.status_pag==='pago';});
+    corpo+=ordemLoteria.map(function(lot){
+      var L=jogosPorLoteria[lot];
+      var linhasL='';
+      if(cotasAdminDiv>0){
+        var pctAdminL=pctPorCotaDiv*cotasAdminDiv;
+        linhasL+='<tr style="background:#fff7e0"><td>⭐ '+_esc(info.admin_nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdminL.toFixed(2)+'%</td><td style="text-align:right">'+ptBMoney(L.premioReal*pctAdminL/100)+'</td><td style="text-align:center;color:#b8860b;font-weight:700">ISENTO</td></tr>';
+      }
+      linhasL+=pagosL.map(function(p){
+        var pctCotaP=pctPorCotaDiv*Math.max(1,p.cotas||1);
+        return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right">'+ptBMoney(L.premioReal*pctCotaP/100*fatorPercentualDiv)+'</td><td style="text-align:center;color:#16a34a;font-weight:700">PAGO</td></tr>';
       }).join('');
-  }).join('');
-  return {titulo:'Jogos Premiados', corpo:corpo};
+      return '<div class="grupo-loteria">'+_esc(ptLoterianome(lot))+' · Prêmio apurado: '+ptBMoney(L.premioReal)+'</div>'+
+        '<table><thead><tr><th>Participante</th><th style="text-align:center">% / Cota</th><th style="text-align:right">Prêmio</th><th style="text-align:center">Pagamento</th></tr></thead><tbody>'+linhasL+'</tbody></table>';
+    }).join('');
+  }
+
+  var totalPremio=jogos.reduce(function(a,j){return a+(j.valor||0);},0);
+  if(participantesDiv.length && pctPorCotaDiv>0 && totalPremio>0){
+    var linhasSom='';
+    if(cotasAdminDiv>0){
+      var pctAdminS=pctPorCotaDiv*cotasAdminDiv;
+      linhasSom+='<tr style="background:#fff7e0"><td>⭐ '+_esc(info.admin_nome||'(Administrador)')+'</td><td style="text-align:center">'+pctAdminS.toFixed(2)+'%</td><td style="text-align:right;font-weight:700">'+ptBMoney(totalPremio*pctAdminS/100)+'</td></tr>';
+    }
+    linhasSom+=participantesDiv.filter(function(p){return p.status_pag==='pago';}).map(function(p){
+      var pctCotaP=pctPorCotaDiv*Math.max(1,p.cotas||1);
+      return '<tr><td>'+_esc(p.nome)+'</td><td style="text-align:center">'+pctCotaP.toFixed(2)+'%</td><td style="text-align:right;font-weight:700;color:#16a34a">'+ptBMoney(totalPremio*pctCotaP/100*fatorPercentualDiv)+'</td></tr>';
+    }).join('');
+    corpo+='<div class="grupo-loteria">💰 Somatório dos Prêmios Recebidos — Total: '+ptBMoney(totalPremio)+' ('+jogos.length+' jogo'+(jogos.length!==1?'s':'')+' premiado'+(jogos.length!==1?'s':'')+')</div>'+
+      '<table><thead><tr><th>Participante</th><th style="text-align:center">% / Cota</th><th style="text-align:right">Total recebido</th></tr></thead><tbody>'+linhasSom+'</tbody></table>';
+  }
+
+  if(jogos.length){
+    var porGrupo={}, ordem=[];
+    jogos.forEach(function(j){
+      var k=j.loteria+'|'+j.concurso;
+      if(!porGrupo[k]){ porGrupo[k]={loteria:j.loteria,concurso:j.concurso,itens:[]}; ordem.push(k); }
+      porGrupo[k].itens.push(j);
+    });
+    corpo+='<div class="grupo-loteria" style="font-size:13px;color:#b8860b">🏆 Jogos Premiados</div>'+
+      ordem.map(function(k){
+        var g=porGrupo[k];
+        return '<div class="grupo-loteria">'+_esc(ptLoterianome(g.loteria))+' — Concurso '+_esc(g.concurso)+'</div>'+
+          g.itens.map(function(j,idx){
+            var sorteadas=(j.dezenasSorteadas)?new Set(j.dezenasSorteadas.map(Number)):null;
+            var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,j.loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
+            var premio=' <span style="color:#b8860b;font-weight:800;font-size:12px;white-space:nowrap">\U0001f3c6 '+ptBMoney(j.valor)+'</span>';
+            return '<div class="linha-jogo">'+bolinhas+premio+'</div>';
+          }).join('');
+      }).join('');
+  }
+
+  if(rodadas.length){
+    var rodadasOrdenadas=rodadas.slice().sort(function(a,b){ return new Date(b.vinculadoEm)-new Date(a.vinculadoEm); });
+    var linhasRod=rodadasOrdenadas.map(function(r){
+      var qtdJogosR=todosJogos.filter(function(j){return j.loteria===r.loteria&&j.concurso===r.concurso;}).length;
+      var vincFmt=r.vinculadoEm?new Date(r.vinculadoEm).toLocaleDateString('pt-BR'):'—';
+      var sorteioFmt=r.data?_esc(r.data):'—';
+      return '<tr><td>'+_esc(ptLoterianome(r.loteria))+'</td><td style="text-align:center">'+_esc(r.concurso)+'</td>'+
+        '<td style="text-align:center">'+qtdJogosR+'</td><td style="text-align:right">'+ptBMoney(r.custo)+'</td>'+
+        '<td style="text-align:center">'+vincFmt+'</td><td style="text-align:center">'+sorteioFmt+'</td></tr>';
+    }).join('');
+    corpo+='<div class="grupo-loteria">📋 Histórico de Rodadas</div>'+
+      '<table><thead><tr><th>Loteria</th><th style="text-align:center">Concurso</th><th style="text-align:center">Jogos</th><th style="text-align:right">Custo</th><th style="text-align:center">Vinculado em</th><th style="text-align:center">Data do Sorteio</th></tr></thead><tbody>'+linhasRod+'</tbody></table>';
+
+    var gastosPorDia={};
+    rodadas.forEach(function(r){
+      if(!r.vinculadoEm) return;
+      var dia=new Date(r.vinculadoEm).toLocaleDateString('pt-BR');
+      gastosPorDia[dia]=(gastosPorDia[dia]||0)+(r.custo||0);
+    });
+    var diasOrdenados=Object.keys(gastosPorDia).sort(function(a,b){
+      var pa=a.split('/'),pb=b.split('/');
+      return new Date(pb[2],pb[1]-1,pb[0])-new Date(pa[2],pa[1]-1,pa[0]);
+    });
+    if(diasOrdenados.length){
+      corpo+='<div class="grupo-loteria">📅 Gastos Diários</div>'+
+        '<table><thead><tr><th>Data</th><th style="text-align:right">Total Gasto</th></tr></thead><tbody>'+
+        diasOrdenados.map(function(dia){ return '<tr><td>'+dia+'</td><td style="text-align:right;font-weight:700">'+ptBMoney(gastosPorDia[dia])+'</td></tr>'; }).join('')+
+        '</tbody></table>';
+    }
+  }
+
+  return {titulo:'Relatório do Bolão', corpo:corpo};
 }
 // Seção "Comprovantes de Depósito" do Dossiê do Prêmio no app do
 // participante — via rpc_participante_comprovantes_bolao (fase 72),
@@ -22062,6 +22190,9 @@ async function ptAbrirDossiePremio(bolaoId){
     '.sec-jogos .sub{color:#555;font-size:11px;margin-bottom:10px}'+
     '.sec-jogos .grupo-loteria{font-weight:700;font-size:10px;color:#666;margin:10px 0 4px}'+
     '.sec-jogos .linha-jogo{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;margin-bottom:5px}'+
+    '.sec-jogos table{width:100%;border-collapse:collapse;font-size:11px;margin:4px 0 10px}'+
+    '.sec-jogos th{background:#f0f0f0;text-align:left;padding:5px 7px;border-bottom:1px solid #999}'+
+    '.sec-jogos td{padding:5px 7px;border-bottom:1px solid #ddd}'+
     '.sec-comprovantes h1{margin:0 0 2px;font-size:18px}'+
     '.sec-comprovantes .sub{color:#555;font-size:11px;margin-bottom:10px}'+
     '.sec-comprovantes .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5mm}'+
@@ -22072,7 +22203,7 @@ async function ptAbrirDossiePremio(bolaoId){
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
       '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'+
-      '<span style="font-size:12px;color:#ccc">Termo de Constituição + Jogos Premiados + Comprovantes de Depósito, num documento só.</span>'+
+      '<span style="font-size:12px;color:#ccc">Termo de Constituição + Relatório do Bolão + Comprovantes de Depósito, num documento só.</span>'+
       '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     secoes.join('')+
