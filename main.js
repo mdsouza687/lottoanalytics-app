@@ -1,6 +1,19 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
+// Duas janelas do .exe abertas ao mesmo tempo (ex.: testar duas contas em
+// paralelo) tentavam abrir o MESMO IndexedDB local (mesma pasta userData) —
+// o backend de armazenamento do Electron só aceita um processo por vez
+// escrevendo ali, então a segunda janela falhava ao inicializar o banco e
+// toda sincronização de loteria caía em "DB não inicializado" na hora,
+// mesmo com login/conta diferente. requestSingleInstanceLock() detecta essa
+// segunda instância; em vez de bloqueá-la (padrão usual), deixamos ela
+// seguir com uma pasta de dados própria, isolada da primeira.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.setPath('userData', app.getPath('userData') + '-instancia2');
+}
+
 // Desde as versões recentes do Electron, window.open() é BLOQUEADO por
 // padrão (sem aviso, sem erro no console) a menos que o app trate
 // explicitamente via setWindowOpenHandler — foi isso que quebrou o botão
