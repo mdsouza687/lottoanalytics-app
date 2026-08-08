@@ -22129,10 +22129,17 @@ async function _ptBuildHtmlJogosPremiados(bolaoId){
         var g=porGrupo[k];
         return '<div class="grupo-loteria">'+_esc(ptLoterianome(g.loteria))+' — Concurso '+_esc(g.concurso)+'</div>'+
           g.itens.map(function(j,idx){
+            var extrasJ=j.extras||{};
             var sorteadas=(j.dezenasSorteadas)?new Set(j.dezenasSorteadas.map(Number)):null;
+            var trevosSort=(j.trevosSorteados)?new Set(j.trevosSorteados.map(Number)):null;
+            var extraSort=(j.bolaExtraSorteada!=null)?Number(j.bolaExtraSorteada):null;
             var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,j.loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
+            var trevosHtml=(j.trevos&&j.trevos.length)?' <span style="font-size:10px;color:#888">T:</span> '+j.trevos.map(function(n){return ptBolinha(n,PT_TREVO_COR,null,trevosSort?trevosSort.has(Number(n)):false);}).join(''):'';
+            var extraHtml=(extrasJ.extra!=null)?' <span style="font-size:10px;color:#888">+</span> '+ptBolinha(extrasJ.extra,ptBolaExtraCor(j.loteria),null,extraSort!=null?extraSort===Number(extrasJ.extra):false):'';
+            var mesTimeHtml=extrasJ.mes!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:8px;background:#eee;color:#555">Mês: '+_esc(PT_MESES[extrasJ.mes-1]||extrasJ.mes)+'</span>'
+              :(extrasJ.time!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:8px;background:#eee;color:#555">Time #'+_esc(extrasJ.time)+'</span>':'');
             var premio=' <span style="color:#b8860b;font-weight:800;font-size:12px;white-space:nowrap">\U0001f3c6 '+ptBMoney(j.valor)+'</span>';
-            return '<div class="linha-jogo">'+bolinhas+premio+'</div>';
+            return '<div class="linha-jogo">'+bolinhas+trevosHtml+extraHtml+mesTimeHtml+premio+'</div>';
           }).join('');
       }).join('');
   }
