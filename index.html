@@ -3050,7 +3050,7 @@ async function _agAposLogin(user){
   const sb=_getSbClient();
   let perfil=null;
   try{
-    const {data}=await sb.from('perfis').select('trial_inicio,nome_completo,permanente,is_admin').eq('id',user.id).maybeSingle();
+    const {data}=await sb.from('perfis').select('trial_inicio,nome_completo,permanente,is_admin,super_admin,acesso_expira_em').eq('id',user.id).maybeSingle();
     perfil=data;
   }catch(e){}
   // Perfil pode ainda não existir por um instante (trigger assíncrono em
@@ -3059,6 +3059,13 @@ async function _agAposLogin(user){
   const trialInicio=perfil&&perfil.trial_inicio?new Date(perfil.trial_inicio):new Date();
   const diasPassados=(Date.now()-trialInicio.getTime())/(1000*60*60*24);
   const permanente=!!(perfil&&(perfil.permanente||perfil.is_admin));
+  // Fase 77: acesso_expira_em (concedido pelo admin/gestor — trimestral,
+  // semestral ou anual) manda quando existe; só cai no trial fixo de
+  // AG_TRIAL_DIAS quando NADA foi concedido ainda (conta nova, nunca
+  // tocada por um admin).
+  const acessoExpiraEm=perfil&&perfil.acesso_expira_em?new Date(perfil.acesso_expira_em):null;
+  const acessoExpirouPorPeriodo=!!(acessoExpiraEm&&Date.now()>acessoExpiraEm.getTime());
+  const acessoBloqueado=acessoExpiraEm?acessoExpirouPorPeriodo:(diasPassados>AG_TRIAL_DIAS);
   // Detecção de papel (organizador/participante) — o mesmo trigger que cria
   // o perfil em public.perfis roda para QUALQUER cadastro novo, inclusive
   // quem se cadastrou só pelo app participante (lottoanalytics-participante).
@@ -3076,11 +3083,11 @@ async function _agAposLogin(user){
   }catch(e){}
   // O bloqueio de trial só faz sentido pra quem usa o Desktop como
   // organizador — uma conta participante-pura nunca é barrada por ele.
-  if(souOrganizador && !permanente && diasPassados>AG_TRIAL_DIAS){
-    _agMostrarTrialExpirado();
+  if(souOrganizador && !permanente && acessoBloqueado){
+    _agMostrarTrialExpirado(acessoExpirouPorPeriodo);
     return;
   }
-  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin),papeis:{organizador:souOrganizador,participante:souParticipante}};
+  window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin),superAdmin:!!(perfil&&perfil.super_admin),papeis:{organizador:souOrganizador,participante:souParticipante}};
   closeModal('auth-gate');
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
@@ -3112,12 +3119,12 @@ async function _agAposLogin(user){
   }
 }
 
-function _agMostrarTrialExpirado(){
+function _agMostrarTrialExpirado(porPeriodoConcedido){
   openModal('auth-gate');
   document.querySelector('#auth-gate .ag-card').innerHTML=`
     <button class="modal-close" onclick="closeModal('auth-gate')" style="float:right;margin:-6px -6px 0 0">✕</button>
-    <div class="ag-logo">⏳ Período de teste encerrado</div>
-    <div class="ag-sub">Seus ${AG_TRIAL_DIAS} dias de teste grátis terminaram.</div>
+    <div class="ag-logo">⏳ Período de acesso encerrado</div>
+    <div class="ag-sub">${porPeriodoConcedido?'O período de acesso concedido pelo administrador terminou.':`Seus ${AG_TRIAL_DIAS} dias de teste grátis terminaram.`}</div>
     <div class="ag-msg err" style="display:block">Entre em contato com o administrador para continuar usando o LottoAnalytics.</div>
     <button class="ag-btn" onclick="agFazerLogout()">Sair</button>
   `;
@@ -3209,10 +3216,23 @@ async function abrirPainelAdmin(){
   openModal('modal-admin');
 }
 
+function _adminStatusHtml(p){
+  if(p.permanente) return '<span style="color:#4ade80;font-weight:700">Permanente</span>';
+  if(p.acesso_expira_em){
+    const exp=new Date(p.acesso_expira_em);
+    return Date.now()<exp.getTime()
+      ? `<span style="color:#4ade80;font-weight:700">Ativo até ${exp.toLocaleDateString('pt-BR')}</span>`
+      : `<span style="color:#f87171;font-weight:700">Expirado em ${exp.toLocaleDateString('pt-BR')}</span>`;
+  }
+  const trialFim=new Date(new Date(p.trial_inicio).getTime()+AG_TRIAL_DIAS*24*60*60*1000);
+  const trialAtivo=Date.now()<=trialFim.getTime();
+  return trialAtivo?`<span style="color:#facc15;font-weight:700">Trial até ${trialFim.toLocaleDateString('pt-BR')}</span>`:'<span style="color:#f87171;font-weight:700">Trial expirado</span>';
+}
 async function renderPainelAdmin(msg,msgTipo){
   const sb=_getSbClient();
   const body=document.getElementById('body-admin');
-  const {data:perfis,error}=await sb.from('perfis').select('id,nome_completo,email,permanente,is_admin,trial_inicio,created_at').order('created_at',{ascending:false});
+  const souSuperAdmin=!!(window._usuarioAtual&&window._usuarioAtual.superAdmin);
+  const {data:perfis,error}=await sb.from('perfis').select('id,nome_completo,email,permanente,is_admin,super_admin,acesso_expira_em,trial_inicio,created_at').order('created_at',{ascending:false});
   // Fase 34: fila de "esqueci minha senha" — workaround pro SMTP do
   // Supabase Auth estar bloqueado (sem domínio próprio ainda). O
   // participante/organizador deixa e-mail+WhatsApp em
@@ -3228,23 +3248,38 @@ async function renderPainelAdmin(msg,msgTipo){
       <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}','${(s.whatsapp||'').replace(/\D/g,'')}')">Gerar link de troca</button></td>
     </tr>`).join('');
   const linhas=(perfis||[]).map(p=>{
-    const trialFim=new Date(new Date(p.trial_inicio).getTime()+AG_TRIAL_DIAS*24*60*60*1000);
-    const trialAtivo=Date.now()<=trialFim.getTime();
-    const statusHtml=p.permanente
-      ?'<span style="color:#4ade80;font-weight:700">Permanente</span>'
-      :(trialAtivo?`<span style="color:#facc15;font-weight:700">Trial até ${trialFim.toLocaleDateString('pt-BR')}</span>`:'<span style="color:#f87171;font-weight:700">Trial expirado</span>');
+    const souEu=!!(window._usuarioAtual&&window._usuarioAtual.id===p.id);
+    const papelTag=p.super_admin?' <span title="Administrador do software" style="font-size:11px">🛠️</span>':(p.is_admin?' <span title="Gestor" style="font-size:11px">🗂️</span>':'');
+    const temAcessoConcedido=p.permanente||p.acesso_expira_em;
+    const tierOptions=`<option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option>${souSuperAdmin?'<option value="permanente">Permanente</option>':''}`;
+    let papelBtns='';
+    if(souSuperAdmin&&!souEu){
+      if(!p.is_admin){
+        papelBtns=`<button class="btn-sm" onclick="adminDefinirPapel('${p.id}',true,false)">Tornar gestor</button>`;
+      }else if(!p.super_admin){
+        papelBtns=`<button class="btn-sm" onclick="adminDefinirPapel('${p.id}',true,true)">Tornar admin do software</button> <button class="btn-sm" onclick="adminDefinirPapel('${p.id}',false,false)">Remover admin</button>`;
+      }else{
+        papelBtns=`<button class="btn-sm" onclick="adminDefinirPapel('${p.id}',true,false)">Rebaixar a gestor</button>`;
+      }
+    }
     return `<tr style="border-bottom:1px solid var(--glass-border)">
-      <td style="padding:8px 10px">${_esc(p.nome_completo||'—')}${p.is_admin?' <span title="Administrador" style="font-size:11px">🛠️</span>':''}</td>
+      <td style="padding:8px 10px">${_esc(p.nome_completo||'—')}${papelTag}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--text-muted)">${_esc(p.email)}</td>
-      <td style="padding:8px 10px;font-size:12px">${statusHtml}</td>
-      <td style="padding:8px 10px;text-align:right;white-space:nowrap">${p.permanente
-        ?`<button class="btn-sm" onclick="adminTogglePermanente('${p.id}',false)">Remover permanente</button>`
-        :`<button class="btn-sm" onclick="adminTogglePermanente('${p.id}',true)">Tornar permanente</button>`}
-        ${p.is_admin?'':`<button class="btn-sm" style="margin-left:6px;color:#f87171;border-color:#f8717155" onclick="adminRemoverUsuario('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Remover</button>`}</td>
+      <td style="padding:8px 10px;font-size:12px">${_adminStatusHtml(p)}</td>
+      <td style="padding:8px 10px;text-align:right;white-space:nowrap">
+        <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+          <select id="tier-${p.id}" style="padding:6px 8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff;font-size:12px">${tierOptions}</select>
+          <button class="btn-sm" onclick="adminConcederAcesso('${p.id}')">Conceder/Renovar</button>
+          ${temAcessoConcedido?`<button class="btn-sm" onclick="adminRevogarAcesso('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Revogar</button>`:''}
+          ${papelBtns}
+          ${(souSuperAdmin&&!souEu&&!p.is_admin)?`<button class="btn-sm" style="color:#f87171;border-color:#f8717155" onclick="adminRemoverUsuario('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Remover</button>`:''}
+        </div>
+      </td>
     </tr>`;
   }).join('');
   body.innerHTML=`
-    <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+    ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:16px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
+    ${souSuperAdmin?`<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">🎲 Limite de Geração de Jogos</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Quantidade máxima de jogos que o gerador permite pedir de uma vez (1.000 a 50.000). Vale imediatamente para toda geração, sem precisar recarregar a página.</div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -3252,7 +3287,7 @@ async function renderPainelAdmin(msg,msgTipo){
         <button class="ag-btn" onclick="adminSalvarMaxJogos()">Salvar</button>
         <span id="adm-max-jogos-msg" style="font-size:11px;color:#4ade80"></span>
       </div>
-    </div>
+    </div>`:''}
     <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">🔑 Solicitações de Nova Senha (${(solicitacoes||[]).length})</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">SMTP bloqueado — o e-mail de redefinição não é entregue. Gere um link de troca (válido 1h, uso único) e repasse por WhatsApp — a pessoa define a própria senha nova pelo link, você não vê nem escolhe a senha dela.</div>
@@ -3263,9 +3298,8 @@ async function renderPainelAdmin(msg,msgTipo){
         <tbody>${linhasSolic}</tbody>
       </table></div>` : '<div style="font-size:12px;color:var(--text-muted)">Nenhuma solicitação pendente.</div>'}
     </div>
-    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+    ${souSuperAdmin?`<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ Criar usuário de teste (já confirmado, sem precisar clicar em link de e-mail)</div>
-      ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
         <input id="adm-nome" placeholder="Nome completo" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
         <input id="adm-email" type="email" placeholder="E-mail" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
@@ -3273,7 +3307,7 @@ async function renderPainelAdmin(msg,msgTipo){
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="adm-permanente"/> Marcar como permanente (sem limite de 10 dias)</label>
       </div>
       <button class="ag-btn" style="margin-top:4px" onclick="adminCriarUsuarioTeste()">Criar usuário de teste</button>
-    </div>
+    </div>`:''}
     <div style="font-weight:800;font-size:13px;margin-bottom:8px">👥 Usuários cadastrados (${(perfis||[]).length})</div>
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -3315,12 +3349,25 @@ async function adminResetarSenha(solicitacaoId,email,whatsapp){
     await renderPainelAdmin(`✓ Link de troca gerado para ${email}.`,'ok');
   }catch(e){ await renderPainelAdmin('Erro de conexão: '+e.message,'err'); }
 }
-async function adminTogglePermanente(id,valor){
+async function adminConcederAcesso(id){
+  const tierEl=document.getElementById('tier-'+id);
+  const tier=tierEl?tierEl.value:'trimestral';
   const sb=_getSbClient();
-  const {error}=await sb.from('perfis').update({permanente:valor}).eq('id',id);
-  if(error){ toast('Erro: '+error.message); return; }
-  toast(valor?'✓ Marcado como permanente':'✓ Permanente removido');
-  await renderPainelAdmin();
+  const {error}=await sb.rpc('rpc_admin_conceder_acesso',{p_user_id:id,p_tier:tier});
+  if(error){ await renderPainelAdmin('Erro ao conceder acesso: '+error.message,'err'); return; }
+  await renderPainelAdmin('✓ Acesso concedido/renovado.','ok');
+}
+async function adminRevogarAcesso(id,email){
+  const sb=_getSbClient();
+  const {error}=await sb.rpc('rpc_admin_conceder_acesso',{p_user_id:id,p_tier:'revogar'});
+  if(error){ await renderPainelAdmin('Erro ao revogar acesso: '+error.message,'err'); return; }
+  await renderPainelAdmin(`✓ Acesso de ${email} revogado.`,'ok');
+}
+async function adminDefinirPapel(id,isAdminNovo,superAdminNovo){
+  const sb=_getSbClient();
+  const {error}=await sb.rpc('rpc_admin_definir_papel',{p_user_id:id,p_is_admin:isAdminNovo,p_super_admin:superAdminNovo});
+  if(error){ await renderPainelAdmin('Erro ao alterar papel: '+error.message,'err'); return; }
+  await renderPainelAdmin('✓ Papel atualizado.','ok');
 }
 
 // Remove um usuário POR COMPLETO (login + perfil + bolões + jogos +
