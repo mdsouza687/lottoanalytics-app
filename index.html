@@ -3252,6 +3252,10 @@ async function renderPainelAdmin(msg,msgTipo){
     const papelTag=p.super_admin?' <span title="Administrador do software" style="font-size:11px">🛠️</span>':(p.is_admin?' <span title="Gestor" style="font-size:11px">🗂️</span>':'');
     const temAcessoConcedido=p.permanente||p.acesso_expira_em;
     const tierOptions=`<option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option>${souSuperAdmin?'<option value="permanente">Permanente</option>':''}`;
+    // Fase 80: só outro super_admin pode mexer no acesso de um super_admin —
+    // esconde os controles pra quem não pode usá-los mesmo (o servidor já
+    // bloqueia, isso só evita mostrar um botão que vai dar erro).
+    const podeGerenciarAcesso=souSuperAdmin||!p.super_admin;
     let papelBtns='';
     if(souSuperAdmin&&!souEu){
       if(!p.is_admin){
@@ -3268,9 +3272,9 @@ async function renderPainelAdmin(msg,msgTipo){
       <td style="padding:8px 10px;font-size:12px">${_adminStatusHtml(p)}</td>
       <td style="padding:8px 10px;text-align:right;white-space:nowrap">
         <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
-          <select id="tier-${p.id}" style="padding:6px 8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff;font-size:12px">${tierOptions}</select>
+          ${podeGerenciarAcesso?`<select id="tier-${p.id}" style="padding:6px 8px;border-radius:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff;font-size:12px">${tierOptions}</select>
           <button class="btn-sm" onclick="adminConcederAcesso('${p.id}')">Conceder/Renovar</button>
-          ${temAcessoConcedido?`<button class="btn-sm" onclick="adminRevogarAcesso('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Revogar</button>`:''}
+          ${temAcessoConcedido?`<button class="btn-sm" onclick="adminRevogarAcesso('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Revogar</button>`:''}`:''}
           ${papelBtns}
           ${(souSuperAdmin&&!souEu&&!p.is_admin)?`<button class="btn-sm" style="color:#f87171;border-color:#f8717155" onclick="adminRemoverUsuario('${p.id}','${_esc(p.email).replace(/'/g,"\\'")}')">Remover</button>`:''}
         </div>
@@ -3308,7 +3312,8 @@ async function renderPainelAdmin(msg,msgTipo){
       </div>
       <button class="ag-btn" style="margin-top:4px" onclick="adminCriarUsuarioTeste()">Criar usuário de teste</button>
     </div>`:''}
-    <div style="font-weight:800;font-size:13px;margin-bottom:8px">👥 Usuários cadastrados (${(perfis||[]).length})</div>
+    <div style="font-weight:800;font-size:13px;margin-bottom:8px">${souSuperAdmin?`👥 Usuários cadastrados (${(perfis||[]).length})`:`👥 Meus participantes (${(perfis||[]).length})`}</div>
+    ${!souSuperAdmin?'<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Participantes dos bolões que você organiza — não o cadastro geral do sistema.</div>':''}
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
