@@ -3310,7 +3310,7 @@ async function adminResetarSenha(solicitacaoId,email,whatsapp){
     if(whatsapp){
       window.open(`https://wa.me/55${whatsapp}?text=${encodeURIComponent(texto)}`,'_blank');
     } else {
-      prompt(`WhatsApp não cadastrado nesta solicitação — copie e envie manualmente pra ${email}:`, link);
+      await _promptModal(`WhatsApp não cadastrado nesta solicitação — copie e envie manualmente pra ${email}:`, link);
     }
     await renderPainelAdmin(`✓ Link de troca gerado para ${email}.`,'ok');
   }catch(e){ await renderPainelAdmin('Erro de conexão: '+e.message,'err'); }
@@ -3328,7 +3328,7 @@ async function adminTogglePermanente(id,valor){
 // ação irreversível, por isso exige digitar o e-mail exato como confirmação
 // (não basta um "OK" de um clique sem querer).
 async function adminRemoverUsuario(id,email){
-  const digitado=prompt('Isso remove PERMANENTEMENTE a conta e TODOS os dados de "'+email+'" (bolões, jogos, participações). Não dá pra desfazer.\n\nDigite o e-mail exato pra confirmar:');
+  const digitado=await _promptModal('Isso remove PERMANENTEMENTE a conta e TODOS os dados de "'+email+'" (bolões, jogos, participações). Não dá pra desfazer.\n\nDigite o e-mail exato pra confirmar:');
   if(digitado===null) return;
   if(digitado.trim().toLowerCase()!==email.trim().toLowerCase()){ toast('E-mail não confere — nada foi removido.'); return; }
   const sb=_getSbClient();
@@ -11873,6 +11873,46 @@ function limparResultado(){
 }
 let _tt=null;
 function toast(msg,duracao){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),duracao||3200);}
+// Substitui window.prompt() nativo — no app instalado (Electron) o
+// prompt() nativo não aparece de jeito nenhum (nem o diálogo, nem erro
+// no console): a função só trava/aborta em silêncio, então qualquer ação
+// que dependesse dele (salvar jogos manuais com nome, remover usuário,
+// texto de aviso de encerramento etc.) simplesmente não fazia nada
+// quando clicada — bug real relatado ao vivo (salvar jogos manuais no
+// app Windows não salvava nada, sem erro nenhum). Mesmo contrato de
+// window.prompt(): resolve com o texto digitado (Enter/OK) ou null
+// (Cancelar/Esc/clique fora) — só que via Promise, então todo chamador
+// precisa de await.
+function _promptModal(mensagem,valorPadrao){
+  return new Promise(function(resolve){
+    var old=document.getElementById('modal-prompt-custom'); if(old) old.remove();
+    var div=document.createElement('div');
+    div.innerHTML=
+      '<div id="modal-prompt-custom" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px">'+
+        '<div style="background:var(--bg,#12151f);border:1px solid var(--glass-border);border-radius:14px;max-width:420px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.5)">'+
+          '<div style="white-space:pre-wrap;font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.5">'+_esc(mensagem||'')+'</div>'+
+          '<textarea id="prompt-custom-input" rows="1" style="width:100%;box-sizing:border-box;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);resize:vertical;min-height:38px"></textarea>'+
+          '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'+
+            '<button id="prompt-custom-cancel" style="border:1px solid var(--glass-border);border-radius:8px;padding:8px 16px;background:transparent;color:var(--text);font-weight:700;font-size:12px;cursor:pointer">Cancelar</button>'+
+            '<button id="prompt-custom-ok" style="border:none;border-radius:8px;padding:8px 16px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:700;font-size:12px;cursor:pointer">OK</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(div.firstChild);
+    var modal=document.getElementById('modal-prompt-custom');
+    var input=document.getElementById('prompt-custom-input');
+    input.value=valorPadrao||'';
+    setTimeout(function(){ input.focus(); input.select(); },0);
+    function finish(val){ modal.remove(); resolve(val); }
+    document.getElementById('prompt-custom-ok').onclick=function(){ finish(input.value); };
+    document.getElementById('prompt-custom-cancel').onclick=function(){ finish(null); };
+    input.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); finish(input.value); }
+      else if(e.key==='Escape'){ finish(null); }
+    });
+    modal.addEventListener('mousedown',function(e){ if(e.target===modal) finish(null); });
+  });
+}
 function pad(n){ return String(n).padStart(2,'0'); }
 
 /* ── Cálculo do custo total da aposta ─────────────────────────────
@@ -13397,7 +13437,7 @@ async function _salvarJogosManuaisImpl(){
   if(!(await _sessaoValidaOuAvisar())) return;
 
   const nomeDefault=`Manual ${d.nome} · ${new Date().toLocaleDateString('pt-BR')}`;
-  const nome=prompt('Nome para este conjunto de jogos:',nomeDefault)||nomeDefault;
+  const nome=(await _promptModal('Nome para este conjunto de jogos:',nomeDefault))||nomeDefault;
 
   // Corte final (Item 3, 2026-07-12): grava só no schema novo, mesmo
   // caminho de _salvarJogosImpl — não existe mais "manual:true" como campo
@@ -16893,17 +16933,21 @@ async function convidarParticipanteBol(i){
   var _cadastradoAntesAtivacaoConv = !_boloesState.ativadoEm || !p.created_at || new Date(p.created_at) <= new Date(_boloesState.ativadoEm);
   if(_boloesState.ativadoEm && p.convite_status!=='aceito' && !_cadastradoAntesAtivacaoConv){ toast('Bolão já ativado — não é mais possível convidar participantes adicionados depois.'); return; }
   var whatsapp=p.whatsapp;
-  if(!whatsapp){
-    whatsapp=(prompt('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:')||'').trim();
-    if(!whatsapp){ toast('WhatsApp é necessário para convidar.'); return; }
-  }
   // Precisa abrir a aba JÁ no clique, antes de qualquer await — a maioria
   // dos navegadores só permite window.open() como resposta direta a um
-  // gesto do usuário; chamado depois de um await (esperar o Supabase
-  // responder), o bloqueador de pop-up mata silenciosamente a chamada,
-  // sem erro nenhum no console. Abre em branco e só preenche a URL quando
-  // o convite (e o link) já estiverem prontos.
+  // gesto do usuário; chamado depois de um await (esperar o modal de
+  // WhatsApp abaixo, ou o Supabase responder), o bloqueador de pop-up
+  // mata silenciosamente a chamada, sem erro nenhum no console. Abre em
+  // branco e só preenche a URL quando o convite (e o link) já estiverem
+  // prontos. Fase 74: a substituição do prompt() nativo pelo _promptModal
+  // (assíncrono) introduziu um await ANTES daqui — window.open() teve que
+  // subir pra antes dele, senão cairia exatamente no bloqueio descrito
+  // acima.
   var abaWa=window.open('','_blank');
+  if(!whatsapp){
+    whatsapp=((await _promptModal('WhatsApp de '+p.nome+' (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:'))||'').trim();
+    if(!whatsapp){ if(abaWa) abaWa.close(); toast('WhatsApp é necessário para convidar.'); return; }
+  }
   var resultado=await BolaoJogosRepo.criarConviteDual(p.id,whatsapp,p.email);
   if(!resultado){ if(abaWa) abaWa.close(); toast('Erro ao gerar convite.'); return; }
   p.whatsapp=whatsapp;
@@ -18000,11 +18044,11 @@ async function abrirConfirmacaoAtivarBolao(){
 // Aviso automático de encerramento (Fase 26) — texto customizável; se
 // deixado em branco, a Edge Function usa um padrão genérico na hora do
 // disparo (não precisa preencher pra a data/hora de encerramento funcionar).
-function _editarAvisoEncerramento(){
+async function _editarAvisoEncerramento(){
   var s=_boloesState;
-  var titulo=prompt('Título do aviso (deixe em branco pro padrão):', s.pushEncerramentoTitulo||'');
+  var titulo=await _promptModal('Título do aviso (deixe em branco pro padrão):', s.pushEncerramentoTitulo||'');
   if(titulo===null) return;
-  var corpo=prompt('Mensagem do aviso (deixe em branco pro padrão):', s.pushEncerramentoCorpo||'');
+  var corpo=await _promptModal('Mensagem do aviso (deixe em branco pro padrão):', s.pushEncerramentoCorpo||'');
   if(corpo===null) return;
   s.pushEncerramentoTitulo=titulo;
   s.pushEncerramentoCorpo=corpo;
