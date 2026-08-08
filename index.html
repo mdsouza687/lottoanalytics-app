@@ -21647,6 +21647,14 @@ function ptCalcPremioProporcional(estimativaBRL,info){
   }else if(info.tipo_organizacao==='fixo'&&info.valor_fixo_organizacao){
     liquido=Math.max(0,bruto-Number(info.valor_fixo_organizacao));
   }
+  // Fração exata (cotas/cotas_pagas_total) em vez de pct_cota já
+  // arredondado (2 casas) — num prêmio de R$165 milhões, 9.09% em vez
+  // de 1/11 exato já chegava a errar R$1.500,00 pra menos. cotas_pagas_total
+  // (fase 76) só existe em sessões já atualizadas; cai pro pct_cota
+  // arredondado como fallback se ainda não estiver disponível.
+  if(info.cotas_pagas_total){
+    return liquido*(Number(info.cotas||0)/Number(info.cotas_pagas_total));
+  }
   return liquido*(Number(info.pct_cota)/100);
 }
 var PT_LOTERIAS_HOME=['megasena','lotofacil','quina','lotomania','duplasena','diasorte','supersete','timemania','maismilionaria','powerball','megamillions'];
