@@ -10555,6 +10555,16 @@ async function salvarJogos(){
   }
 }
 async function _salvarJogosImpl(){
+  // Fase 87: função inteira agora protegida por um try/catch externo (ver
+  // fim da função) — antes só o INSERT em si (JogosSalvosRepo.salvarDual)
+  // era protegido; tudo que roda ANTES dele (buscar concurso vigente via
+  // rede, carregar conjuntos existentes, substituir jogo duplicado) podia
+  // lançar uma exceção sem captura nenhuma. Isso quebrava a promise sem
+  // toast de erro e sem fechar o modal "Jogos Salvos" — _salvarComEscolha()
+  // nunca chegava no closeModal() porque o await acima dela já tinha
+  // rejeitado. Sintoma relatado: clicar Salvar "não faz nada", modal
+  // continua aberto do mesmo jeito, obrigando a clicar fora pra sair.
+  try{
   if(!jogosGerados.length){toast('Nenhum jogo gerado.');return null;}
   const selIdx=getJogosSelecionados();
   if(!selIdx.length){toast('Selecione ao menos um jogo para salvar.');return null;}
@@ -10591,7 +10601,12 @@ async function _salvarJogosImpl(){
   let res=cacheAtual;
   if(cacheVelho){
     toast('Verificando concurso vigente...', 1500);
-    const resAtualizado=await atualizarLoteria(currentKey);
+    // Fase 87: essa é só uma checagem de cortesia (já tinha fallback pro
+    // cache atual se a API não devolvesse nada) — mas sem try/catch, uma
+    // rede instável derrubava a função INTEIRA sem chegar no fallback,
+    // travando o salvamento por um motivo que nem deveria ser fatal.
+    let resAtualizado=null;
+    try{ resAtualizado=await atualizarLoteria(currentKey); }catch(e){ console.warn('[SALVAR] falha ao atualizar concurso vigente, usando cache:',e.message); }
     res=resAtualizado||cacheAtual;
   }
   const numDez=getDezWrap('jogo-dez-wrap',d.min);
@@ -10667,6 +10682,11 @@ async function _salvarJogosImpl(){
   const _avisoPuladoGer=_qtdPuladaGer?` (${_qtdPuladaGer} jogo${_qtdPuladaGer!==1?'s':''} ignorado${_qtdPuladaGer!==1?'s':''} — mesmas dezenas já existiam)`:'';
   toast(`✓ ${_qtdSalvaGer} jogo${_qtdSalvaGer!==1?'s':''} salvo${_qtdSalvaGer!==1?'s':''}${temEspelho?' (principais + espelhos)':''}${_avisoPuladoGer}`);openModalSalvar();
   return novoId;
+  }catch(e){
+    console.error('[SALVAR]',e);
+    toast('Erro ao salvar: '+(e&&e.message||String(e)));
+    return null;
+  }
 }
 /* Reanexa bola extra (Powerball/Mega Ball) e trevos (+Milionária) aos jogos de um conjunto salvo */
 function hidratarJogosSalvos(item){
