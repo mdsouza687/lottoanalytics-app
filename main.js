@@ -1,17 +1,29 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
-// Duas janelas do .exe abertas ao mesmo tempo (ex.: testar duas contas em
-// paralelo) tentavam abrir o MESMO IndexedDB local (mesma pasta userData) —
-// o backend de armazenamento do Electron só aceita um processo por vez
-// escrevendo ali, então a segunda janela falhava ao inicializar o banco e
-// toda sincronização de loteria caía em "DB não inicializado" na hora,
-// mesmo com login/conta diferente. requestSingleInstanceLock() detecta essa
-// segunda instância; em vez de bloqueá-la (padrão usual), deixamos ela
-// seguir com uma pasta de dados própria, isolada da primeira.
+// Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
+// contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local
+// (mesma pasta userData) — o backend de armazenamento do Electron só
+// aceita um processo por vez escrevendo ali, então qualquer janela além
+// da primeira falhava ao inicializar o banco e toda sincronização de
+// loteria caía em "DB não inicializado" na hora. requestSingleInstanceLock()
+// detecta que não é a primeira janela; em vez de bloqueá-la (padrão
+// usual), deixamos ela seguir com uma pasta de dados própria, isolada.
+//
+// Fase 81 usava um sufixo FIXO ("-instancia2") pra essa pasta alternativa
+// — funcionava com exatamente 2 janelas, mas uma 3ª (ou mais) janela
+// simultânea caía de volta no mesmo problema: a 3ª também recebe
+// gotLock=false e tentaria abrir essa MESMA pasta "-instancia2" que a 2ª
+// já está usando, reproduzindo o conflito original um nível abaixo. Usar
+// o PID do processo (único por lançamento, garantido pelo próprio SO) em
+// vez de um sufixo fixo elimina esse limite — não importa quantas janelas
+// estejam abertas ao mesmo tempo, cada uma além da primeira ganha uma
+// pasta só sua. O efeito colateral aceito: essas janelas "extras" sempre
+// nascem sem login/cache salvo (nunca reaproveitam a pasta de uma sessão
+// anterior), precisando logar e sincronizar de novo a cada abertura.
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
-  app.setPath('userData', app.getPath('userData') + '-instancia2');
+  app.setPath('userData', app.getPath('userData') + '-instancia-' + process.pid);
 }
 
 // Desde as versões recentes do Electron, window.open() é BLOQUEADO por
