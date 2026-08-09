@@ -2217,12 +2217,31 @@ com um processo aleatório"></span>
 em escala real (mm), com o maior
 número de volantes por folha A4
 e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
-            <button class="result-hdr-btn" onclick="openModalSalvar('atual')">💾 Salvar</button>
+            <button class="result-hdr-btn" onclick="abrirSalvarInline()">💾 Salvar</button>
             <button class="result-hdr-btn" onclick="conferirTodos()">✅ Conferir</button>
             <button class="result-hdr-btn" onclick="abrirBacktestUI()" title="Testa o motor contra concursos reais passados">📊 Validar Histórico</button>
             <button class="result-hdr-btn" onclick="abrirPainelQualidade()" title="Resumo consolidado das métricas de qualidade deste lote">📈 Painel de Qualidade</button>
             <button class="result-hdr-btn" onclick="compararMotores()" title="Compara um lote pequeno de cada motor (Clássico vs IA)">🔬 Comparar Motores</button>
             <button class="result-hdr-btn" onclick="limparResultado()">✕ Limpar</button>
+          </div>
+        </div>
+        <!-- Salvar (inline) — Fase 91 (pedido do usuário): escolher "Vincular
+             a um Bolão" acontece aqui mesmo, sem abrir o popup separado
+             "Jogos Salvos" (esse popup só continua existindo pra revisar/
+             gerenciar conjuntos JÁ salvos, ex. a partir de Previsões). Ao
+             confirmar, fecha a tela de Resultado da Geração inteira — não
+             faz sentido ficar preso numa segunda tela pra decidir algo que
+             já foi decidido aqui. -->
+        <div id="result-salvar-inline" style="display:none;flex-direction:column;gap:8px;padding:11px 16px;background:rgba(124,58,237,.07);border-bottom:1px solid var(--glass-border)">
+          <div style="display:flex;gap:14px;font-size:12px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase">Onde salvar</span>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-inline-modo" value="salvo" checked onchange="_atualizarModoSalvarInlineUI()"/> Jogo Salvo</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="radio" name="salvar-inline-modo" value="vincular" onchange="_atualizarModoSalvarInlineUI()"/> Vincular a um Bolão</label>
+            <select id="salvar-inline-bolao-sel" class="f-sel" style="display:none;font-size:12px;flex:1;min-width:160px"><option value="">— Selecione um bolão —</option></select>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end">
+            <button class="result-hdr-btn" onclick="_cancelarSalvarInline()">Cancelar</button>
+            <button class="result-hdr-btn" onclick="_confirmarSalvarInline()">💾 Confirmar</button>
           </div>
         </div>
         <!-- Bandeira de validade do concurso -->
@@ -6365,6 +6384,8 @@ function gbShowResultado(){
 }
 function gbCloseResultado(){
   closeModal('modal-gb-resultado');
+  var painel=document.getElementById('result-salvar-inline');
+  if(painel) painel.style.display='none';
 }
 // Sinaliza visualmente (gradiente fade nas bordas) quando há mais abas para
 // rolar à esquerda e/ou à direita do que está visível no momento — sem
@@ -10559,6 +10580,55 @@ async function _salvarComEscolha(){
   // e acessar a próxima tela.
   closeModal('modal-salvar');
 }
+// Fase 91: versão da escolha "Jogo Salvo" / "Vincular a um Bolão" que roda
+// DENTRO do próprio "Resultado da Geração" (ids salvar-inline-*, distintos
+// dos usados pelo popup "Jogos Salvos" — modal-salvar continua existindo
+// para revisar/gerenciar conjuntos já salvos a partir de outras telas, ex.
+// Previsões, e não pode competir pelos mesmos ids).
+async function abrirSalvarInline(){
+  var painel=document.getElementById('result-salvar-inline');
+  if(!painel){ openModalSalvar('atual'); return; } // salvaguarda, não deveria faltar
+  painel.querySelectorAll('input[name="salvar-inline-modo"]').forEach(function(r){ r.checked=(r.value==='salvo'); });
+  var sel=document.getElementById('salvar-inline-bolao-sel');
+  if(sel){ sel.style.display='none'; sel.innerHTML='<option value="">— Selecione um bolão —</option>'; }
+  try{
+    var boloes=(typeof BolaoJogosRepo!=='undefined')?(await BolaoJogosRepo.listarBoloesDual()||[]):[];
+    var elegiveis=boloes.filter(_bolaoDisponivelParaVincular);
+    if(sel) sel.innerHTML='<option value="">— Selecione um bolão —</option>'+elegiveis.map(function(b){return '<option value="'+b.id+'">🌐 '+_esc(b.nome||'Bolão')+'</option>';}).join('');
+  }catch(e){ console.warn('[SALVAR INLINE] falha ao listar bolões:',e.message); }
+  painel.style.display='flex';
+}
+function _atualizarModoSalvarInlineUI(){
+  var modo=(document.querySelector('input[name="salvar-inline-modo"]:checked')||{}).value||'salvo';
+  var sel=document.getElementById('salvar-inline-bolao-sel');
+  if(sel) sel.style.display=(modo==='vincular')?'':'none';
+}
+function _cancelarSalvarInline(){
+  var painel=document.getElementById('result-salvar-inline');
+  if(painel) painel.style.display='none';
+}
+async function _confirmarSalvarInline(){
+  var modo=(document.querySelector('input[name="salvar-inline-modo"]:checked')||{}).value||'salvo';
+  var bolaoId='';
+  if(modo==='vincular'){
+    var sel=document.getElementById('salvar-inline-bolao-sel');
+    bolaoId=sel?sel.value:'';
+    if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
+  }
+  var novoId=await salvarJogos();
+  if(novoId==null) return; // erro/nada selecionado — salvarJogos() já mostrou o toast, painel continua aberto
+  if(modo==='vincular'){
+    await vincularSalvoAoBolao(novoId, bolaoId);
+  }
+  // salvarJogos()/vincularSalvoAoBolao() terminam atualizando o popup
+  // "Jogos Salvos" em segundo plano (openModalSalvar) — ele não é o alvo
+  // deste fluxo, então fecha ele também, junto com a tela de Resultado da
+  // Geração inteira (pedido do usuário: "fechar tudo" ao final).
+  closeModal('modal-salvar');
+  var painel=document.getElementById('result-salvar-inline');
+  if(painel) painel.style.display='none';
+  gbCloseResultado();
+}
 let _salvarJogosEmAndamento=false;
 async function salvarJogos(){
   if(_salvarJogosEmAndamento) return;
@@ -12028,6 +12098,7 @@ function limparResultado(){
   document.getElementById('result-box').style.display='none';
   document.getElementById('result-body').innerHTML='';
   const bar=document.getElementById('result-concurso-bar');if(bar)bar.style.display='none';
+  const painelSalvar=document.getElementById('result-salvar-inline');if(painelSalvar)painelSalvar.style.display='none';
   jogosGerados=[];
   ['jogo-qty','bolao-qty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   if(currentKey){buildFixosQtySelect('jogo',CFG[currentKey]);buildFixosQtySelect('fech',CFG[currentKey]);}
