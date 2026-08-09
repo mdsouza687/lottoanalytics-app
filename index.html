@@ -10695,7 +10695,18 @@ async function _salvarJogosImpl(){
   _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalvaGer} jogo(s) de ${d.nome}, id=${novoId}`});
   window._salvarNomeSugerido=null;
   const _avisoPuladoGer=_qtdPuladaGer?` (${_qtdPuladaGer} jogo${_qtdPuladaGer!==1?'s':''} ignorado${_qtdPuladaGer!==1?'s':''} — mesmas dezenas já existiam)`:'';
-  toast(`✓ ${_qtdSalvaGer} jogo${_qtdSalvaGer!==1?'s':''} salvo${_qtdSalvaGer!==1?'s':''}${temEspelho?' (principais + espelhos)':''}${_avisoPuladoGer}`);openModalSalvar();
+  toast(`✓ ${_qtdSalvaGer} jogo${_qtdSalvaGer!==1?'s':''} salvo${_qtdSalvaGer!==1?'s':''}${temEspelho?' (principais + espelhos)':''}${_avisoPuladoGer}`);
+  // Fase 90: esse refresh da lista PRECISA ser esperado (await). Sem
+  // isso, ele continuava rodando em segundo plano depois que esta função
+  // já tinha devolvido novoId — _salvarComEscolha() fechava o modal
+  // "Jogos Salvos" (closeModal) achando que tudo tinha terminado, mas
+  // esse refresh, ao concluir suas próprias buscas assíncronas alguns
+  // instantes depois, chamava openModal('modal-salvar') de novo por
+  // conta própria e reabria o popup sozinho — dava a impressão de "voltar
+  // para a mesma tela" bem no final. Antes da correção do empilhamento
+  // (Fase 89), esse reabrir sozinho ficava escondido atrás do "Resultado
+  // da Geração" e por isso nunca tinha sido percebido.
+  await openModalSalvar();
   return novoId;
   }catch(e){
     console.error('[SALVAR]',e);
@@ -19716,7 +19727,10 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
         _atualizarCotaUI();
       }
     }
-    openModalSalvar();
+    // Fase 90: mesma corrida de _salvarJogosImpl -- sem await aqui, esse
+    // refresh reabria o modal "Jogos Salvos" sozinho depois que
+    // _salvarComEscolha() já tinha rodado closeModal('modal-salvar').
+    await openModalSalvar();
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
 
