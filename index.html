@@ -10518,6 +10518,7 @@ async function _salvarComEscolha(){
   // relação nenhuma com aquele bolão, reproduzindo o mesmo tipo de
   // esquecimento que o dropdown antigo causava.
   window._bolaoVincPendente=null;
+  var novoId;
   if(modo==='vincular'){
     // bolaoId: uuid do bolão (schema novo) — parseInt quebrava isso desde
     // o corte final (mesmo bug encontrado em _salvarJogosManuaisImpl,
@@ -10525,15 +10526,23 @@ async function _salvarComEscolha(){
     var sel=document.getElementById('salvar-bolao-sel');
     var bolaoId=sel?sel.value:'';
     if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
-    var novoId=await salvarJogos();
+    novoId=await salvarJogos();
     if(novoId==null) return; // salvarJogos() já mostrou o toast do motivo (nada gerado/selecionado)
     // bolaoIdOverride evita depender do <select> "vinc-sel-{id}" existir no
     // DOM (que só apareceria depois de openModalSalvar() re-renderizar a
     // lista) — passa o bolão direto, sem esse round-trip.
     await vincularSalvoAoBolao(novoId, bolaoId);
   } else {
-    await salvarJogos();
+    novoId=await salvarJogos();
+    if(novoId==null) return; // erro/nada selecionado — mantém o modal aberto pro usuário corrigir
   }
+  // Fase 86 (pedido do usuário): fecha o modal sozinho depois de salvar
+  // com sucesso, pra todas as loterias — antes ele ficava se reabrindo/
+  // atualizando sozinho (salvarJogos()/vincularSalvoAoBolao() terminam
+  // chamando openModalSalvar() pra atualizar a lista) e nunca fechava
+  // por conta própria, obrigando a clicar no fundo escurecido pra sair
+  // e acessar a próxima tela.
+  closeModal('modal-salvar');
 }
 let _salvarJogosEmAndamento=false;
 async function salvarJogos(){
