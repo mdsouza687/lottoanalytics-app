@@ -10223,6 +10223,17 @@ async function _carregarConjuntosDualComoAntigo(){
 async function openModalSalvar(escopo){
   /* escopo: 'atual' (loteria selecionada) | 'todas' (todas as loterias).
      Sem argumento, reutiliza o último escopo (recarga após salvar/excluir). */
+  // Fase 88: função inteira protegida por try/catch — igual à Fase 87 em
+  // _salvarJogosImpl(), mas aqui é o problema mais grave: isso roda ANTES
+  // do popup sequer abrir. Ela monta o card de CADA conjunto já salvo
+  // (cardConjunto/ballsHtml), incluindo os antigos — um registro salvo há
+  // mais tempo, com formato de dados diferente de hoje (ex.: sem algum
+  // campo que o código atual espera), quebrava a função inteira sem
+  // nenhum aviso: o clique em "💾 Salvar" simplesmente não fazia nada
+  // visível, sem erro no console nem toast — o popup nunca chegava a
+  // aparecer. Reproduzia só nas loterias cujo histórico salvo tinha esse
+  // registro problemático (explica não acontecer em todas).
+  try{
   if(escopo!==undefined) window._salvarEscopo=escopo;
   const todasLot=(window._salvarEscopo||'atual')==='todas';
   const d=CFG[currentKey]||Object.values(CFG)[0];
@@ -10478,6 +10489,10 @@ async function openModalSalvar(escopo){
     }
   }
   openModal('modal-salvar');
+  }catch(e){
+    console.error('[ABRIR SALVAR]',e);
+    toast('Erro ao abrir "Jogos Salvos": '+(e&&e.message||String(e)));
+  }
 }
 
 function reabrirRelatorioBolao(idx){
@@ -10883,7 +10898,21 @@ async function abrirPadroes(){
   if(hasSpecial && !isEsp){ html+=`<div style="height:1px;background:var(--glass-border);margin:16px 0"></div>`; const histEspecial=await garantirHistorico(currentKey,3000,true); const estEspecial=calcEstatisticas(histEspecial); if(estEspecial && histEspecial.length>0){ html+=blocoPatterns(histEspecial,estEspecial,`⭐ ${d.specialLabel} — Concursos Especiais`,COR_OURO); } else { html+=`<div style="font-size:11px;color:var(--text-dim);font-style:italic;padding:8px 0">⭐ ${d.specialLabel}: dados não disponíveis ainda. Os IDs especiais serão identificados conforme o histórico for baixado.</div>`; } }
   document.getElementById('body-padroes').innerHTML=html;
 }
-function openModal(id){document.getElementById(id).classList.add('open');}
+function openModal(id){
+  // "Resultado da Geração" (modal-gb-resultado) fica aberto por baixo o
+  // tempo todo — quando outro modal (ex.: "Jogos Salvos") abre por cima
+  // dele, os dois têm o MESMO z-index (.modal-overlay=1000), então quem
+  // fica visível é só quem vem depois no HTML. Como modal-gb-resultado é
+  // declarado depois de modal-salvar no documento, ele sempre vencia essa
+  // disputa e escondia o outro modal por trás — sem erro nenhum, sem
+  // fechar nada, só invisível (clicar do lado fechava o de cima e "revelava"
+  // o de baixo, exatamente como reportado). Mover o modal que está abrindo
+  // agora pro final do <body> garante que ele sempre fique por cima de
+  // qualquer outro modal que já esteja aberto, não importa a ordem no HTML.
+  var el=document.getElementById(id);
+  document.body.appendChild(el);
+  el.classList.add('open');
+}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modal-estatisticas'){ const hdr=document.getElementById('hdr-estatisticas'); if(hdr){ hdr.querySelector('.modal-title').textContent='📊 Estatísticas'; if(currentKey&&CFG[currentKey]) setModalHeaderCor('hdr-estatisticas', CFG[currentKey].cor); } } }
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 // CORREÇÃO (2026-08-02): fechamento de apostas NÃO é sempre 20h — as
