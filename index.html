@@ -2,14 +2,32 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Abre as conexões com os dois domínios externos em paralelo com o parse
+     do HTML, em vez de só quando a primeira requisição a cada um começa —
+     economiza o DNS+TLS de cada domínio no caminho crítico de abertura. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- Chart.js com defer (Fase 81 — desempenho): ~200 KB que travavam o
+     parse do HTML antes de qualquer pixel aparecer, sendo que o primeiro
+     "new Chart()" só acontece quando se abre uma aba de análise, bem
+     depois da tela inicial. O Supabase, ao contrário, NÃO pode receber
+     defer: _iniciarAuthGate() roda no fim deste arquivo e desiste em
+     silêncio (if(!sb) return) se a lib ainda não existir — com defer, isso
+     deslogaria o usuário a cada abertura. -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>LOTTO ANALYTICS — Loterias Caixa + Internacionais</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+/* O @import desta mesma URL de fontes foi removido (Fase 81 — desempenho):
+   era idêntico ao <link rel="stylesheet"> logo acima, então o mesmo CSS de
+   fontes era baixado duas vezes. Pior: um @import dentro de <style> só é
+   descoberto depois que o CSS começa a ser interpretado, encadeando mais
+   uma ida à rede em série no caminho crítico, em vez de em paralelo como o
+   <link>. O <link> acima sozinho carrega exatamente as mesmas famílias. */
 :root{
   --sel-bg:#223049;
   --sel-border:#2b3e5a;
@@ -2746,6 +2764,23 @@ e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
 </div><!-- /app -->
 
 <script>
+/* ════ I18N (esqueleto) ════
+   Base pronta pra tradução futura (PT/EN/ES com seletor + geolocalização),
+   ideia avaliada e adiada por ser grande demais pra fazer de uma vez (ver
+   plano completo, cancelado por ora, em
+   C:\Users\mario\.claude\plans\clever-finding-conway.md). Enquanto isso não
+   for retomado: NENHUM texto existente precisa migrar pra t() — só código
+   NOVO deve usar t('chave') em vez de string fixa em português, pra não
+   aumentar o volume de texto hardcoded que teria que ser retrabalhado
+   depois. idiomaAtual fica travado em 'pt-BR' (sem seletor, sem detecção)
+   até essa fase ser retomada de verdade. */
+const LA_I18N = { 'pt-BR': {}, 'en-US': {}, 'es-ES': {} };
+function t(key, vars){
+  const idiomaAtual = 'pt-BR';
+  let s = (LA_I18N[idiomaAtual] && LA_I18N[idiomaAtual][key]) ?? LA_I18N['pt-BR'][key] ?? key;
+  if(vars) for(const k in vars) s = s.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]);
+  return s;
+}
 /* ════ CONFIG DAS LOTERIAS ════ */
 /* Cor exclusiva do Bolão Multi-Loteria (item 3 do documento de upgrade de
    bolões) — usada em botões, títulos, cabeçalhos de impressão e elementos
@@ -3441,7 +3476,25 @@ function initDB(){
     req.onerror=e=>rej(e.target.error);
   });
 }
-const dbOp=(store,mode,fn)=>new Promise((res,rej)=>{if(!db)return rej(new Error('DB não inicializado'));try{const s=db.transaction(store,mode).objectStore(store);const req=fn(s);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e.target.error);}catch(e){rej(e);}});
+// Cache em memória do histórico lido do IndexedDB (Fase 81 — desempenho).
+// garantirHistorico() relia TODOS os concursos da loteria do IndexedDB a
+// cada chamada — e ela é chamada em toda troca de aba, toda geração de
+// jogos e todo render de padrões. Com 3.000 concursos em cache local isso
+// significava reler/realocar milhares de objetos várias vezes por minuto,
+// sempre com o mesmo resultado. Aqui a leitura é memorizada por loteria e
+// invalidada automaticamente em QUALQUER escrita na store (ver dbOp
+// abaixo) — invalidar no nível mais baixo garante que nenhum dos 18
+// pontos de escrita espalhados pelo arquivo (nem um futuro) possa deixar
+// o cache velho por engano.
+const _histIdbCache={};
+const _histCacheInvalidar=()=>{ for(const k in _histIdbCache) delete _histIdbCache[k]; };
+const dbByIdxHistCached=async(key)=>{
+  if(_histIdbCache[key]) return _histIdbCache[key];
+  const r=await dbByIdx('historico','loteria',key);
+  _histIdbCache[key]=r;
+  return r;
+};
+const dbOp=(store,mode,fn)=>new Promise((res,rej)=>{if(!db)return rej(new Error('DB não inicializado'));try{if(mode==='readwrite'&&store==='historico')_histCacheInvalidar();const s=db.transaction(store,mode).objectStore(store);const req=fn(s);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e.target.error);}catch(e){rej(e);}});
 const dbGet=(s,k)=>dbOp(s,'readonly',st=>st.get(k));
 const dbAll=(s)=>dbOp(s,'readonly',st=>st.getAll());
 // Camada de repositório (auditoria, Fase 3.1) — nomes de domínio para o
@@ -5981,7 +6034,6 @@ function initLaHome(){
 }
 
 const SHORTCUT_ORDER = ['diasorte','duplasena','lotofacil','lotomania','maismilionaria','megamillions','megasena','powerball','quina','supersete','timemania'];
-function getEmoji(key){ if(key==='duplasena') return '🍀🍀'; return CFG[key]?.emoji||''; }
 function buildShortcuts(activeKey){
   const wrap = document.getElementById('topbar-shortcuts');
   if(!wrap) return;
@@ -6950,7 +7002,10 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
     return [];
   }
 
-  const salvos=await dbByIdx('historico','loteria',key);
+  // Leitura memorizada (ver _histIdbCache): esta é a linha mais quente do
+  // app — roda em toda troca de aba/geração/render de padrões, sempre
+  // devolvendo o mesmo conteúdo até alguém escrever na store.
+  const salvos=await dbByIdxHistCached(key);
   // Normaliza chaves como inteiros
   const savedMap=new Map(salvos.map(s=>[parseInt(s.concurso),{dezenas:s.dezenas,data:s.data||'',trevos:s.trevos!==undefined?s.trevos:null,dezenas2:s.dezenas2||null,mes:s.mes||null,timeCoracao:s.timeCoracao||null}]));
 
@@ -7090,24 +7145,6 @@ async function garantirHistorico(key, qtdNecessaria, soEspecial=false){
   }
   return soEspecial ? especial : regular;
 }
-async function garantirHistoricoDuplo(key, qtdNecessaria){
-  const d=CFG[key];const res=resultados[key];
-  if(!res)return {regular:[],especial:[]};
-  const ultimoConcurso=parseInt(res.concurso)||0;if(!ultimoConcurso)return {regular:[],especial:[]};
-  const salvos=await dbByIdx('historico','loteria',key);
-  const savedMap=new Map(salvos.map(s=>[s.concurso,{dezenas:s.dezenas,data:s.data||''}]));
-  const necessarios=[];
-  for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--) if(!savedMap.has(c))necessarios.push(c);
-  if(necessarios.length>0){
-    const BATCH=10;
-    for(let i=0;i<necessarios.length;i+=BATCH){
-      await Promise.all(necessarios.slice(i,i+BATCH).map(async num=>{ try{const raw=await fetchConcurso(d.apiKey,num);const dez=extrairDezenas(raw,d.dupla); if(dez.length>0){await dbPut('historico',{loteria:key,concurso:num,dezenas:dez,data:raw.data||''});savedMap.set(num,{dezenas:dez,data:raw.data||''});} }catch(e){} }));
-    }
-  }
-  const regular=[],especial=[];
-  for(let c=ultimoConcurso;c>ultimoConcurso-qtdNecessaria&&c>0;c--){ const entry=savedMap.get(c);if(!entry)continue; const obj={concurso:c,dezenas:entry.dezenas,data:entry.data}; if(isEspecial(key,c))especial.push(obj);else regular.push(obj); }
-  return {regular,especial};
-}
 function calcEstatisticas(historico){
   if(!historico.length)return null;
   const n=historico.length;
@@ -7129,7 +7166,6 @@ function calcEstatisticas(historico){
   for(const {dezenas} of ultimoDesc){ pos++; dezenas.forEach(numRaw=>{var num=parseInt(numRaw);if(atraso[num]===undefined)atraso[num]=pos;}); }
   return{ n, avgPares:(somaPares/n).toFixed(2), avgImpares:(somaImpares/n).toFixed(2), avgSoma:(somaTotal/n).toFixed(1), minSoma:Math.min(...somas), maxSoma:Math.max(...somas), freq, atraso };
 }
-function toggleInfo(id){const el=document.getElementById(id);const was=el.classList.contains('open');document.querySelectorAll('.info-drop').forEach(d=>d.classList.remove('open'));if(!was)el.classList.add('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.info-wrap-btn'))document.querySelectorAll('.info-drop').forEach(d=>d.classList.remove('open'));});
 // ── Combo "Nº de Dezenas" do Super Sete (7 a 21) ──
 function buildSSDezSelects(d){
@@ -7709,9 +7745,6 @@ function getPadraoFaixas(d){
   for(let lo=st;lo<=end;lo+=10) fx.push({min:lo,max:Math.min(lo+9,end)});
   return fx;
 }
-function padraoDeJogo(jogo,faixas){
-  return faixas.map(f=>jogo.filter(n=>n>=f.min&&n<=f.max).length).join('-');
-}
 function padraoChave(jogo,faixas,modo){
   const counts=faixas.map(f=>jogo.filter(n=>n>=f.min&&n<=f.max).length);
   if(modo==='spread'){
@@ -7780,11 +7813,6 @@ function topPadroes(historico,faixas,covTarget,maxN,modo){
 }
 
 
-function getLinhaColuna(n, d){
-  if(d.apiKey==='megasena'){ const col=(n-1)%10+1; const linha=Math.ceil(n/10); return {linha, col}; }
-  if(d.apiKey==='lotofacil'){ const col=(n-1)%5+1; const linha=Math.ceil(n/5); return {linha, col}; }
-  return {linha:1,col:1};
-}
 /* Wrapper com cache — evita recálculo por jogo (alta performance na IA) */
 function calcFiltrosEstat(historico, d, numDez){
   if(!historico||!historico.length) return null;
@@ -9838,7 +9866,6 @@ function imprimirVolantes(key,jogosParaImprimir){
   abrirJanelaImpressao(`Volantes ${d.nome}`, html, {extraCSS, bodyStyle:'padding:0'});
 }
 // Nome antigo mantido por compatibilidade com o botão já existente na tela.
-function imprimirVolantesMaisMilionaria(){ imprimirVolantes('maismilionaria'); }
 
 function buildPrintHeader(titulo, subtitulo, d, cor){
   const agora=new Date().toLocaleString('pt-BR');
@@ -9857,10 +9884,6 @@ function buildPrintHeader(titulo, subtitulo, d, cor){
   </div>`;
 }
 
-function buildPrintBall(n, cor, isMiss=false){
-  const pad=x=>String(x).padStart(2,'0');
-  return `<span class="ball${isMiss?' miss':''}" style="${isMiss?'':'background:'+cor}">${pad(n)}</span>`;
-}
 
 function buildPrintRow(jogo, d, sorteadas, idx, valor, fixosSet, nomeJogo, res){
   const pad=n=>String(n).padStart(2,'0');
@@ -10115,41 +10138,6 @@ function doPrint(destino){
   abrirJanelaImpressao(`${d.nome}`, html);
 }
 
-function buildPrintRelatorioParticipantes(grupo){
-  const pad=n=>String(n).padStart(2,'0');
-  const totalCotas=grupo.totalCotas||(grupo.participantes||[]).reduce((a,p)=>a+(p.cotas||0),0);
-  const premioAuto=(typeof _calcPremioTotalGrupo==='function')?_calcPremioTotalGrupo(grupo):null;
-  const temPremio=premioAuto&&premioAuto.total>0;
-  const valorCota=temPremio&&totalCotas>0?premioAuto.total/totalCotas:0;
-  let html=`<div style="margin-top:24px;border-top:2px solid #333;padding-top:14px">
-    <div style="font-weight:900;font-size:14px;margin-bottom:8px">👥 Participantes do Bolão</div>`;
-  if(temPremio){
-    html+=`<div style="font-size:11px;font-weight:700;color:#0a7a3d;margin-bottom:8px">🏆 Prêmio total apurado no concurso ${grupo.concurso}: ${_brl(premioAuto.total)} (${premioAuto.qtdPremiados} jogo${premioAuto.qtdPremiados!==1?'s':''} premiado${premioAuto.qtdPremiados!==1?'s':''}) — ${_brl(valorCota)} por cota</div>`;
-  }
-  html+=`<table style="width:100%;border-collapse:collapse;font-size:11px">
-    <thead><tr style="background:#f0f0f0">
-      <th style="padding:6px 8px;text-align:left;border:1px solid #ccc">#</th>
-      <th style="padding:6px 8px;text-align:left;border:1px solid #ccc">Participante</th>
-      <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Cotas</th>
-      <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">% Part.</th>
-      <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Pagamento</th>
-      <th style="padding:6px 8px;text-align:center;border:1px solid #ccc">Prêmio recebido</th>
-    </tr></thead><tbody>`;
-  grupo.participantes.forEach((p,i)=>{
-    const cotasEf=p.isento?0:(p.cotasEfetivas||p.cotas||0);
-    const premioRecebido=temPremio&&!p.isento?_brl(cotasEf*valorCota):(p.isento?'—':(temPremio?'—':'—'));
-    html+=`<tr style="border-bottom:1px solid #eee">
-      <td style="padding:6px 8px;border:1px solid #ddd">${i+1}</td>
-      <td style="padding:6px 8px;font-weight:700;border:1px solid #ddd">${_esc(p.nome)}${p.isAdmin?' ⭐':''}</td>
-      <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.cotas}</td>
-      <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'Isento':(p.pct||'—')+'%'}</td>
-      <td style="padding:6px 8px;text-align:center;border:1px solid #ddd">${p.isento?'<b>ISENTO</b>':'—'}</td>
-      <td style="padding:6px 8px;text-align:center;border:1px solid #ddd;font-weight:700;color:${temPremio&&!p.isento?'#0a7a3d':'#999'}">${premioRecebido}</td>
-    </tr>`;
-  });
-  html+=`</tbody></table></div>`;
-  return html;
-}
 // Fase 4 (Doc 2): adapta a leitura do schema novo (jogos independentes,
 // agrupados só visualmente por lote_id) pro mesmo formato que cardConjunto()
 // já sabe desenhar (item.jogos[], item.nome, item.savedAt...) — permite
@@ -10824,7 +10812,6 @@ async function abrirPadroes(){
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modal-estatisticas'){ const hdr=document.getElementById('hdr-estatisticas'); if(hdr){ hdr.querySelector('.modal-title').textContent='📊 Estatísticas'; if(currentKey&&CFG[currentKey]) setModalHeaderCor('hdr-estatisticas', CFG[currentKey].cor); } } }
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
-function apos20h(){ const agora=new Date(); return agora.getHours()>=20; }
 // CORREÇÃO (2026-08-02): fechamento de apostas NÃO é sempre 20h — as
 // loterias que sorteavam sábado à noite passaram a sortear DOMINGO 11h
 // (segunda a sexta continuam à noite, ~20h, como sempre foi). Domingo
@@ -12333,15 +12320,6 @@ async function gerarComIA(tipo){
     histOrd.forEach(({dezenas},pos)=>dezenas.forEach(n=>{if(atraso[n]===N)atraso[n]=pos;}));
 
     // ── Classificar pausa em bucket (igual ao LottoAnalyzer) ──
-    function pauseBucket(at){
-      if(at<=1) return '1';
-      if(at<=2) return '2';
-      if(at<=3) return '3';
-      if(at<=6) return '4-6';
-      if(at<=10) return '7-10';
-      if(at<=20) return '11-20';
-      return '21+';
-    }
 
     // ── Pool filtrado: 94% melhores candidatos (poolShare do LottoAnalyzer) ──
     const POOL_SHARE=0.94;
@@ -13991,11 +13969,6 @@ function renderResultados(body,d,hist,freq){
   }
 
   // ── Construção da grade de paletas ──
-  function ballColorClass(){ return 'hm'; }
-  function paletteVar(idx){
-    // 3 paletas de cor para os destaques: 0=Clássica (azul/laranja), 1=Térmica (por freq.), 2=Mono (cor da loteria)
-    return idx;
-  }
   const maxF=Math.max(...Object.values(freq),1);
   const minF=Math.min(...Object.values(freq),0);
   const range=(maxF-minF)||1;
@@ -15133,13 +15106,6 @@ function _maskTel(el){
   _boloesState.admin.telefone=el.value;
 }
 // Moeda: formata o que o usuário digita em R$ e guarda o número
-function _maskMoeda(el, destino){
-  var digits=String(el.value||'').replace(/\D/g,'');
-  var num=digits?parseInt(digits,10)/100:0;
-  el.value=num?num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-  if(destino==='premio'){ _boloesState.premio=num; renderParticipantesBoloes(); }
-  else { _boloesState.cotas[_boloesState.modalidade]=num; }
-}
 // PIX: máscara conforme o tipo escolhido no dropdown
 function _pixPlaceholder(tipo){
   return tipo==='cpf'?'000.000.000-00':tipo==='cnpj'?'00.000.000/0000-00':tipo==='telefone'?'(00) 00000-0000':tipo==='email'?'nome@email.com':'chave aleatória';
@@ -15154,7 +15120,6 @@ function _maskPixTipo(el){
   _boloesState.admin.pix=el.value;
 }
 
-function _setPixHint(t){ var h=document.getElementById('pix-hint'); if(h) h.textContent=t?('Tipo: '+t):''; }
 
 function _maskDocAdmin(el){
   var tipo=_boloesState.admin.cpfTipo||'cpf';
@@ -15250,9 +15215,6 @@ function _calcSemanasDoMes(mesRef){
   }while(semanas[semanas.length-1] && new Date(semanas[semanas.length-1].fim.split('/').reverse().join('-'))<ultimoDia);
   return semanas;
 }
-function _calcSemanasDeducoes(semanas){
-  return (semanas||[]).reduce(function(a,s){return a+(s.valorJogos||0);},0);
-}
 // Bolões criados a partir de domingo 12h já contam como pertencentes à
 // próxima semana válida (seg a dom seguinte) — domingo à tarde/noite é,
 // na prática, véspera da nova rodada, então antecipa o rollover em vez
@@ -15290,7 +15252,6 @@ function _parseDataBR(str){
   var dt=new Date(+m[3],+m[2]-1,+m[1]);
   return isNaN(dt.getTime())?null:dt;
 }
-function _semanaLabel(ini,fim){ return ini&&fim?'Semana '+ini+' a '+fim:'—'; }
 // Bolão encerrado (mesma regra usada em toda parte pro status Ativo/
 // Inativo — fase54: semana_fim <= hoje) não deve aparecer como opção
 // pra vincular jogos novos — já foi finalizado, não faz sentido receber
@@ -15839,7 +15800,6 @@ function _calcValorCotaAuto(sParam){
 }
 // Equivalente a _calcValorCotaAuto() — mantida apenas para não quebrar
 // qualquer chamada antiga que ainda a referencie pelo nome anterior.
-function _calcValorCotaPorCusto(){ return _calcValorCotaAuto(); }
 // Saldo do Orçamento do Admin: quando o admin escolhe "Valor fixo" E
 // também participa com cotas próprias, o custo dessas cotas dele é
 // abatido do orçamento que ele definiu. O que resta é o que efetivamente
@@ -15920,13 +15880,6 @@ function _atualizarCotaUI(){
     }
   }
   renderParticipantesBoloes();
-}
-function _calcArrecadacaoSemanal(s){
-  return _calcArrecadacaoPorContribuicoes(s);
-}
-function _calcCustoRodadas(rodadas,d){
-  if(!rodadas||!rodadas.length||!d||!d.precoBase) return 0;
-  return rodadas.reduce(function(a,r){return a+(r.custo||0);},0);
 }
 // ── Custo e Saldo DISCRIMINADOS POR LOTERIA ──
 // Retorna um array [{loteria, nome, emoji, cor, gasto}], um item por
@@ -16033,30 +15986,6 @@ function _fmtMoedaInput(valor, moeda){
    manual de valores monetários nos formulários de bolão. */
 function _simboloMoeda(moeda){ return moeda==='USD'?'US$':(moeda==='EUR'?'€':'R$'); }
 function _placeholderMoeda(moeda){ return moeda==='USD'?'0.00':'0,00'; }
-function _recalcularArrecadacao(){
-  var s=_boloesState;
-  var valorCota=_calcValorCotaAuto();
-  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo'&&p.statusPag==='pago';});
-  var total=ativos.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0);
-  if(_tipoOrg(s)==='fixo'){
-    total+=(s.admin.valorFixoOrganizacao||0);
-  } else if(_tipoOrg(s)==='cotas'){
-    var cotasAdmin=(s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)|0;
-    total+=cotasAdmin*valorCota;
-  }
-  _boloesState.arrecadacaoTotal=total;
-  var el=document.getElementById('bol-arrec');
-  if(el) el.value=total?total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-  // Atualizar custo e saldo na tela
-  renderFormBolao();
-  toast('Arrecadação recalculada: '+_bMoney(total));
-}
-function _atualizarArrecadacaoAposRodada(custo){
-  // Subtrai o custo da rodada da arrecadação total e salva
-  if(!_boloesState.editId) return;
-  _boloesState.arrecadacaoTotal=Math.max(0,(_boloesState.arrecadacaoTotal||0)-custo);
-  renderFormBolao();
-}
 
 // Achado ao vivo em produção (2026-07-20): pelo menos um bolão foi salvo
 // com semana_inicio/semana_fim em branco (causa exata não identificada —
@@ -20429,7 +20358,6 @@ function _proximoDuplicataNum(snapshot, loteriaKey, concursoNum, jogo, contadorS
 // que troca a estrutura interna para um objeto de verdade {dezenas, mes,
 // time, ...} — quando isso acontecer, só estes acessores precisam mudar,
 // não os ~centenas de pontos de leitura espalhados pelo arquivo.
-function jogoDezenas(j){ return Array.isArray(j)?j:[]; }
 function jogoMes(j){ return j&&j._mes!=null?j._mes:null; }
 function jogoTime(j){ return j&&j._time!=null?j._time:null; }
 function jogoExtra(j){ return j&&j._extra!=null?j._extra:null; }
@@ -20437,7 +20365,6 @@ function jogoTrevos(j){ return j&&Array.isArray(j._trevos)?j._trevos:null; }
 function jogoSsCols(j){ return j&&Array.isArray(j._ssCols)?j._ssCols:null; }
 function jogoTeimosinhaConcursos(j){ return j&&Array.isArray(j._teimosinhaConcursos)?j._teimosinhaConcursos:null; }
 function jogoIsEspelho(j){ return !!(j&&j._isEspelho); }
-function jogoConcursoOrigem(j){ return j&&j._concursoOrigem!=null?j._concursoOrigem:null; }
 
 // NÃO preserva essas propriedades customizadas (só copia os índices numéricos)
 // — por isso os Trevos da +Milionária e a Bola Extra das loterias americanas
@@ -20465,36 +20392,6 @@ function jogoConcursoOrigem(j){ return j&&j._concursoOrigem!=null?j._concursoOri
 // "espelho" criado ao vincular direto do Gerador também não tinha
 // uuid/concurso. Essa função monta o objeto SEMPRE completo — campos não
 // aplicáveis a um caminho específico ficam null/false, nunca ausentes.
-function _criarItemJogoSalvo(opts){
-  var jogos=opts.jogos||[];
-  jogos.forEach(function(j){ if(j&&!j._jogoId) j._jogoId=_novoId(); });
-  var temEspelho=jogos.some(function(j){ return j&&j._isEspelho; });
-  var teimosinhaAtiva=jogos.length&&jogos[0]&&jogos[0]._teimosinhaConcursos;
-  var d=(typeof CFG!=='undefined')?CFG[opts.loteria]:null;
-  return {
-    loteria:opts.loteria,
-    nome:opts.nome,
-    jogos:jogos,
-    numDez:opts.numDez,
-    savedAt:Date.now(),
-    uuid:_novoId(),
-    concurso:opts.concurso!=null?opts.concurso:null,
-    fixos:opts.fixos||null,
-    extras:jogos.map(function(j){return j&&j._extra!=null?j._extra:null;}),
-    trevos:jogos.map(function(j){return j&&Array.isArray(j._trevos)?j._trevos.slice():null;}),
-    mes:jogos.map(function(j){return j&&j._mes!=null?j._mes:null;}),
-    times:jogos.map(function(j){return j&&j._time!=null?j._time:null;}),
-    ssCols:jogos.map(function(j){return j&&Array.isArray(j._ssCols)?j._ssCols.map(function(c){return c.slice();}):null;}),
-    espelhoFlags:jogos.map(function(j){return j&&j._isEspelho?1:0;}),
-    jogoIds:jogos.map(function(j){return j&&j._jogoId;}),
-    temEspelho:temEspelho,
-    teimosinhaConcursos:teimosinhaAtiva?jogos[0]._teimosinhaConcursos.slice():null,
-    custoTotal:(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):null,
-    manual:!!opts.manual,
-    bolaoId:opts.bolaoId!=null?opts.bolaoId:null,
-    vinculadoBolao:!!opts.vinculadoBolao,
-  };
-}
 
 /* ════════════════════════════════════════════════════════
    Fase 2 da reestruturação de armazenamento (Documento 2) — camada NOVA
