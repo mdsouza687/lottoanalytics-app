@@ -8875,6 +8875,7 @@ async function gerarJogos(tipo,modo){
       `</div>`;
     }
 
+    let _seqDisp=0;
     document.getElementById('result-body').innerHTML=espelhoHdr+jogos.map((jogo,i)=>{
       let balls;
       if(jogo._ssCols){
@@ -8894,6 +8895,14 @@ async function gerarJogos(tipo,modo){
       const trevos=jogo._trevos
         ?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._trevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`
         :'';
+      // Fase 82: PRINCIPAL e ESPELHO são 2 apostas, não 1 — cada uma agora é
+      // sua própria linha sequencial com UM checkbox só (antes era 1 linha
+      // "fundida" com 2 checkboxes aninhados "Selecionar só o P/E", que nem
+      // atualizava o contador de selecionados direito). jogosGerados[i]
+      // continua guardando o par internamente (rgSyncEspelho recalcula seu
+      // conteúdo a partir de quais das 2 linhas estão marcadas) — Salvar/
+      // Imprimir/Vincular seguem lendo jogosGerados normalmente, sem saber
+      // que a tela mudou.
       if(jogo._espelho){
         const espBalls=jogo._espelho.map(n=>`<div class="result-ball" style="background:#7c3aed;color:#fff">${pad(n)}</div>`).join('');
         const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${d.bolaExtraCor};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome}</span><div class="result-ball" style="background:${d.bolaExtraCor};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
@@ -8901,9 +8910,12 @@ async function gerarJogos(tipo,modo){
         const espMesTimeJ=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
         const scoreBadgePJ=jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:'';
         const scoreBadgeEJ=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
-        return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${scoreBadgePJ}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeJ}</div>${scoreBadgeEJ}</div></div></div></div>`;
+        const numP=++_seqDisp, numE=++_seqDisp;
+        return `<div class="result-game marcado" id="rg-${i}-p" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-p" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span class="result-num">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${scoreBadgePJ}</div>`+
+          `<div class="result-game marcado" id="rg-${i}-e" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-e" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span class="result-num">${numE}.</span><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeJ}</div>${scoreBadgeEJ}</div>`;
       }
-      return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
+      const numN=++_seqDisp;
+      return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" checked title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${numN}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
     }).join('');
 
     document.getElementById('chk-all').checked=false;if(typeof atualizarContagemSel==='function')atualizarContagemSel();
@@ -9020,19 +9032,52 @@ function _aplicarExtrasEspelho(jogo, d, wrapId){
   }
   if(jogo._espelho) _rgBackupPar(jogo);
 }
-function toggleMarcarTodos(checked){ document.querySelectorAll('.rg-check').forEach((c,i)=>{c.checked=checked;const rg=document.getElementById(`rg-${i}`);if(rg)rg.classList.toggle('marcado',!checked);}); atualizarContagemSel(); }
+// Fase 82: cada .rg-check agora é uma linha própria (jogo normal OU um dos
+// dois lados de um par espelho) — a partir do PRÓPRIO id do checkbox
+// (chk-N ou rg-chk-N-p/e) acha a linha correspondente, em vez de assumir
+// que a ordem no DOM bate com o índice em jogosGerados (deixou de bater
+// desde que um par virou 2 linhas).
+function toggleMarcarTodos(checked){
+  document.querySelectorAll('.rg-check').forEach(c=>{
+    c.checked=checked;
+    const suf=c.id.startsWith('rg-chk-')?c.id.slice(7):c.id.replace(/^chk-/,'');
+    const rg=document.getElementById('rg-'+suf);
+    if(rg) rg.classList.toggle('marcado',!checked);
+  });
+  jogosGerados.forEach((g,i)=>{ if(g&&g._pBackup) rgSyncEspelho(i); });
+  atualizarContagemSel();
+}
 function getJogosSelecionados(){
-  // Retorna os índices dos jogos marcados (selecionados). Se não houver barra de seleção, todos.
+  // Retorna os índices em jogosGerados que devem ENTRAR no resultado final
+  // (Salvar/Imprimir/Vincular). Fase 82: um par espelho agora tem 2
+  // checkboxes PRÓPRIOS por id (rg-chk-N-p / rg-chk-N-e), não mais 1
+  // checkbox por posição no DOM — por isso não dá mais pra usar a ordem do
+  // NodeList como se fosse o índice em jogosGerados (só batia enquanto
+  // cada jogo tinha exatamente 1 checkbox).
   const checks=document.querySelectorAll('.rg-check');
   if(!checks.length) return jogosGerados.map((_,i)=>i);
   const sel=[];
-  checks.forEach((c,i)=>{ if(c.checked) sel.push(i); });
+  jogosGerados.forEach((g,i)=>{
+    if(g&&g._pBackup){
+      const cp=document.getElementById(`rg-chk-${i}-p`);
+      const ce=document.getElementById(`rg-chk-${i}-e`);
+      if((cp&&cp.checked)||(ce&&ce.checked)) sel.push(i);
+    } else {
+      const c=document.getElementById(`chk-${i}`);
+      if(!c||c.checked) sel.push(i);
+    }
+  });
   return sel;
 }
 function atualizarContagemSel(){
   const hint=document.getElementById('sel-count-hint'); if(!hint)return;
-  const total=document.querySelectorAll('.rg-check').length;
-  const sel=getJogosSelecionados().length;
+  // Fase 82: conta em cima dos checkboxes de verdade na tela (1 checkbox =
+  // 1 aposta selecionável, sempre) — não mais "1 slot de jogosGerados pode
+  // valer por até 2 apostas", que era a raiz do contador errado ("0 de 1
+  // selecionados" com os 2 lados marcados).
+  const checks=[...document.querySelectorAll('.rg-check')];
+  const total=checks.length;
+  const sel=checks.filter(c=>c.checked).length;
   hint.textContent=sel===total?`☑ ${sel} selecionado${sel!==1?'s':''}`:`☑ ${sel} de ${total} selecionado${sel!==1?'s':''}`;
   const all=document.getElementById('chk-all');
   if(all){ all.checked=sel===total&&total>0; all.indeterminate=sel>0&&sel<total; }
@@ -11708,6 +11753,7 @@ async function gerarFechamentoPorScore(){
   }
 
   const bxcFch2=d.bolaExtraCor||'#00BCD4';
+  let _seqDispFch2=0;
   document.getElementById('result-body').innerHTML=espelhoHdr+jogos.map((jogo,i)=>{
     const sc=Math.round(scoreCombo(jogo));
     const mainBalls=jogo.map(n=>{const fx=_fixSetFch2.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;}).join('');
@@ -11721,9 +11767,12 @@ async function gerarFechamentoPorScore(){
       const espExtraFch2=jogo._espExtra?`<span style="font-size:9px;color:${bxcFch2};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxcFch2};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrevFch2=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTimeFch2=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${ESP_COR};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR};min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtraFch2}${espTrevFch2}${espMesTimeFch2}</div><span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR};font-weight:700">⭐${scE}</span></div></div></div></div>`;
+      const numP=++_seqDispFch2, numE=++_seqDispFch2;
+      return `<div class="result-game marcado" id="rg-${i}-p" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-p" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span class="result-num">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div>`+
+        `<div class="result-game marcado" id="rg-${i}-e" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-e" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${ESP_COR};cursor:pointer"/><span class="result-num">${numE}.</span><span style="font-size:9px;font-weight:800;color:${ESP_COR};min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtraFch2}${espTrevFch2}${espMesTimeFch2}</div><span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR};font-weight:700">⭐${scE}</span></div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div>`;
+    const numN=++_seqDispFch2;
+    return `<div class="result-game marcado" id="rg-${i}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="chk-${i}" checked onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${numN}.</span><div class="result-balls-row">${mainBalls}${extraHtmlFch2}${trevosHtmlFch2}${mesTimeHtmlFch2}</div>${badge}</div>`;
   }).join('');
 
   document.getElementById('chk-all').checked=false;
@@ -11849,6 +11898,7 @@ async function gerarFechamento(){
   document.getElementById('result-title').textContent=`${jogos.length} jogos de fechamento gerados`;
   document.getElementById('result-sub').textContent=`${numDez} dez/jogo${exclusoes.length>0?' · '+exclusoes.length+' dezena(s) excluída(s)':''}`;
   const _fixSetF=new Set(getFixos('jogo'));
+  let _seqDispFch1=0;
   document.getElementById('result-body').innerHTML=jogos.map((jogo,i)=>{
     const mainBalls=jogo.slice(0,numDez).map(n=>{const fx=_fixSetF.has(n);return `<div class="result-ball${fx?' fx':''}" style="background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;}).join('');
     const extraHtml=jogo._extra
@@ -11865,9 +11915,12 @@ async function gerarFechamento(){
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${d.trevoCor||'#0fae8a'};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${d.trevoCor||'#0fae8a'};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(t)}</div>`).join('')}`:'';
       const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
       const scoreBadgeE=jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(124,58,237,.12);color:#7c3aed;font-weight:700">⭐${jogo._espScoreJogo}</span>`:'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-p" checked title="Selecionar só o PRINCIPAL" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" id="rg-chk-${i}-e" checked title="Selecionar só o ESPELHO" onchange="rgSyncEspelho(${i})" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div>${scoreBadgeE}</div></div></div></div>`;
+      const numP=++_seqDispFch1, numE=++_seqDispFch1;
+      return `<div class="result-game marcado" id="rg-${i}-p" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-p" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span class="result-num">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div>`+
+        `<div class="result-game marcado" id="rg-${i}-e" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-e" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span class="result-num">${numE}.</span><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTime}</div>${scoreBadgeE}</div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div>`;
+    const numN=++_seqDispFch1;
+    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" checked title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${numN}.</span><div class="result-balls-row">${mainBalls}${extraHtml}${trevosHtml}${mesTimeHtmlP}</div>${scoreBadgeP}</div>`;
   }).join('');
   document.getElementById('chk-all').checked=false;if(typeof atualizarContagemSel==='function')atualizarContagemSel();
   const box=document.getElementById('result-box');box.style.display='block';
@@ -12806,10 +12859,15 @@ async function gerarComIA(tipo){
       espelhoHdrModal=`<div style="border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.06)"><div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 Divisão da Aposta Espelho (por score IA)</div><div style="margin-bottom:8px"><div style="font-size:10px;font-weight:800;color:${corMarca(g)};margin-bottom:4px">PRINCIPAL — Grupo A (${g.grupoA.length} números)</div><div style="display:flex;flex-wrap:wrap;gap:3px">${bA}</div></div><div><div style="font-size:10px;font-weight:800;color:${g.corEsp};margin-bottom:4px">🪞 ESPELHO — Grupo B (${g.grupoB.length} números)</div><div style="display:flex;flex-wrap:wrap;gap:3px">${bB}</div></div></div>`;
     }
 
+    // Fase 82: PRINCIPAL e ESPELHO são 2 apostas — cada uma vira sua própria
+    // linha sequencial com UM checkbox só (antes era 1 linha "fundida" com
+    // 2 checkboxes aninhados, sem sincronizar direito com o contador de
+    // selecionados: dava pra marcar os 2 e o painel mostrar "0 de 1").
+    let _seqIA=0;
     document.getElementById('ia-modal-resultado').innerHTML=
       `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--glass-border)">${paramsHtml}</div>`+
       espelhoHdrModal+
-      `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="ia-chk-all" onchange="iaToggleTodos(this.checked)" style="width:16px;height:16px;accent-color:${corMarca(d)};cursor:pointer"/>Selecionar todos</label><span id="ia-sel-count" style="margin-left:auto"></span></div>`+
+      `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="ia-chk-all" checked onchange="iaToggleTodos(this.checked)" style="width:16px;height:16px;accent-color:${corMarca(d)};cursor:pointer"/>Selecionar todos</label><span id="ia-sel-count" style="margin-left:auto"></span></div>`+
       jogosIA.map(({jogo,mode},i)=>{
         // Bolas do jogo principal
         const balls=jogo._ssCols
@@ -12817,17 +12875,26 @@ async function gerarComIA(tipo){
           :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${d.cor};color:${corTextoSobre(d.cor)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
         const extra=jogo._extra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</span>`:'';
         const trevos=jogo._trevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
-        // Bolas do espelho
-        // Bolas do espelho — render individual com checkbox próprio
-        const mkEspRow=()=>jogo._espelho?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 0 0;border-top:1px solid rgba(124,58,237,.2)"><input type="checkbox" class="ia-chk ia-chk-e" id="ia-chk-${i}-e" title="Selecionar ESPELHO" onchange="iaToggleUm(${i},'e',this.checked)" style="width:14px;height:14px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ESPELHO</span>${jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('')}${jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:''}${jogo._espTrevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._espTrevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:''}${(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},{cor:ESP_COR_IA},34):''}</div>`:'';
-        const hasEsp=!!jogo._espelho;
-        return hasEsp
-          ?`<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;opacity:.4;filter:grayscale(.6)"><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono);padding-top:10px">${i+1}.</span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input type="checkbox" class="ia-chk ia-chk-p" id="ia-chk-${i}-p" title="Selecionar PRINCIPAL" onchange="iaToggleUm(${i},'p',this.checked)" style="width:14px;height:14px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:54px">PRINCIPAL</span>${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.12);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:''}</div>${mkEspRow()}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0;margin-top:6px">${modeLabels[mode]||mode}</span></div>`
-          :`<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;opacity:.4;filter:grayscale(.6)"><input type="checkbox" class="ia-chk ia-chk-s" id="ia-chk-${i}" title="Incluir este jogo" onchange="iaToggleUm(${i},'s',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer;margin-top:8px"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono);margin-top:8px">${i+1}.</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}${jogo._scoreJogo!=null?` · ⭐${jogo._scoreJogo}`:''}</span></div>`;
+        const modeTag=`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}</span>`;
+        if(jogo._espelho){
+          const espBalls=jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('');
+          const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:'';
+          const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._espTrevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
+          const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},{cor:ESP_COR_IA},34):'';
+          const numP=++_seqIA, numE=++_seqIA;
+          return `<div class="ia-game-row" id="ia-rg-${i}-p" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-p" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:54px">PRINCIPAL</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.12);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:''}</div>${modeTag}</div>`+
+            `<div class="ia-game-row" id="ia-rg-${i}-e" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-e" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${ESP_COR_IA};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numE}.</span><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ESPELHO</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${espBalls}${espExtra}${espTrev}${espMesTime}${jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR_IA};font-weight:700">⭐${jogo._espScoreJogo}</span>`:''}</div>${modeTag}</div>`;
+        }
+        const numN=++_seqIA;
+        return `<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}" checked title="Incluir este jogo" onchange="iaToggleUm(${i},'s',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numN}.</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}${jogo._scoreJogo!=null?` · ⭐${jogo._scoreJogo}`:''}</span></div>`;
       }).join('');
-    iaAtualizarContagem();
-
+    // Fase 82: window._jogosIA precisa estar atualizado ANTES de contar —
+    // iaAtualizarContagem() lê window._jogosIA.length pra saber quantas
+    // linhas existem; chamando-a antes desta atribuição, ela sempre
+    // contava em cima da lista da geração ANTERIOR (ou vazia, na primeira
+    // vez), gerando o contador "0 selecionados" mesmo com tudo marcado.
     window._jogosIA=jogosIA.map(x=>x.jogo);
+    iaAtualizarContagem();
 
   }catch(e){
     setDot('error','Erro IA');
@@ -12836,22 +12903,21 @@ async function gerarComIA(tipo){
   }
 }
 
+// Fase 82: cada checkbox agora controla a PRÓPRIA linha (PRINCIPAL e
+// ESPELHO já não são mais "um só" opacando junto) — tipo 'p'/'e' aponta
+// pra linha ia-rg-i-p/ia-rg-i-e, 's' pra linha única ia-rg-i (jogo sem par).
 function iaToggleUm(i,tipo,checked){
-  // tipo: 'p'=principal, 'e'=espelho, 's'=single
-  const rg=document.getElementById(`ia-rg-${i}`);
-  if(rg){
-    const anyOn=document.getElementById(`ia-chk-${i}-p`)?.checked||
-                document.getElementById(`ia-chk-${i}-e`)?.checked||
-                document.getElementById(`ia-chk-${i}`)?.checked;
-    rg.style.opacity=anyOn?'1':'.4';
-    rg.style.filter=anyOn?'none':'grayscale(.6)';
-  }
+  const rowId=tipo==='s'?`ia-rg-${i}`:`ia-rg-${i}-${tipo}`;
+  const rg=document.getElementById(rowId);
+  if(rg){ rg.style.opacity=checked?'1':'.4'; rg.style.filter=checked?'none':'grayscale(.6)'; }
   iaAtualizarContagem();
 }
 function iaToggleTodos(checked){
-  document.querySelectorAll('.ia-chk').forEach(c=>{c.checked=checked;});
-  const n=(window._jogosIA||[]).length;
-  for(let i=0;i<n;i++) iaToggleUm(i,'s',checked);
+  document.querySelectorAll('.ia-chk').forEach(c=>{
+    c.checked=checked;
+    const rg=document.getElementById('ia-rg-'+c.id.slice(7)); // "ia-chk-" tem 7 chars
+    if(rg){ rg.style.opacity=checked?'1':'.4'; rg.style.filter=checked?'none':'grayscale(.6)'; }
+  });
   iaAtualizarContagem();
 }
 function iaGetSelecionados(){
@@ -12969,6 +13035,7 @@ function usarJogosIA(){
     const ballsB=g.grupoB.map(n=>`<div class="result-ball" style="background:${g.corEsp};color:#fff;min-width:22px;height:22px;font-size:10px">${pad(n)}</div>`).join('');
     espelhoHdrIA=`<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:rgba(124,58,237,.04)"><div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🪞 Divisão da Aposta Espelho</div><div style="margin-bottom:8px"><div style="font-size:10px;font-weight:800;color:${corMarca(g)};margin-bottom:4px">PRINCIPAL (${g.grupoA.length})</div><div style="display:flex;flex-wrap:wrap;gap:3px">${ballsA}</div></div><div><div style="font-size:10px;font-weight:800;color:${g.corEsp};margin-bottom:4px">🪞 ESPELHO (${g.grupoB.length})</div><div style="display:flex;flex-wrap:wrap;gap:3px">${ballsB}</div></div></div>`;
   }
+  let _seqDispUIA=0;
   document.getElementById('result-body').innerHTML=espelhoHdrIA+jogos.map((jogo,i)=>{
     let balls;
     if(jogo._ssCols){
@@ -12983,9 +13050,12 @@ function usarJogosIA(){
       const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxc};font-weight:800;align-self:center;padding:0 4px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><div class="result-ball" style="background:${bxc};color:#fff;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</div>`:'';
       const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${trc};font-weight:800;align-self:center;padding:0 4px">TREVO</span>${jogo._espTrevos.map(t=>`<div class="result-ball" style="background:${trc};color:#fff;border:2px solid rgba(255,255,255,.4)">${pad(t)}</div>`).join('')}`:'';
       const espMesTimeIA=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},d):'';
-      return `<div class="result-game marcado" id="rg-${i}" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="rg-check" id="chk-${i}" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div style="display:flex;flex-direction:column;gap:6px;flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeIA}</div></div></div></div></div>`;
+      const numP=++_seqDispUIA, numE=++_seqDispUIA;
+      return `<div class="result-game marcado" id="rg-${i}-p" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-p" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span class="result-num">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:62px">PRINCIPAL</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div></div>`+
+        `<div class="result-game marcado" id="rg-${i}-e" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><input type="checkbox" class="rg-check" id="rg-chk-${i}-e" checked title="Incluir esta aposta ao salvar/jogar" onchange="rgSyncEspelho(${i});toggleMarcado('${i}-e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:#7c3aed;cursor:pointer"/><span class="result-num">${numE}.</span><span style="font-size:9px;font-weight:800;color:#7c3aed;min-width:62px">🪞 ESPELHO</span><div class="result-balls-row">${espBalls}${espExtra}${espTrev}${espMesTimeIA}</div></div>`;
     }
-    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${i+1}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
+    const numN=++_seqDispUIA;
+    return `<div class="result-game marcado" id="rg-${i}"><input type="checkbox" class="rg-check" id="chk-${i}" checked title="Incluir este jogo ao salvar/jogar" onchange="toggleMarcado(${i},this.checked)"/><span class="result-num">${numN}.</span><div class="result-balls-row">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;white-space:nowrap">⭐${jogo._scoreJogo}</span>`:''}</div>`;
   }).join('');
   document.getElementById('chk-all').checked=false;if(typeof atualizarContagemSel==='function')atualizarContagemSel();
   const box=document.getElementById('result-box');
@@ -20145,6 +20215,14 @@ async function verJogosVinculados(){
     var LIMITE_EXIBICAO=100;
     var jogosExibidos=jogos.slice(0,LIMITE_EXIBICAO);
     var jogosOcultos=jogos.length-jogosExibidos.length;
+    // Fase 82: se este concurso tem QUALQUER jogo de Aposta Espelho, todos os
+    // jogos daqui ganham o rótulo PRINCIPAL/🪞 ESPELHO — mesma convenção já
+    // usada em Gerar Jogos e Gerar com IA. Antes o único sinal de espelho
+    // aqui era um emoji minúsculo ao final da linha; a bolinha em si saía na
+    // MESMA cor de fundo de um jogo normal (só o texto branco já antecipava
+    // um fundo escuro que nunca chegava a existir).
+    var ESP_COR_VINC='#7c3aed';
+    var temEspelhoNoConc=jogos.some(function(x){return x&&x._isEspelho;});
     var jogosRows=jogosExibidos.map(function(j,ji){
       var dezenas=(Array.isArray(j)?j:[]).filter(function(x){return x<1000;}).sort(function(a,b){return a-b;});
       // Calcula o prêmio deste jogo específico (mesma função usada na
@@ -20157,9 +20235,10 @@ async function verJogosVinculados(){
       var concursoOrigemTela=c.num;
       var infoPremioTela=_calcPremioJogo(c.loteria,j,concursoOrigemTela);
       var corPremiadoTela='#b8860b';
+      var corBaseTela=j._isEspelho?ESP_COR_VINC:corConcurso;
       var balls=dezenas.map(function(n){
         var acertouTela=infoPremioTela&&infoPremioTela.dezenasAcertadas&&infoPremioTela.dezenasAcertadas.has(parseInt(n));
-        var bgTela=acertouTela?corPremiadoTela:corConcurso;
+        var bgTela=acertouTela?corPremiadoTela:corBaseTela;
         var txtTela=(acertouTela||j._isEspelho)?'#fff':corBolaTexto(dConcurso);
         return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bgTela+';color:'+txtTela+';font-size:11px;font-weight:800;margin:1px">'+String(n).padStart(2,'0')+'</span>';
       }).join('');
@@ -20196,15 +20275,21 @@ async function verJogosVinculados(){
         var _mNVinc=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         var mesBateuTela=infoPremioTela&&infoPremioTela.mesAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">MÊS</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corConcurso)+';color:'+(mesBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mesBateuTela?corPremiadoTela:corBaseTela)+';color:'+(mesBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+(_mNVinc[j._mes-1]||'')+'</span>';
       }
       if(j&&j._time!=null){
         var _timeNomeVinc=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':'');
         var timeBateuTela=infoPremioTela&&infoPremioTela.timeAcertou;
         extrasHtml+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">TIME</span>'+
-          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corConcurso)+';color:'+(timeBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
+          '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(timeBateuTela?corPremiadoTela:corBaseTela)+';color:'+(timeBateuTela||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+_timeNomeVinc+'</span>';
       }
-      var esp=j._isEspelho?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">🪞</span>':'';
+      // Rótulo PRINCIPAL/🪞 ESPELHO — só aparece quando este concurso tem
+      // pelo menos um jogo espelho (senão seria ruído em todo bolão comum).
+      var esp=temEspelhoNoConc
+        ?(j._isEspelho
+          ?'<span style="font-size:9px;font-weight:800;color:'+ESP_COR_VINC+';margin-left:4px">🪞 ESPELHO</span>'
+          :'<span style="font-size:9px;font-weight:800;color:'+corTextoConcurso+';margin-left:4px">PRINCIPAL</span>')
+        :'';
       // Status individual deste jogo na TELA — mesma lógica de 3 estados
       // usada na impressão (✓ vermelho finalizado sem prêmio, ● verde
       // vigente, 🏆 dourado premiado), mantendo as duas telas consistentes.
