@@ -16821,6 +16821,14 @@ function renderFormBolao(){
         '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar p/ Reuso\' — evita redigitar participantes recorrentes"')+' style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
         '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
         '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
+        // Fase 84 (visibilidade — pedido do usuário): antes só dava pra ver
+        // esse botão abrindo o modal "Jogos do Bolão" primeiro; agora fica
+        // junto dos outros da barra, com a contagem já visível, no mesmo
+        // padrão do "🎟 Jogos do Bolão (N)" ao lado.
+        (function(){
+          var _p=_pendentesAvisoJogos();
+          return _p.qtd ? '<button onclick="_enviarMensagemJogosBolao(\''+_boloesState.editId+'\')" title="Manda uma única mensagem cobrindo todos os jogos vinculados que ainda não foram avisados" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📣 Avisar Participantes ('+_p.modalidades+')</button>' : '';
+        })()+
         (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
         (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="Comprovantes de PIX enviados pelos participantes — disponível principalmente antes de ativar o bolão" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 Comprovantes</button>' : '')+
         '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
@@ -20178,6 +20186,14 @@ async function verComprovantesPix(){
 // confia no que já está renderizado, pra não reenviar algo que outra
 // aba/sessão já tenha avisado nesse meio-tempo), notifica só quem estiver
 // com publicado_em nulo, e marca tudo como avisado de uma vez.
+// Lê _boloesState.concursos (já em memória, sem consulta nova) pra saber
+// quantos concursos/modalidades estão sem aviso — alimenta o botão "📣
+// Avisar Participantes" tanto na barra de ferramentas (síncrono, precisa
+// ser rápido) quanto no modal "Jogos do Bolão".
+function _pendentesAvisoJogos(){
+  var pend=(_boloesState.concursos||[]).filter(function(c){return !c.publicadoEm;});
+  return {qtd:pend.length, modalidades:new Set(pend.map(function(c){return c.loteria;})).size};
+}
 async function _enviarMensagemJogosBolao(bolaoId){
   var sb=_getSbClient(); if(!sb) return;
   try{
@@ -20201,11 +20217,18 @@ async function _enviarMensagemJogosBolao(bolaoId){
       corpo='Novos jogos da '+nomesLoterias[0]+' ('+concLabel+') foram adicionados ao bolão '+(_boloesState.nome||'')+'.';
     }
     await _notificarBolao(bolaoId, '🎲 Novos jogos adicionados', corpo);
+    var agoraIso=new Date().toISOString();
     var ids=pendentes.map(function(p){return p.id;});
-    var { error:errUpd }=await sb.from('bolao_concursos').update({publicado_em:new Date().toISOString()}).in('id',ids);
+    var { error:errUpd }=await sb.from('bolao_concursos').update({publicado_em:agoraIso}).in('id',ids);
     if(errUpd) throw errUpd;
+    // Reflete no estado local na hora — o botão da barra (síncrono, lê
+    // _pendentesAvisoJogos) some sem precisar recarregar o bolão inteiro.
+    if(_boloesState && _boloesState.editId===bolaoId && _boloesState.concursos){
+      _boloesState.concursos.forEach(function(c){ if(!c.publicadoEm) c.publicadoEm=agoraIso; });
+    }
     toast('✓ Mensagem enviada.');
-    verJogosVinculados(); // reabre já atualizado, mesmo padrão dos Bilhetes
+    if(document.getElementById('modal-jogos-vinc')) verJogosVinculados(); // se o modal estava aberto, reabre atualizado
+    if(typeof renderFormBolao==='function') renderFormBolao(); // atualiza a barra de ferramentas
   }catch(e){ toast('Erro ao enviar mensagem: '+e.message); }
 }
 async function verJogosVinculados(){
@@ -20388,21 +20411,12 @@ async function verJogosVinculados(){
   }).join('');
   var totalJogos=concursos.reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
   var totalCusto=concursos.reduce(function(a,c){return a+(c.custo||0);},0);
-  // Fase 84: quantos concursos (e de quantas modalidades) ainda não foram
-  // avisados aos participantes — alimenta o botão "Avisar Participantes"
-  // abaixo. Reconsulta o banco em vez de confiar em s.concursos (que pode
-  // estar com dado velho se a vinculação mais recente ainda não recarregou
-  // o bolão inteiro) — melhor esforço: se falhar, só some o botão.
-  var pendentesJogos=0, pendentesModalidades=0;
-  try{
-    var _sbPend=_getSbClient();
-    if(_sbPend && bolaoId){
-      var _rPend=await _sbPend.from('bolao_concursos').select('loteria').eq('bolao_id',bolaoId).is('publicado_em',null);
-      var _rows=_rPend.data||[];
-      pendentesJogos=_rows.length;
-      pendentesModalidades=new Set(_rows.map(function(r){return r.loteria;})).size;
-    }
-  }catch(e){}
+  // Fase 84: mesma fonte usada pelo botão da barra de ferramentas
+  // (_pendentesAvisoJogos, lê s.concursos em memória) — os dois lugares
+  // sempre mostram o mesmo número, sem depender de uma consulta extra
+  // aqui que pudesse divergir por timing.
+  var _pendModal=_pendentesAvisoJogos();
+  var pendentesJogos=_pendModal.qtd, pendentesModalidades=_pendModal.modalidades;
   var modalHtml=
     '<div id="modal-jogos-vinc" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
       '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:660px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
@@ -20794,7 +20808,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     return { id:c.id, num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
       status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
       vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos,
-      fotoBilheteUrl:c.foto_bilhete_url||null };
+      fotoBilheteUrl:c.foto_bilhete_url||null, publicadoEm:c.publicado_em||null };
   });
 
   var estado={
@@ -21323,10 +21337,10 @@ function _pushConcursoEntry(g, jogos, opts){
       // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
       // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
       // continua existindo só para ordenação cronológica.
-      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
+      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId(),publicadoEm:null},_extrasArraysDeJogos(jogos)));
     });
   } else {
-    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId()},_extrasArraysDeJogos(jogos)));
+    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId(),publicadoEm:null},_extrasArraysDeJogos(jogos)));
   }
 }
 // Reanexa jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
