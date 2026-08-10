@@ -15266,7 +15266,7 @@ function renderMatriz(body,d,universe,hist){
    ═══════════════════════════════════════════════════════════════ */
 var _boloesState = {
   nome: '',
-  admin: { nome:'', telefone:'', pix:'', pixTipo:'cpf', cotasAdmin:1, adminPaga:false, tipoOrganizacao:'cotas', valorFixoOrganizacao:0 },
+  admin: { nome:'', telefone:'', pix:'', pixTipo:'cpf', cotasAdmin:1, adminPaga:false, tipoOrganizacao:'cotas', valorFixoOrganizacao:0, precoCota:0 },
   modalidade: 'unico',
   cotas: { unico:0, semanal:0, mensal:0 },
   participantes: [],
@@ -15382,7 +15382,7 @@ function novoBolao(){
   // tarde/noite da última semana do mês nasceria vinculado ao mês que já
   // está fechando, em vez do mês seguinte que a semana efetiva pertence.
   var _mesAtual=_semAtual.inicioISO.slice(0,7);
-  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cpfTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
+  _boloesState = { nome:'', admin:{nome:'',telefone:'',pix:'',pixTipo:'cpf',cpf:'',cpfTipo:'cpf',cotasAdmin:1,adminPaga:false,tipoOrganizacao:'cotas',valorFixoOrganizacao:0,precoCota:0}, modalidade:'unico', cotas:{unico:0,semanal:0,mensal:0}, participantes:[], premio:0, sorteio:'normal', concurso:'', editId:null, ativadoEm:null,
     semanaInicio:_semAtual.inicio, semanaFim:_semAtual.fim, arrecadacaoTotal:0, rodadas:[],
     mesReferencia:_mesAtual, semanas:_calcSemanasFixas(_semAtual.inicio,4), dataSorteio:'',
     concursos:[], jogosVinculados:[], numDezBolao:0, loteria:currentKey };
@@ -16891,6 +16891,11 @@ function renderFormBolao(){
         '</div></div>'+
     '</div>'+
     '<div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<label style="'+lbl+';margin:0">Valor da cota (R$)</label>'+
+      '<input id="adm-preco-cota" type="text" inputmode="decimal" value="'+(s.admin.precoCota?s.admin.precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0,00" '+(bolaoAtivado?'disabled ':'')+'title="Preço fixo de 1 cota — o participante escolhe quantas cotas quer no app e vê o total calculado automaticamente'+(bolaoAtivado?'. Travado: bolão já ativado.':'')+'" oninput="_boloesState.admin.precoCota=_parseMoeda(this.value)" style="'+inp+';width:110px'+(bolaoAtivado?';opacity:.6;cursor:not-allowed':'')+'"/>'+
+      '<span style="font-size:10px;color:var(--text-muted)">Usado pelo participante para escolher a quantidade de cotas no app, antes de assinar os termos.</span>'+
+    '</div>'+
+    '<div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
       '<label style="'+lbl+';margin:0">Cobrança de organização</label>'+
       '<select id="adm-tipo-org" style="'+inp+';width:auto;flex:0 0 auto" onchange="_setTipoOrganizacao(this.value)">'+
         '<option value="nenhuma"'+(_tipoOrg(s)==='nenhuma'?' selected':'')+'>Não cobrar</option>'+
@@ -17489,6 +17494,10 @@ function renderParticipantesBoloes(){
   // para preservar o histórico do que de fato aconteceu no momento do
   // sorteio.
   var bolaoFinalizado=_bolaoConcursoJaRealizado(s);
+  // Bolão ativado trava a quantidade de cotas de cada participante (pedido
+  // do usuário) — antes só travava em bolaoFinalizado (concurso já
+  // sorteado), deixando alterar cotas livremente enquanto só ativado.
+  var bolaoAtivado=!!s.ativadoEm;
   // Valor/Cota: quanto vale 1 cota, calculado a partir da Arrecadação Total
   // (que agora é derivada da soma das Contribuições de cada participante,
   // não mais digitada manualmente). É uma referência para % do prêmio.
@@ -17602,7 +17611,7 @@ function renderParticipantesBoloes(){
       var refLinha=refSeq;
       // Qtd. Cotas: input editável só na 1ª linha; cotas extras não editam
       var colQtd = primeira
-        ? '<input type="number" min="1" value="'+qtd+'" onchange="_boloesState.participantes['+i+'].cotas=parseInt(this.value)||1;renderParticipantesBoloes()" title="Quantidade de cotas (referência para % do prêmio)" '+(bolaoFinalizado?'disabled ':'')+'style="border:1px solid var(--glass-border);border-radius:6px;background:var(--bg2,#fff);color:var(--text);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"/>'
+        ? '<input type="number" min="1" value="'+qtd+'" onchange="_boloesState.participantes['+i+'].cotas=parseInt(this.value)||1;renderParticipantesBoloes()" title="'+((bolaoFinalizado||bolaoAtivado)?'Bolão ativado: quantidade de cotas travada':'Quantidade de cotas (referência para % do prêmio)')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled ':'')+'style="border:1px solid var(--glass-border);border-radius:6px;background:var(--bg2,#fff);color:var(--text);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center'+((bolaoFinalizado||bolaoAtivado)?';opacity:.6;cursor:not-allowed':'')+'"/>'
         : '<input type="number" value="'+qtd+'" disabled title="Cota extra — altere na linha principal" style="border:1px dashed var(--glass-border);border-radius:6px;background:transparent;color:var(--text-dim);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center;cursor:not-allowed"/>';
       // Nome: editável na 1ª; cotas extras mostram nome em itálico
       var colNome = primeira
@@ -18230,11 +18239,18 @@ async function abrirConfirmacaoAtivarBolao(){
   if(!ativos.length){ toast('Adicione ao menos um participante ativo antes de ativar.'); return; }
   var pagos=ativos.filter(function(p){return p.statusPag==='pago';});
   var pendentes=ativos.length-pagos.length;
+  // Fase 92 (pedido do usuário): ativar exige TODOS os ativos pagos —
+  // quem não pagou precisa ser removido ou marcado como pago antes. Isso
+  // bloqueia de verdade (não só avisa) — a RPC também recusa no banco,
+  // mas travar aqui evita a viagem de rede pra um erro já previsível.
+  if(pendentes>0){
+    var nomesPendentes=ativos.filter(function(p){return p.statusPag!=='pago';}).map(function(p){return p.nome;}).join(', ');
+    alert('Não é possível ativar: '+pendentes+' participante'+(pendentes>1?'s':'')+' ativo'+(pendentes>1?'s':'')+' ainda sem pagamento confirmado ('+nomesPendentes+').\n\nMarque como pago ou remova antes de ativar.');
+    return;
+  }
   var msg='Ativar este bolão?\n\n'+
-    ativos.length+' participante'+(ativos.length>1?'s':'')+' ativo'+(ativos.length>1?'s':'')+
-    ' · '+pagos.length+' pago'+(pagos.length!==1?'s':'')+
-    ' · '+pendentes+' pendente'+(pendentes!==1?'s':'')+
-    '\n\nIsso fecha o bolão para novos participantes e o disponibiliza no app de quem já aceitou o convite. Não pode ser desfeito.';
+    ativos.length+' participante'+(ativos.length>1?'s':'')+' ativo'+(ativos.length>1?'s':'')+', todos pagos'+
+    '\n\nIsso fecha o bolão para novos participantes, trava a quantidade de cotas de todo mundo e o disponibiliza no app de quem já aceitou o convite. Não pode ser desfeito.';
   if(!confirm(msg)) return;
   await salvarBolao();
   try{
@@ -20966,7 +20982,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     nome:b.nome,
     admin:{ nome:b.admin_nome||'', telefone:b.admin_telefone||'', pix:b.admin_pix||'', pixTipo:b.admin_pix_tipo||'cpf', cpf:b.admin_cpf||'', cpfTipo:b.admin_cpf_tipo||'cpf',
       cotasAdmin:b.admin_cotas||1, adminPaga:!!b.admin_paga, tipoOrganizacao:b.tipo_organizacao||'cotas', valorFixoOrganizacao:parseFloat(b.valor_fixo_organizacao||0),
-      percentualPremio:b.admin_percentual_premio==null?10:parseFloat(b.admin_percentual_premio) },
+      percentualPremio:b.admin_percentual_premio==null?10:parseFloat(b.admin_percentual_premio), precoCota:parseFloat(b.preco_cota||0) },
     modalidade:b.modalidade, cotas:b.cotas||{}, premio:parseFloat(b.premio||0), sorteio:b.sorteio||'normal',
     concurso:b.concurso||'', participantes:participantes, editId:novoId, loteria:b.loteria||currentKey,
     ativadoEm:b.ativado_em||null,
@@ -21172,6 +21188,7 @@ var BolaoJogosRepo = {
       admin_percentual_premio: adm.percentualPremio==null?10:adm.percentualPremio,
       admin_cotas: adm.cotasAdmin||1, admin_paga: !!adm.adminPaga,
       tipo_organizacao: adm.tipoOrganizacao||null, valor_fixo_organizacao: adm.valorFixoOrganizacao||0,
+      preco_cota: adm.precoCota||0,
       modalidade: registro.modalidade||null, sorteio: registro.sorteio||null,
       concurso: registro.concurso!=null?String(registro.concurso):null,
       cotas: registro.cotas||{}, premio: registro.premio||0,
