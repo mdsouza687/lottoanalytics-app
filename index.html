@@ -2241,7 +2241,7 @@ e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
           </div>
           <div style="display:flex;gap:6px;justify-content:flex-end">
             <button class="result-hdr-btn" onclick="_cancelarSalvarInline()">Cancelar</button>
-            <button class="result-hdr-btn" onclick="_confirmarSalvarInline()">💾 Confirmar</button>
+            <button id="btn-confirmar-salvar-inline" class="result-hdr-btn" onclick="_confirmarSalvarInline()">💾 Confirmar</button>
           </div>
         </div>
         <!-- Bandeira de validade do concurso -->
@@ -10607,26 +10607,43 @@ function _cancelarSalvarInline(){
   var painel=document.getElementById('result-salvar-inline');
   if(painel) painel.style.display='none';
 }
+let _confirmarSalvarInlineEmAndamento=false;
 async function _confirmarSalvarInline(){
-  var modo=(document.querySelector('input[name="salvar-inline-modo"]:checked')||{}).value||'salvo';
-  var bolaoId='';
-  if(modo==='vincular'){
-    var sel=document.getElementById('salvar-inline-bolao-sel');
-    bolaoId=sel?sel.value:'';
-    if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
+  // Blindagem contra duplo clique em "Confirmar" — sem isso, um segundo
+  // clique durante o salvamento entra em salvarJogos() enquanto o
+  // primeiro ainda está rodando, cai na guarda de _salvarJogosEmAndamento
+  // (que devolve undefined sem tocar em nada), e essa 2ª chamada de
+  // _confirmarSalvarInline sai pelo "novoId==null return" sem fechar
+  // nada — deixando o painel/modal-salvar visualmente presos, mesmo com
+  // o salvamento do 1º clique tendo terminado normalmente por baixo.
+  if(_confirmarSalvarInlineEmAndamento) return;
+  _confirmarSalvarInlineEmAndamento=true;
+  var btn=document.getElementById('btn-confirmar-salvar-inline');
+  if(btn) btn.disabled=true;
+  try{
+    var modo=(document.querySelector('input[name="salvar-inline-modo"]:checked')||{}).value||'salvo';
+    var bolaoId='';
+    if(modo==='vincular'){
+      var sel=document.getElementById('salvar-inline-bolao-sel');
+      bolaoId=sel?sel.value:'';
+      if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
+    }
+    var novoId=await salvarJogos();
+    if(novoId==null) return; // erro/nada selecionado — salvarJogos() já mostrou o toast, painel continua aberto
+    if(modo==='vincular'){
+      await vincularSalvoAoBolao(novoId, bolaoId);
+    }
+    // salvarJogos()/vincularSalvoAoBolao() terminam atualizando o popup
+    // "Jogos Salvos" em segundo plano (openModalSalvar) — ele não é o alvo
+    // deste fluxo, então fecha ele também, junto com a tela de Resultado da
+    // Geração inteira (pedido do usuário: "fechar tudo" ao final).
+    closeModal('modal-salvar');
+    var painel=document.getElementById('result-salvar-inline');
+    if(painel) painel.style.display='none';
+  } finally {
+    _confirmarSalvarInlineEmAndamento=false;
+    if(btn) btn.disabled=false;
   }
-  var novoId=await salvarJogos();
-  if(novoId==null) return; // erro/nada selecionado — salvarJogos() já mostrou o toast, painel continua aberto
-  if(modo==='vincular'){
-    await vincularSalvoAoBolao(novoId, bolaoId);
-  }
-  // salvarJogos()/vincularSalvoAoBolao() terminam atualizando o popup
-  // "Jogos Salvos" em segundo plano (openModalSalvar) — ele não é o alvo
-  // deste fluxo, então fecha ele também, junto com a tela de Resultado da
-  // Geração inteira (pedido do usuário: "fechar tudo" ao final).
-  closeModal('modal-salvar');
-  var painel=document.getElementById('result-salvar-inline');
-  if(painel) painel.style.display='none';
   gbCloseResultado();
 }
 let _salvarJogosEmAndamento=false;
