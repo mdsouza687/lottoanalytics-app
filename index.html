@@ -20352,19 +20352,25 @@ async function verComprovantesPix(){
 // já usado em _enviarMensagemBilhetesBolao(): reconsulta o banco (não
 // confia no que já está renderizado, pra não reenviar algo que outra
 // aba/sessão já tenha avisado nesse meio-tempo), notifica só quem estiver
-// com publicado_em nulo, e marca tudo como avisado de uma vez.
+// com jogos_avisados_em nulo, e marca tudo como avisado de uma vez.
+// Fase 93: usa bolao_concursos.jogos_avisados_em, NÃO publicado_em — esse
+// campo já era usado desde a Fase 7 pela edge function
+// publicar-resultados-automatico (flag de "resultado do sorteio já
+// avisado"). A Fase 84 tinha reaproveitado o mesmo campo sem checar que
+// já existia uso, quebrando silenciosamente o aviso automático de
+// resultado (ver migração fase93_corrige_colisao_publicado_em).
 // Lê _boloesState.concursos (já em memória, sem consulta nova) pra saber
 // quantos concursos/modalidades estão sem aviso — alimenta o botão "📣
 // Avisar Participantes" tanto na barra de ferramentas (síncrono, precisa
 // ser rápido) quanto no modal "Jogos do Bolão".
 function _pendentesAvisoJogos(){
-  var pend=(_boloesState.concursos||[]).filter(function(c){return !c.publicadoEm;});
+  var pend=(_boloesState.concursos||[]).filter(function(c){return !c.jogosAvisadosEm;});
   return {qtd:pend.length, modalidades:new Set(pend.map(function(c){return c.loteria;})).size};
 }
 async function _enviarMensagemJogosBolao(bolaoId){
   var sb=_getSbClient(); if(!sb) return;
   try{
-    var { data, error }=await sb.from('bolao_concursos').select('id,loteria,concurso_ref').eq('bolao_id',bolaoId).is('publicado_em',null);
+    var { data, error }=await sb.from('bolao_concursos').select('id,loteria,concurso_ref').eq('bolao_id',bolaoId).is('jogos_avisados_em',null);
     if(error) throw error;
     var pendentes=data||[];
     if(!pendentes.length){ toast('Nenhum jogo novo para notificar.'); return; }
@@ -20386,12 +20392,12 @@ async function _enviarMensagemJogosBolao(bolaoId){
     await _notificarBolao(bolaoId, '🎲 Novos jogos adicionados', corpo);
     var agoraIso=new Date().toISOString();
     var ids=pendentes.map(function(p){return p.id;});
-    var { error:errUpd }=await sb.from('bolao_concursos').update({publicado_em:agoraIso}).in('id',ids);
+    var { error:errUpd }=await sb.from('bolao_concursos').update({jogos_avisados_em:agoraIso}).in('id',ids);
     if(errUpd) throw errUpd;
     // Reflete no estado local na hora — o botão da barra (síncrono, lê
     // _pendentesAvisoJogos) some sem precisar recarregar o bolão inteiro.
     if(_boloesState && _boloesState.editId===bolaoId && _boloesState.concursos){
-      _boloesState.concursos.forEach(function(c){ if(!c.publicadoEm) c.publicadoEm=agoraIso; });
+      _boloesState.concursos.forEach(function(c){ if(!c.jogosAvisadosEm) c.jogosAvisadosEm=agoraIso; });
     }
     toast('✓ Mensagem enviada.');
     if(document.getElementById('modal-jogos-vinc')) verJogosVinculados(); // se o modal estava aberto, reabre atualizado
@@ -20975,7 +20981,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     return { id:c.id, num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
       status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
       vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos,
-      fotoBilheteUrl:c.foto_bilhete_url||null, publicadoEm:c.publicado_em||null };
+      fotoBilheteUrl:c.foto_bilhete_url||null, jogosAvisadosEm:c.jogos_avisados_em||null };
   });
 
   var estado={
@@ -21383,11 +21389,14 @@ var BolaoJogosRepo = {
       // Fase 84 (consolidar aviso de jogos vinculados, mesmo padrão dos
       // Bilhetes): TODA sincronização deste concurso — vinculação nova ou
       // adição de mais jogos a um concurso já existente — marca a linha
-      // como "ainda não avisada" de novo. publicado_em existia na tabela
-      // sem nenhum uso no código; reaproveitado aqui em vez de criar
-      // coluna nova. _enviarMensagemJogosBolao() é quem seta a data,
-      // manualmente, quando o organizador decide avisar.
-      publicado_em:null,
+      // como "ainda não avisada" de novo. _enviarMensagemJogosBolao() é
+      // quem seta a data, manualmente, quando o organizador decide avisar.
+      // Fase 93: campo próprio (jogos_avisados_em) — a Fase 84 original
+      // tinha reaproveitado bolao_concursos.publicado_em achando que
+      // estava sem uso, mas esse campo já pertencia (desde a Fase 7) ao
+      // aviso automático de resultado de sorteio (edge function
+      // publicar-resultados-automatico), quebrando-o silenciosamente.
+      jogos_avisados_em:null,
       updated_at:new Date().toISOString()
     };
     var {error}=await sb.from('bolao_concursos').upsert(linha,{onConflict:'bolao_id,concurso_ref,loteria'});
@@ -21505,10 +21514,10 @@ function _pushConcursoEntry(g, jogos, opts){
       // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
       // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
       // continua existindo só para ordenação cronológica.
-      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId(),publicadoEm:null},_extrasArraysDeJogos(jogos)));
+      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
     });
   } else {
-    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId(),publicadoEm:null},_extrasArraysDeJogos(jogos)));
+    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
   }
 }
 // Reanexa jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
