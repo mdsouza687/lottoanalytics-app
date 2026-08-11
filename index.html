@@ -10628,15 +10628,17 @@ async function _confirmarSalvarInline(){
       bolaoId=sel?sel.value:'';
       if(!bolaoId){ toast('Selecione um bolão para vincular, ou marque "Jogo Salvo".'); return; }
     }
-    var novoId=await salvarJogos();
+    // Fase 94b: semRefreshModalSalvar evita que salvarJogos()/
+    // vincularSalvoAoBolao() abram o popup "Jogos Salvos" por baixo dos
+    // panos (esse popup não é o alvo deste fluxo — ver comentário na
+    // Fase 94b dentro de _salvarJogosImpl/_vincularSalvoAoBolaoImpl).
+    var novoId=await salvarJogos({semRefreshModalSalvar:true});
     if(novoId==null) return; // erro/nada selecionado — salvarJogos() já mostrou o toast, painel continua aberto
     if(modo==='vincular'){
-      await vincularSalvoAoBolao(novoId, bolaoId);
+      await vincularSalvoAoBolao(novoId, bolaoId, {semRefreshModalSalvar:true});
     }
-    // salvarJogos()/vincularSalvoAoBolao() terminam atualizando o popup
-    // "Jogos Salvos" em segundo plano (openModalSalvar) — ele não é o alvo
-    // deste fluxo, então fecha ele também, junto com a tela de Resultado da
-    // Geração inteira (pedido do usuário: "fechar tudo" ao final).
+    // Só por segurança — modal-salvar não deveria mais ter aberto neste
+    // fluxo, mas fechar um modal já fechado é inofensivo.
     closeModal('modal-salvar');
     var painel=document.getElementById('result-salvar-inline');
     if(painel) painel.style.display='none';
@@ -10647,16 +10649,16 @@ async function _confirmarSalvarInline(){
   gbCloseResultado();
 }
 let _salvarJogosEmAndamento=false;
-async function salvarJogos(){
+async function salvarJogos(opts){
   if(_salvarJogosEmAndamento) return;
   _salvarJogosEmAndamento=true;
   try{
-    return await _salvarJogosImpl();
+    return await _salvarJogosImpl(opts);
   } finally{
     _salvarJogosEmAndamento=false;
   }
 }
-async function _salvarJogosImpl(){
+async function _salvarJogosImpl(opts){
   // Fase 87: função inteira agora protegida por um try/catch externo (ver
   // fim da função) — antes só o INSERT em si (JogosSalvosRepo.salvarDual)
   // era protegido; tudo que roda ANTES dele (buscar concurso vigente via
@@ -10783,17 +10785,18 @@ async function _salvarJogosImpl(){
   window._salvarNomeSugerido=null;
   const _avisoPuladoGer=_qtdPuladaGer?` (${_qtdPuladaGer} jogo${_qtdPuladaGer!==1?'s':''} ignorado${_qtdPuladaGer!==1?'s':''} — mesmas dezenas já existiam)`:'';
   toast(`✓ ${_qtdSalvaGer} jogo${_qtdSalvaGer!==1?'s':''} salvo${_qtdSalvaGer!==1?'s':''}${temEspelho?' (principais + espelhos)':''}${_avisoPuladoGer}`);
-  // Fase 90: esse refresh da lista PRECISA ser esperado (await). Sem
-  // isso, ele continuava rodando em segundo plano depois que esta função
-  // já tinha devolvido novoId — _salvarComEscolha() fechava o modal
-  // "Jogos Salvos" (closeModal) achando que tudo tinha terminado, mas
-  // esse refresh, ao concluir suas próprias buscas assíncronas alguns
-  // instantes depois, chamava openModal('modal-salvar') de novo por
-  // conta própria e reabria o popup sozinho — dava a impressão de "voltar
-  // para a mesma tela" bem no final. Antes da correção do empilhamento
-  // (Fase 89), esse reabrir sozinho ficava escondido atrás do "Resultado
-  // da Geração" e por isso nunca tinha sido percebido.
-  await openModalSalvar();
+  // Fase 94b (causa raiz consolidada): esse refresh só deve rodar quando
+  // quem chamou é o popup "Jogos Salvos" de verdade (Previsões, biblioteca
+  // da barra lateral) — ele reabre modal-salvar do zero, lendo currentKey
+  // e jogosGerados NO MOMENTO em que termina de rodar. Vindo do painel
+  // inline do Resultado da Geração (Fase 91), isso é só um efeito colateral
+  // indesejado: se o usuário trocar a loteria ativa (ou gerar de novo)
+  // enquanto esse refresh assíncrono ainda está em voo, o popup reabre
+  // mostrando a loteria ERRADA (ex.: salvou Super Sete, popup mostra
+  // Quina) — Fases 89/90/94 só corriam atrás fechando esse popup depois
+  // de aberto, o que é frágil (corrida). A correção de raiz é nunca abrir
+  // o popup nesse fluxo, não fechar ele depois de aberto.
+  if(!(opts&&opts.semRefreshModalSalvar)) await openModalSalvar();
   return novoId;
   }catch(e){
     console.error('[SALVAR]',e);
@@ -13736,7 +13739,11 @@ async function _salvarJogosManuaisImpl(){
       // vincularSalvoAoBolao(), que RENOMEIA/marca o MESMO registro já
       // criado — um único jogo, um único registro, exatamente como o
       // fluxo do Gerador de Jogos (_salvarComEscolha) já faz.
-      await vincularSalvoAoBolao(novoId, vincId);
+      // semRefreshModalSalvar (Fase 94b): esse fluxo fecha modal-manuais
+      // sozinho logo abaixo — não usa modal-salvar em nada, então não faz
+      // sentido deixar vincularSalvoAoBolao() abrir esse popup por baixo
+      // dos panos (mesma causa raiz corrigida no Resultado da Geração).
+      await vincularSalvoAoBolao(novoId, vincId, {semRefreshModalSalvar:true});
       toast(`✅ ${_qtdSalva} jogo(s) salvos e vinculados ao bolão${_avisoPulados}`);
     } else {
       toast(`✅ ${_qtdSalva} jogo${_qtdSalva!==1?'s':''} manual${_qtdSalva!==1?'is':''} salvos como "${nome}"${_avisoPulados}`);
@@ -19632,8 +19639,8 @@ function _enfileirarEscritaBolao(fn){
 // re-renderizada) — sem isso, cada fluxo de vincular-após-salvar tinha que
 // duplicar a própria lógica de gravação em vez de reusar esta função,
 // que já é a correta (RENOMEIA o registro existente, não cria um novo).
-async function vincularSalvoAoBolao(itemId, bolaoIdOverride){
-  return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride); });
+async function vincularSalvoAoBolao(itemId, bolaoIdOverride, opts){
+  return _enfileirarEscritaBolao(function(){ return _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts); });
 }
 // Corte final (Item 3, 2026-07-12): itemId é sempre o lote_id (uuid) do
 // schema novo. A regra de negócio (dedup dentro do bolão, modalidade
@@ -19643,7 +19650,7 @@ async function vincularSalvoAoBolao(itemId, bolaoIdOverride){
 // PERSISTÊNCIA final mudou: em vez de dbPutMulti(boloes_v2+jogos_salvos),
 // insere os jogos vinculados via RPC (já existente, agora bloqueante) e
 // soft-deleta os jogos avulsos originais (agora "usados").
-async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
+async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
   var sel=document.getElementById('vinc-sel-'+itemId);
   var bolaoId=bolaoIdOverride||(sel&&sel.value);
   if(!bolaoId){ toast('Selecione um bolão para vincular.'); return; }
@@ -19831,10 +19838,11 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride){
         _atualizarCotaUI();
       }
     }
-    // Fase 90: mesma corrida de _salvarJogosImpl -- sem await aqui, esse
-    // refresh reabria o modal "Jogos Salvos" sozinho depois que
-    // _salvarComEscolha() já tinha rodado closeModal('modal-salvar').
-    await openModalSalvar();
+    // Fase 94b: mesmo raciocínio de _salvarJogosImpl -- esse refresh só
+    // roda pra quem depende de modal-salvar reaberto (Previsões,
+    // biblioteca). Vindo do painel inline (Fase 91), pular evita reabrir
+    // o popup mostrando a loteria errada por uma corrida assíncrona.
+    if(!(opts&&opts.semRefreshModalSalvar)) await openModalSalvar();
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
 
