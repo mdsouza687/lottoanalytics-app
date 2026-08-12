@@ -114,8 +114,8 @@ body.theme-light .page-orb2{opacity:.08}
 .topbar-tabs-wrap.fade-right::after{opacity:1;}
 body.theme-light .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(255,255,255,.95),transparent)!important;}
 body.theme-light .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(255,255,255,.95),transparent)!important;}
-body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(50,29,85,.95),transparent)!important;}
-body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(50,29,85,.95),transparent)!important;}
+body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(30,58,95,.95),transparent)!important;}
+body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(30,58,95,.95),transparent)!important;}
 .tab-btn{border:none;background:transparent;padding:0 6.1px;font-family:var(--btn-font);font-weight:700;font-size:10px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:#fff;}
@@ -1085,76 +1085,72 @@ body.theme-light #boloes-panel{color:#1a2233!important;}
    TEMA COLORIDO — fundo escuro com acentos vibrantes e gradientes
    Base escura (herda do :root) + camada de cor/brilho.
    ═══════════════════════════════════════════════════════════════ */
-/* Colorido (Fase 97): identidade PRÓPRIA, meio-termo entre claro e escuro
-   — antes era, na prática, o tema escuro com um filtro roxo (fundo quase
-   preto, #0a0612, mesma faixa de luminosidade do escuro #0b0d12). Base
-   levantada pra um violeta-magenta "crepúsculo" — bem mais claro que o
-   escuro, mas ainda escuro o bastante pra manter o texto claro existente
-   legível sem precisar inverter a arquitetura de cores do zero. O terceiro
-   tom do degradê de fundo trocou de ciano frio por âmbar/coral quente —
-   reforça a mistura clara+escura (violeta frio + pôr-do-sol quente) em
-   vez de continuar puramente "neon sobre preto".
-   Pedido do usuário: "colorido devia ser um meio termo entre o claro e o
-   escuro, com identidade própria". */
+/* Colorido (Fase 99): "Aurora Vibrante" — escolhida pelo usuário entre 3
+   direções mostradas lado a lado (Crepúsculo, Aurora Vibrante, Duotone
+   Pôr do Sol). Base azul-petróleo com teal + magenta como dupla de
+   destaque — identidade própria, sem repetir o tom roxo do tema escuro.
+   Botões/seleções no gradiente teal→magenta em alta opacidade usam texto
+   ESCURO (as duas cores são claras — texto branco perderia contraste);
+   usos translúcidos (ex. abas ativas) continuam com texto claro. */
 body.theme-colorful{
-  --bg:#2f1c52; --bg2:#3d2566; --bg3:#4c3079;
-  --glass-bg:rgba(80,48,130,.42); --glass-border:rgba(212,160,255,.32); --glass-hover:rgba(100,60,155,.55);
-  --text:#fbf5ff; --text-muted:#cbb8e8; --text-dim:rgba(203,184,232,.65);
-  --shadow:0 8px 32px rgba(168,60,220,.28);
-  background:radial-gradient(1200px 700px at 15% -10%,rgba(147,80,255,.3),transparent 55%),radial-gradient(1000px 600px at 95% 10%,rgba(255,110,170,.22),transparent 50%),radial-gradient(900px 600px at 50% 110%,rgba(255,170,90,.16),transparent 55%),#2f1c52!important;
-  color:#fbf5ff!important;
+  --bg:#1c2b4a; --bg2:#24365c; --bg3:#2d4270;
+  --glass-bg:rgba(30,58,95,.5); --glass-border:rgba(94,234,212,.35); --glass-hover:rgba(45,75,120,.65);
+  --text:#f0fdfa; --text-muted:#a5d8f0; --text-dim:rgba(165,216,240,.65);
+  --shadow:0 8px 32px rgba(45,212,191,.25);
+  background:radial-gradient(1200px 700px at 10% -10%,rgba(45,212,191,.32),transparent 55%),radial-gradient(1000px 650px at 95% 100%,rgba(232,121,249,.28),transparent 55%),#1c2b4a!important;
+  color:#f0fdfa!important;
 }
 /* Brilho do orb mais intenso */
 body.theme-colorful .page-orb{opacity:.9!important;filter:saturate(1.35)!important;}
 /* Navbar translúcida vibrante */
-body.theme-colorful .dash-navbar{background:rgba(50,29,85,.72)!important;border-bottom:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(14px)!important;}
-body.theme-colorful .dash-brand-text{background:linear-gradient(135deg,#c4a5ff,#ffb0dd 50%,#ffcb8a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
-body.theme-colorful .dash-brand-sub{color:#cbb8e8!important;}
-body.theme-colorful .page-topbar{background:rgba(50,29,85,.72)!important;border-bottom:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(14px)!important;}
-body.theme-colorful .topbar-divider{background:rgba(212,160,255,.35)!important;}
-body.theme-colorful .update-bar{background:rgba(65,38,105,.6)!important;border:1px solid rgba(212,160,255,.3)!important;}
+body.theme-colorful .dash-navbar{background:rgba(30,58,95,.72)!important;border-bottom:1px solid rgba(94,234,212,.32)!important;backdrop-filter:blur(14px)!important;}
+body.theme-colorful .dash-brand-text{background:linear-gradient(135deg,#5eead4,#f0abfc)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
+body.theme-colorful .dash-brand-sub{color:#a5d8f0!important;}
+body.theme-colorful .page-topbar{background:rgba(30,58,95,.72)!important;border-bottom:1px solid rgba(94,234,212,.32)!important;backdrop-filter:blur(14px)!important;}
+body.theme-colorful .topbar-divider{background:rgba(94,234,212,.35)!important;}
+body.theme-colorful .update-bar{background:rgba(36,54,92,.6)!important;border:1px solid rgba(94,234,212,.3)!important;}
 /* Abas com underline em gradiente */
-body.theme-colorful .tab-btn{color:#cbb8e8!important;}
-body.theme-colorful .tab-btn:hover{color:#fbf5ff!important;}
+body.theme-colorful .tab-btn{color:#a5d8f0!important;}
+body.theme-colorful .tab-btn:hover{color:#f0fdfa!important;}
 body.theme-colorful .tab-btn.active{color:#fff!important;}
 /* Botões de tema */
-body.theme-colorful .theme-btn{color:#cbb8e8!important;}
-body.theme-colorful .theme-btn:hover{background:rgba(212,160,255,.2)!important;color:#fff!important;}
-body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(147,80,255,.55),rgba(255,110,170,.55))!important;color:#fff!important;}
+body.theme-colorful .theme-btn{color:#a5d8f0!important;}
+body.theme-colorful .theme-btn:hover{background:rgba(94,234,212,.2)!important;color:#fff!important;}
+body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(45,212,191,.4),rgba(232,121,249,.4))!important;color:#fff!important;}
 /* Hero com brilho */
-body.theme-colorful .dash-hero{background:linear-gradient(180deg,rgba(147,80,255,.24),transparent)!important;border-bottom:1px solid rgba(212,160,255,.28)!important;}
-body.theme-colorful .dash-hero-title{background:linear-gradient(135deg,#fff,#e4c8ff 50%,#ffcb8a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
-body.theme-colorful .dash-hero-desc{color:#dccdf2!important;}
-body.theme-colorful .dash-hero-tag{background:linear-gradient(135deg,rgba(147,80,255,.35),rgba(255,150,90,.3))!important;color:#ffd9ae!important;border:1px solid rgba(255,150,90,.35)!important;}
-body.theme-colorful .lottery-section-title{color:#b39ed6!important;}
+body.theme-colorful .dash-hero{background:linear-gradient(180deg,rgba(45,212,191,.22),transparent)!important;border-bottom:1px solid rgba(94,234,212,.28)!important;}
+body.theme-colorful .dash-hero-title{background:linear-gradient(135deg,#fff,#a7f3e8 50%,#f0abfc)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
+body.theme-colorful .dash-hero-desc{color:#c8e6e0!important;}
+body.theme-colorful .dash-hero-tag{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(232,121,249,.26))!important;color:#e8fffa!important;border:1px solid rgba(94,234,212,.35)!important;}
+body.theme-colorful .lottery-section-title{color:#7fb8d9!important;}
 /* Cards de loteria com brilho na borda */
-body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(70,42,115,.78),rgba(55,32,92,.88))!important;border:1px solid rgba(212,160,255,.35)!important;box-shadow:0 8px 32px rgba(168,60,220,.3)!important;}
-body.theme-colorful .lottery-card-new:hover{border-color:rgba(255,150,170,.55)!important;box-shadow:0 12px 40px rgba(200,80,190,.42)!important;transform:translateY(-3px)!important;}
-body.theme-colorful .lcn-name{color:#fbf5ff!important;}
-body.theme-colorful .lcn-prize{color:#7fe8d4!important;}
-body.theme-colorful .lcn-concurso,body.theme-colorful .lcn-next{color:#cbb8e8!important;}
+body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(36,54,92,.8),rgba(28,43,74,.9))!important;border:1px solid rgba(94,234,212,.35)!important;box-shadow:0 8px 32px rgba(45,212,191,.28)!important;}
+body.theme-colorful .lottery-card-new:hover{border-color:rgba(232,121,249,.55)!important;box-shadow:0 12px 40px rgba(200,100,220,.4)!important;transform:translateY(-3px)!important;}
+body.theme-colorful .lcn-name{color:#f0fdfa!important;}
+body.theme-colorful .lcn-prize{color:#ffd166!important;}
+body.theme-colorful .lcn-concurso,body.theme-colorful .lcn-next{color:#a5d8f0!important;}
 /* Painéis e cards */
-body.theme-colorful .glass{background:rgba(70,42,115,.48)!important;border:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(168,60,220,.22)!important;}
+body.theme-colorful .glass{background:rgba(36,54,92,.48)!important;border:1px solid rgba(94,234,212,.3)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(45,212,191,.2)!important;}
 body.theme-colorful .card-page-body{background:transparent!important;}
-body.theme-colorful #side-right{background:rgba(55,32,92,.55)!important;border-left:1px solid rgba(212,160,255,.28)!important;}
-body.theme-colorful .result-card,body.theme-colorful .gen-card{background:rgba(70,42,115,.52)!important;border:1px solid rgba(212,160,255,.32)!important;}
-body.theme-colorful .gen-hdr{background:linear-gradient(135deg,rgba(147,80,255,.26),rgba(255,110,170,.16))!important;border-color:rgba(212,160,255,.3)!important;}
-body.theme-colorful .result-box{background:rgba(55,32,92,.5)!important;border-color:rgba(212,160,255,.3)!important;}
-body.theme-colorful .result-game{background:rgba(70,42,115,.48)!important;border:1px solid rgba(212,160,255,.24)!important;}
-body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(147,80,255,.28),rgba(255,110,170,.18))!important;border-color:rgba(255,150,170,.4)!important;}
-body.theme-colorful .result-num{color:#b39ed6!important;}
+body.theme-colorful #side-right{background:rgba(28,43,74,.55)!important;border-left:1px solid rgba(94,234,212,.28)!important;}
+body.theme-colorful .result-card,body.theme-colorful .gen-card{background:rgba(36,54,92,.52)!important;border:1px solid rgba(94,234,212,.32)!important;}
+body.theme-colorful .gen-hdr{background:linear-gradient(135deg,rgba(45,212,191,.24),rgba(232,121,249,.14))!important;border-color:rgba(94,234,212,.3)!important;}
+body.theme-colorful .result-box{background:rgba(28,43,74,.5)!important;border-color:rgba(94,234,212,.3)!important;}
+body.theme-colorful .result-game{background:rgba(36,54,92,.48)!important;border:1px solid rgba(94,234,212,.24)!important;}
+body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(45,212,191,.26),rgba(232,121,249,.16))!important;border-color:rgba(232,121,249,.4)!important;}
+body.theme-colorful .result-num{color:#7fb8d9!important;}
 /* Análise */
-body.theme-colorful{--dt-head-bg:rgba(70,42,115,.72);--dt-row-bg:rgba(55,32,92,.4);--dt-row-bg-alt:rgba(70,42,115,.4);--dt-hit-main:#9b6bff;--dt-hit-extra:#ff7ab0;--dt-extra-dim:#c9a3f0;--glass-border-faint:rgba(212,160,255,.16);}
-body.theme-colorful .fill-btn{border:1px solid rgba(212,160,255,.35)!important;color:#cbb8e8!important;background:rgba(70,42,115,.48)!important;}
-body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#9b6bff,#ff7ab0)!important;color:#fff!important;border-color:transparent!important;}
-body.theme-colorful .np-ball{border:1.5px solid rgba(212,160,255,.35)!important;color:#cbb8e8!important;}
-body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#9b6bff,#ff7ab0)!important;color:#fff!important;border-color:transparent!important;}
-body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(212,160,255,.3)!important;}
-body.theme-colorful .analise-chart-wrap{background:rgba(55,32,92,.48)!important;border-color:rgba(212,160,255,.3)!important;}
+body.theme-colorful{--dt-head-bg:rgba(36,54,92,.72);--dt-row-bg:rgba(28,43,74,.4);--dt-row-bg-alt:rgba(36,54,92,.4);--dt-hit-main:#2dd4bf;--dt-hit-extra:#e879f9;--dt-extra-dim:#8ab4d8;--glass-border-faint:rgba(94,234,212,.16);}
+body.theme-colorful .fill-btn{border:1px solid rgba(94,234,212,.35)!important;color:#a5d8f0!important;background:rgba(36,54,92,.48)!important;}
+body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#2dd4bf,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
+body.theme-colorful .np-ball{border:1.5px solid rgba(94,234,212,.35)!important;color:#a5d8f0!important;}
+body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#2dd4bf,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
+body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(94,234,212,.3)!important;}
+body.theme-colorful .analise-chart-wrap{background:rgba(28,43,74,.48)!important;border-color:rgba(94,234,212,.3)!important;}
 /* Campos */
 body.theme-colorful input,body.theme-colorful select,body.theme-colorful textarea,
-body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(45,26,75,.55)!important;border:1px solid rgba(212,160,255,.35)!important;color:#fbf5ff!important;}
-body.theme-colorful input::placeholder,body.theme-colorful textarea::placeholder{color:#b39ed6!important;}
+body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(20,30,52,.55)!important;border:1px solid rgba(94,234,212,.35)!important;color:#f0fdfa!important;}
+body.theme-colorful input::placeholder,body.theme-colorful textarea::placeholder{color:#7fa8c9!important;}
 /* Botões de ação com brilho */
 body.theme-colorful .action-btn{background:rgba(70,42,115,.5)!important;border:1px solid rgba(212,160,255,.3)!important;color:#fbf5ff!important;}
 body.theme-colorful .action-btn:hover{background:linear-gradient(135deg,rgba(147,80,255,.34),rgba(255,110,170,.24))!important;border-color:rgba(255,150,170,.45)!important;}
@@ -5495,10 +5491,17 @@ function atualizarBtnDash(key,res){
    como prévia enquanto o dado real não chegou.
    ══════════════════════════════════════════════════════════════════ */
 /* ════ PALETA DE CORES DISTINTAS (uso geral em gráficos de múltiplas linhas) ════
-   Usada pela Análise · Dinâmica (home) e pela página Ondas. Garante que cada
-   linha/série tenha cor própria, sem repetição e sem depender da cor da loteria,
-   funcionando nos 3 temas (escuro/claro/colorido). */
+   Usada pela página Ondas (Análise). Garante que cada linha/série tenha cor
+   própria, sem repetição e sem depender da cor da loteria, funcionando nos
+   3 temas (escuro/claro/colorido). A animação "Análise · Dinâmica" (home)
+   usa sua PRÓPRIA paleta agora (LA_WAVE_PALETTE, abaixo) — separada desta
+   desde a Fase 98, pra poder ajustar cor/transparência da animação sem
+   mudar as cores do gráfico Ondas, que é outra tela. */
 const LA_LINE_PALETTE=['#4A9BE0','#00c97a','#ff6b35','#eab308','#a855f7','#ec4899','#14b8a6','#f43f5e','#6366f1','#84cc16','#06b6d4','#f97316','#8b5cf6','#22c55e','#fb7185'];
+// Fase 98 — paleta exclusiva da animação de ondas da home (laDrawWave),
+// combinando as cores exatas pedidas pelo usuário (referência visual):
+// azul, roxo, âmbar/dourado, verde, vermelho, rosa/magenta.
+const LA_WAVE_PALETTE=['#4a9eff','#a855f7','#f5a623','#22e07a','#ef4444','#ec4899'];
 function laLineColor(i,total){
   if(i<LA_LINE_PALETTE.length) return LA_LINE_PALETTE[i];
   // Fallback procedural para N>palette: gera tons distintos via roda de matizes (HSL)
@@ -6059,7 +6062,16 @@ function laDrawWave(now){
   for(let L=0;L<lanes;L++){
     const amp=wH*0.16;
     const speed=0.4+L*0.07, freq=1.1+L*0.12, phase=(L/lanes)*Math.PI*2;
-    const col=laLineColor(L,lanes); // cor própria por linha — sem repetição, independente da loteria
+    const col=LA_WAVE_PALETTE[L%LA_WAVE_PALETTE.length];
+    // Fase 98 (pedido do usuário, referência visual): a primeira onda
+    // (azul) é a "dominante" — preenchimento bem mais sólido/opaco, uma
+    // base clara por baixo; as demais cores cruzam por cima bem mais
+    // sutis/translúcidas, sem competir todas no mesmo peso visual. Antes
+    // as 6 ondas tinham exatamente a mesma opacidade de preenchimento e
+    // traço, o que achatava a hierarquia visual da referência.
+    const ehDominante=L===0;
+    const alphaFill=ehDominante?0.32:0.06;
+    const alphaStroke=ehDominante?0.65:0.38;
     ctx.beginPath();
     ctx.moveTo(0,baseY);
     for(let x=0;x<=wW;x+=4){
@@ -6068,7 +6080,7 @@ function laDrawWave(now){
     }
     // Preenchimento da área sob a curva, na cor própria da linha, semitransparente
     ctx.lineTo(wW,wH); ctx.lineTo(0,wH); ctx.closePath();
-    ctx.fillStyle=laHexA(col,0.12);
+    ctx.fillStyle=laHexA(col,alphaFill);
     ctx.fill();
     // Traço da curva por cima do preenchimento
     ctx.beginPath();
@@ -6076,7 +6088,7 @@ function laDrawWave(now){
       const y=baseY+Math.sin((x/wW)*Math.PI*2*freq - t*speed + phase)*amp;
       x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }
-    ctx.strokeStyle=laHexA(col,0.55); ctx.lineWidth=1.6; ctx.stroke();
+    ctx.strokeStyle=laHexA(col,alphaStroke); ctx.lineWidth=ehDominante?1.8:1.4; ctx.stroke();
   }
   requestAnimationFrame(laDrawWave);
 }
