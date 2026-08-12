@@ -114,8 +114,8 @@ body.theme-light .page-orb2{opacity:.08}
 .topbar-tabs-wrap.fade-right::after{opacity:1;}
 body.theme-light .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(255,255,255,.95),transparent)!important;}
 body.theme-light .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(255,255,255,.95),transparent)!important;}
-body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(20,10,34,.95),transparent)!important;}
-body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(20,10,34,.95),transparent)!important;}
+body.theme-colorful .topbar-tabs-wrap::before{background:linear-gradient(90deg,rgba(50,29,85,.95),transparent)!important;}
+body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,rgba(50,29,85,.95),transparent)!important;}
 .tab-btn{border:none;background:transparent;padding:0 6.1px;font-family:var(--btn-font);font-weight:700;font-size:10px;letter-spacing:0;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;height:100%;white-space:nowrap;position:relative;transition:color .15s;flex-shrink:0;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:#fff;}
@@ -1085,74 +1085,85 @@ body.theme-light #boloes-panel{color:#1a2233!important;}
    TEMA COLORIDO — fundo escuro com acentos vibrantes e gradientes
    Base escura (herda do :root) + camada de cor/brilho.
    ═══════════════════════════════════════════════════════════════ */
+/* Colorido (Fase 97): identidade PRÓPRIA, meio-termo entre claro e escuro
+   — antes era, na prática, o tema escuro com um filtro roxo (fundo quase
+   preto, #0a0612, mesma faixa de luminosidade do escuro #0b0d12). Base
+   levantada pra um violeta-magenta "crepúsculo" — bem mais claro que o
+   escuro, mas ainda escuro o bastante pra manter o texto claro existente
+   legível sem precisar inverter a arquitetura de cores do zero. O terceiro
+   tom do degradê de fundo trocou de ciano frio por âmbar/coral quente —
+   reforça a mistura clara+escura (violeta frio + pôr-do-sol quente) em
+   vez de continuar puramente "neon sobre preto".
+   Pedido do usuário: "colorido devia ser um meio termo entre o claro e o
+   escuro, com identidade própria". */
 body.theme-colorful{
-  --bg:#0a0612; --bg2:#140a22; --bg3:#1a0f2e;
-  --glass-bg:rgba(28,16,48,.55); --glass-border:rgba(139,92,246,.22); --glass-hover:rgba(40,24,68,.7);
-  --text:#f2ecff; --text-muted:#b3a6d4; --text-dim:rgba(179,166,212,.6);
-  --shadow:0 8px 32px rgba(99,40,180,.22);
-  background:radial-gradient(1200px 700px at 15% -10%,rgba(124,58,237,.22),transparent 55%),radial-gradient(1000px 600px at 95% 10%,rgba(236,72,153,.16),transparent 50%),radial-gradient(900px 600px at 50% 110%,rgba(34,211,238,.12),transparent 55%),#0a0612!important;
-  color:#f2ecff!important;
+  --bg:#2f1c52; --bg2:#3d2566; --bg3:#4c3079;
+  --glass-bg:rgba(80,48,130,.42); --glass-border:rgba(212,160,255,.32); --glass-hover:rgba(100,60,155,.55);
+  --text:#fbf5ff; --text-muted:#cbb8e8; --text-dim:rgba(203,184,232,.65);
+  --shadow:0 8px 32px rgba(168,60,220,.28);
+  background:radial-gradient(1200px 700px at 15% -10%,rgba(147,80,255,.3),transparent 55%),radial-gradient(1000px 600px at 95% 10%,rgba(255,110,170,.22),transparent 50%),radial-gradient(900px 600px at 50% 110%,rgba(255,170,90,.16),transparent 55%),#2f1c52!important;
+  color:#fbf5ff!important;
 }
 /* Brilho do orb mais intenso */
-body.theme-colorful .page-orb{opacity:.9!important;filter:saturate(1.4)!important;}
+body.theme-colorful .page-orb{opacity:.9!important;filter:saturate(1.35)!important;}
 /* Navbar translúcida vibrante */
-body.theme-colorful .dash-navbar{background:rgba(20,10,34,.72)!important;border-bottom:1px solid rgba(139,92,246,.25)!important;backdrop-filter:blur(14px)!important;}
-body.theme-colorful .dash-brand-text{background:linear-gradient(135deg,#a78bfa,#f0abfc 50%,#67e8f9)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
-body.theme-colorful .dash-brand-sub{color:#b3a6d4!important;}
-body.theme-colorful .page-topbar{background:rgba(20,10,34,.72)!important;border-bottom:1px solid rgba(139,92,246,.25)!important;backdrop-filter:blur(14px)!important;}
-body.theme-colorful .topbar-divider{background:rgba(139,92,246,.3)!important;}
-body.theme-colorful .update-bar{background:rgba(28,16,48,.6)!important;border:1px solid rgba(139,92,246,.25)!important;}
+body.theme-colorful .dash-navbar{background:rgba(50,29,85,.72)!important;border-bottom:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(14px)!important;}
+body.theme-colorful .dash-brand-text{background:linear-gradient(135deg,#c4a5ff,#ffb0dd 50%,#ffcb8a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
+body.theme-colorful .dash-brand-sub{color:#cbb8e8!important;}
+body.theme-colorful .page-topbar{background:rgba(50,29,85,.72)!important;border-bottom:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(14px)!important;}
+body.theme-colorful .topbar-divider{background:rgba(212,160,255,.35)!important;}
+body.theme-colorful .update-bar{background:rgba(65,38,105,.6)!important;border:1px solid rgba(212,160,255,.3)!important;}
 /* Abas com underline em gradiente */
-body.theme-colorful .tab-btn{color:#b3a6d4!important;}
-body.theme-colorful .tab-btn:hover{color:#f2ecff!important;}
+body.theme-colorful .tab-btn{color:#cbb8e8!important;}
+body.theme-colorful .tab-btn:hover{color:#fbf5ff!important;}
 body.theme-colorful .tab-btn.active{color:#fff!important;}
 /* Botões de tema */
-body.theme-colorful .theme-btn{color:#b3a6d4!important;}
-body.theme-colorful .theme-btn:hover{background:rgba(139,92,246,.18)!important;color:#fff!important;}
-body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(236,72,153,.5))!important;color:#fff!important;}
+body.theme-colorful .theme-btn{color:#cbb8e8!important;}
+body.theme-colorful .theme-btn:hover{background:rgba(212,160,255,.2)!important;color:#fff!important;}
+body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(147,80,255,.55),rgba(255,110,170,.55))!important;color:#fff!important;}
 /* Hero com brilho */
-body.theme-colorful .dash-hero{background:linear-gradient(180deg,rgba(124,58,237,.18),transparent)!important;border-bottom:1px solid rgba(139,92,246,.2)!important;}
-body.theme-colorful .dash-hero-title{background:linear-gradient(135deg,#fff,#d8b4fe 60%,#f0abfc)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
-body.theme-colorful .dash-hero-desc{color:#c4b8e0!important;}
-body.theme-colorful .dash-hero-tag{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(236,72,153,.3))!important;color:#f0abfc!important;border:1px solid rgba(236,72,153,.3)!important;}
-body.theme-colorful .lottery-section-title{color:#9d8fc4!important;}
+body.theme-colorful .dash-hero{background:linear-gradient(180deg,rgba(147,80,255,.24),transparent)!important;border-bottom:1px solid rgba(212,160,255,.28)!important;}
+body.theme-colorful .dash-hero-title{background:linear-gradient(135deg,#fff,#e4c8ff 50%,#ffcb8a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;}
+body.theme-colorful .dash-hero-desc{color:#dccdf2!important;}
+body.theme-colorful .dash-hero-tag{background:linear-gradient(135deg,rgba(147,80,255,.35),rgba(255,150,90,.3))!important;color:#ffd9ae!important;border:1px solid rgba(255,150,90,.35)!important;}
+body.theme-colorful .lottery-section-title{color:#b39ed6!important;}
 /* Cards de loteria com brilho na borda */
-body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(28,16,48,.8),rgba(20,10,34,.9))!important;border:1px solid rgba(139,92,246,.3)!important;box-shadow:0 8px 32px rgba(99,40,180,.25)!important;}
-body.theme-colorful .lottery-card-new:hover{border-color:rgba(236,72,153,.5)!important;box-shadow:0 12px 40px rgba(168,60,200,.4)!important;transform:translateY(-3px)!important;}
-body.theme-colorful .lcn-name{color:#f2ecff!important;}
-body.theme-colorful .lcn-prize{color:#67e8f9!important;}
-body.theme-colorful .lcn-concurso,body.theme-colorful .lcn-next{color:#b3a6d4!important;}
+body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(70,42,115,.78),rgba(55,32,92,.88))!important;border:1px solid rgba(212,160,255,.35)!important;box-shadow:0 8px 32px rgba(168,60,220,.3)!important;}
+body.theme-colorful .lottery-card-new:hover{border-color:rgba(255,150,170,.55)!important;box-shadow:0 12px 40px rgba(200,80,190,.42)!important;transform:translateY(-3px)!important;}
+body.theme-colorful .lcn-name{color:#fbf5ff!important;}
+body.theme-colorful .lcn-prize{color:#7fe8d4!important;}
+body.theme-colorful .lcn-concurso,body.theme-colorful .lcn-next{color:#cbb8e8!important;}
 /* Painéis e cards */
-body.theme-colorful .glass{background:rgba(28,16,48,.5)!important;border:1px solid rgba(139,92,246,.22)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(99,40,180,.18)!important;}
+body.theme-colorful .glass{background:rgba(70,42,115,.48)!important;border:1px solid rgba(212,160,255,.3)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(168,60,220,.22)!important;}
 body.theme-colorful .card-page-body{background:transparent!important;}
-body.theme-colorful #side-right{background:rgba(20,10,34,.55)!important;border-left:1px solid rgba(139,92,246,.2)!important;}
-body.theme-colorful .result-card,body.theme-colorful .gen-card{background:rgba(28,16,48,.55)!important;border:1px solid rgba(139,92,246,.25)!important;}
-body.theme-colorful .gen-hdr{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(236,72,153,.12))!important;border-color:rgba(139,92,246,.25)!important;}
-body.theme-colorful .result-box{background:rgba(20,10,34,.5)!important;border-color:rgba(139,92,246,.22)!important;}
-body.theme-colorful .result-game{background:rgba(28,16,48,.5)!important;border:1px solid rgba(139,92,246,.18)!important;}
-body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(124,58,237,.22),rgba(236,72,153,.14))!important;border-color:rgba(236,72,153,.35)!important;}
-body.theme-colorful .result-num{color:#9d8fc4!important;}
+body.theme-colorful #side-right{background:rgba(55,32,92,.55)!important;border-left:1px solid rgba(212,160,255,.28)!important;}
+body.theme-colorful .result-card,body.theme-colorful .gen-card{background:rgba(70,42,115,.52)!important;border:1px solid rgba(212,160,255,.32)!important;}
+body.theme-colorful .gen-hdr{background:linear-gradient(135deg,rgba(147,80,255,.26),rgba(255,110,170,.16))!important;border-color:rgba(212,160,255,.3)!important;}
+body.theme-colorful .result-box{background:rgba(55,32,92,.5)!important;border-color:rgba(212,160,255,.3)!important;}
+body.theme-colorful .result-game{background:rgba(70,42,115,.48)!important;border:1px solid rgba(212,160,255,.24)!important;}
+body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(147,80,255,.28),rgba(255,110,170,.18))!important;border-color:rgba(255,150,170,.4)!important;}
+body.theme-colorful .result-num{color:#b39ed6!important;}
 /* Análise */
-body.theme-colorful{--dt-head-bg:rgba(28,16,48,.7);--dt-row-bg:rgba(20,10,34,.4);--dt-row-bg-alt:rgba(28,16,48,.4);--dt-hit-main:#7c3aed;--dt-hit-extra:#ec4899;--dt-extra-dim:#b388e0;--glass-border-faint:rgba(139,92,246,.12);}
-body.theme-colorful .fill-btn{border:1px solid rgba(139,92,246,.3)!important;color:#b3a6d4!important;background:rgba(28,16,48,.5)!important;}
-body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#7c3aed,#ec4899)!important;color:#fff!important;border-color:transparent!important;}
-body.theme-colorful .np-ball{border:1.5px solid rgba(139,92,246,.3)!important;color:#b3a6d4!important;}
-body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#7c3aed,#ec4899)!important;color:#fff!important;border-color:transparent!important;}
-body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(139,92,246,.22)!important;}
-body.theme-colorful .analise-chart-wrap{background:rgba(20,10,34,.5)!important;border-color:rgba(139,92,246,.22)!important;}
+body.theme-colorful{--dt-head-bg:rgba(70,42,115,.72);--dt-row-bg:rgba(55,32,92,.4);--dt-row-bg-alt:rgba(70,42,115,.4);--dt-hit-main:#9b6bff;--dt-hit-extra:#ff7ab0;--dt-extra-dim:#c9a3f0;--glass-border-faint:rgba(212,160,255,.16);}
+body.theme-colorful .fill-btn{border:1px solid rgba(212,160,255,.35)!important;color:#cbb8e8!important;background:rgba(70,42,115,.48)!important;}
+body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#9b6bff,#ff7ab0)!important;color:#fff!important;border-color:transparent!important;}
+body.theme-colorful .np-ball{border:1.5px solid rgba(212,160,255,.35)!important;color:#cbb8e8!important;}
+body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#9b6bff,#ff7ab0)!important;color:#fff!important;border-color:transparent!important;}
+body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(212,160,255,.3)!important;}
+body.theme-colorful .analise-chart-wrap{background:rgba(55,32,92,.48)!important;border-color:rgba(212,160,255,.3)!important;}
 /* Campos */
 body.theme-colorful input,body.theme-colorful select,body.theme-colorful textarea,
-body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(20,10,34,.6)!important;border:1px solid rgba(139,92,246,.3)!important;color:#f2ecff!important;}
-body.theme-colorful input::placeholder,body.theme-colorful textarea::placeholder{color:#8a7caf!important;}
+body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(45,26,75,.55)!important;border:1px solid rgba(212,160,255,.35)!important;color:#fbf5ff!important;}
+body.theme-colorful input::placeholder,body.theme-colorful textarea::placeholder{color:#b39ed6!important;}
 /* Botões de ação com brilho */
-body.theme-colorful .action-btn{background:rgba(28,16,48,.55)!important;border:1px solid rgba(139,92,246,.25)!important;color:#f2ecff!important;}
-body.theme-colorful .action-btn:hover{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(236,72,153,.2))!important;border-color:rgba(236,72,153,.4)!important;}
+body.theme-colorful .action-btn{background:rgba(70,42,115,.5)!important;border:1px solid rgba(212,160,255,.3)!important;color:#fbf5ff!important;}
+body.theme-colorful .action-btn:hover{background:linear-gradient(135deg,rgba(147,80,255,.34),rgba(255,110,170,.24))!important;border-color:rgba(255,150,170,.45)!important;}
 /* Modais */
-body.theme-colorful .modal{background:linear-gradient(160deg,rgba(28,16,48,.96),rgba(20,10,34,.98))!important;border:1px solid rgba(139,92,246,.3)!important;}
-body.theme-colorful .modal-overlay{background:rgba(10,6,18,.7)!important;}
+body.theme-colorful .modal{background:linear-gradient(160deg,rgba(60,35,98,.97),rgba(45,26,75,.99))!important;border:1px solid rgba(212,160,255,.35)!important;}
+body.theme-colorful .modal-overlay{background:rgba(22,12,40,.68)!important;}
 /* Tabelas */
-body.theme-colorful td,body.theme-colorful th{border-color:rgba(139,92,246,.18)!important;}
-body.theme-colorful tr:hover{background:rgba(124,58,237,.1)!important;}
+body.theme-colorful td,body.theme-colorful th{border-color:rgba(212,160,255,.22)!important;}
+body.theme-colorful tr:hover{background:rgba(147,80,255,.14)!important;}
 
 /* ══════════════════════════════════════════════════════════════
    NOVA PÁGINA INICIAL — LOTTO ANALYTICS (substitui o dashboard antigo)
