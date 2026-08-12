@@ -3287,6 +3287,14 @@ async function renderPainelAdmin(msg,msgTipo){
   const body=document.getElementById('body-admin');
   const souSuperAdmin=!!(window._usuarioAtual&&window._usuarioAtual.superAdmin);
   const {data:perfis,error}=await sb.from('perfis').select('id,nome_completo,email,permanente,is_admin,super_admin,acesso_expira_em,trial_inicio,created_at').order('created_at',{ascending:false});
+  // Fase 96: últimas execuções do cron automático de resultado — só pro
+  // super admin (diagnóstico de sistema, não é dado de nenhum gestor
+  // específico). Sem isso, um cron que parou de rodar silenciosamente
+  // (ex.: bug da Fase 93, que ficou dias quebrado sem nenhum alerta) só
+  // era descoberto se alguém reclamasse.
+  const {data:execucoesCron}=souSuperAdmin
+    ? await sb.from('execucoes_cron').select('executado_em,sucesso,pendentes_processados,detalhe').order('executado_em',{ascending:false}).limit(10)
+    : {data:null};
   // Fase 34: fila de "esqueci minha senha" — workaround pro SMTP do
   // Supabase Auth estar bloqueado (sem domínio próprio ainda). O
   // participante/organizador deixa e-mail+WhatsApp em
@@ -3335,8 +3343,35 @@ async function renderPainelAdmin(msg,msgTipo){
       </td>
     </tr>`;
   }).join('');
+  const _ultimaExecCron=(execucoesCron&&execucoesCron[0])||null;
+  const _agoraMs=Date.now();
+  const _minutosDesdeUltima=_ultimaExecCron?Math.round((_agoraMs-new Date(_ultimaExecCron.executado_em).getTime())/60000):null;
+  // Cron roda a cada 30min (ver migração fase7) — mais de 90min sem
+  // nenhuma execução (3 ciclos perdidos) é sinal forte de que algo parou,
+  // não só uma execução atrasada por acaso.
+  const _cronAtrasado=_minutosDesdeUltima!=null&&_minutosDesdeUltima>90;
+  const _linhasExecCron=(execucoesCron||[]).map(function(e){
+    const dt=new Date(e.executado_em);
+    const cor=e.sucesso?'#4ade80':'#f87171';
+    const statusTxt=e.sucesso?'✓ ok':'✗ falhou';
+    return `<tr style="border-bottom:1px solid var(--glass-border)">
+      <td style="padding:6px 10px;font-size:11px;color:var(--text-muted)">${dt.toLocaleString('pt-BR')}</td>
+      <td style="padding:6px 10px;font-size:11px;color:${cor};font-weight:700">${statusTxt}</td>
+      <td style="padding:6px 10px;font-size:11px;color:var(--text-muted)">${e.pendentes_processados} concurso(s) verificado(s)</td>
+    </tr>`;
+  }).join('');
   body.innerHTML=`
     ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:16px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
+    ${souSuperAdmin?`<div style="background:${_cronAtrasado?'rgba(248,113,113,.08)':'rgba(74,222,128,.08)'};border:1px solid ${_cronAtrasado?'rgba(248,113,113,.25)':'rgba(74,222,128,.25)'};border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:800;font-size:13px;margin-bottom:6px">🩺 Saúde do Sistema — aviso automático de resultado</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Roda a cada ~30min sozinho, sem precisar de ninguém abrir o app. ${_ultimaExecCron?`Última vez: <b style="color:${_cronAtrasado?'#f87171':'#4ade80'}">${_minutosDesdeUltima<2?'agora mesmo':`há ${_minutosDesdeUltima} min`}</b>${_cronAtrasado?' — mais de 90min sem rodar, pode ter parado.':''}`:'Nenhuma execução registrada ainda.'}</div>
+      ${_linhasExecCron?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
+          <th style="padding:6px 10px;font-size:10px">Quando</th><th style="padding:6px 10px;font-size:10px">Status</th><th style="padding:6px 10px;font-size:10px">Resumo</th>
+        </tr></thead>
+        <tbody>${_linhasExecCron}</tbody>
+      </table></div>`:''}
+    </div>`:''}
     ${souSuperAdmin?`<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">🎲 Limite de Geração de Jogos</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Quantidade máxima de jogos que o gerador permite pedir de uma vez (1.000 a 50.000). Vale imediatamente para toda geração, sem precisar recarregar a página.</div>
