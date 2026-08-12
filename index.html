@@ -1216,9 +1216,9 @@ body.theme-light .la-home #laAurora b{opacity:.16}
 
 .la-hero{grid-column:span 2;display:flex;flex-direction:row;align-items:center;padding:clamp(20px,3vh,34px) clamp(22px,3vw,38px);height:100%;min-height:0}
 .la-hero-text{flex:0 1 auto;display:flex;flex-direction:column;justify-content:center;max-width:64ch;min-width:0}
-.la-hero .la-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:14px}
+.la-hero .la-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac-legivel,var(--ac));margin-bottom:14px}
 .la-hero h1{font-family:var(--font-head);font-weight:900;font-size:clamp(32px,4.2vw,56px);line-height:.98;margin:0 0 16px;letter-spacing:-.5px;color:var(--text)}
-.la-hero h1 .la-a{color:var(--ac)}
+.la-hero h1 .la-a{color:var(--ac-legivel,var(--ac))}
 .la-hero p.la-sub{font-size:14px;line-height:1.55;color:var(--text-muted);margin:0 0 14px}
 .la-hero p.la-disc{font-size:11.5px;line-height:1.5;color:var(--text-dim);margin:0 0 22px;border-left:2px solid var(--glass-border);padding-left:12px}
 .la-hero-btns{display:flex;gap:12px;flex-wrap:wrap}
@@ -5590,6 +5590,9 @@ function laAccent(d){
   document.documentElement.style.setProperty('--la-a2',d.corD||d.cor);
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  // Variante legível de --ac pra texto direto sobre o Hero (tarja "Ferramenta
+  // de Gestão..." e a palavra "LOTERIAS") — ver _corMarcaLegivelHero.
+  document.documentElement.style.setProperty('--ac-legivel',_corMarcaLegivelHero(d));
 }
 function renderLaPills(){
   const wrap=document.getElementById('laPills'); if(!wrap) return;
@@ -6262,27 +6265,28 @@ function _luminanciaHex(hex){
 // seu amarelo oficial não garante contraste como texto, então usa-se o
 // verde (mesma cor da Mega-Sena) — d.corTexto, quando presente.
 function corMarca(d){ return (d&&d.corTexto)||(d&&d.cor)||'#fff'; }
-// Cor de marca legível sobre os painéis translúcidos do Hero da home
-// (.la-hero-info: rgba(0,0,0,.22) sobre o fundo do tema no escuro/colorido,
-// rgba(255,255,255,.45) no claro) — corMarca() sozinha só funciona quando a
-// marca já tem luminosidade bem diferente do painel. Mesma raiz do problema
-// já corrigido nos chips de concurso (ver _corTextoChipLoteria), só que
-// invertida por painel: no escuro/colorido, marcas ESCURAS (Lotofácil, Quina,
-// Dupla-Sena, +Milionária, Powerball) quase somem; no claro, marcas CLARAS/
-// vivas (Mega-Sena, Lotomania, Dia de Sorte, Super Sete) é que somem. A
-// Timemania já tem corTexto próprio (verde, Manual de Identidade CAIXA) e lê
-// bem nos dois casos, não precisa de tratamento aqui.
+// Cor de marca legível sobre os fundos translúcidos escuros do Hero da home
+// — tanto o painel .la-hero-info (rgba(0,0,0,.22) sobre o fundo do tema)
+// quanto o próprio .la-hero (rgba(30,58,95,.5), mais claro que o painel, onde
+// ficam a tarja "Ferramenta de Gestão..." e a palavra "LOTERIAS" via
+// var(--ac)/--ac-legivel) — corMarca() sozinha só funciona quando a marca já
+// tem luminosidade bem diferente do fundo. Mesma raiz do problema já
+// corrigido nos chips de concurso (ver _corTextoChipLoteria), só que
+// invertida no tema escuro/colorido: aqui são as marcas ESCURAS (Lotofácil,
+// Quina, Dupla-Sena, +Milionária, Powerball) que quase somem — e mesmo as
+// "normais" (Mega-Sena, Timemania) precisam de uma leve clareada pra
+// aguentar o fundo mais claro do .la-hero, não só o do painel. No tema claro
+// o problema é o espelho: marcas CLARAS/vivas (Mega-Sena, Lotomania, Dia de
+// Sorte, Super Sete) é que somem. Calibrado com margem pra passar nos DOIS
+// fundos do escuro/colorido ao mesmo tempo (ver checagem de contraste).
 function _corMarcaLegivelHero(d){
   if(!d) return corMarca(d);
   if(document.body.classList.contains('theme-light')){
     var ESCURA_LEGIVEL_CLARO={megasena:'#046339',lotomania:'#8C4400',timemania:'#5C4D00',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
     return ESCURA_LEGIVEL_CLARO[d.apiKey]||corMarca(d);
   }
-  var ESCURA_LEGIVEL_ESCURO={lotofacil:1,quina:1,duplasena:1};
-  if(ESCURA_LEGIVEL_ESCURO[d.apiKey]) return d.corClara||corMarca(d);
-  if(d.apiKey==='maismilionaria') return '#93A3DE';
-  if(d.apiKey==='powerball') return '#f5a7a5';
-  return corMarca(d);
+  var CLARA_LEGIVEL_ESCURO={megasena:'#6BCEA7',timemania:'#6BCEA7',lotofacil:'#C9A6D2',quina:'#8FBEDD',duplasena:'#DDA3B8',maismilionaria:'#93A3DE',powerball:'#f5a7a5'};
+  return CLARA_LEGIVEL_ESCURO[d.apiKey]||corMarca(d);
 }
 // Cor do NÚMERO dentro da bolinha — diferente de corMarca(), que cai pra
 // d.cor quando não há corTexto (serviria pra rótulos, nunca pra texto
@@ -7031,6 +7035,7 @@ function setupMods(d){
   ['btn-especial-jogo'].forEach(id=>{ const el=document.getElementById(id);if(!el)return; if(d.specialLabel){ el.classList.add('visivel'); el.style.background='#fff'; el.style.color=corContrasteBranco(d.cor); el.style.borderColor=d.cor; el.innerHTML=`⭐ ${d.specialLabel}`; } else { el.classList.remove('visivel'); } });
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  document.documentElement.style.setProperty('--ac-legivel',_corMarcaLegivelHero(d));
   // Cabeçalhos das colunas do Gerador (Apostas Aleatórias / Fechamento /
   // Fechamento p/ Score) seguem o mesmo padrão "clean": contorno fino +
   // fundo translúcido + texto/ícone na cor da loteria (mesmo não sendo
@@ -17638,7 +17643,7 @@ function _fmtPremioPorLoteriaHtml(premiosVigentes,pct){
   if(!pct||pct<=0||!premiosVigentes.length) return '<span style="color:var(--text-muted)">—</span>';
   return premiosVigentes.map(function(pl){
     var valor=(pl.premioNum||0)*pct/100;
-    return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+corMarca(pl)+';font-weight:700">'+_bMoney(valor)+'</span></div>';
+    return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+_bMoney(valor)+'</span></div>';
   }).join('');
 }
 function renderParticipantesBoloes(){
@@ -17708,7 +17713,7 @@ function renderParticipantesBoloes(){
   var _premiosVigentes=_premiosEstimVigentesPorLoteria(s);
   var premioTopoFmt = _premiosVigentes.length
     ? _premiosVigentes.map(function(pl){
-        return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+corMarca(pl)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span></div>';
+        return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span></div>';
       }).join('')
     : '<span style="color:var(--text-muted)">—</span>';
   // Coluna "Concurso(s)" removida daqui — antes cada linha repetia a MESMA
