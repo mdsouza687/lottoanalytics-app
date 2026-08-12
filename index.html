@@ -5680,7 +5680,7 @@ function renderLaPred(){
   document.querySelectorAll('.la-hero-tool-btn').forEach(btn=>{
     btn.style.background=d.cor+'14';
     btn.style.border=`1px solid ${d.corD||d.cor}55`;
-    btn.style.color=temColorAcc(d.cor);
+    btn.style.color=_corMarcaLegivelHero(d);
     btn.onmouseover=function(){ this.style.background=d.cor+'28'; };
     btn.onmouseout=function(){ this.style.background=d.cor+'14'; };
   });
@@ -5701,8 +5701,8 @@ function renderLaHeroInfo(d,key,real){
     ? '<div class="la-hi-row"><span class="la-hi-lbl">Cash Value</span><span class="la-hi-val la-hi-cash">'+real.cashValue+'</span></div>'
     : '';
   wrap.innerHTML=
-    '<div class="la-hi-nome" style="color:'+corMarca(d)+'"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(d,18)+'</span>'+d.nome+'</div>'+
-    '<div class="la-hi-row"><span class="la-hi-lbl">Prêmio estimado</span><span class="la-hi-val" style="color:'+corMarca(d)+'">'+premio+'</span></div>'+
+    '<div class="la-hi-nome" style="color:'+_corMarcaLegivelHero(d)+'"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(d,18)+'</span>'+d.nome+'</div>'+
+    '<div class="la-hi-row"><span class="la-hi-lbl">Prêmio estimado</span><span class="la-hi-val" style="color:'+_corMarcaLegivelHero(d)+'">'+premio+'</span></div>'+
     cashHtml+
     '<div class="la-hi-meta"><span>'+conc+'</span>'+(prox?'<span>'+prox+'</span>':'')+'</div>'+
     (acumulou?'<span class="la-hi-acc">🔥 ACUMULOU!</span>':'');
@@ -6262,12 +6262,84 @@ function _luminanciaHex(hex){
 // seu amarelo oficial não garante contraste como texto, então usa-se o
 // verde (mesma cor da Mega-Sena) — d.corTexto, quando presente.
 function corMarca(d){ return (d&&d.corTexto)||(d&&d.cor)||'#fff'; }
+// Cor de marca legível sobre os painéis translúcidos do Hero da home
+// (.la-hero-info: rgba(0,0,0,.22) sobre o fundo do tema no escuro/colorido,
+// rgba(255,255,255,.45) no claro) — corMarca() sozinha só funciona quando a
+// marca já tem luminosidade bem diferente do painel. Mesma raiz do problema
+// já corrigido nos chips de concurso (ver _corTextoChipLoteria), só que
+// invertida por painel: no escuro/colorido, marcas ESCURAS (Lotofácil, Quina,
+// Dupla-Sena, +Milionária, Powerball) quase somem; no claro, marcas CLARAS/
+// vivas (Mega-Sena, Lotomania, Dia de Sorte, Super Sete) é que somem. A
+// Timemania já tem corTexto próprio (verde, Manual de Identidade CAIXA) e lê
+// bem nos dois casos, não precisa de tratamento aqui.
+function _corMarcaLegivelHero(d){
+  if(!d) return corMarca(d);
+  if(document.body.classList.contains('theme-light')){
+    var ESCURA_LEGIVEL_CLARO={megasena:'#046339',lotomania:'#8C4400',timemania:'#5C4D00',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
+    return ESCURA_LEGIVEL_CLARO[d.apiKey]||corMarca(d);
+  }
+  var ESCURA_LEGIVEL_ESCURO={lotofacil:1,quina:1,duplasena:1};
+  if(ESCURA_LEGIVEL_ESCURO[d.apiKey]) return d.corClara||corMarca(d);
+  if(d.apiKey==='maismilionaria') return '#93A3DE';
+  if(d.apiKey==='powerball') return '#f5a7a5';
+  return corMarca(d);
+}
 // Cor do NÚMERO dentro da bolinha — diferente de corMarca(), que cai pra
 // d.cor quando não há corTexto (serviria pra rótulos, nunca pra texto
 // DENTRO de uma bolinha cujo fundo já é d.cor, ou o número ficaria
 // invisível). Só a Timemania tem corTexto definido hoje; todas as outras
 // continuam com o branco fixo que sempre usaram.
 function corBolaTexto(d){ return (d&&d.corTexto)||'#fff'; }
+// Fundo/texto dos "chips" de concurso (loteria colorida + nº). Antes o fundo
+// era a própria cor da loteria em baixíssima opacidade sobre o fundo do app
+// — em temas escuros isso falha justamente pras loterias de marca escura
+// (Quina, azul petróleo; +Milionária, azul marinho): o fundo quase some
+// dentro do próprio fundo escuro do app, e ficar tentando só ajustar a cor do
+// TEXTO não resolve a raiz (o quadradinho em si não se destaca). Resolvido
+// trocando a lógica: o chip vira sempre um "selo" claro — fundo pastel (cor
+// da loteria bem clareada, independe do tema do app) com texto/ícone escuro
+// por cima —, mesmo padrão que o app já usa noutro lugar pro result-card
+// ("cartão sempre em fundo claro, independe do tema"). Clareando a própria
+// cor a mistura fica sempre clara o bastante pra qualquer marca, então não
+// precisa mais de tratamento especial por tema.
+function _mixBranco(hex,ratioBranco){
+  hex=hex.replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  var r=parseInt(hex.substr(0,2),16)||0, g=parseInt(hex.substr(2,2),16)||0, b=parseInt(hex.substr(4,2),16)||0;
+  var mix=function(v){ return Math.round(v*(1-ratioBranco)+255*ratioBranco); };
+  return '#'+[mix(r),mix(g),mix(b)].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+}
+function _corFundoChipLoteria(d){
+  var temWrapper=d&&Object.prototype.hasOwnProperty.call(d,'_cfg');
+  var cfg=temWrapper?d._cfg:d;
+  return _mixBranco((cfg&&cfg.cor)||(d&&d.cor)||MULTI_LOTERIA_COR, 0.82);
+}
+// Texto/ícone escuro pareado com _corFundoChipLoteria — cor.corD serve pras
+// marcas que já são escuras por natureza (Lotofácil, Quina, Dupla-Sena,
+// +Milionária); as vivas/claras (Mega-Sena, Lotomania, Timemania, Dia de
+// Sorte, Super Sete) precisam de um tom bem mais escuro que corD pra ler
+// sobre o próprio fundo pastel (checado: cada um calibrado pra >=4.5:1).
+function _corTextoChipLoteria(d){
+  var temWrapper=d&&Object.prototype.hasOwnProperty.call(d,'_cfg');
+  var cfg=temWrapper?d._cfg:d;
+  var ESCURA_LEGIVEL={megasena:'#046339',lotomania:'#8C4400',timemania:'#5C4D00',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
+  if(cfg&&ESCURA_LEGIVEL[cfg.apiKey]) return ESCURA_LEGIVEL[cfg.apiKey];
+  if(!cfg) return '#0B6E8C'; // concurso sem loteria identificada (MULTI_LOTERIA_COR)
+  return cfg.corD||corMarca(d);
+}
+// Ícone do trevo pros chips de concurso, pareado com _corTextoChipLoteria —
+// iconLoteria()/trevoSVG() colorem o ícone com a cor de marca crua (+ sua
+// corClara), o que sofreria o mesmo problema de contraste que o texto tinha
+// sobre o novo fundo pastel do chip. Loterias americanas continuam com o
+// emoji fixo (não é texto colorido, não tem esse problema).
+function _iconeChipLoteria(cfg, tamanho, corTexto){
+  if(cfg&&cfg.americano) return '<span style="font-size:'+(tamanho||14)+'px;line-height:1">'+(cfg.emoji||'')+'</span>';
+  tamanho=tamanho||14;
+  var petala='M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
+  return '<svg viewBox="0 0 64 64" width="'+tamanho+'" height="'+tamanho+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)">'+
+    '<path d="'+petala+'" fill="'+corTexto+'"/><path d="'+petala+'" fill="'+corTexto+'99" transform="rotate(90)"/>'+
+    '<path d="'+petala+'" fill="'+corTexto+'" transform="rotate(180)"/><path d="'+petala+'" fill="'+corTexto+'99" transform="rotate(270)"/></g></svg>';
+}
 const LA_MESES_NOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Gera o HTML do mês da sorte / time do coração de um jogo gerado, no
 // mesmo padrão visual de "result-ball" usado para a bola extra/trevo —
@@ -17628,8 +17700,9 @@ function renderParticipantesBoloes(){
     : (s.concurso?[{num:s.concurso,data:s.dataSorteio||'',cor:MULTI_LOTERIA_COR,_cfg:null,nome:''}]:[]);
   var concursoChipsHtml = concursosLista.length
     ? '<div style="display:flex;flex-wrap:wrap;gap:3px">'+concursosLista.map(function(cc){
-        var iconeCc=cc._cfg?iconLoteria(cc._cfg,11):'🌐';
-        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:9px;padding:2px 6px;border-radius:999px;background:'+cc.cor+'22;color:'+corMarca(cc)+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:3px">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
+        var corTxt=_corTextoChipLoteria(cc);
+        var iconeCc=cc._cfg?_iconeChipLoteria(cc._cfg,11,corTxt):'🌐';
+        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:9px;padding:2px 6px;border-radius:999px;background:'+_corFundoChipLoteria(cc)+';color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:3px">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
       }).join('')+'</div>'
     : '<span style="color:var(--text-muted)">—</span>';
   var _premiosVigentes=_premiosEstimVigentesPorLoteria(s);
@@ -17812,8 +17885,9 @@ function _gerarConcursosPorParticipanteHtml(s,concursosLista){
   var chipsGrid=function(){
     return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;max-width:420px">'+
       concursosLista.map(function(cc){
-        var iconeCc=cc._cfg?iconLoteria(cc._cfg,12):'🌐';
-        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:8px;background:'+cc.cor+'1a;border:1px solid '+cc.cor+'44;color:'+corMarca(cc)+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
+        var corTxt=_corTextoChipLoteria(cc);
+        var iconeCc=cc._cfg?_iconeChipLoteria(cc._cfg,12,corTxt):'🌐';
+        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:8px;background:'+_corFundoChipLoteria(cc)+';border:1px solid '+cc.cor+'55;color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
       }).join('')+
     '</div>';
   };
