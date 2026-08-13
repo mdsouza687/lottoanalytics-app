@@ -17273,6 +17273,71 @@ var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 // se essa MESMA pessoa já participa de outro bolão — próprio ou de outro
 // organizador — e reaproveitar a conta dela em vez de tratar como pessoa
 // nova a cada convite).
+// ═══ Mensagens participante ↔ organizador (Fase 100) ═══
+// Modal criado dinamicamente (mesmo padrão de _promptModal), sem markup
+// estático no HTML. RLS em bolao_mensagens garante que só o organizador
+// dono do bolão (boloes.user_id = auth.uid()) e o próprio participante
+// (bolao_participantes.participante_user_id = auth.uid()) leem/escrevem
+// cada conversa.
+function _fmtHoraMensagem(iso){
+  try{
+    var d=new Date(iso), hoje=new Date();
+    var mesmoDia=d.toDateString()===hoje.toDateString();
+    return mesmoDia ? d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : (d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){ return ''; }
+}
+async function abrirMensagensParticipante(bolaoParticipanteId, nomeParticipante){
+  var old=document.getElementById('modal-msg-participante'); if(old) old.remove();
+  var div=document.createElement('div');
+  div.innerHTML=
+    '<div id="modal-msg-participante" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px">'+
+      '<div style="background:var(--bg,#12151f);border:1px solid var(--glass-border);border-radius:14px;max-width:460px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.5);max-height:85vh;display:flex;flex-direction:column">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+          '<div style="font-size:14px;font-weight:800;color:var(--text)">💬 '+_esc(nomeParticipante)+'</div>'+
+          '<button onclick="document.getElementById(\'modal-msg-participante\').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1">×</button>'+
+        '</div>'+
+        '<div id="msgp-lista" style="flex:1;overflow-y:auto;margin-bottom:12px;min-height:120px;font-size:12px;color:var(--text-muted)">Carregando…</div>'+
+        '<div style="display:flex;gap:6px">'+
+          '<input id="msgp-input" placeholder="Escreva uma resposta…" style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--bg2,#1a1e2b);color:var(--text);font-size:13px" onkeydown="if(event.key===\'Enter\'){enviarMensagemDesktop(\''+bolaoParticipanteId+'\')}"/>'+
+          '<button onclick="enviarMensagemDesktop(\''+bolaoParticipanteId+'\')" style="border:none;border-radius:8px;padding:9px 16px;background:var(--accent,#3a9b4e);color:#fff;font-weight:700;cursor:pointer">Enviar</button>'+
+        '</div>'+
+        '<div id="msgp-erro"></div>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(div);
+  await _carregarMensagensModal(bolaoParticipanteId);
+}
+async function _carregarMensagensModal(bolaoParticipanteId){
+  var lista=document.getElementById('msgp-lista'); if(!lista) return;
+  var sbc=_getSbClient(); if(!sbc){ lista.innerHTML='Erro: cliente Supabase indisponível.'; return; }
+  var { data, error } = await sbc.from('bolao_mensagens').select('*').eq('bolao_participante_id',bolaoParticipanteId).order('criado_em');
+  if(error){ lista.innerHTML='<div style="color:#f87171">Erro ao carregar: '+_esc(error.message)+'</div>'; return; }
+  var msgs=data||[];
+  lista.innerHTML = msgs.length ? msgs.map(function(m){
+    var minha = m.remetente==='organizador';
+    return '<div style="display:flex;justify-content:'+(minha?'flex-end':'flex-start')+';margin-bottom:6px">'+
+      '<div style="max-width:80%;padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.4;'+(minha?'background:var(--accent,#3a9b4e);color:#fff;border-bottom-right-radius:3px':'background:var(--bg2,#1a1e2b);color:var(--text);border:1px solid var(--glass-border);border-bottom-left-radius:3px')+'">'+
+        _esc(m.mensagem)+'<div style="font-size:9px;opacity:.65;margin-top:3px">'+_fmtHoraMensagem(m.criado_em)+'</div>'+
+      '</div></div>';
+  }).join('') : '<div style="text-align:center;padding:20px 0">Nenhuma mensagem ainda.</div>';
+  lista.scrollTop=lista.scrollHeight;
+  try{ await sbc.from('bolao_mensagens').update({lida_em:new Date().toISOString()}).eq('bolao_participante_id',bolaoParticipanteId).eq('remetente','participante').is('lida_em',null); }catch(e){}
+}
+async function enviarMensagemDesktop(bolaoParticipanteId){
+  var inp=document.getElementById('msgp-input');
+  var texto=(inp&&inp.value||'').trim();
+  if(!texto) return;
+  var erroEl=document.getElementById('msgp-erro'); if(erroEl) erroEl.innerHTML='';
+  var sbc=_getSbClient(); if(!sbc) return;
+  try{
+    var { error } = await sbc.from('bolao_mensagens').insert({bolao_participante_id:bolaoParticipanteId, remetente:'organizador', mensagem:texto});
+    if(error) throw error;
+    inp.value='';
+    await _carregarMensagensModal(bolaoParticipanteId);
+  }catch(e){
+    if(erroEl) erroEl.innerHTML='<div style="color:#f87171;font-size:11px;margin-top:6px">Erro ao enviar: '+_esc(e.message)+'</div>';
+  }
+}
 async function convidarParticipanteBol(i){
   var p=_boloesState.participantes[i]; if(!p) return;
   if(!p.id){ toast('Salve o bolão antes de convidar este participante.'); return; }
@@ -17754,7 +17819,10 @@ function renderParticipantesBoloes(){
         : '<input type="number" value="'+qtd+'" disabled title="Cota extra — altere na linha principal" style="border:1px dashed var(--glass-border);border-radius:6px;background:transparent;color:var(--text-dim);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center;cursor:not-allowed"/>';
       // Nome: editável na 1ª; cotas extras mostram nome em itálico
       var colNome = primeira
-        ? '<input value="'+_esc(p.nome)+'" oninput="_boloesState.participantes['+i+'].nome=this.value" onblur="_ordenarParticipantes();renderParticipantesBoloes()" '+(bolaoFinalizado?'disabled ':'')+'style="border:none;background:transparent;color:var(--text);font-size:12px;font-weight:600;width:100%'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"/>'
+        ? '<div style="display:flex;align-items:center;gap:4px">'+
+            '<input value="'+_esc(p.nome)+'" oninput="_boloesState.participantes['+i+'].nome=this.value" onblur="_ordenarParticipantes();renderParticipantesBoloes()" '+(bolaoFinalizado?'disabled ':'')+'style="border:none;background:transparent;color:var(--text);font-size:12px;font-weight:600;width:100%'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"/>'+
+            (p.id?'<button onclick="abrirMensagensParticipante(\''+p.id+'\',\''+_esc(p.nome).replace(/'/g,"\\'")+'\')" title="Mensagens com '+_esc(p.nome)+'" style="border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;padding:2px;flex-shrink:0">💬</button>':'')+
+          '</div>'
         : '<span style="font-size:11px;color:var(--text-muted);font-style:italic;padding-left:4px">'+_esc(p.nome)+'</span>';
       // Checkbox: ativo só na 1ª linha; cotas extras têm checkbox desativado
       var colChk = primeira
