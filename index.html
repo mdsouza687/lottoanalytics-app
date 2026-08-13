@@ -17321,7 +17321,13 @@ async function _carregarMensagensModal(bolaoParticipanteId){
       '</div></div>';
   }).join('') : '<div style="text-align:center;padding:20px 0">Nenhuma mensagem ainda.</div>';
   lista.scrollTop=lista.scrollHeight;
-  try{ await sbc.from('bolao_mensagens').update({lida_em:new Date().toISOString()}).eq('bolao_participante_id',bolaoParticipanteId).eq('remetente','participante').is('lida_em',null); }catch(e){}
+  try{
+    await sbc.from('bolao_mensagens').update({lida_em:new Date().toISOString()}).eq('bolao_participante_id',bolaoParticipanteId).eq('remetente','participante').is('lida_em',null);
+    if(_boloesState._naoLidasPorParticipante && _boloesState._naoLidasPorParticipante[bolaoParticipanteId]){
+      delete _boloesState._naoLidasPorParticipante[bolaoParticipanteId];
+      if(typeof renderParticipantesBoloes==='function') renderParticipantesBoloes();
+    }
+  }catch(e){}
 }
 async function enviarMensagemDesktop(bolaoParticipanteId){
   var inp=document.getElementById('msgp-input');
@@ -17818,10 +17824,11 @@ function renderParticipantesBoloes(){
         ? '<input type="number" min="1" value="'+qtd+'" onchange="_boloesState.participantes['+i+'].cotas=parseInt(this.value)||1;renderParticipantesBoloes()" title="'+((bolaoFinalizado||bolaoAtivado)?'Bolão ativado: quantidade de cotas travada':'Quantidade de cotas (referência para % do prêmio)')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled ':'')+'style="border:1px solid var(--glass-border);border-radius:6px;background:var(--bg2,#fff);color:var(--text);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center'+((bolaoFinalizado||bolaoAtivado)?';opacity:.6;cursor:not-allowed':'')+'"/>'
         : '<input type="number" value="'+qtd+'" disabled title="Cota extra — altere na linha principal" style="border:1px dashed var(--glass-border);border-radius:6px;background:transparent;color:var(--text-dim);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center;cursor:not-allowed"/>';
       // Nome: editável na 1ª; cotas extras mostram nome em itálico
+      var _naoLidasP=(p.id&&_boloesState._naoLidasPorParticipante&&_boloesState._naoLidasPorParticipante[p.id])||0;
       var colNome = primeira
         ? '<div style="display:flex;align-items:center;gap:4px">'+
             '<input value="'+_esc(p.nome)+'" oninput="_boloesState.participantes['+i+'].nome=this.value" onblur="_ordenarParticipantes();renderParticipantesBoloes()" '+(bolaoFinalizado?'disabled ':'')+'style="border:none;background:transparent;color:var(--text);font-size:12px;font-weight:600;width:100%'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"/>'+
-            (p.id?'<button onclick="abrirMensagensParticipante(\''+p.id+'\',\''+_esc(p.nome).replace(/'/g,"\\'")+'\')" title="Mensagens com '+_esc(p.nome)+'" style="border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;padding:2px;flex-shrink:0">💬</button>':'')+
+            (p.id?'<button onclick="abrirMensagensParticipante(\''+p.id+'\',\''+_esc(p.nome).replace(/'/g,"\\'")+'\')" title="Mensagens com '+_esc(p.nome)+(_naoLidasP?' ('+_naoLidasP+' não lida'+(_naoLidasP>1?'s':'')+')':'')+'" style="position:relative;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;padding:2px;flex-shrink:0">💬'+(_naoLidasP?'<span style="position:absolute;top:-3px;right:-4px;background:#dc2626;color:#fff;border-radius:99px;font-size:8px;font-weight:800;line-height:1;padding:2px 4px;min-width:13px;text-align:center">'+_naoLidasP+'</span>':'')+'</button>':'')+
           '</div>'
         : '<span style="font-size:11px;color:var(--text-muted);font-style:italic;padding-left:4px">'+_esc(p.nome)+'</span>';
       // Checkbox: ativo só na 1ª linha; cotas extras têm checkbox desativado
@@ -18415,6 +18422,25 @@ async function editarBolao(id){
   _boloesState=r.estado;
   _ordenarParticipantes();
   renderFormBolao();
+  _atualizarNaoLidasParticipantes();
+}
+// Contagem de mensagens não lidas por participante (Fase 100b) — busca uma
+// vez ao abrir o bolão (fora do fluxo síncrono de renderParticipantesBoloes,
+// que é chamado a cada tecla digitada/campo alterado; não dá pra ter uma
+// chamada de rede aí) e guarda em _boloesState._naoLidasPorParticipante,
+// só lido (nunca buscado) dentro do render.
+async function _atualizarNaoLidasParticipantes(){
+  var ids=(_boloesState.participantes||[]).map(function(p){return p.id;}).filter(Boolean);
+  if(!ids.length) return;
+  var sbc=_getSbClient(); if(!sbc) return;
+  try{
+    var { data, error } = await sbc.from('bolao_mensagens').select('bolao_participante_id').eq('remetente','participante').is('lida_em',null).in('bolao_participante_id',ids);
+    if(error) return;
+    var contagem={};
+    (data||[]).forEach(function(m){ contagem[m.bolao_participante_id]=(contagem[m.bolao_participante_id]||0)+1; });
+    _boloesState._naoLidasPorParticipante=contagem;
+    if(typeof renderParticipantesBoloes==='function') renderParticipantesBoloes();
+  }catch(e){}
 }
 
 // Corte final (Item 3, 2026-07-12): soft-delete direto em public.boloes
