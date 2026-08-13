@@ -17701,7 +17701,7 @@ function renderParticipantesBoloes(){
   // altas/cheias de informação. Essa lista agora vira uma área própria
   // abaixo da tabela (ver renderConcursosPorParticipanteHtml), com um
   // cartão por participante em grade de 2-3 colunas.
-  var grid='24px 44px 1.1fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 58px 24px';
+  var grid='24px 44px 1.1fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 98px 24px';
   var head='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:6px 8px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--glass-border);align-items:center">'+
     '<input type="checkbox" id="bol-sel-all" onchange="toggleSelAllPart(this.checked)" title="Selecionar todos" style="cursor:pointer"'+(nSel&&nSel===s.participantes.length?' checked':'')+'/>'+
     '<span>Refer.</span><span>Nome</span><span>Prêmio Estim.</span><span>Qtd. Cotas</span><span>Contribuição</span><span title="Saldo individual: Contribuição − parte no custo das rodadas">Meu Saldo</span><span>Taxa Admin</span><span>Valor/Cota</span><span>Participação</span><span>Tipo Part.</span><span>Pagamento</span><span>% / Cota</span><span>Prêmio</span><span title="App do participante">📨</span><span></span></div>';
@@ -17806,7 +17806,7 @@ function renderParticipantesBoloes(){
       var colConvite = !primeira ? '<span></span>'
         : !p.id ? '<span title="Salve o bolão para poder convidar" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
         : (s.ativadoEm && !_instalou && !_cadastradoAntesAtivacao) ? '<span title="Participante adicionado depois da ativação — convite não pode mais ser enviado" style="font-size:19px;text-align:center;display:block;opacity:.4">📨</span>'
-        : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?'Já instalou o app — clique para reenviar o convite':'Convidar para o app do participante (abre o WhatsApp)')+'" style="border:1.5px solid '+_convCor+';border-radius:7px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:19px;line-height:1;padding:7px 6px;width:100%;transition:transform .1s" onmouseover="this.style.transform=\'scale(1.08)\'" onmouseout="this.style.transform=\'\'">📨</button>';
+        : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?'Já instalou o app — clique para reenviar o convite':'Convidar para o app do participante (abre o WhatsApp)')+'" style="border:1.5px solid '+_convCor+';border-radius:7px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:11px;font-weight:800;line-height:1;padding:7px 8px;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:transform .1s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'\'"><span style="font-size:15px">📨</span>'+(_instalou?'Reenviar':'Convidar')+'</button>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
       // colunas próprias do participante (não é mais calculado a partir de
