@@ -19247,7 +19247,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
           // lista). Teimosinha usa o concurso de origem aqui — a sequência
           // completa já aparece à parte, dentro de statusJogoHtml.
           var _concursoLabelJ=concursoDoJogoP!=null?('#'+_esc(String(concursoDoJogoP))):'?';
-          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px" title="Concurso '+_concursoLabelJ+'">'+_concursoLabelJ+'</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
+          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+corLabelJogo+';margin-right:3px" title="Concurso '+_concursoLabelJ+'">'+_concursoLabelJ+'</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
         })(_jogosOrdenadosL[_ji], _ji);
         if(_linhaJ) _linhasJogosL.push(_linhaJ);
         _processadosPrint++;
