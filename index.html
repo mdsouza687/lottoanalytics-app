@@ -1374,8 +1374,15 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-main.pt-wide{max-width:none;margin:0;padding:0;height:100%;display:flex;flex-direction:column;min-height:0}
 .pt-premios-strip{flex-shrink:0;padding:18px 24px 6px;border-bottom:1px solid var(--glass-border)}
 .pt-premios-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-.pt-premio-mini{flex:0 0 152px;height:80px;border-radius:var(--radius-lg);border:1px solid var(--glass-border);background:var(--glass-bg);padding:9px 12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden}
-.pt-premio-mini .nome{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Botão com leve relevo 3D (pedido do usuário): sombra dupla (contato +
+   difusa) simula elevação, friso claro no topo (inset) simula luz batendo
+   na borda superior. Ao clicar, "afunda" (translateY + sombra encolhe) —
+   feedback tátil de botão de verdade, não só um card estático. */
+.pt-premio-mini{position:relative;flex:0 0 152px;height:80px;border-radius:var(--radius-lg);border:1px solid var(--glass-border);background:var(--glass-bg);padding:9px 12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden;cursor:pointer;font-family:inherit;text-align:left;box-shadow:0 2px 0 rgba(0,0,0,.18),0 3px 6px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,box-shadow .08s ease}
+.pt-premio-mini:hover{border-color:var(--glass-hover)}
+.pt-premio-mini:active{transform:translateY(2px);box-shadow:0 0 0 rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)}
+.pt-premio-mini .ico-cifrao{position:absolute;top:6px;right:8px;font-size:12px;opacity:.55;line-height:1}
+.pt-premio-mini .nome{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:14px}
 .pt-premio-mini .val{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-premio-mini .cash{font-size:9.5px;font-weight:700;color:#39FF14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-boloes-split{flex:1;min-height:0;display:flex}
@@ -6741,11 +6748,8 @@ function setOrb(orb,d){
   }
 }
 function renderSkel(d){document.getElementById('lottery-card').innerHTML=`<div class="card-top" style="background:${d.cor}"><span class="card-top-concurso">...</span><span class="card-top-nome"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,18,true)}</span>${d.nome}</span><span class="card-top-data">...</span></div><div style="padding:20px;display:flex;flex-direction:column;gap:10px"><div class="skel" style="height:48px;border-radius:12px"></div><div class="skel" style="height:14px;width:60%;margin:0 auto"></div><div class="skel" style="height:14px;width:80%;margin:0 auto"></div></div>`;}
-function renderCard(res,d){
-  // Indicador de dados desatualizados (> 6h)
-  const _ageH=res.updatedAt?Math.round((Date.now()-res.updatedAt)/3600000):0;
-  const _staleWarn=_ageH>6?`<div style="font-size:9px;color:#b45309;background:#fff7ed;padding:4px 18px;display:flex;align-items:center;gap:4px">⚠️ Dados de ${_ageH}h atrás — clique em <strong>Atualizar</strong> para renovar</div>`:'';
-  const card=document.getElementById('lottery-card');let h='';
+function _buildResultCardHtml(res,d){
+  let h='';
   h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
   // 1º Sorteio (ou único para loterias simples)
   if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">1º SORTEIO</div></div>`;
@@ -6827,7 +6831,14 @@ function renderCard(res,d){
     h+=`<div class="res-manual-wrap"><button class="res-manual-btn" onclick="abrirModalResultadoManual()">📝 ${res.origem==='manual'?'Editar':'Inserir'} Resultado Manual</button></div>`;
   }
   if(d.specialLabel){ h+=`<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px 10px;font-size:11px;color:#a16207;font-weight:600;font-style:italic;background:#fdfdfc">⭐ Pode incluir: ${d.specialLabel}</div>`; }
-  card.innerHTML=_staleWarn+h;
+  return h;
+}
+function renderCard(res,d){
+  // Indicador de dados desatualizados (> 6h)
+  const _ageH=res.updatedAt?Math.round((Date.now()-res.updatedAt)/3600000):0;
+  const _staleWarn=_ageH>6?`<div style="font-size:9px;color:#b45309;background:#fff7ed;padding:4px 18px;display:flex;align-items:center;gap:4px">⚠️ Dados de ${_ageH}h atrás — clique em <strong>Atualizar</strong> para renovar</div>`:'';
+  const card=document.getElementById('lottery-card');
+  card.innerHTML=_staleWarn+_buildResultCardHtml(res,d);
   atualizarBtnDash(currentKey,res);
   document.getElementById('print-title').innerHTML=`<span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome} — Concurso ${res.concurso}`;
   document.getElementById('print-sub').textContent=res.data;
@@ -22214,6 +22225,38 @@ function ptCalcPremioProporcional(estimativaBRL,info){
   }
   return liquido*(Number(info.pct_cota)/100);
 }
+// Modal com o resultado do último concurso (clique no botão de prêmio
+// estimado, ver ptPremioAtualHtml) — reaproveita _buildResultCardHtml
+// (extraída de renderCard) pra ter EXATAMENTE o mesmo card usado no resto
+// do app, dentro de um popup criado dinamicamente (mesmo padrão já usado
+// em abrirMensagensParticipante/_promptModal), sem depender do elemento
+// fixo #lottery-card (que pertence à loteria atualmente selecionada na
+// página principal, não à loteria clicada aqui).
+async function ptAbrirResultadoModal(loteria){
+  var d=CFG[loteria]; if(!d) return;
+  var old=document.getElementById('modal-pt-resultado'); if(old) old.remove();
+  var div=document.createElement('div');
+  div.innerHTML=
+    '<div id="modal-pt-resultado" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this) this.remove()">'+
+      '<div style="max-width:420px;width:100%;max-height:88vh;overflow-y:auto;position:relative;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5)">'+
+        '<button onclick="document.getElementById(\'modal-pt-resultado\').remove()" style="position:absolute;top:8px;right:8px;z-index:1;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:16px;cursor:pointer;line-height:1">×</button>'+
+        '<div class="result-card" id="pt-resultado-card-conteudo" style="padding:30px 16px;text-align:center;color:#888">Carregando…</div>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(div);
+  try{
+    await atualizarLoteria(loteria);
+    var res=resultados[loteria];
+    var alvo=document.getElementById('pt-resultado-card-conteudo');
+    if(!alvo) return; // modal já foi fechado enquanto carregava
+    if(!res){ alvo.innerHTML='Não foi possível carregar o resultado.'; return; }
+    alvo.style.padding='0'; alvo.style.color='';
+    alvo.innerHTML=_buildResultCardHtml(res,d);
+  }catch(e){
+    var alvo2=document.getElementById('pt-resultado-card-conteudo');
+    if(alvo2) alvo2.innerHTML='Erro ao carregar: '+_esc(e.message);
+  }
+}
 var PT_LOTERIAS_HOME=['megasena','lotofacil','quina','lotomania','duplasena','diasorte','supersete','timemania','maismilionaria','powerball','megamillions'];
 // Cache de 5min (mesmo TTL do app participante) — o valor só muda quando a
 // Edge Function atualizar-resultados roda, algumas vezes por dia.
@@ -22246,15 +22289,21 @@ async function ptBuscarPremioAtual(loteria){
 // têm linha extra de CASH (Powerball/Mega Millions): texto que não cabe é
 // cortado com reticências em vez de esticar o card. Pedido explícito do
 // usuário: "padroniza o tamanho de todos os cards pelos de menor tamanho".
+// Botão (não mais card estático): clicar mostra o resultado do último
+// concurso desta loteria, num modal — o ícone 💰 (canto superior direito,
+// perto do arredondado) e o relevo 3D (ver CSS .pt-premio-mini) reforçam
+// que é clicável, já que o título "Prêmios Estimados" foi removido (cada
+// botão já mostra o nome da própria loteria, o título ficava redundante).
 function ptPremioAtualHtml(loteria,premio){
   if(!loteria) return '';
   var d=ptLoteriaCor(loteria);
   var cashHtml=(premio&&premio.cash)?'<div class="cash">CASH '+_esc(premio.cash)+'</div>':'';
-  return '<div class="pt-premio-mini" style="border-top:3px solid '+d.bg+'">'+
+  return '<button type="button" class="pt-premio-mini" style="border-top:3px solid '+d.bg+'" onclick="ptAbrirResultadoModal(\''+loteria+'\')" title="Ver resultado do último concurso">'+
+    '<span class="ico-cifrao">💰</span>'+
     '<div class="nome" style="color:'+d.bg+'">'+_esc(ptLoterianome(loteria))+'</div>'+
     '<div class="val">'+(premio&&premio.estimativa?_esc(premio.estimativa):'—')+'</div>'+
     cashHtml+
-  '</div>';
+  '</button>';
 }
 async function ptSecaoPremiosEstimadosHtml(){
   var resultados=await Promise.all(PT_LOTERIAS_HOME.map(function(l){
@@ -22262,7 +22311,7 @@ async function ptSecaoPremiosEstimadosHtml(){
   }));
   var cards=resultados.map(function(r){ return ptPremioAtualHtml(r.loteria,r.premio); }).filter(Boolean);
   if(!cards.length) return '';
-  return '<div class="pt-premios-strip"><div class="pt-section-title" style="text-align:center;margin-top:0">💰 Prêmios Estimados</div>'+
+  return '<div class="pt-premios-strip">'+
     '<div class="pt-premios-row">'+cards.join('')+'</div></div>';
 }
 // Um bolão Multi-Loteria mistura jogos de loterias diferentes — o card
