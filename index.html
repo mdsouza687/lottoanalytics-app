@@ -18925,7 +18925,15 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   // conforme já foi sorteado ou não — sem isso, marcar só o primeiro/
   // último escondia que concursos intermediários já tinham saído.
   function _concursosComStatusHtml(loteriaKey,concursosArr){
-    var itens=(concursosArr||[]);
+    // Crescente (pedido do usuário): o concurso mais recente sempre tem o
+    // número mais alto, então essa ordem lê como "do mais antigo pro atual"
+    // — antes ficava na ordem de vinculação (inserção), embaralhado. Grupos
+    // de Teimosinha são ordenados pelo primeiro concurso da sequência.
+    var itens=(concursosArr||[]).slice().sort(function(a,b){
+      var na=Number((a&&a.teimosinhaTodos&&a.teimosinhaTodos.length)?a.teimosinhaTodos[0]:(a&&a.num!=null?a.num:a));
+      var nb=Number((b&&b.teimosinhaTodos&&b.teimosinhaTodos.length)?b.teimosinhaTodos[0]:(b&&b.num!=null?b.num:b));
+      return na-nb;
+    });
     if(!itens.length) return '—';
     var partes=[];
     itens.forEach(function(item){
@@ -19082,8 +19090,11 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
       // Filtro "Só premiados": ordena do maior prêmio para o menor — sem
       // isso, os jogos apareciam na ordem em que foram gerados/vinculados,
       // obrigando a rolar a lista toda pra achar os prêmios maiores (pedido
-      // do usuário, 2026-07-12). Só reordena neste modo — "Todos os jogos"
-      // continua na ordem original, que é a esperada ali.
+      // do usuário, 2026-07-12).
+      // "Todos os jogos": decrescente por concurso (pedido do usuário) — o
+      // concurso mais recente sempre tem o número mais alto, então essa
+      // ordem mostra o jogo mais atual primeiro, sem precisar rolar a lista
+      // toda num bolão com muitos concursos acumulados (ex.: Mensal).
       var _jogosOrdenadosL=L.jogos;
       if(soPremiados){
         _jogosOrdenadosL=L.jogos.slice().sort(function(ja,jb){
@@ -19092,6 +19103,12 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
           var vA=(_calcPremioJogo(L.loteria,ja,cA)||{}).valor||0;
           var vB=(_calcPremioJogo(L.loteria,jb,cB)||{}).valor||0;
           return vB-vA;
+        });
+      } else {
+        _jogosOrdenadosL=L.jogos.slice().sort(function(ja,jb){
+          var cA=Number(ja._concursoOrigem||(L.concursos&&L.concursos[0]&&L.concursos[0].num)||0);
+          var cB=Number(jb._concursoOrigem||(L.concursos&&L.concursos[0]&&L.concursos[0].num)||0);
+          return cB-cA;
         });
       }
       for(var _ji=0;_ji<_jogosOrdenadosL.length;_ji++){
@@ -19223,7 +19240,14 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
                 :'<span style="margin-left:6px;white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;vertical-align:middle"></span> <span style="font-size:9px;color:#16a34a;font-weight:400">VIGENTE</span></span>';
             }
           }
-          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px">'+(i+1)+'.</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
+          // Rótulo inicial da linha: número do CONCURSO deste jogo (pedido
+          // do usuário — antes era só o índice sequencial "1.", "2."..., que
+          // não dizia a qual sorteio o jogo pertence; num bolão Mensal com
+          // vários concursos acumulados isso é essencial pra entender a
+          // lista). Teimosinha usa o concurso de origem aqui — a sequência
+          // completa já aparece à parte, dentro de statusJogoHtml.
+          var _concursoLabelJ=concursoDoJogoP!=null?('#'+_esc(String(concursoDoJogoP))):'?';
+          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+cBase+';margin-right:3px" title="Concurso '+_concursoLabelJ+'">'+_concursoLabelJ+'</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
         })(_jogosOrdenadosL[_ji], _ji);
         if(_linhaJ) _linhasJogosL.push(_linhaJ);
         _processadosPrint++;
