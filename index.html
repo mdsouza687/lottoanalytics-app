@@ -1381,7 +1381,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-premio-mini{position:relative;flex:0 0 152px;height:80px;border-radius:var(--radius-lg);border:1px solid var(--glass-border);background:var(--glass-bg);padding:9px 12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden;cursor:pointer;font-family:inherit;text-align:left;box-shadow:0 2px 0 rgba(0,0,0,.18),0 3px 6px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,box-shadow .08s ease}
 .pt-premio-mini:hover{border-color:var(--glass-hover)}
 .pt-premio-mini:active{transform:translateY(2px);box-shadow:0 0 0 rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)}
-.pt-premio-mini .ico-cifrao{position:absolute;top:6px;right:8px;font-size:12px;opacity:.55;line-height:1}
+.pt-premio-mini .ico-cifrao{position:absolute;top:6px;right:8px;line-height:1}
 .pt-premio-mini .nome{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:14px}
 .pt-premio-mini .val{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-premio-mini .cash{font-size:9.5px;font-weight:700;color:#39FF14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -22299,7 +22299,7 @@ function ptPremioAtualHtml(loteria,premio){
   var d=ptLoteriaCor(loteria);
   var cashHtml=(premio&&premio.cash)?'<div class="cash">CASH '+_esc(premio.cash)+'</div>':'';
   return '<button type="button" class="pt-premio-mini" style="border-top:3px solid '+d.bg+'" onclick="ptAbrirResultadoModal(\''+loteria+'\')" title="Ver resultado do último concurso">'+
-    '<span class="ico-cifrao">💰</span>'+
+    '<span class="ico-cifrao"><svg viewBox="0 0 16 16" width="12" height="12" style="display:block"><path fill="'+COR_OURO+'" d="M8 1c-.55 0-1 .45-1 1 0 .19.05.36.14.51C5.02 3.4 3.5 5.9 3.5 8.7c0 3.7 2.02 6.3 4.5 6.3s4.5-2.6 4.5-6.3c0-2.8-1.52-5.3-3.64-6.19.09-.15.14-.32.14-.51 0-.55-.45-1-1-1z"/></svg></span>'+
     '<div class="nome" style="color:'+d.bg+'">'+_esc(ptLoterianome(loteria))+'</div>'+
     '<div class="val">'+(premio&&premio.estimativa?_esc(premio.estimativa):'—')+'</div>'+
     cashHtml+
