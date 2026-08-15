@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
 // contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local
@@ -99,9 +100,24 @@ function createWindow() {
   return win;
 }
 
+// Auto-update via GitHub Releases (repo público mdsouza687/lottoanalytics-app
+// — o publish do electron-builder sobe o instalador + latest.yml pra lá).
+// checkForUpdatesAndNotify() baixa em segundo plano e mostra um aviso
+// nativo do SO quando terminar; a instalação só acontece quando o usuário
+// fecha e reabre o app (não interrompe quem está usando). Só roda em build
+// empacotado — em dev (`npm start`) o autoUpdater nem tenta, senão dá erro
+// "not packed".
+function configurarAutoUpdate() {
+  if (!app.isPackaged) return;
+  autoUpdater.checkForUpdatesAndNotify().catch((e) => {
+    console.error('[autoUpdater] falha ao checar atualização:', e.message);
+  });
+}
+
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   createWindow();
+  configurarAutoUpdate();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

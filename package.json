@@ -8,7 +8,8 @@
     "start": "electron .",
     "dist:win": "electron-builder --win --x64",
     "dist:mac": "electron-builder --mac",
-    "dist:all": "electron-builder -mw"
+    "dist:all": "electron-builder -mw",
+    "release:win": "electron-builder --win --x64 --publish always"
   },
   "build": {
     "appId": "com.mario.lottoanalytics",
@@ -22,6 +23,11 @@
       "index.html",
       "build/icon.png"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "mdsouza687",
+      "repo": "lottoanalytics-app"
+    },
     "win": {
       "target": [
         {
@@ -52,5 +58,8 @@
   "devDependencies": {
     "electron": "^31.7.7",
     "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }
