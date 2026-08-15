@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LottoAnalytics — Manual do Usuário</title>
+<style>
+  :root{
+    --bg:#0b0f0d; --bg2:#131a16; --card:#16201b; --border:#233229;
+    --text:#eef3ef; --text-dim:#9fb3a6; --accent:#3a9b4e; --accent2:#2f7d40;
+    --warn-bg:rgba(224,165,44,.12); --warn-border:rgba(224,165,44,.35); --warn-text:#e0a52c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text); min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    line-height:1.6;
+  }
+  a{color:var(--accent)}
+  .layout{display:flex; max-width:1200px; margin:0 auto}
+  nav.toc{
+    width:260px; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:24px 16px; border-right:1px solid var(--border); background:var(--bg2);
+  }
+  nav.toc h2{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin:18px 0 6px}
+  nav.toc h2:first-child{margin-top:0}
+  nav.toc a{display:block; padding:5px 8px; border-radius:6px; color:var(--text-dim); text-decoration:none; font-size:13px}
+  nav.toc a.lvl2{padding-left:18px; font-size:12px}
+  nav.toc a:hover{background:rgba(255,255,255,.05); color:var(--text)}
+  main{flex:1; min-width:0; padding:40px 48px 120px}
+  .masthead{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:8px; flex-wrap:wrap}
+  .masthead h1{font-size:26px; margin:0}
+  .masthead .sub{color:var(--text-dim); font-size:13px; margin-top:4px}
+  .actions{display:flex; gap:8px; flex-shrink:0}
+  .btn{
+    border:1px solid var(--accent); background:rgba(58,155,78,.12); color:var(--accent);
+    border-radius:8px; padding:8px 14px; font-weight:700; font-size:12px; cursor:pointer;
+    text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:hover{background:rgba(58,155,78,.22)}
+  hr.top{border:none; border-top:1px solid var(--border); margin:20px 0 32px}
+  section{margin-bottom:44px; scroll-margin-top:20px}
+  section h2{font-size:20px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:16px}
+  section h3{font-size:15px; color:var(--accent); margin:26px 0 8px; scroll-margin-top:20px}
+  section p{margin:0 0 14px}
+  section ul, section ol{margin:0 0 14px; padding-left:22px}
+  section li{margin-bottom:6px}
+  code, .kbd{background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:.92em}
+  .callout{
+    background:var(--warn-bg); border:1px solid var(--warn-border); color:var(--warn-text);
+    border-radius:10px; padding:12px 16px; margin:14px 0; font-size:13.5px;
+  }
+  .callout b{color:var(--warn-text)}
+  .shot{
+    border:1px solid var(--border); border-radius:10px; background:var(--bg2);
+    color:var(--text-dim); font-size:12px; text-align:center; padding:28px 16px; margin:14px 0;
+  }
+  .shot b{display:block; color:var(--text-dim); font-weight:700; margin-bottom:4px}
+  .faq-q{font-weight:700; margin-top:18px}
+  footer{color:var(--text-dim); font-size:11px; padding:20px 48px; border-top:1px solid var(--border)}
+  @media (max-width:860px){
+    .layout{display:block}
+    nav.toc{position:static; width:auto; height:auto; border-right:none; border-bottom:1px solid var(--border)}
+    main{padding:24px 20px 80px}
+  }
+  @media print{
+    nav.toc, .actions{display:none!important}
+    body{background:#fff; color:#111}
+    .layout{display:block; max-width:none}
+    main{padding:0}
+    section{page-break-inside:avoid}
+    a{color:#111; text-decoration:none}
+    .shot{border-color:#999}
+    .callout{background:#fff8e6; border-color:#e0a52c; color:#7a5a00}
+    .callout b{color:#7a5a00}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" id="toc">
+  <h2>Manual</h2>
+  <a href="#visao-geral">1. Visão geral</a>
+
+  <h2>Desktop — Bolões</h2>
+  <a href="#d-criar">2.1 Criar e adicionar participantes</a>
+  <a href="#d-cota" class="lvl2">Valor da cota e rateio</a>
+  <a href="#d-semana">2.2 Semana do bolão</a>
+  <a href="#d-prazo">2.3 Prazo de pagamento</a>
+  <a href="#d-ativar">2.4 Ativar o Bolão</a>
+  <a href="#d-docs">2.5 Documentos</a>
+  <a href="#d-impressao">2.6 Impressão</a>
+  <a href="#d-notif">2.7 Notificações</a>
+  <a href="#d-update">2.8 Atualização automática</a>
+
+  <h2>App Mobile — Participante</h2>
+  <a href="#m-conta">3.1 Criar conta e entrar</a>
+  <a href="#m-bio">3.2 Desbloqueio por biometria</a>
+  <a href="#m-boloes">3.3 Meus Bolões</a>
+  <a href="#m-filtro">3.4 Filtro Todos/Premiados</a>
+  <a href="#m-historico">3.5 Histórico</a>
+  <a href="#m-perfil">3.6 Perfil</a>
+  <a href="#m-assinatura">3.7 Assinatura digital</a>
+  <a href="#m-push">3.8 Notificações push</a>
+
+  <h2>Ajuda</h2>
+  <a href="#faq">4. Perguntas frequentes</a>
+</nav>
+
+<main>
+  <div class="masthead">
+    <div>
+      <h1>🍀 LottoAnalytics — Manual do Usuário</h1>
+      <div class="sub">Desktop (organizador) e App Mobile (participante) · Atualizado em 15/08/2026</div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+  <hr class="top">
+
+  <section id="visao-geral">
+    <h2>1. Visão geral</h2>
+    <p>O LottoAnalytics é composto por dois aplicativos que trabalham juntos:</p>
+    <ul>
+      <li><b>Desktop</b> — usado pelo organizador do bolão. Gera jogos, cadastra participantes, controla pagamentos, ativa o bolão, imprime documentos e envia notificações.</li>
+      <li><b>App Mobile (Participante)</b> — usado por quem participa do bolão. Acompanha seus jogos, saldo, prêmios, histórico e recebe avisos automáticos no celular.</li>
+    </ul>
+    <p>Os dois se comunicam pelo mesmo banco de dados na nuvem — qualquer alteração feita no Desktop (pagamento confirmado, jogo vinculado, bolão ativado) aparece automaticamente no app do participante, sem precisar sincronizar nada manualmente.</p>
+  </section>
+
+  <section id="desktop">
+    <h2>2. Desktop — Gestão de Bolões</h2>
+
+    <h3 id="d-criar">2.1 Criar um bolão e adicionar participantes</h3>
+    <ol>
+      <li>Na tela "🌐 Bolões Multi-Loteria", clique em "➕ Criar Bolão".</li>
+      <li>Dê um nome ao bolão (a loteria só é definida depois que o primeiro jogo é gerado ou vinculado).</li>
+      <li>Preencha os dados do administrador (nome, telefone, PIX) e adicione os participantes manualmente ou importando uma lista (Nome, E-mail, WhatsApp).</li>
+    </ol>
+    <p><b>CPF/CNPJ do administrador:</b> tem um seletor de tipo (CPF ou CNPJ), com máscara própria para cada um. Esse campo passa a ser obrigatório quando o bolão tem mais de 3 participantes — necessário para o Termo de Constituição.</p>
+
+    <h3 id="d-cota">Valor da cota e rateio da organização</h3>
+    <p>No card <b>Administrador</b>, o campo "Valor da cota (R$)" define o preço de 1 cota usado no aplicativo mobile para o participante escolher quantas cotas quer, antes de assinar os termos.</p>
+    <p>Quando o bolão tem "Cobrança de organização" (cotas isentas do administrador ou valor fixo), o valor que o participante <b>efetivamente vê e paga</b> já vem com a fração dessa taxa somada automaticamente — dividida entre os participantes ativos — sem o organizador precisar calcular isso na mão. Sem cobrança de organização, o valor pago é exatamente o digitado nesse campo.</p>
+    <div class="callout">💡 Exemplo real: valor base R$25,00, com "Cotas isentas" ativado, o app mostra em verde algo como <i>"= R$37,50 cobrado do participante (inclui rateio da organização)"</i> — o cálculo aparece ao vivo enquanto você digita.</div>
+
+    <h3 id="d-semana">2.2 Semana do bolão (segunda a domingo)</h3>
+    <p>Como a Caixa passou a realizar sorteios aos domingos, a semana do bolão mudou de domingo–sábado para segunda–domingo — o domingo agora fecha a semana em vez de abri-la. Isso vale tanto para o preenchimento automático de "Data início/fim da semana" quanto para o corte de semanas do bolão mensal.</p>
+
+    <h3 id="d-prazo">2.3 Prazo de pagamento e aviso automático</h3>
+    <p>Os campos "Data limite p/ pagamento" e "Hora limite p/ pagamento" definem até quando os participantes podem pagar a cota. Esse prazo acontece antes de ativar o bolão — não deve ser confundido com o encerramento do bolão em si (que é sempre o fim da semana ou do mês).</p>
+    <p>Quando esses campos são preenchidos, o sistema envia automaticamente uma notificação push para os participantes 10 minutos antes do prazo terminar. Clique em "✏️ Aviso 10min antes" para personalizar o título e o texto dessa mensagem — se deixar em branco, é usado um texto padrão.</p>
+
+    <h3 id="d-ativar">2.4 Ativar o Bolão</h3>
+    <p>O botão "🔒 Ativar Bolão" fecha o bolão para novos participantes e o disponibiliza no app dos participantes que já aceitaram o convite.</p>
+    <div class="callout"><b>Importante:</b> ao ativar, participantes que ainda não pagaram a cota são <b>removidos automaticamente</b> do bolão — ativos ou inativos, não importa — em vez do sistema apenas bloquear a ativação com um aviso. Vale conferir a lista de pagamentos antes de confirmar. A remoção não apaga o cadastro da pessoa, só o vínculo dela com esse bolão específico.</div>
+    <p>Os participantes que permanecem, com conta vinculada, recebem automaticamente uma notificação push avisando que o bolão está ativo.</p>
+
+    <h3 id="d-docs">2.5 Documentos: Termo de Constituição, Termos e Condições e Regras de ITCMD</h3>
+    <p>Os botões "📄 Termo de Constituição" e "📜 Termos e Condições" (disponíveis após ativar o bolão) geram documentos prontos para impressão, com os dados do bolão preenchidos automaticamente — incluindo o prazo de pagamento, quando definido.</p>
+    <p>O Termo de Constituição tem duas áreas de assinatura: a coluna "Assinatura" na tabela de participantes e o bloco de linhas para assinatura física no rodapé. Quem já assinou digitalmente pelo app aparece com a imagem da assinatura e a data em ambos os lugares — não precisa assinar de novo na folha impressa.</p>
+    <p>Um terceiro link, "📄 Regras de Funcionamento e Isenção de ITCMD", fica na mesma barra de documentos. Diferente dos outros dois, é um documento institucional fixo (o mesmo para todos os bolões) que explica as regras gerais de funcionamento dos bolões e a isenção do ITCMD (Imposto de Transmissão Causa Mortis e Doação) sobre a divisão do prêmio entre os participantes.</p>
+    <div class="shot"><b>🖼 Tela: Termo de Constituição</b>Participante que já assinou digitalmente aparece com a imagem da assinatura em vez de linha em branco.</div>
+
+    <h3 id="d-impressao">2.6 Impressão: completa ou só premiados</h3>
+    <p>Ao clicar em "🖨 Imprimir", é possível escolher entre o relatório completo (todos os jogos) ou só os jogos premiados — útil para relatórios mais curtos quando o bolão tem muitos jogos vinculados.</p>
+
+    <h3 id="d-notif">2.7 Notificações: prêmio grande, jogos/bilhetes e mensagens</h3>
+    <p>Além do aviso de prazo de pagamento e de ativação, existem mais três tipos de notificação:</p>
+    <ul>
+      <li><b>Prêmio grande</b> — quando o prêmio por cota de um participante passa de um valor configurável (padrão R$500), ele recebe um aviso automático. O campo "🏆 Avisar prêmio &gt; R$___ por cota", no cabeçalho do card Administrador, permite mudar esse limite a qualquer momento.</li>
+      <li><b>Jogos novos e bilhetes</b> — o botão "📣 Avisar Participantes", na aba Participantes do bolão, manda uma <b>única</b> notificação cobrindo os jogos novos vinculados e os bilhetes novos anexados desde o último aviso. Não é mais preciso avisar cada um separadamente: os modais de "Jogos do Bolão" e "Bilhetes" agora só mostram um lembrete de quantos itens ainda estão pendentes, sem botão de envio próprio.</li>
+      <li><b>Mensagem manual</b> — o botão "📣 Mensagens", na tela de lista de Bolões, abre uma área independente de estar editando um bolão específico. É possível escolher enviar para um bolão específico, um participante específico (pessoa, mesmo que ele esteja em vários bolões) ou todos os participantes de todos os bolões.</li>
+    </ul>
+    <p>Importante: essas notificações só chegam a quem já ativou notificações no app mobile (ver <a href="#m-push">seção 3.8</a>).</p>
+
+    <h3 id="d-update">2.8 Atualização automática do Desktop</h3>
+    <p>A partir da versão 3.9, o aplicativo instalado no Windows confere automaticamente se existe uma versão nova ao abrir e depois a cada 30 minutos, enquanto estiver aberto. Ao encontrar uma, baixa em segundo plano (sem atrapalhar o uso) e mostra um aviso fixo na tela com o botão <b>"Instalar e Reiniciar"</b> — ao clicar, o aplicativo fecha, instala e reabre sozinho já na versão nova, sem precisar baixar nada manualmente.</p>
+  </section>
+
+  <section id="mobile">
+    <h2>3. App Mobile — Participante</h2>
+
+    <h3 id="m-conta">3.1 Criar conta e entrar</h3>
+    <p>No primeiro acesso, o participante cria uma conta com nome completo, WhatsApp (com DDD), e-mail e senha — todos obrigatórios. CPF e chave PIX (com seletor de tipo: CPF, CNPJ, Telefone, E-mail ou Aleatória) também podem ser preenchidos, mas são opcionais e não impedem a criação da conta caso fiquem em branco.</p>
+    <p>Se o participante já recebeu um convite de algum organizador (link enviado por WhatsApp ou e-mail), a conta é vinculada automaticamente ao bolão ao abrir o link.</p>
+
+    <h3 id="m-bio">3.2 Desbloqueio por biometria</h3>
+    <p>Em aparelhos com leitor de digital ou Face ID, é possível ativar um atalho de desbloqueio local na tela de Perfil. Uma vez ativado, o app pede a biometria para abrir em vez de pedir a senha novamente — enquanto a sessão do celular continuar válida.</p>
+    <p>Esse atalho não substitui a senha por completo: se a sessão expirar, o app pede e-mail e senha uma vez para reativar o atalho — e mostra uma mensagem explicando isso.</p>
+
+    <h3 id="m-boloes">3.3 Meus Bolões e detalhe do bolão</h3>
+    <p>A tela inicial lista todos os bolões em que o participante está vinculado. Ao abrir um bolão, aparecem: número da(s) cota(s), valor pago, "Meu Saldo" (contribuição paga menos a parte no custo das rodadas já vinculadas) e, quando há prêmio, o campo "Valor Ganho".</p>
+
+    <h3 id="m-filtro">3.4 Filtro Todos / Premiados</h3>
+    <p>Nos jogos do bolão (detalhe do bolão, Histórico e Relatórios), um botão de alternância "Todos / 🏆 Premiados" permite ver rapidamente só os jogos que tiveram prêmio, sem precisar procurar entre todos os jogos vinculados — a mesma opção que já existia na impressão do Desktop.</p>
+
+    <h3 id="m-historico">3.5 Histórico</h3>
+    <p>A aba Histórico mostra, para cada bolão em que o participante já esteve, um card com nome, status de pagamento, cotas, valor ganho (se houver) e os jogos vinculados. Abaixo, ficam os relatórios recebidos (confirmação de pagamento, resultado com ou sem prêmio).</p>
+
+    <h3 id="m-perfil">3.6 Perfil (foto, biometria, notificações)</h3>
+    <p>Na tela de Perfil, o participante pode: trocar a foto de perfil (só identificação visual dentro do próprio app), ativar/desativar o atalho de biometria e ativar/desativar as notificações push do aparelho.</p>
+    <p>As notificações push chegam mesmo com o app fechado — diferente dos avisos internos, que só aparecem quando a pessoa abre o app. É preciso ativá-las uma vez em cada aparelho para recebê-las.</p>
+
+    <h3 id="m-assinatura">3.7 Assinatura digital dos documentos</h3>
+    <p>Ao abrir um bolão pela primeira vez, o app pede para o participante desenhar (ou reaproveitar) uma assinatura e aceitar os Termos e Condições daquele bolão. Essa assinatura fica salva na conta e é reaproveitada automaticamente em qualquer bolão futuro — sem precisar assinar de novo toda vez.</p>
+
+    <h3 id="m-push">3.8 Notificações push recebidas</h3>
+    <p>Depois de ativar as notificações (seção 3.6), o participante recebe automaticamente:</p>
+    <ul>
+      <li>🎉 Bolão ativado — quando o organizador ativa o bolão.</li>
+      <li>🏆 Prêmio grande — quando o prêmio por cota do participante passa do limite configurado pelo organizador.</li>
+      <li>⏰ Prazo de pagamento encerrando — 10 minutos antes do prazo.</li>
+      <li>📣 Mensagens avulsas — enviadas pelo organizador a qualquer momento.</li>
+    </ul>
+  </section>
+
+  <section id="faq">
+    <h2>4. Perguntas frequentes</h2>
+
+    <div class="faq-q">O app mobile não está pedindo minha digital, mesmo já tendo ativado.</div>
+    <p>A biometria só desbloqueia uma sessão já guardada no aparelho. Se aparecer a tela de e-mail e senha em vez da biometria, provavelmente a sessão expirou; entre com e-mail e senha uma vez para reativar o atalho.</p>
+
+    <div class="faq-q">Não estou recebendo as notificações push.</div>
+    <p>Confirme, na tela de Perfil do app mobile, que as notificações estão realmente ativadas nesse aparelho. Elas precisam ser ativadas separadamente em cada aparelho/navegador.</p>
+
+    <div class="faq-q">O app mobile parece estar com uma versão antiga.</div>
+    <p>O app mobile se atualiza sozinho: sempre que é reaberto ou volta ao primeiro plano, ele confere se existe uma versão mais nova e recarrega automaticamente. Se ainda assim parecer desatualizado, feche o app completamente e abra de novo.</p>
+
+    <div class="faq-q">E o Desktop instalado no Windows — também atualiza sozinho?</div>
+    <p>Sim, a partir da versão 3.9 — ver <a href="#d-update">seção 2.8</a>.</p>
+
+    <div class="faq-q">Qual a diferença entre "prazo de pagamento" e "encerramento do bolão"?</div>
+    <p>O prazo de pagamento é o horário até quando dá para pagar a cota — definido livremente pelo organizador e sempre antes da ativação do bolão. O encerramento do bolão em si é sempre o fim da semana (domingo) ou do mês, e não precisa ser configurado à parte.</p>
+  </section>
+</main>
+</div>
+<footer>LottoAnalytics — manual gerado em HTML, atualizado junto com o app. Use "🖨 Imprimir / Salvar PDF" para gerar uma cópia em arquivo.</footer>
+<script>
+  // Realça o item ativo do sumário conforme a rolagem
+  var links = [...document.querySelectorAll('nav.toc a')];
+  var targets = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll(){
+    var y = window.scrollY + 80;
+    var current = targets[0];
+    targets.forEach(t => { if (t.offsetTop <= y) current = t; });
+    links.forEach(a => a.style.background = '');
+    var idx = targets.indexOf(current);
+    if (idx >= 0) links[idx].style.background = 'rgba(58,155,78,.18)';
+  }
+  window.addEventListener('scroll', onScroll);
+  onScroll();
+</script>
+</body>
+</html>
