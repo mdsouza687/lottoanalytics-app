@@ -200,10 +200,23 @@ function configurarAutoUpdate(win) {
     _logAutoUpdate('ERROR: ' + (err && err.stack ? err.stack : err));
     enviar({ type: 'error', message: msg });
   });
-  autoUpdater.checkForUpdates().catch(function (e) {
-    _logAutoUpdate('ERROR (catch da checkForUpdates): ' + e.message);
-    enviar({ type: 'error', message: e.message });
-  });
+  function checarAgora() {
+    autoUpdater.checkForUpdates().catch(function (e) {
+      _logAutoUpdate('ERROR (catch da checkForUpdates): ' + e.message);
+      enviar({ type: 'error', message: e.message });
+    });
+  }
+  checarAgora();
+  // Fase 108d (pedido do usuário, com log real provando o problema): só
+  // checar UMA VEZ no boot significa que quem deixa o app aberto (o caso
+  // mais comum — ninguém fecha o app a cada 20min) nunca recebe update
+  // nenhum até fechar e reabrir por conta própria, o que derrota o
+  // propósito de ter auto-update. Recheca a cada 30min enquanto o app tá
+  // aberto — intervalo curto o suficiente pra parecer "automático" de
+  // verdade, longo o suficiente pra não pesar (é só buscar um latest.yml
+  // pequeno no GitHub, sem custo real). Some sozinho quando o app fecha
+  // (setInterval morre junto do processo, não precisa clearInterval).
+  setInterval(checarAgora, 30 * 60 * 1000);
 }
 
 app.whenReady().then(() => {
