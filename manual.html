@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LottoAnalytics — Manual do Usuário</title>
+<title>LottoAnalytics — Manual do Usuário (Desktop)</title>
 <style>
   :root{
     --bg:#0b0f0d; --bg2:#131a16; --card:#16201b; --border:#233229;
@@ -58,6 +58,7 @@
   }
   .shot b{display:block; color:var(--text-dim); font-weight:700; margin-bottom:4px}
   .faq-q{font-weight:700; margin-top:18px}
+  .crosslink{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:18px 0; font-size:13.5px}
   footer{color:var(--text-dim); font-size:11px; padding:20px 48px; border-top:1px solid var(--border)}
   @media (max-width:860px){
     .layout{display:block}
@@ -95,25 +96,15 @@
   <a href="#d-notif">2.7 Notificações</a>
   <a href="#d-update">2.8 Atualização automática</a>
 
-  <h2>App Mobile — Participante</h2>
-  <a href="#m-conta">3.1 Criar conta e entrar</a>
-  <a href="#m-bio">3.2 Desbloqueio por biometria</a>
-  <a href="#m-boloes">3.3 Meus Bolões</a>
-  <a href="#m-filtro">3.4 Filtro Todos/Premiados</a>
-  <a href="#m-historico">3.5 Histórico</a>
-  <a href="#m-perfil">3.6 Perfil</a>
-  <a href="#m-assinatura">3.7 Assinatura digital</a>
-  <a href="#m-push">3.8 Notificações push</a>
-
   <h2>Ajuda</h2>
-  <a href="#faq">4. Perguntas frequentes</a>
+  <a href="#faq">3. Perguntas frequentes</a>
 </nav>
 
 <main>
   <div class="masthead">
     <div>
-      <h1>🍀 LottoAnalytics — Manual do Usuário</h1>
-      <div class="sub">Desktop (organizador) e App Mobile (participante) · Atualizado em 15/08/2026</div>
+      <h1>🍀 LottoAnalytics — Manual do Usuário (Desktop)</h1>
+      <div class="sub">Ferramenta do organizador · Atualizado em 15/08/2026</div>
     </div>
     <div class="actions">
       <button class="btn" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
@@ -123,12 +114,9 @@
 
   <section id="visao-geral">
     <h2>1. Visão geral</h2>
-    <p>O LottoAnalytics é composto por dois aplicativos que trabalham juntos:</p>
-    <ul>
-      <li><b>Desktop</b> — usado pelo organizador do bolão. Gera jogos, cadastra participantes, controla pagamentos, ativa o bolão, imprime documentos e envia notificações.</li>
-      <li><b>App Mobile (Participante)</b> — usado por quem participa do bolão. Acompanha seus jogos, saldo, prêmios, histórico e recebe avisos automáticos no celular.</li>
-    </ul>
-    <p>Os dois se comunicam pelo mesmo banco de dados na nuvem — qualquer alteração feita no Desktop (pagamento confirmado, jogo vinculado, bolão ativado) aparece automaticamente no app do participante, sem precisar sincronizar nada manualmente.</p>
+    <p>O Desktop é a ferramenta do <b>organizador</b> do bolão: gera jogos, cadastra participantes, controla pagamentos, ativa o bolão, imprime documentos e envia notificações.</p>
+    <p>Ele se comunica com o mesmo banco de dados do app mobile dos participantes — qualquer alteração feita aqui (pagamento confirmado, jogo vinculado, bolão ativado) aparece automaticamente no celular de quem participa, sem precisar sincronizar nada manualmente.</p>
+    <div class="crosslink">🎟️ Este manual cobre só o Desktop. Para o app do participante (quem entra num bolão pelo celular), veja o manual em <a href="https://lottoanalytics-participante.netlify.app/manual.html" target="_blank" rel="noopener">lottoanalytics-participante.netlify.app/manual.html</a>.</div>
   </section>
 
   <section id="desktop">
@@ -175,72 +163,28 @@
       <li><b>Jogos novos e bilhetes</b> — o botão "📣 Avisar Participantes", na aba Participantes do bolão, manda uma <b>única</b> notificação cobrindo os jogos novos vinculados e os bilhetes novos anexados desde o último aviso. Não é mais preciso avisar cada um separadamente: os modais de "Jogos do Bolão" e "Bilhetes" agora só mostram um lembrete de quantos itens ainda estão pendentes, sem botão de envio próprio.</li>
       <li><b>Mensagem manual</b> — o botão "📣 Mensagens", na tela de lista de Bolões, abre uma área independente de estar editando um bolão específico. É possível escolher enviar para um bolão específico, um participante específico (pessoa, mesmo que ele esteja em vários bolões) ou todos os participantes de todos os bolões.</li>
     </ul>
-    <p>Importante: essas notificações só chegam a quem já ativou notificações no app mobile (ver <a href="#m-push">seção 3.8</a>).</p>
+    <p>Importante: essas notificações só chegam a quem já ativou notificações no app mobile.</p>
 
     <h3 id="d-update">2.8 Atualização automática do Desktop</h3>
     <p>A partir da versão 3.9, o aplicativo instalado no Windows confere automaticamente se existe uma versão nova ao abrir e depois a cada 30 minutos, enquanto estiver aberto. Ao encontrar uma, baixa em segundo plano (sem atrapalhar o uso) e mostra um aviso fixo na tela com o botão <b>"Instalar e Reiniciar"</b> — ao clicar, o aplicativo fecha, instala e reabre sozinho já na versão nova, sem precisar baixar nada manualmente.</p>
   </section>
 
-  <section id="mobile">
-    <h2>3. App Mobile — Participante</h2>
-
-    <h3 id="m-conta">3.1 Criar conta e entrar</h3>
-    <p>No primeiro acesso, o participante cria uma conta com nome completo, WhatsApp (com DDD), e-mail e senha — todos obrigatórios. CPF e chave PIX (com seletor de tipo: CPF, CNPJ, Telefone, E-mail ou Aleatória) também podem ser preenchidos, mas são opcionais e não impedem a criação da conta caso fiquem em branco.</p>
-    <p>Se o participante já recebeu um convite de algum organizador (link enviado por WhatsApp ou e-mail), a conta é vinculada automaticamente ao bolão ao abrir o link.</p>
-
-    <h3 id="m-bio">3.2 Desbloqueio por biometria</h3>
-    <p>Em aparelhos com leitor de digital ou Face ID, é possível ativar um atalho de desbloqueio local na tela de Perfil. Uma vez ativado, o app pede a biometria para abrir em vez de pedir a senha novamente — enquanto a sessão do celular continuar válida.</p>
-    <p>Esse atalho não substitui a senha por completo: se a sessão expirar, o app pede e-mail e senha uma vez para reativar o atalho — e mostra uma mensagem explicando isso.</p>
-
-    <h3 id="m-boloes">3.3 Meus Bolões e detalhe do bolão</h3>
-    <p>A tela inicial lista todos os bolões em que o participante está vinculado. Ao abrir um bolão, aparecem: número da(s) cota(s), valor pago, "Meu Saldo" (contribuição paga menos a parte no custo das rodadas já vinculadas) e, quando há prêmio, o campo "Valor Ganho".</p>
-
-    <h3 id="m-filtro">3.4 Filtro Todos / Premiados</h3>
-    <p>Nos jogos do bolão (detalhe do bolão, Histórico e Relatórios), um botão de alternância "Todos / 🏆 Premiados" permite ver rapidamente só os jogos que tiveram prêmio, sem precisar procurar entre todos os jogos vinculados — a mesma opção que já existia na impressão do Desktop.</p>
-
-    <h3 id="m-historico">3.5 Histórico</h3>
-    <p>A aba Histórico mostra, para cada bolão em que o participante já esteve, um card com nome, status de pagamento, cotas, valor ganho (se houver) e os jogos vinculados. Abaixo, ficam os relatórios recebidos (confirmação de pagamento, resultado com ou sem prêmio).</p>
-
-    <h3 id="m-perfil">3.6 Perfil (foto, biometria, notificações)</h3>
-    <p>Na tela de Perfil, o participante pode: trocar a foto de perfil (só identificação visual dentro do próprio app), ativar/desativar o atalho de biometria e ativar/desativar as notificações push do aparelho.</p>
-    <p>As notificações push chegam mesmo com o app fechado — diferente dos avisos internos, que só aparecem quando a pessoa abre o app. É preciso ativá-las uma vez em cada aparelho para recebê-las.</p>
-
-    <h3 id="m-assinatura">3.7 Assinatura digital dos documentos</h3>
-    <p>Ao abrir um bolão pela primeira vez, o app pede para o participante desenhar (ou reaproveitar) uma assinatura e aceitar os Termos e Condições daquele bolão. Essa assinatura fica salva na conta e é reaproveitada automaticamente em qualquer bolão futuro — sem precisar assinar de novo toda vez.</p>
-
-    <h3 id="m-push">3.8 Notificações push recebidas</h3>
-    <p>Depois de ativar as notificações (seção 3.6), o participante recebe automaticamente:</p>
-    <ul>
-      <li>🎉 Bolão ativado — quando o organizador ativa o bolão.</li>
-      <li>🏆 Prêmio grande — quando o prêmio por cota do participante passa do limite configurado pelo organizador.</li>
-      <li>⏰ Prazo de pagamento encerrando — 10 minutos antes do prazo.</li>
-      <li>📣 Mensagens avulsas — enviadas pelo organizador a qualquer momento.</li>
-    </ul>
-  </section>
-
   <section id="faq">
-    <h2>4. Perguntas frequentes</h2>
+    <h2>3. Perguntas frequentes</h2>
 
-    <div class="faq-q">O app mobile não está pedindo minha digital, mesmo já tendo ativado.</div>
-    <p>A biometria só desbloqueia uma sessão já guardada no aparelho. Se aparecer a tela de e-mail e senha em vez da biometria, provavelmente a sessão expirou; entre com e-mail e senha uma vez para reativar o atalho.</p>
-
-    <div class="faq-q">Não estou recebendo as notificações push.</div>
-    <p>Confirme, na tela de Perfil do app mobile, que as notificações estão realmente ativadas nesse aparelho. Elas precisam ser ativadas separadamente em cada aparelho/navegador.</p>
-
-    <div class="faq-q">O app mobile parece estar com uma versão antiga.</div>
-    <p>O app mobile se atualiza sozinho: sempre que é reaberto ou volta ao primeiro plano, ele confere se existe uma versão mais nova e recarrega automaticamente. Se ainda assim parecer desatualizado, feche o app completamente e abra de novo.</p>
-
-    <div class="faq-q">E o Desktop instalado no Windows — também atualiza sozinho?</div>
+    <div class="faq-q">O Desktop instalado no Windows atualiza sozinho?</div>
     <p>Sim, a partir da versão 3.9 — ver <a href="#d-update">seção 2.8</a>.</p>
 
     <div class="faq-q">Qual a diferença entre "prazo de pagamento" e "encerramento do bolão"?</div>
     <p>O prazo de pagamento é o horário até quando dá para pagar a cota — definido livremente pelo organizador e sempre antes da ativação do bolão. O encerramento do bolão em si é sempre o fim da semana (domingo) ou do mês, e não precisa ser configurado à parte.</p>
+
+    <div class="faq-q">Dúvidas do lado do participante (app mobile)?</div>
+    <p>Veja o manual próprio do app mobile: <a href="https://lottoanalytics-participante.netlify.app/manual.html" target="_blank" rel="noopener">lottoanalytics-participante.netlify.app/manual.html</a>.</p>
   </section>
 </main>
 </div>
 <footer>LottoAnalytics — manual gerado em HTML, atualizado junto com o app. Use "🖨 Imprimir / Salvar PDF" para gerar uma cópia em arquivo.</footer>
 <script>
-  // Realça o item ativo do sumário conforme a rolagem
   var links = [...document.querySelectorAll('nav.toc a')];
   var targets = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
   function onScroll(){
