@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
@@ -69,7 +70,13 @@ function createWindow() {
       contextIsolation: true,
       // Necessário para chamadas fetch() a APIs externas (resultados das
       // loterias) funcionarem normalmente, igual a um navegador comum.
-      webSecurity: true
+      webSecurity: true,
+      // Fase 108b: única ponte main→renderer do app, só pra mandar o
+      // progresso do auto-update pra tela (ver preload.js) — sem isso o
+      // renderer não tem como saber que uma atualização foi encontrada/
+      // baixada, e a pessoa só via a tela nua do instalador NSIS sem
+      // contexto nenhum (nem versão, nem confirmação de que terminou).
+      preload: path.join(__dirname, 'preload.js')
     },
     autoHideMenuBar: true,
     show: false
@@ -93,31 +100,105 @@ function createWindow() {
     win.maximize();
     win.show();
   });
+  var _jaRodouAoCarregar = false;
   win.webContents.on('did-finish-load', () => {
     win.webContents.setZoomFactor(1.2);
+    // Só na primeira carga da janela — evita re-disparar o toast "Atualizado
+    // para vX" e re-registrar os listeners do autoUpdater se a página for
+    // recarregada por algum motivo (não deveria, mas por garantia).
+    if (_jaRodouAoCarregar) return;
+    _jaRodouAoCarregar = true;
+    avisarSeAcabouDeAtualizar(win);
+    configurarAutoUpdate(win);
   });
 
   return win;
 }
 
+// Fase 108b: depois que o instalador do auto-update roda e o app reabre
+// na versão nova, não existia NENHUMA confirmação disso — a pessoa via a
+// tela nua do NSIS (sem dizer pra qual versão) e depois nada, tinha que
+// adivinhar se funcionou. Grava a última versão vista em
+// userData/last-version.txt; se a versão atual for diferente da gravada
+// (ou não existir arquivo — primeira vez), manda um toast "🎉 Atualizado"
+// pro renderer e atualiza o arquivo. Roda em toda instalação (não só via
+// auto-update), o que é o comportamento certo: também confirma quando a
+// pessoa reinstala manualmente (como aconteceu no teste desta fase).
+function avisarSeAcabouDeAtualizar(win) {
+  if (!app.isPackaged) return;
+  var arq = path.join(app.getPath('userData'), 'last-version.txt');
+  var versaoAtual = app.getVersion();
+  var versaoAnterior = null;
+  try { versaoAnterior = fs.readFileSync(arq, 'utf8').trim(); } catch (e) { /* primeira execução, sem arquivo ainda */ }
+  if (versaoAnterior && versaoAnterior !== versaoAtual) {
+    win.webContents.send('auto-update-event', { type: 'updated', version: versaoAtual });
+    _logAutoUpdate('versão mudou de ' + versaoAnterior + ' para ' + versaoAtual + ' — avisando o renderer');
+  }
+  try { fs.writeFileSync(arq, versaoAtual); } catch (e) { /* não crítico */ }
+}
+
 // Auto-update via GitHub Releases (repo público mdsouza687/lottoanalytics-app
 // — o publish do electron-builder sobe o instalador + latest.yml pra lá).
-// checkForUpdatesAndNotify() baixa em segundo plano e mostra um aviso
-// nativo do SO quando terminar; a instalação só acontece quando o usuário
-// fecha e reabre o app (não interrompe quem está usando). Só roda em build
-// empacotado — em dev (`npm start`) o autoUpdater nem tenta, senão dá erro
-// "not packed".
-function configurarAutoUpdate() {
+// Baixa em segundo plano; a instalação roda quando o usuário fecha e
+// reabre o app (não interrompe quem está usando). Só roda em build
+// empacotado — em dev (`npm start`) o autoUpdater nem tenta, senão dá
+// erro "not packed".
+//
+// Fase 108b: a v3.8.4 não gerou nenhum feedback claro em quem já tinha a
+// 3.8.3 — o checkForUpdatesAndNotify() original só mostra uma notificação
+// nativa do SO (fácil de perder/não aparecer dependendo de configuração
+// do Windows) e não loga nada em lugar nenhum por padrão (autoUpdater.
+// logger fica null a menos que a gente configure), então não dava pra
+// saber SE ele sequer tentou checar. Duas mudanças:
+// 1) cada evento do ciclo grava uma linha em userData/autoupdate.log
+//    (arquivo de texto simples, sem dependência nova) — dá pra ler direto
+//    do disco da máquina onde o app roda, sem precisar de DevTools (que
+//    nem tá exposto no app empacotado).
+// 2) troca a notificação nativa do SO por toast() DENTRO do próprio app
+//    (via preload.js/IPC — ver window.lottoUpdater no index.html), com a
+//    versão explícita em cada mensagem — resolve a reclamação de "não
+//    mostra pra qual versão, não indica que terminou".
+function _logAutoUpdate(linha) {
+  try {
+    var arq = path.join(app.getPath('userData'), 'autoupdate.log');
+    fs.appendFileSync(arq, '[' + new Date().toISOString() + '] ' + linha + '\n');
+  } catch (e) { /* nunca deixa o log quebrar o app */ }
+}
+function configurarAutoUpdate(win) {
   if (!app.isPackaged) return;
-  autoUpdater.checkForUpdatesAndNotify().catch((e) => {
-    console.error('[autoUpdater] falha ao checar atualização:', e.message);
+  function enviar(payload) { win.webContents.send('auto-update-event', payload); }
+  _logAutoUpdate('boot: versão instalada = ' + app.getVersion());
+  autoUpdater.on('checking-for-update', function () {
+    _logAutoUpdate('checking-for-update');
+  });
+  autoUpdater.on('update-available', function (info) {
+    _logAutoUpdate('update-available: ' + info.version);
+    enviar({ type: 'available', version: info.version });
+  });
+  autoUpdater.on('update-not-available', function (info) {
+    _logAutoUpdate('update-not-available (atual já é a mais nova: ' + info.version + ')');
+  });
+  autoUpdater.on('download-progress', function (p) {
+    _logAutoUpdate('download-progress: ' + Math.round(p.percent) + '%');
+  });
+  autoUpdater.on('update-downloaded', function (info) {
+    _logAutoUpdate('update-downloaded: ' + info.version + ' — instala ao reiniciar');
+    enviar({ type: 'downloaded', version: info.version });
+  });
+  autoUpdater.on('error', function (err) {
+    var msg = err && err.message ? err.message : String(err);
+    _logAutoUpdate('ERROR: ' + (err && err.stack ? err.stack : err));
+    enviar({ type: 'error', message: msg });
+  });
+  autoUpdater.checkForUpdates().catch(function (e) {
+    _logAutoUpdate('ERROR (catch da checkForUpdates): ' + e.message);
+    enviar({ type: 'error', message: e.message });
   });
 }
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   createWindow();
-  configurarAutoUpdate();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

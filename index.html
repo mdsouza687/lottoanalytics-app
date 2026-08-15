@@ -1497,6 +1497,29 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   }catch(e){}
 })();
 </script>
+<script>
+// Fase 108b: feedback do auto-update do instalável (main.js/preload.js) —
+// só existe window.lottoUpdater dentro do app empacotado (preload
+// exclusivo dele via contextBridge); no site normal esse objeto nem
+// existe, então o if abaixo já cobre isso sem precisar checar navegador.
+// Registrado bem cedo (script roda antes de quase todo o resto da
+// página), mas toast() só é definida bem mais abaixo no arquivo — por
+// isso o handler confere typeof na hora que o evento chega, não no
+// registro, e enfileira se disparar cedo demais (não deveria acontecer
+// na prática, já que baixar/checar update sempre leva alguns segundos).
+(function(){
+  var _fila=[];
+  function _mostrar(p){
+    if(typeof toast!=='function'){ _fila.push(p); return; }
+    if(p.type==='available') toast('🔄 Atualização v'+p.version+' encontrada — baixando em segundo plano...');
+    else if(p.type==='downloaded') toast('✅ Atualização v'+p.version+' pronta — feche e abra o app para instalar.');
+    else if(p.type==='updated') toast('🎉 Atualizado para a versão '+p.version+'!');
+    else if(p.type==='error') toast('⚠️ Erro ao checar atualização: '+p.message);
+  }
+  if(window.lottoUpdater) window.lottoUpdater.onEvent(_mostrar);
+  window.addEventListener('load',function(){ while(_fila.length) _mostrar(_fila.shift()); });
+})();
+</script>
 <div class="page-orb" id="page-orb"></div>
 <div class="page-orb2" id="page-orb2"></div>
 <div class="toast" id="toast"></div>
@@ -1512,7 +1535,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.8.4</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.8.5</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1804,7 +1827,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 
   <!-- NAVBAR -->
   <div class="la-nav">
-    <div class="dash-brand" style="cursor:pointer" onclick="showDashboard()">
+    <div class="dash-brand" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:0" onclick="showDashboard()">
       <svg width="195" height="30" viewBox="0 0 300 46" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex-shrink:0">
   <defs>
     <radialGradient id="ld-bg" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#2a2010"/><stop offset="100%" stop-color="#0d0a04"/></radialGradient>
@@ -1829,6 +1852,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;padding-left:2px;margin-top:-2px">Versão 3.8.5</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -17143,9 +17167,9 @@ function renderFormBolao(){
       // deixou de ser o único botão sólido da barra por esse motivo.
       '<div style="display:flex;flex-direction:column;gap:8px">'+
         '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📥 Importar Lista</button>'+
           '<button onclick="salvarListaParticipantesModelo()" title="Guarda nome/e-mail/WhatsApp/CPF dos participantes deste bolão para reutilizar em outros, sem precisar redigitar tudo" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📌 Salvar Lista</button>'+
-          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar Lista\' — evita redigitar participantes recorrentes"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar Lista\' — evita redigitar participantes recorrentes"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📂 Carregar Lista Salva</button>'+
           (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
           (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="Comprovantes de PIX enviados pelos participantes — disponível principalmente antes de ativar o bolão" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 Comprovantes</button>' : '')+
           '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
