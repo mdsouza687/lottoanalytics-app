@@ -17010,7 +17010,15 @@ function renderFormBolao(){
   })():'') +
   // Administrador
   '<div style="'+cardStyle+'">'+
-    '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text);margin-bottom:12px">👤 Administrador</div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
+      '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text)">👤 Administrador</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+        '<span title="Avisa o participante automaticamente quando o prêmio dele (por cota) passar deste valor" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 Avisar prêmio &gt; R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>por cota</span>'+
+        (_boloesState.ativadoEm
+          ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
+          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — remove automaticamente quem não pagou (ativo ou não)" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
+      '</div>'+
+    '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">'+
       '<div><label style="'+lbl+'">Nome *</label><input id="adm-nome" style="'+inp+'" value="'+_esc(s.admin.nome)+'" oninput="_boloesState.admin.nome=this.value"/></div>'+
       '<div><label style="'+lbl+'">Telefone *</label><input id="adm-tel" style="'+inp+'" value="'+_esc(s.admin.telefone)+'" placeholder="(00) 00000-0000" maxlength="16" oninput="_maskTel(this)"/></div>'+
@@ -17043,6 +17051,18 @@ function renderFormBolao(){
       '<label style="'+lbl+';margin:0">Valor da cota (R$)</label>'+
       '<input id="adm-preco-cota" type="text" inputmode="decimal" value="'+(s.admin.precoCota?s.admin.precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0,00" '+(bolaoAtivado?'disabled ':'')+'title="Preço fixo de 1 cota — o participante escolhe quantas cotas quer no app e vê o total calculado automaticamente'+(bolaoAtivado?'. Travado: bolão já ativado.':'')+'" oninput="_boloesState.admin.precoCota=_parseMoeda(this.value)" style="'+inp+';width:110px'+(bolaoAtivado?';opacity:.6;cursor:not-allowed':'')+'"/>'+
       '<span style="font-size:10px;color:var(--text-muted)">Usado pelo participante para escolher a quantidade de cotas no app, antes de assinar os termos.</span>'+
+      (function(){
+        // Fase 107 (pedido do usuário): sem cobrança de organização, o
+        // valor digitado acima já é o que o participante paga. Com "cotas
+        // isentas" ou "valor fixo", o participante paga esse valor + a
+        // fração da taxa de organização rateada pelos participantes ativos
+        // — mesma fórmula da RPC _preco_cota_final() no backend (fase107).
+        var tipoOrg=_tipoOrg(s);
+        if((tipoOrg!=='cotas'&&tipoOrg!=='fixo')||!s.admin.precoCota) return '';
+        var final=_precoCotaFinalParticipante(s);
+        if(final<=s.admin.precoCota+0.001) return '';
+        return '<span style="font-size:11px;font-weight:700;color:#16a34a">= '+_bMoney(final)+' cobrado do participante (inclui rateio da organização)</span>';
+      })()+
     '</div>'+
     '<div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
       '<label style="'+lbl+';margin:0">Cobrança de organização</label>'+
@@ -17138,10 +17158,6 @@ function renderFormBolao(){
         (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
         (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="Pacote de documentação recomendado pra prêmios acima de R$10 mil por cota: Termo de Constituição + relatório só dos jogos premiados + todos os comprovantes de depósito, num documento só" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 Dossiê do Prêmio</button>' : '')+
         (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já tem conta vinculada e ativou notificações no app — funciona mesmo antes de ativar o bolão (ex.: lembrete de prazo de pagamento)" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
-        '<span title="Avisa o participante automaticamente quando o prêmio dele (por cota) passar deste valor" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 Avisar prêmio &gt; R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>por cota</span>'+
-        (_boloesState.ativadoEm
-          ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
-          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — remove automaticamente quem não pagou (ativo ou não)" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
@@ -17487,6 +17503,25 @@ async function _atualizarConcursoPremio(){
 // ou 'fixo' (orçamento total em R$ para o período do bolão, podendo o
 // admin também participar com cotas próprias abatidas desse orçamento).
 function _tipoOrg(s){ return (s.admin&&s.admin.tipoOrganizacao)||'cotas'; }
+// Fase 107 (pedido do usuário): valor final por cota que o participante
+// efetivamente paga. Sem cobrança de organização, é o próprio valor
+// digitado em "Valor da cota". Com "cotas isentas" ou "valor fixo", soma
+// a fração da taxa de organização rateada pelos participantes ATIVOS
+// (mesmo "nº de participantes" já usado em valorRateioPorPart, dentro de
+// _calcDadosFinanceirosBolao — só que aquele rateio é sobre custo real já
+// apurado; este aqui é sobre o preço-base ainda na fase de cotação, antes
+// de qualquer jogo existir). Espelha _preco_cota_final() no backend
+// (fase107 migration) — mesma fórmula nos dois lados.
+function _precoCotaFinalParticipante(s){
+  var base=(s.admin&&s.admin.precoCota)||0;
+  var tipoOrg=_tipoOrg(s);
+  var nPart=(s.participantes||[]).filter(function(p){return p.statusPart!=='inativo';}).length;
+  if(!nPart) return base;
+  var fracao=0;
+  if(tipoOrg==='fixo') fracao=(s.admin.valorFixoOrganizacao||0)/nPart;
+  else if(tipoOrg==='cotas') fracao=((s.admin.cotasAdmin==null?1:s.admin.cotasAdmin)*base)/nPart;
+  return base+fracao;
+}
 function _setTipoOrganizacao(v){
   var tipo=(v==='fixo')?'fixo':(v==='nenhuma'?'nenhuma':(v==='percentual'?'percentual':'cotas'));
   _boloesState.admin.tipoOrganizacao=tipo;
