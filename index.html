@@ -1507,6 +1507,12 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <div class="ag-card">
     <button class="modal-close" id="ag-close-btn" onclick="closeModal('auth-gate')" style="float:right;margin:-6px -6px 0 0">✕</button>
     <div class="ag-logo">🍀 LOTTO ANALYTICS</div>
+    <!-- Versão exibida aqui — não é lida do package.json (o web não tem
+         acesso a isso; e o instalável não tem preload/contextBridge
+         configurado pra expor app.getVersion() ao renderer). Bumpar esta
+         string manualmente junto com "version" do package.json a cada
+         release (ver npm run release:win). -->
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.8.4</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -17127,37 +17133,35 @@ function renderFormBolao(){
   '<div style="'+cardStyle+'">'+
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text)">🧑‍🤝‍🧑 Participantes</div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
-        '<button onclick="salvarBolao()" style="border:none;border-radius:8px;padding:6px 12px;background:'+cor+';color:#fff;font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Lista</button>'+
-        (s.editId?'<button onclick="abrirModalPremioSaldo()" title="Credita um valor do prêmio já apurado ao saldo, dividido pelas cotas de quem já pagou" style="border:1px solid #16a34a;border-radius:8px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 Prêmio → Saldo</button>':'')+
-        // Fase 85 (padronização de cores da barra, pedido do usuário):
-        // Importar Lista/Salvar p Reuso/Carregar Lista Salva sempre na
-        // mesma cor (a dinâmica "cor" da loteria/bolão) — Salvar Lista e
-        // Prêmio→Saldo mantêm a cor própria (sólida/verde) que já tinham.
-        '<button onclick="salvarListaParticipantesModelo()" title="Guarda nome/e-mail/WhatsApp/CPF dos participantes deste bolão para reutilizar em outros, sem precisar redigitar tudo" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📌 Salvar p/ Reuso</button>'+
-        '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar p/ Reuso\' — evita redigitar participantes recorrentes"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
-        '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
-        '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
-        // Fase 85b: fica SEMPRE na barra, na mesma posição — nunca some,
-        // igual aos demais botões (Jogos do Bolão, Bilhetes etc.), só
-        // desabilitado/cinza quando não há nada pendente pra avisar.
-        (function(){
-          var _p=_pendentesAvisoJogos();
-          var _on=_p.qtd>0;
-          return '<button onclick="'+(_on?'_enviarMensagemJogosBolao(\''+_boloesState.editId+'\')':'')+'" '+(_on?'':'disabled')+' title="'+(_on?'Manda uma única mensagem cobrindo todos os jogos vinculados que ainda não foram avisados':'Nenhum jogo novo pra avisar no momento')+'" style="border:1px solid '+(_on?cor:'var(--glass-border)')+';border-radius:8px;padding:6px 12px;background:'+(_on?cor+'18':'var(--glass-bg)')+';color:'+(_on?cor:'var(--text-muted)')+';font-weight:700;font-size:11px;cursor:'+(_on?'pointer':'not-allowed')+(_on?'':';opacity:.5')+'">📣 Avisar Participantes'+(_on?' ('+_p.modalidades+')':'')+'</button>';
-        })()+
-        (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
-        (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="Comprovantes de PIX enviados pelos participantes — disponível principalmente antes de ativar o bolão" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 Comprovantes</button>' : '')+
-        // Imprimir/Mensagem ganham cor própria (âmbar), diferente de tudo
-        // mais na barra — Termos e Condições/Termo de Constituição/Dossiê
-        // do Prêmio passam a seguir a cor do Gerar Jogos (a mesma "cor"
-        // dinâmica), junto com o resto dos botões não mencionados acima.
-        '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
-        '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
-        (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
-        (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="Pacote de documentação recomendado pra prêmios acima de R$10 mil por cota: Termo de Constituição + relatório só dos jogos premiados + todos os comprovantes de depósito, num documento só" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 Dossiê do Prêmio</button>' : '')+
-        (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já tem conta vinculada e ativou notificações no app — funciona mesmo antes de ativar o bolão (ex.: lembrete de prazo de pagamento)" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
+      // Fase 108 (pedido do usuário): duas linhas fixas, em vez de um
+      // flex-wrap só — ordem de gestão de lista/jogos na linha 1, ordem
+      // de documentos/comunicação na linha 2. Todos os botões seguem o
+      // MESMO padrão visual (outline com a cor de fundo em 18% de opacidade,
+      // radius 8px, padding 6px 12px) — só a cor muda por botão, quando já
+      // tinha cor própria antes (Prêmio→Saldo em verde, Imprimir/Mensagem
+      // em âmbar). "Salvar Bolão" (antigo "Salvar Lista", salvarBolao())
+      // deixou de ser o único botão sólido da barra por esse motivo.
+      '<div style="display:flex;flex-direction:column;gap:8px">'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível importar novos participantes')+'"':'title="Colunas na ordem: Nome, E-mail, WhatsApp (com DDD) — linhas sem e-mail/WhatsApp válidos são rejeitadas"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📥 Importar Lista</button>'+
+          '<button onclick="salvarListaParticipantesModelo()" title="Guarda nome/e-mail/WhatsApp/CPF dos participantes deste bolão para reutilizar em outros, sem precisar redigitar tudo" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📌 Salvar Lista</button>'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?'Bolão ativado: fechado para novos participantes':'Bolão finalizado: não é possível adicionar novos participantes')+'"':'title="Carrega a lista salva anteriormente com \'📌 Salvar Lista\' — evita redigitar participantes recorrentes"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+((bolaoFinalizado||bolaoAtivado)?';opacity:.5':'')+'">📂 Carregar Lista Salva</button>'+
+          (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="Anexe fotos do bilhete físico a qualquer momento do bolão — não depende de jogo vinculado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 Bilhetes</button>' : '')+
+          (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="Comprovantes de PIX enviados pelos participantes — disponível principalmente antes de ativar o bolão" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 Comprovantes</button>' : '')+
+          '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 Jogos do Bolão'+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
+          '<button onclick="salvarBolao()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">💾 Salvar Bolão</button>'+
+          (s.editId?'<button onclick="abrirModalPremioSaldo()" title="Credita um valor do prêmio já apurado ao saldo, dividido pelas cotas de quem já pagou" style="border:1px solid #16a34a;border-radius:8px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 Prêmio → Saldo</button>':'')+
+          '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">🖨 Imprimir</button>'+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          '<button onclick="imprimirTermosCondicoes()" title="Termos e Condições de participação — modelo padrão, ajusta a cláusula de taxa administrativa automaticamente" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📜 Termos e Condições</button>'+
+          (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="Documento de governança com nome/CPF/cotas de cada participante — gerado após a ativação" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 Termo de Constituição</button>' : '')+
+          (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="Pacote de documentação recomendado pra prêmios acima de R$10 mil por cota: Termo de Constituição + relatório só dos jogos premiados + todos os comprovantes de depósito, num documento só" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 Dossiê do Prêmio</button>' : '')+
+          '<a href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" title="Documento institucional — mesmo conteúdo do app do participante" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center">📄 Regras de Funcionamento e Isenção de ITCMD</a>'+
+          (_boloesState.editId ? '<button onclick="_enviarMensagemJogosEBilhetesBolao(\''+_boloesState.editId+'\')" title="Manda uma única mensagem cobrindo jogos novos e bilhetes ainda não avisados — sem precisar mandar cada um separado" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📣 Avisar Participantes</button>' : '')+
+          '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="Bolão finalizado: não é possível vincular novos jogos"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 Gerar Jogos</button>'+
+          (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="Envia uma notificação push pra quem já tem conta vinculada e ativou notificações no app — funciona mesmo antes de ativar o bolão (ex.: lembrete de prazo de pagamento)" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">📣 Mensagem</button>' : '')+
+        '</div>'+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
@@ -20093,10 +20097,10 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // Fase 84: não notifica mais a cada vínculo — vincular jogos de várias
     // modalidades em sequência (ex.: Mega-Sena, depois Quina, depois
     // Lotomania) virava um push separado pra cada uma. Agora só avisa
-    // quando o organizador clicar em "Avisar Participantes" no modal
-    // "Jogos do Bolão", numa mensagem só cobrindo tudo que ainda não foi
-    // avisado (mesmo padrão já usado nos Bilhetes — ver
-    // _enviarMensagemJogosBolao).
+    // quando o organizador clicar em "📣 Avisar Participantes" na barra do
+    // bolão, numa mensagem só cobrindo tudo que ainda não foi avisado —
+    // jogos E bilhetes juntos desde a Fase 108 (ver
+    // _enviarMensagemJogosEBilhetesBolao).
     // Sincronizar estado em memória se o bolão está aberto
     if(_boloesState&&_boloesState.editId===bolaoId){
       _boloesState.concursos=g.concursos;
@@ -20496,9 +20500,9 @@ async function _adicionarBilheteBolao(inputEl){
     toast('✓ Bilhete anexado.');
     // Fase 57: não notifica mais a cada foto — o organizador costuma
     // anexar várias em sequência (uma por jogo, por exemplo) e cada uma
-    // virava um push separado. Agora só avisa quando ele clicar em
-    // "Enviar Mensagem" no card, e só sobre o que ainda não foi avisado
-    // (ver _enviarMensagemBilhetesBolao).
+    // virava um push separado. Fase 108: o aviso saiu daqui e virou o
+    // único "📣 Avisar Participantes" da barra do bolão, junto com jogos
+    // novos (ver _enviarMensagemJogosEBilhetesBolao).
     verBilhetesBolao();
   }catch(e){ toast('Erro ao anexar: '+e.message); }
 }
@@ -20511,32 +20515,6 @@ async function _excluirBilheteBolao(bilheteId){
     toast('Foto removida.');
     verBilhetesBolao();
   }catch(e){ toast('Erro ao excluir: '+e.message); }
-}
-// Fase 57: substitui o push automático por foto (incômodo com várias fotos
-// em sequência) por um envio manual — notifica só os bilhetes ainda não
-// notificados (notificado_em is null), marca todos como notificados e
-// fecha o card. Reconsulta o banco em vez de confiar na lista já
-// renderizada, pra não reenviar algo que outra aba/sessão já tenha
-// notificado entretanto.
-async function _enviarMensagemBilhetesBolao(bolaoId){
-  var sb=_getSbClient(); if(!sb) return;
-  try{
-    var { data, error }=await sb.from('bolao_bilhetes').select('id').eq('bolao_id',bolaoId).is('notificado_em',null);
-    if(error) throw error;
-    var pendentes=data||[];
-    if(!pendentes.length){ toast('Nenhum bilhete novo para notificar.'); return; }
-    var qtd=pendentes.length;
-    var corpo=qtd>1
-      ? qtd+' novos bilhetes foram adicionados ao bolão '+(_boloesState.nome||'')+'.'
-      : 'Um novo bilhete foi adicionado ao bolão '+(_boloesState.nome||'')+'.';
-    await _notificarBolao(bolaoId, '📎 Novo bilhete', corpo);
-    var ids=pendentes.map(function(p){return p.id;});
-    var { error:errUpd }=await sb.from('bolao_bilhetes').update({notificado_em:new Date().toISOString()}).in('id',ids);
-    if(errUpd) throw errUpd;
-    toast('✓ Mensagem enviada.');
-    var modal=document.getElementById('modal-bilhetes-bolao');
-    if(modal) modal.remove();
-  }catch(e){ toast('Erro ao enviar mensagem: '+e.message); }
 }
 async function verBilhetesBolao(){
   var bolaoId=_boloesState.editId;
@@ -20576,10 +20554,8 @@ async function verBilhetesBolao(){
           '</label>'+
           gradeHtml+
         '</div>'+
-        (lista.length ?
-          '<div style="padding:12px 20px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end">'+
-            '<button onclick="_enviarMensagemBilhetesBolao(\''+bolaoId+'\')"'+(pendentes.length?'':' disabled')+' style="border:none;border-radius:8px;padding:9px 16px;background:'+(pendentes.length?cor:'var(--glass-bg)')+';color:'+(pendentes.length?'#fff':'var(--text-muted)')+';font-weight:700;font-size:12px;cursor:'+(pendentes.length?'pointer':'not-allowed')+'">📨 Enviar Mensagem'+(pendentes.length?' ('+pendentes.length+' novo'+(pendentes.length>1?'s':'')+')':'')+'</button>'+
-          '</div>'
+        (pendentes.length ?
+          '<div style="padding:10px 20px;border-top:1px solid var(--glass-border);font-size:11px;color:var(--text-muted);text-align:center">'+pendentes.length+' foto'+(pendentes.length>1?'s':'')+' ainda não avisada'+(pendentes.length>1?'s':'')+' — envie pelo "📣 Avisar Participantes" na barra do bolão.</div>'
         : '')+
       '</div>'+
     '</div>';
@@ -20649,61 +20625,75 @@ async function verComprovantesPix(){
   var div=document.createElement('div'); div.innerHTML=modalHtml;
   document.body.appendChild(div.firstChild);
 }
-// Fase 84: envia UMA notificação consolidada cobrindo todos os concursos
-// vinculados desde o último aviso — inclusive de modalidades/loterias
-// diferentes, vinculadas em ações separadas na mesma sessão. Mesmo padrão
-// já usado em _enviarMensagemBilhetesBolao(): reconsulta o banco (não
-// confia no que já está renderizado, pra não reenviar algo que outra
-// aba/sessão já tenha avisado nesse meio-tempo), notifica só quem estiver
-// com jogos_avisados_em nulo, e marca tudo como avisado de uma vez.
-// Fase 93: usa bolao_concursos.jogos_avisados_em, NÃO publicado_em — esse
-// campo já era usado desde a Fase 7 pela edge function
-// publicar-resultados-automatico (flag de "resultado do sorteio já
-// avisado"). A Fase 84 tinha reaproveitado o mesmo campo sem checar que
-// já existia uso, quebrando silenciosamente o aviso automático de
-// resultado (ver migração fase93_corrige_colisao_publicado_em).
-// Lê _boloesState.concursos (já em memória, sem consulta nova) pra saber
-// quantos concursos/modalidades estão sem aviso — alimenta o botão "📣
-// Avisar Participantes" tanto na barra de ferramentas (síncrono, precisa
-// ser rápido) quanto no modal "Jogos do Bolão".
-function _pendentesAvisoJogos(){
-  var pend=(_boloesState.concursos||[]).filter(function(c){return !c.jogosAvisadosEm;});
-  return {qtd:pend.length, modalidades:new Set(pend.map(function(c){return c.loteria;})).size};
-}
-async function _enviarMensagemJogosBolao(bolaoId){
+// Fase 108 (pedido do usuário): "Avisar Participantes" passa a ser o
+// ÚNICO jeito de notificar — antes existiam 3 gatilhos separados (esta
+// barra, o modal Jogos do Bolão, e o modal Bilhetes), cada um mandando a
+// própria mensagem na hora que o organizador clicava, o que podia virar
+// várias notificações picadas pro mesmo participante. Agora é uma
+// consulta só, cobrindo jogos novos (bolao_concursos.jogos_avisados_em
+// nulo) E bilhetes novos (bolao_bilhetes.notificado_em nulo) ao mesmo
+// tempo, e manda NO MÁXIMO uma mensagem por clique, com as duas
+// informações juntas quando as duas existem. Substitui
+// _enviarMensagemJogosBolao()+_enviarMensagemBilhetesBolao() (removidas).
+// Mesmo cuidado de sempre: reconsulta o banco em vez de confiar no que já
+// está renderizado, pra não reenviar algo que outra aba/sessão já tenha
+// avisado nesse meio-tempo (Fase 84/57).
+async function _enviarMensagemJogosEBilhetesBolao(bolaoId){
   var sb=_getSbClient(); if(!sb) return;
   try{
-    var { data, error }=await sb.from('bolao_concursos').select('id,loteria,concurso_ref').eq('bolao_id',bolaoId).is('jogos_avisados_em',null);
-    if(error) throw error;
-    var pendentes=data||[];
-    if(!pendentes.length){ toast('Nenhum jogo novo para notificar.'); return; }
-    var porLoteria={};
-    pendentes.forEach(function(p){
-      var dL=CFG[p.loteria];
-      var nome=dL?dL.nome:p.loteria;
-      (porLoteria[nome]=porLoteria[nome]||[]).push(p.concurso_ref);
-    });
-    var nomesLoterias=Object.keys(porLoteria);
-    var corpo;
-    if(nomesLoterias.length>1){
-      corpo='Novos jogos foram adicionados ao bolão '+(_boloesState.nome||'')+' em '+nomesLoterias.length+' modalidades: '+nomesLoterias.join(', ')+'.';
-    } else {
-      var concs=porLoteria[nomesLoterias[0]];
-      var concLabel=concs.length>1?('concursos '+concs.join(', ')):('concurso '+concs[0]);
-      corpo='Novos jogos da '+nomesLoterias[0]+' ('+concLabel+') foram adicionados ao bolão '+(_boloesState.nome||'')+'.';
+    var [rJogos, rBilhetes]=await Promise.all([
+      sb.from('bolao_concursos').select('id,loteria,concurso_ref').eq('bolao_id',bolaoId).is('jogos_avisados_em',null),
+      sb.from('bolao_bilhetes').select('id').eq('bolao_id',bolaoId).is('notificado_em',null)
+    ]);
+    if(rJogos.error) throw rJogos.error;
+    if(rBilhetes.error) throw rBilhetes.error;
+    var pendJogos=rJogos.data||[];
+    var pendBilhetes=rBilhetes.data||[];
+    if(!pendJogos.length && !pendBilhetes.length){ toast('Nada novo para notificar.'); return; }
+
+    var partes=[];
+    if(pendJogos.length){
+      var porLoteria={};
+      pendJogos.forEach(function(p){
+        var dL=CFG[p.loteria];
+        var nome=dL?dL.nome:p.loteria;
+        (porLoteria[nome]=porLoteria[nome]||[]).push(p.concurso_ref);
+      });
+      var nomesLoterias=Object.keys(porLoteria);
+      if(nomesLoterias.length>1){
+        partes.push('novos jogos em '+nomesLoterias.length+' modalidades ('+nomesLoterias.join(', ')+')');
+      } else {
+        var concs=porLoteria[nomesLoterias[0]];
+        var concLabel=concs.length>1?('concursos '+concs.join(', ')):('concurso '+concs[0]);
+        partes.push('novos jogos da '+nomesLoterias[0]+' ('+concLabel+')');
+      }
     }
-    await _notificarBolao(bolaoId, '🎲 Novos jogos adicionados', corpo);
+    if(pendBilhetes.length){
+      partes.push(pendBilhetes.length>1 ? pendBilhetes.length+' novos bilhetes' : 'um novo bilhete');
+    }
+    var titulo=(pendJogos.length && pendBilhetes.length) ? '🎲📎 Novidades do bolão' : (pendJogos.length ? '🎲 Novos jogos adicionados' : '📎 Novo bilhete');
+    var corpo='O bolão '+(_boloesState.nome||'')+' tem '+partes.join(' e ')+'.';
+
+    await _notificarBolao(bolaoId, titulo, corpo);
     var agoraIso=new Date().toISOString();
-    var ids=pendentes.map(function(p){return p.id;});
-    var { error:errUpd }=await sb.from('bolao_concursos').update({jogos_avisados_em:agoraIso}).in('id',ids);
-    if(errUpd) throw errUpd;
-    // Reflete no estado local na hora — o botão da barra (síncrono, lê
-    // _pendentesAvisoJogos) some sem precisar recarregar o bolão inteiro.
-    if(_boloesState && _boloesState.editId===bolaoId && _boloesState.concursos){
-      _boloesState.concursos.forEach(function(c){ if(!c.jogosAvisadosEm) c.jogosAvisadosEm=agoraIso; });
+    if(pendJogos.length){
+      var idsJ=pendJogos.map(function(p){return p.id;});
+      var { error:errJ }=await sb.from('bolao_concursos').update({jogos_avisados_em:agoraIso}).in('id',idsJ);
+      if(errJ) throw errJ;
+      // Reflete no estado local na hora — a barra (síncrona) não precisa
+      // recarregar o bolão inteiro pra saber que não há mais pendência.
+      if(_boloesState && _boloesState.editId===bolaoId && _boloesState.concursos){
+        _boloesState.concursos.forEach(function(c){ if(!c.jogosAvisadosEm) c.jogosAvisadosEm=agoraIso; });
+      }
+    }
+    if(pendBilhetes.length){
+      var idsB=pendBilhetes.map(function(p){return p.id;});
+      var { error:errB }=await sb.from('bolao_bilhetes').update({notificado_em:agoraIso}).in('id',idsB);
+      if(errB) throw errB;
     }
     toast('✓ Mensagem enviada.');
-    if(document.getElementById('modal-jogos-vinc')) verJogosVinculados(); // se o modal estava aberto, reabre atualizado
+    if(document.getElementById('modal-jogos-vinc')) verJogosVinculados(); // se algum modal estava aberto, reabre atualizado
+    if(document.getElementById('modal-bilhetes-bolao')) verBilhetesBolao();
     if(typeof renderFormBolao==='function') renderFormBolao(); // atualiza a barra de ferramentas
   }catch(e){ toast('Erro ao enviar mensagem: '+e.message); }
 }
@@ -20887,12 +20877,12 @@ async function verJogosVinculados(){
   }).join('');
   var totalJogos=concursos.reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
   var totalCusto=concursos.reduce(function(a,c){return a+(c.custo||0);},0);
-  // Fase 84: mesma fonte usada pelo botão da barra de ferramentas
-  // (_pendentesAvisoJogos, lê s.concursos em memória) — os dois lugares
-  // sempre mostram o mesmo número, sem depender de uma consulta extra
-  // aqui que pudesse divergir por timing.
-  var _pendModal=_pendentesAvisoJogos();
-  var pendentesJogos=_pendModal.qtd, pendentesModalidades=_pendModal.modalidades;
+  // Quantos concursos ainda não foram avisados — lê s.concursos em
+  // memória (sem consulta nova). Fase 108: o envio de verdade saiu daqui
+  // e virou o único "📣 Avisar Participantes" da barra do bolão
+  // (_enviarMensagemJogosEBilhetesBolao) — este modal só mostra quantos
+  // estão pendentes, sem botão próprio de envio.
+  var pendentesJogos=(concursos||[]).filter(function(c){return !c.jogosAvisadosEm;}).length;
   var modalHtml=
     '<div id="modal-jogos-vinc" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
       '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:660px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
@@ -20904,10 +20894,8 @@ async function verJogosVinculados(){
           '<button onclick="document.getElementById(\'modal-jogos-vinc\').remove()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
         '</div>'+
         '<div style="padding:16px 20px;overflow-y:auto;flex:1">'+concursosHtml+'</div>'+
-        (concursos.length ?
-          '<div style="padding:12px 20px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end">'+
-            '<button onclick="_enviarMensagemJogosBolao(\''+bolaoId+'\')"'+(pendentesJogos?'':' disabled')+' style="border:none;border-radius:8px;padding:9px 16px;background:'+(pendentesJogos?cor:'var(--glass-bg)')+';color:'+(pendentesJogos?'#fff':'var(--text-muted)')+';font-weight:700;font-size:12px;cursor:'+(pendentesJogos?'pointer':'not-allowed')+'">📣 Avisar Participantes'+(pendentesJogos?' ('+pendentesModalidades+' modalidade'+(pendentesModalidades>1?'s':'')+')':'')+'</button>'+
-          '</div>'
+        (pendentesJogos ?
+          '<div style="padding:10px 20px;border-top:1px solid var(--glass-border);font-size:11px;color:var(--text-muted);text-align:center">'+pendentesJogos+' concurso'+(pendentesJogos>1?'s':'')+' ainda não avisado'+(pendentesJogos>1?'s':'')+' — envie pelo "📣 Avisar Participantes" na barra do bolão.</div>'
         : '')+
       '</div>'+
     '</div>';
@@ -21692,8 +21680,8 @@ var BolaoJogosRepo = {
       // Fase 84 (consolidar aviso de jogos vinculados, mesmo padrão dos
       // Bilhetes): TODA sincronização deste concurso — vinculação nova ou
       // adição de mais jogos a um concurso já existente — marca a linha
-      // como "ainda não avisada" de novo. _enviarMensagemJogosBolao() é
-      // quem seta a data, manualmente, quando o organizador decide avisar.
+      // como "ainda não avisada" de novo. _enviarMensagemJogosEBilhetesBolao()
+      // é quem seta a data, manualmente, quando o organizador decide avisar.
       // Fase 93: campo próprio (jogos_avisados_em) — a Fase 84 original
       // tinha reaproveitado bolao_concursos.publicado_em achando que
       // estava sem uso, mas esse campo já pertencia (desde a Fase 7) ao
@@ -22024,7 +22012,7 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     }
     toast('✓ '+jogos.length+' jogos vinculados ao bolão "'+g.nome+'"');
     // Fase 84: idem _vincularSalvoAoBolaoImpl — sem notificação por vínculo,
-    // consolidado em _enviarMensagemJogosBolao() via botão manual.
+    // consolidado em _enviarMensagemJogosEBilhetesBolao() via botão manual.
   }catch(e){ console.error(e); toast('Erro ao vincular: '+e.message); }
 }
 
@@ -23356,7 +23344,7 @@ async function ptRenderDetalheBolao(bolaoId){
     '<button class="pt-btn-link" onclick="ptAbrirTermosCondicoes()" style="display:block;width:100%;text-align:left;padding:8px 0">📜 Termos e Condições</button>'+
     '<button class="pt-btn-link" onclick="ptAbrirTermoConstituicao(\''+bolaoId+'\')" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Termo de Constituição do Bolão</button>'+
     '<button class="pt-btn-link" onclick="ptAbrirDossiePremio(\''+bolaoId+'\')" title="Termo de Constituição + jogos premiados + comprovantes de depósito, num documento só" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border)">📄 Dossiê do Prêmio</button>'+
-    '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📄 Regras de Funcionamento e Isenção de Impostos</a>'+
+    '<a class="pt-btn-link" href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" style="display:block;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--glass-border);text-decoration:none">📄 Regras de Funcionamento e Isenção de ITCMD</a>'+
   '</div>';
   html+=ptSecaoJogosPorLoteriaHtml(bolaoId,jogosAoVivo,cardsPremioProporcional,info);
   detailEl.innerHTML=html;
