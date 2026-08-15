@@ -5690,7 +5690,7 @@ function renderLaHeroInfo(d,key,real){
     ? '<div class="la-hi-row"><span class="la-hi-lbl">Cash Value</span><span class="la-hi-val la-hi-cash">'+real.cashValue+'</span></div>'
     : '';
   wrap.innerHTML=
-    '<div class="la-hi-nome" style="color:'+_corMarcaLegivelHero(d)+'"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(d,18)+'</span>'+d.nome+'</div>'+
+    '<div class="la-hi-nome" style="color:'+_corMarcaLegivelHero(d)+'"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(d,18)+d.nome+'</span></div>'+
     '<div class="la-hi-row"><span class="la-hi-lbl">Prêmio estimado</span><span class="la-hi-val" style="color:'+_corMarcaLegivelHero(d)+'">'+premio+'</span></div>'+
     cashHtml+
     '<div class="la-hi-meta"><span>'+conc+'</span>'+(prox?'<span>'+prox+'</span>':'')+'</div>'+
@@ -6747,7 +6747,7 @@ function setOrb(orb,d){
     orb2el.style.background=`radial-gradient(circle,rgba(${r2},${g2},${b2},.6) 0%,transparent 70%)`;
   }
 }
-function renderSkel(d){document.getElementById('lottery-card').innerHTML=`<div class="card-top" style="background:${d.cor}"><span class="card-top-concurso">...</span><span class="card-top-nome"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,18,true)}</span>${d.nome}</span><span class="card-top-data">...</span></div><div style="padding:20px;display:flex;flex-direction:column;gap:10px"><div class="skel" style="height:48px;border-radius:12px"></div><div class="skel" style="height:14px;width:60%;margin:0 auto"></div><div class="skel" style="height:14px;width:80%;margin:0 auto"></div></div>`;}
+function renderSkel(d){document.getElementById('lottery-card').innerHTML=`<div class="card-top" style="background:${d.cor}"><span class="card-top-concurso">...</span><span class="card-top-nome"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,18,true)}${d.nome}</span></span><span class="card-top-data">...</span></div><div style="padding:20px;display:flex;flex-direction:column;gap:10px"><div class="skel" style="height:48px;border-radius:12px"></div><div class="skel" style="height:14px;width:60%;margin:0 auto"></div><div class="skel" style="height:14px;width:80%;margin:0 auto"></div></div>`;}
 function _buildResultCardHtml(res,d){
   let h='';
   h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
@@ -6840,7 +6840,7 @@ function renderCard(res,d){
   const card=document.getElementById('lottery-card');
   card.innerHTML=_staleWarn+_buildResultCardHtml(res,d);
   atualizarBtnDash(currentKey,res);
-  document.getElementById('print-title').innerHTML=`<span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome} — Concurso ${res.concurso}`;
+  document.getElementById('print-title').innerHTML=`<span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,14)}${d.nome}</span> — Concurso ${res.concurso}`;
   document.getElementById('print-sub').textContent=res.data;
   setTimeout(()=>verificarPremiacaoCard(currentKey), 200);
 }
@@ -7626,7 +7626,7 @@ function abrirVolante(tipo) {
       <!-- Cabeçalho -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--glass-border);background:${ac};border-radius:16px 16px 0 0">
         <div>
-          <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:#fff"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,16,true)}</span>${d.nome}</div>
+          <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:#fff"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,16,true)}${d.nome}</span></div>
           <div id="vol-status-${tipo}" style="font-size:10px;color:var(--text-muted);margin-top:1px">
             ${[..._volFixos[tipo]].filter(v=>v<1000).length} fixo${[..._volFixos[tipo]].filter(v=>v<1000).length!==1?'s':''} · máx. ${fMax}
           </div>
@@ -9312,7 +9312,7 @@ async function conferirTodos(){
       <div class="conf-stat"><div class="conf-stat-val" style="color:${COR_OURO}">${premiados.length}</div><div class="conf-stat-lbl">Premiado${premiados.length!==1?'s':''}</div></div>
       <div class="conf-stat"><div class="conf-stat-val" style="color:var(--text-muted)">${todosOsJogos.length}</div><div class="conf-stat-lbl">Conferidos</div></div>
     </div>
-    <div class="conf-total-meta"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span><strong>${d.nome}</strong> · Concurso #${res.concurso} · ${res.data}<br>${fontes.join(' + ')}</div>
+    <div class="conf-total-meta"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,14)}<strong>${d.nome}</strong></span> · Concurso #${res.concurso} · ${res.data}<br>${fontes.join(' + ')}</div>
   </div>`;
 
   // ── NÚMEROS SORTEADOS ──
@@ -10386,7 +10386,7 @@ async function openModalSalvar(escopo){
   const hdr=document.getElementById('hdr-salvar');
   hdr.style.background=todasLot?'linear-gradient(135deg,#5b3cc4,#2f6db8)':d.cor;
   const ttl=hdr.querySelector('.modal-title');
-  if(ttl) ttl.innerHTML=todasLot?'💾 Jogos Salvos — Todas as Loterias':`💾 Jogos Salvos — <span style="display:inline-flex;vertical-align:middle">${iconLoteria(d,16,true)}</span> ${d.nome}`;
+  if(ttl) ttl.innerHTML=todasLot?'💾 Jogos Salvos — Todas as Loterias':`💾 Jogos Salvos — <span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,16,true)}${d.nome}</span>`;
   const pad=n=>String(n).padStart(2,'0');
 
   /* ── Jogos individuais salvos ── */
@@ -10464,7 +10464,7 @@ async function openModalSalvar(escopo){
       <div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">
         <div style="padding:10px 12px 8px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div style="min-width:0;flex:1">
-            <div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${todasLot?'<span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(cfg,14)+'</span>':''}${item.nome}</div>
+            <div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${todasLot?'<span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(cfg,14)+item.nome+'</span>':item.nome}</div>
             <div style="font-size:10px;color:var(--text-dim);margin-top:2px">${dtStr} · ${item.jogos.length} jogo${item.jogos.length!==1?'s':''} · ${item.numDez} dez${fixosInfo}${item.concurso?' · Conc. '+item.concurso:''}${_custoStr}</div>
           </div>
           <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">${acoesTopo}</div>
@@ -10540,7 +10540,7 @@ async function openModalSalvar(escopo){
         '<div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
           '<div style="padding:10px 12px 8px;border-bottom:1px solid var(--glass-border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'+
             '<div style="min-width:0;flex:1">'+
-              '<div style="font-size:12px;font-weight:800;color:#fff">'+(todasLot?'<span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(cfgB,14)+'</span><span style="color:'+_corMarcaLegivelHero(cfgB)+'">'+cfgB.nome+'</span> · ':'')+'Concurso #'+grupo.concurso+
+              '<div style="font-size:12px;font-weight:800;color:#fff">'+(todasLot?'<span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(cfgB,14)+'<span style="color:'+_corMarcaLegivelHero(cfgB)+'">'+cfgB.nome+'</span></span> · ':'')+'Concurso #'+grupo.concurso+
                 (grupo.dataConcurso?' <span style="font-size:10px;font-weight:400;color:var(--text-dim)">· '+grupo.dataConcurso+'</span>':'')+
               '</div>'+
               '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">'+
@@ -11620,7 +11620,7 @@ function abrirVolanteExcl(tipo) {
       <!-- Cabeçalho -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,77,109,.2);background:linear-gradient(135deg,rgba(255,77,109,.25),rgba(255,77,109,.1));border-radius:16px 16px 0 0">
         <div>
-          <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:#fff">🚫 Excluir Dezenas — <span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome}</div>
+          <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:#fff">🚫 Excluir Dezenas — <span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,14)}${d.nome}</span></div>
           <div id="excl-status" style="font-size:10px;color:var(--text-muted);margin-top:1px">
             ${_volExcl.size} número${_volExcl.size!==1?'s':''} excluído${_volExcl.size!==1?'s':''}
           </div>
@@ -13478,7 +13478,7 @@ function atualizarManualDica(){
       const modalManuais=document.getElementById('modal-manuais');
       if(modalManuais){ modalManuais.style.setProperty('--ac',d.cor); modalManuais.style.setProperty('--ac-text',corTextoSobre(d.cor)); }
       const faixa=d.min===d.max?`${d.min} dezenas`:`${d.min} a ${d.max} dezenas`;
-      dica.innerHTML=`<span style="color:${_corMarcaLegivelHero(d)}"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,14)}</span>${d.nome}</span> — ${d.superSete?'1 dígito (0–9) por coluna':faixa+` de ${pad2(d.start)} a ${pad2(d.start+d.universe-1)}`}${d.bolaExtra?` + ${d.bolaExtraNome} 1–${d.bolaExtraMax}`:''}${d.hasTrevo?` + ${d.trevosMin||2} trevos`:''}`;
+      dica.innerHTML=`<span style="color:${_corMarcaLegivelHero(d)}"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,14)}${d.nome}</span></span> — ${d.superSete?'1 dígito (0–9) por coluna':faixa+` de ${pad2(d.start)} a ${pad2(d.start+d.universe-1)}`}${d.bolaExtra?` + ${d.bolaExtraNome} 1–${d.bolaExtraMax}`:''}${d.hasTrevo?` + ${d.trevosMin||2} trevos`:''}`;
     }
   }
   // Troca de loteria zera seleção e jogos adicionados
@@ -14781,7 +14781,7 @@ function renderPrevisao(body,d,hist,freq,atraso,mediaFreq){
 
   body.innerHTML=`
     <div class="pred-status-bar">
-      <div class="pred-bar-title"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">${iconLoteria(d,16)}</span>Previsão — ${d.nome} <span class="pred-bar-next">Próximo sorteio${dataProximo?' '+dataProximo:' #'+proximoConcurso}</span></div>
+      <div class="pred-bar-title"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,16)}Previsão</span> — ${d.nome} <span class="pred-bar-next">Próximo sorteio${dataProximo?' '+dataProximo:' #'+proximoConcurso}</span></div>
       <div class="pred-bar-desc">Combinações de previsão prontas para jogar no próximo sorteio. As variantes são preparadas com estatísticas históricas, perfis de pausas, frequências e desvios.</div>
     </div>
     ${disclaimer}
@@ -16615,7 +16615,7 @@ function renderFormBolao(){
           var detalheSemanas=g.porSemana.map(function(v,wi){ return v>0?(_ordinals[wi]+': '+_bMoney(v)):null; }).filter(Boolean).join(' · ');
           return '<div style="padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:4px">'+
             '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px">'+
-              '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[g.loteria]||g,14)+'</span>'+_esc(g.nome)+'</span>'+
+              '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
               '<span style="color:#fb923c">Gasto total: <b>'+_bMoney(g.total)+'</b></span>'+
               '<span style="color:'+corSaldoM+'">'+(saldoM>=0?'Saldo':'Déficit')+': <b>'+_bMoney(Math.abs(saldoM))+'</b></span>'+
             '</div>'+
@@ -16635,7 +16635,7 @@ function renderFormBolao(){
             var nJogosM=(cc.jogos||[]).length;
             return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
               '<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+_ordinals[cc._semanaIdx]+'</span>'+
-              '<span style="color:'+(dCcM?_corMarcaLegivelHero(dCcM):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCcM?iconLoteria(dCcM,14):'')+'</span>'+_esc(dCcM?dCcM.nome:cc.loteria)+'</span>'+
+              '<span style="color:'+(dCcM?_corMarcaLegivelHero(dCcM):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+(dCcM?iconLoteria(dCcM,14):'')+_esc(dCcM?dCcM.nome:cc.loteria)+'</span></span>'+
               '<span>'+nJogosM+' jogo'+(nJogosM!==1?'s':'')+'</span>'+
               '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
               (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -16796,7 +16796,7 @@ function renderFormBolao(){
         saldoPorLot.map(function(g){
           var corG=g.saldo>=0?'#4ade80':'#f87171';
           return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);margin-bottom:4px;font-size:11px">'+
-            '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[g.loteria]||g,14)+'</span>'+_esc(g.nome)+'</span>'+
+            '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
             '<span style="color:#fb923c">Gasto: <b>'+_bMoney(g.gasto)+'</b></span>'+
             '<span style="color:'+corG+'">'+(g.saldo>=0?'Saldo':'Déficit')+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
           '</div>';
@@ -16813,7 +16813,7 @@ function renderFormBolao(){
           var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
           var nJogos=(cc.jogos||[]).length;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?_corMarcaLegivelHero(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
+            '<span style="color:'+(dCc?_corMarcaLegivelHero(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+emojiLot+_esc(nomeLot)+'</span></span>'+
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -16908,7 +16908,7 @@ function renderFormBolao(){
         saldoPorLoteriaSem.map(function(g){
           var corG=g.saldo>=0?'#4ade80':'#f87171';
           return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);margin-bottom:4px;font-size:11px">'+
-            '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[g.loteria]||g,14)+'</span>'+_esc(g.nome)+'</span>'+
+            '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
             '<span style="color:#fb923c">Gasto: <b>'+_bMoney(g.gasto)+'</b></span>'+
             '<span style="color:'+corG+'">'+(g.saldo>=0?'Saldo':'Déficit')+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
           '</div>';
@@ -16931,7 +16931,7 @@ function renderFormBolao(){
           var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
           var nJogos=(cc.jogos||[]).length;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?_corMarcaLegivelHero(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+emojiLot+'</span>'+_esc(nomeLot)+'</span>'+
+            '<span style="color:'+(dCc?_corMarcaLegivelHero(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+emojiLot+_esc(nomeLot)+'</span></span>'+
             '<span>'+nJogos+' jogo'+(nJogos!==1?'s':'')+'</span>'+
             '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
             (cc.num?'<span style="color:var(--text-muted)">&nbsp;concurso #'+_esc(String(cc.num))+'</span>':'')+
@@ -17141,7 +17141,7 @@ function renderFormBolao(){
         '<span title="Avisa o participante automaticamente quando o prêmio dele (por cota) passar deste valor" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 Avisar prêmio &gt; R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>por cota</span>'+
         (_boloesState.ativadoEm
           ? '<span title="Bolão ativado — fechado para novos participantes e disponível no app" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ Ativado em '+_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))+'</span>'
-          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — confira os participantes ativos/pagos antes" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
+          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="Fecha o bolão para novos participantes, marca como vigente e disponibiliza no app — remove automaticamente quem não pagou (ativo ou não)" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 Ativar Bolão</button>')+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
     '</div>'+
@@ -17999,7 +17999,7 @@ function _gerarResumoFooterHtml(s,pagantesAtivos,cotasAdmin,nPagantes,valorRatei
       saldoPorLoteria.map(function(g){
         var corG=g.saldo>=0?'#4ade80':'#f87171';
         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;padding:3px 0">'+
-          '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[g.loteria]||g,14)+'</span>'+_esc(g.nome)+'</span>'+
+          '<span style="color:'+_corMarcaLegivelHero(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
           '<span style="color:var(--text-muted)">Gasto: <b style="color:#fb923c">'+_bMoney(g.gasto)+'</b></span>'+
           '<span style="color:'+corG+'">'+(g.saldo>=0?'Saldo:':'Déficit:')+' <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
         '</div>';
@@ -18472,29 +18472,26 @@ async function excluirBolao(id){
 // Fase 14: substitui o antigo "📤 Publicar Resultado" (publicação
 // pós-sorteio, hoje 100% automática via cron — ver Edge Function
 // publicar-resultados-automatico/modoCron). "Ativar Bolão" é uma decisão
-// ANTES do sorteio: o organizador confere quem está ativo/pago, fecha a
-// lista pra novos participantes e disponibiliza o bolão no app de quem
-// já aceitou convite (rpc_ativar_bolao trava isso via boloes.ativado_em).
+// ANTES do sorteio: o organizador confere quem está pago, fecha a lista
+// pra novos participantes e disponibiliza o bolão no app de quem já
+// aceitou convite (boloes.ativado_em, gravado por rpc_ativar_bolao).
 // Idempotente no backend, mas só oferece a ação uma vez na UI — depois de
 // ativado, o botão vira um indicador (ver renderFormBolao).
+// Fase 97 (pedido do usuário): ativar REMOVE automaticamente quem não
+// pagou — independente de estar marcado ativo ou inativo (a Fase 92 só
+// bloqueava com erro, e só olhava pra quem tava ativo; quem tava inativo
+// e não tinha pago ficava pra trás sem nunca ser limpo). A remoção de
+// verdade acontece na RPC (rpc_ativar_bolao, fase97 na migration do
+// backend) — aqui só espelha o resultado na lista local depois.
 async function abrirConfirmacaoAtivarBolao(){
   var s=_boloesState;
   if(!s.editId){ toast('Salve o bolão antes de ativar.'); return; }
-  var ativos=s.participantes.filter(function(p){return p.statusPart!=='inativo';});
-  if(!ativos.length){ toast('Adicione ao menos um participante ativo antes de ativar.'); return; }
-  var pagos=ativos.filter(function(p){return p.statusPag==='pago';});
-  var pendentes=ativos.length-pagos.length;
-  // Fase 92 (pedido do usuário): ativar exige TODOS os ativos pagos —
-  // quem não pagou precisa ser removido ou marcado como pago antes. Isso
-  // bloqueia de verdade (não só avisa) — a RPC também recusa no banco,
-  // mas travar aqui evita a viagem de rede pra um erro já previsível.
-  if(pendentes>0){
-    var nomesPendentes=ativos.filter(function(p){return p.statusPag!=='pago';}).map(function(p){return p.nome;}).join(', ');
-    alert('Não é possível ativar: '+pendentes+' participante'+(pendentes>1?'s':'')+' ativo'+(pendentes>1?'s':'')+' ainda sem pagamento confirmado ('+nomesPendentes+').\n\nMarque como pago ou remova antes de ativar.');
-    return;
-  }
+  var pagos=s.participantes.filter(function(p){return p.statusPag==='pago';});
+  var naoPagos=s.participantes.filter(function(p){return p.statusPag!=='pago';});
+  if(!pagos.length){ toast('Adicione ao menos um participante pago antes de ativar.'); return; }
   var msg='Ativar este bolão?\n\n'+
-    ativos.length+' participante'+(ativos.length>1?'s':'')+' ativo'+(ativos.length>1?'s':'')+', todos pagos'+
+    pagos.length+' participante'+(pagos.length>1?'s':'')+' pago'+(pagos.length>1?'s':'')+
+    (naoPagos.length?('\n'+naoPagos.length+' participante'+(naoPagos.length>1?'s':'')+' sem pagamento confirmado ('+naoPagos.map(function(p){return p.nome;}).join(', ')+') '+(naoPagos.length>1?'serão removidos':'será removido')+', ativo ou não'):'')+
     '\n\nIsso fecha o bolão para novos participantes, trava a quantidade de cotas de todo mundo e o disponibiliza no app de quem já aceitou o convite. Não pode ser desfeito.';
   if(!confirm(msg)) return;
   await salvarBolao();
@@ -18503,8 +18500,9 @@ async function abrirConfirmacaoAtivarBolao(){
     var { error }=await sb.rpc('rpc_ativar_bolao',{ p_bolao_id:s.editId });
     if(error) throw error;
     s.ativadoEm=new Date().toISOString();
-    _registrarAuditoria('ativar_bolao',{bolaoId:s.editId});
-    toast('✓ Bolão ativado — disponível no app dos participantes.');
+    if(naoPagos.length) s.participantes=s.participantes.filter(function(p){return p.statusPag==='pago';});
+    _registrarAuditoria('ativar_bolao',{bolaoId:s.editId,participantesRemovidosSemPagamento:naoPagos.length});
+    toast('✓ Bolão ativado'+(naoPagos.length?' — '+naoPagos.length+' participante'+(naoPagos.length>1?'s':'')+' sem pagamento '+(naoPagos.length>1?'removidos':'removido'):'')+'.');
     renderFormBolao();
   }catch(e){ console.error(e); toast('Erro ao ativar: '+e.message); }
 }
@@ -19006,7 +19004,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     var concursosStatusL=_concursosComStatusHtml(L.loteria,L.concursos);
     var _premioApuradoTxt=L.algumConferido?(_bMoney(L.premioRealNum)+' ('+L.qtdPremiados+' jogo'+(L.qtdPremiados!==1?'s':'')+' premiado'+(L.qtdPremiados!==1?'s':'')+')'):'aguardando sorteio';
     return '<div class="lot-block" style="margin-top:14px">'+
-      '<div style="font-weight:700;font-size:12px;color:'+corMarca(L)+';margin-bottom:4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(CFG[L.loteria]||L,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusL+' · Prêmio estimado: '+(L.premio==='—'?'—':L.premio)+' · <span style="color:'+(L.algumConferido&&L.premioRealNum>0?'#16a34a':'#888')+'">Prêmio apurado: '+_premioApuradoTxt+'</span></div>'+
+      '<div style="font-weight:700;font-size:12px;color:'+corMarca(L)+';margin-bottom:4px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[L.loteria]||L,12)+_esc(L.nome)+'</span>'+' — Concurso(s) '+concursosStatusL+' · Prêmio estimado: '+(L.premio==='—'?'—':L.premio)+' · <span style="color:'+(L.algumConferido&&L.premioRealNum>0?'#16a34a':'#888')+'">Prêmio apurado: '+_premioApuradoTxt+'</span></div>'+
       '<table style="table-layout:fixed"><thead><tr><th style="width:34%">Participante</th><th style="width:22%;text-align:center">% / Cota</th><th style="width:22%;text-align:right">Prêmio</th><th style="width:22%">Pagamento</th></tr></thead><tbody>'+linhasL+'</tbody></table>'+
       '</div>';
   }).join('') : '';
@@ -19094,7 +19092,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
         // lugar que mostre o nome da loteria: só a Timemania tem corTexto
         // definido hoje (verde, padrão oficial CEF), as demais caem no
         // próprio d.cor automaticamente.
-        '<div style="font-weight:700;font-size:12px;color:'+corTextoJogo+';margin:10px 0 4px"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+iconLoteria(dJogo,12)+'</span>'+_esc(L.nome)+' — Concurso(s) '+concursosStatusJ+'</div>'+
+        '<div style="font-weight:700;font-size:12px;color:'+corTextoJogo+';margin:10px 0 4px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(dJogo,12)+_esc(L.nome)+'</span>'+' — Concurso(s) '+concursosStatusJ+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
       var _linhasJogosL=[];
@@ -19305,7 +19303,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
         var vinculadoFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):'—';
         var dataSorteioFmt=cc.data||'—';
         var nJogos=(cc.jogos||[]).length;
-        return '<tr><td style="color:'+(dCc?corMarca(dCc):'#333')+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:4px">'+(dCc?iconLoteria(dCc,12):'')+'</span>'+_esc(nomeLot)+'</td>'+
+        return '<tr><td style="color:'+(dCc?corMarca(dCc):'#333')+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+(dCc?iconLoteria(dCc,12):'')+_esc(nomeLot)+'</span></td>'+
           '<td style="text-align:center">'+_esc(String(cc.num||'—'))+'</td>'+
           '<td style="text-align:center">'+nJogos+'</td>'+
           '<td style="text-align:right;color:#fb923c;font-weight:700">'+_bMoney(cc.custo||0)+'</td>'+
@@ -19409,7 +19407,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
             var numsResumo=(L.concursos||[]).map(function(item){
               return (item&&item.teimosinhaTodos&&item.teimosinhaTodos.length)?item.teimosinhaTodos.join(',') :(item&&item.num!=null?item.num:item);
             }).join(', ');
-            return '<span style="color:'+corMarca(L)+';font-weight:700"><span style="display:inline-flex;vertical-align:middle;margin-right:3px">'+iconLoteria(CFG[L.loteria]||L,11)+'</span>'+_esc(L.nome)+'</span>: '+(L.premio==='—'?'—':L.premio)+' <span style="color:#888;font-size:9px">(Conc. '+_esc(numsResumo)+')</span>';
+            return '<span style="color:'+corMarca(L)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:3px;vertical-align:middle">'+iconLoteria(CFG[L.loteria]||L,11)+_esc(L.nome)+'</span></span>: '+(L.premio==='—'?'—':L.premio)+' <span style="color:#888;font-size:9px">(Conc. '+_esc(numsResumo)+')</span>';
           }).join(' &nbsp;·&nbsp; ')
         : '<span style="color:#999">Nenhuma loteria vinculada ainda</span>')+
       '<br><b>Saldo restante:</b> <span style="color:'+(saldoRestanteImp>=0?'#16a34a':'#dc2626')+';font-weight:700">'+_bMoney(saldoRestanteImp)+'</span>'+
