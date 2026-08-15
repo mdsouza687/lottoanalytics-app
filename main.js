@@ -1,7 +1,17 @@
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
+
+// Fase 108c (pedido do usuário): botão "Instalar e Reiniciar" do banner
+// no app — dispara quitAndInstall() na hora, em vez de exigir que a
+// pessoa feche e abra manualmente. isSilent=false mostra o progresso
+// nativo do NSIS (mesma tela que já aparecia antes, só que agora por
+// escolha da pessoa, não de surpresa); isForceRunAfter=true garante que o
+// app reabre sozinho depois de instalar.
+ipcMain.on('auto-update-instalar-agora', function () {
+  autoUpdater.quitAndInstall(false, true);
+});
 
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
 // contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local

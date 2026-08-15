@@ -1498,21 +1498,41 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 })();
 </script>
 <script>
-// Fase 108b: feedback do auto-update do instalável (main.js/preload.js) —
-// só existe window.lottoUpdater dentro do app empacotado (preload
+// Fase 108b/108c: feedback do auto-update do instalável (main.js/preload.js)
+// — só existe window.lottoUpdater dentro do app empacotado (preload
 // exclusivo dele via contextBridge); no site normal esse objeto nem
 // existe, então o if abaixo já cobre isso sem precisar checar navegador.
 // Registrado bem cedo (script roda antes de quase todo o resto da
-// página), mas toast() só é definida bem mais abaixo no arquivo — por
-// isso o handler confere typeof na hora que o evento chega, não no
-// registro, e enfileira se disparar cedo demais (não deveria acontecer
-// na prática, já que baixar/checar update sempre leva alguns segundos).
+// página), mas toast()/document.body só existem bem mais abaixo/depois —
+// por isso o handler confere antes de usar, e enfileira se disparar cedo
+// demais (não deveria acontecer na prática, já que baixar/checar update
+// sempre leva alguns segundos).
+//
+// Fase 108c (pedido do usuário): "downloaded" era só um toast, que some
+// sozinho em 3s — fácil de perder, e não dava nenhum jeito de instalar
+// na hora, só "feche e abra manualmente". Vira um banner FIXO (some só
+// quando a pessoa instala) com um botão que chama quitAndInstall() de
+// verdade, sem precisar fechar/abrir o app na mão.
 (function(){
   var _fila=[];
+  function _bannerUpdatePronta(versao){
+    if(document.getElementById('banner-update-pronta')) return; // já mostrando, não duplica
+    var b=document.createElement('div');
+    b.id='banner-update-pronta';
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid var(--ac,#3A9B4E);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
+    b.innerHTML=
+      '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">🎉 Atualização v'+versao+' pronta para instalar</span>'+
+      '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:var(--ac,#3A9B4E);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
+    document.body.appendChild(b);
+    document.getElementById('btn-instalar-update').onclick=function(){
+      this.disabled=true; this.textContent='Instalando...';
+      window.lottoUpdater.instalarAgora();
+    };
+  }
   function _mostrar(p){
-    if(typeof toast!=='function'){ _fila.push(p); return; }
+    if(typeof toast!=='function' || !document.body){ _fila.push(p); return; }
     if(p.type==='available') toast('🔄 Atualização v'+p.version+' encontrada — baixando em segundo plano...');
-    else if(p.type==='downloaded') toast('✅ Atualização v'+p.version+' pronta — feche e abra o app para instalar.');
+    else if(p.type==='downloaded') _bannerUpdatePronta(p.version);
     else if(p.type==='updated') toast('🎉 Atualizado para a versão '+p.version+'!');
     else if(p.type==='error') toast('⚠️ Erro ao checar atualização: '+p.message);
   }
@@ -1535,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.8.5</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.8.6</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1852,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px">Versão 3.8.5</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px">Versão 3.8.6</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
