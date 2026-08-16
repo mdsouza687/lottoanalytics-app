@@ -20,7 +20,7 @@
   a{color:var(--accent)}
   .layout{display:flex; max-width:1200px; margin:0 auto}
   nav.toc{
-    width:260px; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;
+    width:270px; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto;
     padding:24px 16px; border-right:1px solid var(--border); background:var(--bg2);
   }
   nav.toc h2{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin:18px 0 6px}
@@ -89,20 +89,55 @@
   <h2>Manual</h2>
   <a href="#visao-geral">1. Visão geral</a>
 
-  <h2>Desktop — Bolões</h2>
-  <a href="#d-criar">2.1 Criar e adicionar participantes</a>
+  <h2>Navegação</h2>
+  <a href="#p-dashboard">2.1 Painel Inicial</a>
+  <a href="#p-temas">2.2 Temas</a>
+  <a href="#p-login">2.3 Login e conta</a>
+  <a href="#p-abas">2.4 Abas de uma loteria</a>
+
+  <h2>Estatísticas</h2>
+  <a href="#e-resultado">3.1 Resultado</a>
+  <a href="#e-resultados">3.2 Resultados</a>
+  <a href="#e-especiais">3.3 Sorteios especiais</a>
+  <a href="#e-freq">3.4 Frequências</a>
+  <a href="#e-freqbolas">3.5 Freq. Bolas</a>
+  <a href="#e-ondas">3.6 Ondas</a>
+  <a href="#e-desvios">3.7 Desvios</a>
+  <a href="#e-pausas">3.8 Pausas</a>
+  <a href="#e-matriz">3.9 Matriz</a>
+  <a href="#e-previsao">3.10 Previsão</a>
+
+  <h2>Gerando Jogos</h2>
+  <a href="#g-painel">4.1 Painel Gerar Jogos</a>
+  <a href="#g-modos">4.2 Modos de geração</a>
+  <a href="#g-fixos">4.3 Fixos e exclusões</a>
+  <a href="#g-espelho">4.4 Aposta Espelho</a>
+  <a href="#g-teimosinha">4.5 Teimosinha</a>
+  <a href="#g-fechamento">4.6 Fechamento Prático</a>
+  <a href="#g-score">4.7 Fechamento por Score</a>
+  <a href="#g-ia">4.8 Geração com IA</a>
+  <a href="#g-comparar">4.9 Comparar Motores</a>
+  <a href="#g-manual">4.10 Jogos manuais</a>
+
+  <h2>Bolões</h2>
+  <a href="#d-criar">5.1 Criar e adicionar participantes</a>
   <a href="#d-cota" class="lvl2">Valor da cota e rateio</a>
-  <a href="#d-semana">2.2 Semana do bolão</a>
-  <a href="#d-prazo">2.3 Prazo de pagamento</a>
-  <a href="#d-ativar">2.4 Ativar o Bolão</a>
-  <a href="#d-docs">2.5 Documentos</a>
-  <a href="#d-impressao">2.6 Impressão</a>
-  <a href="#d-notif">2.7 Notificações</a>
-  <a href="#d-update">2.8 Atualização automática</a>
-  <a href="#d-saldo">2.9 Prêmio → Saldo</a>
+  <a href="#d-semana">5.2 Semana do bolão</a>
+  <a href="#d-prazo">5.3 Prazo de pagamento</a>
+  <a href="#d-ativar">5.4 Ativar o Bolão</a>
+  <a href="#d-docs">5.5 Documentos</a>
+  <a href="#d-impressao">5.6 Impressão</a>
+  <a href="#d-notif">5.7 Notificações</a>
+  <a href="#d-update">5.8 Atualização automática</a>
+  <a href="#d-saldo">5.9 Prêmio → Saldo</a>
+
+  <h2>Outras ferramentas</h2>
+  <a href="#c-bilhetes">6. Conferir Bilhetes</a>
+  <a href="#c-volantes">7. Impressão de Volantes</a>
+  <a href="#c-admin">8. Administração e Conta</a>
 
   <h2>Ajuda</h2>
-  <a href="#faq">3. Perguntas frequentes</a>
+  <a href="#faq">9. Perguntas frequentes</a>
 </nav>
 
 <main>
@@ -119,15 +154,137 @@
 
   <section id="visao-geral">
     <h2>1. Visão geral</h2>
-    <p>O Desktop é a ferramenta do <b>organizador</b> do bolão: gera jogos, cadastra participantes, controla pagamentos, ativa o bolão, imprime documentos e envia notificações.</p>
-    <p>Ele se comunica com o mesmo banco de dados do app mobile dos participantes — qualquer alteração feita aqui (pagamento confirmado, jogo vinculado, bolão ativado) aparece automaticamente no celular de quem participa, sem precisar sincronizar nada manualmente.</p>
-    <div class="crosslink">🎟️ Este manual cobre só o Desktop. Para o app do participante (quem entra num bolão pelo celular), veja o manual em <a href="https://lottoanalytics-participante.netlify.app/manual.html" target="_blank" rel="noopener">lottoanalytics-participante.netlify.app/manual.html</a>.</div>
+    <p>O LottoAnalytics é uma ferramenta de análise estatística, geração de jogos e gestão de bolões para as 9 maiores loterias da Caixa Econômica Federal — Mega-Sena, Lotofácil, Quina, Lotomania, Timemania, Dupla Sena, Dia de Sorte, Super Sete e +Milionária — além das duas maiores loterias dos Estados Unidos, Powerball e Mega Millions.</p>
+    <p>O aplicativo reúne, num único lugar, o histórico completo de sorteios de cada loteria, oito formas diferentes de analisar estatisticamente esse histórico, um gerador de jogos com vários métodos diferentes — do puramente aleatório ao guiado por Inteligência Artificial — e um sistema completo de gestão de bolões, com controle de participantes, cotas e pagamentos.</p>
+    <div class="callout"><b>Aviso importante:</b> o LottoAnalytics não garante prêmios. Ele faz uma análise matemática das estatísticas históricas dos sorteios, revelando padrões e regularidades nos dados — mas a loteria é, por definição, um sorteio aleatório: nenhum padrão estatístico do passado garante ou aumenta a probabilidade de acerto no próximo concurso.</div>
+    <div class="crosslink">🎟️ Este manual cobre o Desktop (ferramenta do organizador/analista). Para o app do participante (quem entra num bolão pelo celular), veja o manual em <a href="https://lottoanalytics-participante.netlify.app/manual.html" target="_blank" rel="noopener">lottoanalytics-participante.netlify.app/manual.html</a>.</div>
+  </section>
+
+  <section id="navegacao">
+    <h2>2. Painel Inicial e Navegação</h2>
+
+    <h3 id="p-dashboard">2.1 Painel Inicial (Dashboard)</h3>
+    <p>Ao abrir o aplicativo, o usuário chega ao Painel Inicial — a página pública, que não exige login para ser vista. Ali ficam, lado a lado, os cartões de cada uma das 11 loterias suportadas, cada um mostrando o prêmio estimado do próximo concurso, o número do concurso, a data do próximo sorteio e um selo "🔥 ACUMULOU!" quando aplicável.</p>
+    <p>Cada cartão também exibe uma prévia de previsão (números TOP, QUENTES, ATRASADOS e EQUILIBRADO), o desvio de frequência de pausas mais recente e um pequeno histórico dos últimos sorteios — tudo isso já visível antes mesmo de o usuário entrar na loteria especificamente. Clique em qualquer parte do cartão (ou nos botões rápidos "Gerar Jogos", "Ver previsões" ou "Bolões" dentro dele) para entrar no espaço de trabalho daquela loteria.</p>
+    <div class="shot-img"><img src="manual-img/desktop_dashboard.png" alt="Painel Inicial com os cartões das loterias, prêmio estimado, previsão rápida e histórico de sorteios"><div class="cap">Painel Inicial — prêmio estimado, previsão rápida, desvio de pausas e histórico de sorteios.</div></div>
+
+    <h3 id="p-temas">2.2 Temas: escuro, claro e colorido</h3>
+    <p>No canto superior da tela, três botões — 🌙, ☀️ e 🌈 — trocam instantaneamente a aparência de todo o aplicativo entre tema escuro (padrão), tema claro e tema colorido. A troca afeta cores de fundo, texto e também as cores de destaque usadas nos gráficos, mantendo a legibilidade em qualquer um dos três modos.</p>
+
+    <h3 id="p-login">2.3 Criando conta e fazendo login</h3>
+    <p>O Painel Inicial é público, mas para abrir qualquer ferramenta — gerar jogos, ver o histórico completo, criar bolões, conferir bilhetes — é necessário estar logado. O botão "Já tenho conta" abre o formulário de login (e-mail e senha); o botão "Experimente Grátis" leva ao cadastro de uma nova conta. Depois de logado, os botões "🛠️ Admin" (só aparece para contas com permissão de administrador) e "🚪 Sair" passam a ficar visíveis na barra superior.</p>
+
+    <h3 id="p-abas">2.4 Abrindo uma loteria e navegando pelas abas</h3>
+    <p>Ao entrar em uma loteria, o aplicativo passa para o "espaço de trabalho" daquela loteria — uma barra de abas horizontal, no topo da tela, dá acesso a cada uma das ferramentas: RESULTADO, RESULTADOS, GERAR JOGOS, BOLÕES, CONFERIR BILHETES, FREQUÊNCIAS, FREQ. BOLAS, ONDAS, DESVIOS, PAUSAS, MATRIZ e PREVISÃO. Nessa mesma barra, um seletor rápido permite trocar de loteria sem precisar voltar ao Painel Inicial.</p>
+    <div class="shot-img"><img src="manual-img/desktop_barra_abas.png" alt="Barra superior do espaço de trabalho de uma loteria, com todas as abas e o seletor de loteria"><div class="cap">Barra do espaço de trabalho — logo, abas, seletor de loteria e tema.</div></div>
+  </section>
+
+  <section id="estatisticas">
+    <h2>3. Analisando Gráficos e Estatísticas</h2>
+    <p>Esta seção é o coração do aplicativo: cada aba de análise olha para o mesmo histórico de sorteios sob um ângulo estatístico diferente. Nenhuma delas prevê o futuro com certeza — todas são formas de visualizar padrões que já aconteceram no passado. As explicações abaixo valem para qualquer uma das 11 loterias; o app aplica a mesma lógica adaptando range de números, quantidade de dezenas por jogo e regras específicas (trevos, mês da sorte, time do coração etc.) automaticamente.</p>
+
+    <h3 id="e-resultado">3.1 RESULTADO — visão geral do concurso atual</h3>
+    <p>É a aba inicial ao abrir qualquer loteria. Mostra o resultado do último concurso sorteado, o prêmio estimado do próximo, a contagem regressiva/data do próximo sorteio, e atalhos rápidos para gerar jogos, ver previsões ou entrar em bolões — o "resumo executivo" daquela loteria.</p>
+    <div class="shot-img"><img src="manual-img/desktop_resultado.png" alt="Aba Resultado com as bolinhas do último sorteio, prêmio estimado e cards de previsão rápida"><div class="cap">Aba RESULTADO — último sorteio, prêmio estimado e previsão rápida.</div></div>
+
+    <h3 id="e-resultados">3.2 RESULTADOS — histórico completo de sorteios</h3>
+    <p>Lista todos os concursos já sorteados daquela loteria, do mais recente para o mais antigo, em formato de tabela — concurso, data e as dezenas sorteadas (mais trevos, mês, bola extra ou time do coração, quando a loteria tiver esses elementos). É a fonte de dados bruta que alimenta todos os outros gráficos de análise. Uma barra de período (6, 12, 24… até "Histórica") limita a tabela aos últimos N concursos, ou mostra o histórico completo.</p>
+    <div class="shot-img"><img src="manual-img/desktop_resultados.png" alt="Aba Resultados com a tabela histórica de concursos e a barra de filtro de período"><div class="cap">Aba RESULTADOS — tabela histórica com filtro de período.</div></div>
+
+    <h3 id="e-especiais">3.3 Histórico de sorteios especiais</h3>
+    <p>Quatro loterias têm sorteios especiais de datas comemorativas: a Mega da Virada (Mega-Sena, 31/12), a Quina de São João (Quina, fim de junho), a Lotofácil da Independência (Lotofácil, 7 de setembro) e a Dupla Sena de Páscoa (Dupla Sena, véspera da Páscoa). Para essas quatro, um botão adicional "⭐ [nome do sorteio especial]" aparece ao lado dos botões de período — clicar nele filtra a tabela de RESULTADOS para mostrar apenas os sorteios especiais já ocorridos.</p>
+    <div class="shot-img"><img src="manual-img/desktop_sorteios_especiais.png" alt="Botão de sorteio especial ativado, filtrando a tabela de resultados só para os concursos especiais"><div class="cap">Filtro de sorteio especial ativado (ex.: Mega da Virada).</div></div>
+
+    <h3 id="e-freq">3.4 FREQUÊNCIAS — números quentes e frios</h3>
+    <p>Gráfico de barras mostrando quantas vezes cada número já foi sorteado no período selecionado, com uma linha de referência marcando a frequência "teórica" (a que cada número teria se a distribuição fosse perfeitamente uniforme). Números com barra bem acima da linha teórica são "quentes" (saem mais que a média); os que ficam bem abaixo são "frios".</p>
+    <div class="shot-img"><img src="manual-img/desktop_frequencias.png" alt="Gráfico de barras de frequência de cada número com a linha de referência teórica"><div class="cap">Aba FREQUÊNCIAS — frequência de cada número com a linha teórica de referência.</div></div>
+
+    <h3 id="e-freqbolas">3.5 FREQ. BOLAS — frequência por posição</h3>
+    <p>Enquanto "Frequências" olha para cada número de forma geral, "Freq. Bolas" quebra a análise por posição de sorteio — a frequência de cada número especificamente como "1ª bola sorteada", "2ª bola sorteada", e assim por diante (números de cada concurso ordenados). Ajuda a identificar se algum número tem preferência por aparecer numa posição específica.</p>
+    <div class="shot-img"><img src="manual-img/desktop_freq_bolas.png" alt="Gráfico de linhas de frequência por posição do sorteio"><div class="cap">Aba FREQ. BOLAS — frequência por posição de sorteio.</div></div>
+
+    <h3 id="e-ondas">3.6 ONDAS — oscilação ao longo do tempo</h3>
+    <p>Gráfico de linhas que acompanha, sorteio a sorteio (nos últimos ~50 concursos), o valor de cada posição de bola — permitindo visualizar a "onda" de subida e descida dos números ao longo do tempo, em vez de só um total acumulado. Útil para perceber tendências recentes de forma mais dinâmica que um simples ranking de frequência.</p>
+    <div class="shot-img"><img src="manual-img/desktop_ondas.png" alt="Gráfico de ondas com múltiplas linhas coloridas percorrendo os últimos concursos"><div class="cap">Aba ONDAS — oscilação dos números ao longo dos últimos concursos.</div></div>
+
+    <h3 id="e-desvios">3.7 DESVIOS — temperatura dos números</h3>
+    <p>Calcula o desvio percentual entre a frequência real de cada número e a frequência teórica esperada, classificando cada um numa escala de temperatura: Quente, Morna, Normal, Fresca ou Fria. Também traz uma versão dessa mesma análise por posição de bola — uma forma mais refinada de enxergar o mesmo sinal que aparece em "Frequências".</p>
+    <div class="shot-img"><img src="manual-img/desktop_desvios.png" alt="Números organizados pela escala de temperatura, de Quente a Fria"><div class="cap">Aba DESVIOS — escala de temperatura de cada número.</div></div>
+
+    <h3 id="e-pausas">3.8 PAUSAS — atraso e ciclo de aparição</h3>
+    <p>Para cada número, mostra um histograma da distância (em quantidade de sorteios) entre uma aparição e a próxima — as "pausas" — comparado com uma curva teórica exponencial esperada, além do atraso atual (há quantos concursos aquele número não sai). A ferramenta certa para ver quais números estão "devendo" aparecer, considerando o padrão histórico de pausas deles.</p>
+    <div class="shot-img"><img src="manual-img/desktop_pausas.png" alt="Histograma de pausas dos números com a curva teórica sobreposta e o indicador de atraso atual"><div class="cap">Aba PAUSAS — histograma de pausas e atraso atual de cada número.</div></div>
+
+    <h3 id="e-matriz">3.9 MATRIZ — números que saem juntos</h3>
+    <p>Uma matriz de calor (heatmap) cruzando os números mais frequentes entre si, mostrando quantas vezes cada par específico já saiu junto no mesmo concurso. Células mais escuras/intensas indicam pares que se repetem com mais frequência historicamente.</p>
+    <div class="shot-img"><img src="manual-img/desktop_matriz.png" alt="Matriz de calor cruzando os números mais frequentes entre si"><div class="cap">Aba MATRIZ — heatmap de pares de números.</div></div>
+
+    <h3 id="e-previsao">3.10 PREVISÃO — ranking para o próximo sorteio</h3>
+    <p>Combina várias das estatísticas anteriores (frequência, atraso, tendência) num único "Score" por número, gerando um ranking dos números mais bem avaliados para o próximo concurso. Essa aba carrega, de forma bem visível, o aviso de que não é garantia de prêmio.</p>
+    <div class="shot-img"><img src="manual-img/desktop_previsao.png" alt="Ranking de previsão com os números mais bem pontuados em destaque"><div class="cap">Aba PREVISÃO — ranking combinando os sinais estatísticos anteriores.</div></div>
+  </section>
+
+  <section id="gerar-jogos">
+    <h2>4. Gerando Jogos</h2>
+    <p>A aba "GERAR JOGOS" é onde o usuário efetivamente monta as apostas que vai registrar na Casa Lotérica (ou imprimir no volante oficial, ver <a href="#c-volantes">seção 7</a>). O aplicativo oferece vários métodos de geração diferentes, cada um com uma filosofia própria, além de recursos como números fixos, exclusões, Aposta Espelho e Teimosinha, que se aplicam a qualquer um dos métodos.</p>
+
+    <h3 id="g-painel">4.1 Visão geral do painel Gerar Jogos</h3>
+    <ol>
+      <li>Abra a aba "GERAR JOGOS" da loteria desejada.</li>
+      <li>Escolha o modo de geração desejado (ver 4.2 a 4.8).</li>
+      <li>Defina a base estatística (últimos 6/12/24/36/48/72/96 concursos, ou histórica completa) — só se aplica aos modos que usam estatística.</li>
+      <li>Escolha a quantidade de jogos a gerar (até o limite configurado no Painel de Administração, padrão de 50.000).</li>
+      <li>Defina quantas dezenas cada jogo deve ter (dentro do intervalo permitido pela loteria).</li>
+      <li>Opcionalmente, marque números fixos e/ou números a excluir.</li>
+      <li>Clique em "🎲 Gerar Jogos" e aguarde a lista aparecer na tela.</li>
+    </ol>
+    <div class="shot-img"><img src="manual-img/desktop_gerar_jogos_painel.png" alt="Painel Gerar Jogos com seletor de modo, base estatística, quantidade e dezenas por jogo"><div class="cap">Painel Gerar Jogos — seletor de modo, base estatística, quantidade e dezenas por jogo.</div></div>
+
+    <h3 id="g-modos">4.2 Modos de geração: Filtrado, Aleatório Puro, CSPRNG, PRNG com Seed</h3>
+    <ul>
+      <li>🎲 <b>Filtrado</b> (padrão) — gera jogos aplicando filtros estatísticos básicos sobre o histórico selecionado, sem garantia de cobertura combinatória.</li>
+      <li>🎲 <b>Aleatório Puro</b> ("urna") — embaralha todo o universo de números e distribui as apostas priorizando cobertura ampla com repetição mínima, sem nenhum critério estatístico.</li>
+      <li>🔐 <b>CSPRNG</b> — mesma filosofia do Aleatório Puro, mas usando um gerador criptograficamente seguro (<code>crypto.getRandomValues</code>), garantindo aleatoriedade não-reproduzível.</li>
+      <li>🎲 <b>PRNG (Seed)</b> — gerador determinístico: a mesma "semente" sempre produz exatamente a mesma sequência de jogos, útil para reproduzir ou compartilhar uma geração específica.</li>
+    </ul>
+    <div class="shot-img"><img src="manual-img/desktop_gerar_jogos_modos.png" alt="Seletor de modo de geração: Filtrado, Aleatório Puro, CSPRNG, PRNG, Fechamento e Score"><div class="cap">Seletor de modo — Filtrado, Aleatório Puro, CSPRNG, PRNG (Seed), Fechamento e Score.</div></div>
+
+    <h3 id="g-fixos">4.3 Números fixos e exclusões</h3>
+    <p>"Números fixos" são dezenas escolhidas manualmente que entram obrigatoriamente em todo jogo gerado — o restante é sorteado normalmente. "Excluir números" faz o oposto: remove certas dezenas do universo disponível. Ambos têm uma versão "com IA", em que o próprio aplicativo sugere quais números fixar ou excluir com base na análise estatística.</p>
+    <div class="shot-img"><img src="manual-img/desktop_fixos_exclusoes.png" alt="Campos Nº Fixos e Excluir Números do painel Gerar Jogos"><div class="cap">Campos "Nº Fixos" e "Excluir Números".</div></div>
+
+    <h3 id="g-espelho">4.4 Aposta Espelho</h3>
+    <p>A Aposta Espelho ("🪞") gera, para cada jogo principal, um segundo jogo "espelhado" — usando um grupo de números diferente do grupo do jogo principal, para que os dois nunca compartilhem dezenas entre si. A forma exata como os grupos são divididos varia por loteria (Powerball, Mega Millions e Lotomania usam um mecanismo "disjunto"). Ao ativar o Espelho, a quantidade de jogos pedida já conta o principal e o espelho juntos.</p>
+    <div class="shot-img"><img src="manual-img/desktop_aposta_espelho.png" alt="Resultado de uma geração com Aposta Espelho, dois grupos sem números em comum"><div class="cap">Aposta Espelho — jogo principal e espelho sem nenhum número em comum.</div></div>
+
+    <h3 id="g-teimosinha">4.5 Teimosinha</h3>
+    <p>A "Teimosinha" ("🔁") repete automaticamente o(s) mesmo(s) jogo(s) gerado(s) em vários concursos consecutivos — a mesma funcionalidade oferecida pela Caixa no volante físico. O aplicativo mostra apenas as opções de quantidade de concursos que realmente existem no volante oficial daquela loteria (por exemplo, 3, 6, 9 ou 12).</p>
+    <div class="shot-img"><img src="manual-img/desktop_teimosinha.png" alt="Seletor da Teimosinha dentro do resultado da geração"><div class="cap">Seletor da Teimosinha — repete o(s) jogo(s) por vários concursos seguidos.</div></div>
+
+    <h3 id="g-fechamento">4.6 Fechamento Prático</h3>
+    <p>O "🔒 Fechamento" gera um volume grande de jogos (até 50.000) dentro do universo de números disponível — depois de aplicar fixos e exclusões — priorizando velocidade e volume em vez de qualidade estatística. Indicado para cobrir combinatoriamente uma faixa de números específica com muitos jogos.</p>
+
+    <h3 id="g-score">4.7 Fechamento por Score</h3>
+    <p>O "⭐ Score" também gera um fechamento, mas priorizando os números com melhor pontuação histórica — uma combinação ponderada de frequência, atraso, tendência, correlação, ciclo, dispersão e o equilíbrio entre soma/paridade (o mesmo "Score" usado na aba PREVISÃO). O aplicativo garante ainda uma diversidade mínima entre os jogos gerados.</p>
+    <div class="shot-img"><img src="manual-img/desktop_fechamento_score.png" alt="Seção Base estatística do Score com o Top de dezenas priorizadas"><div class="cap">Fechamento por Score — dezenas priorizadas e botão "Gerar Fechamento por Score".</div></div>
+
+    <h3 id="g-ia">4.8 Geração com Inteligência Artificial (IA)</h3>
+    <p>O botão "🤖 Gerar com IA" abre um modal dedicado, onde o aplicativo gera jogos usando uma análise estatística de 12 parâmetros combinados — dentro desse mesmo modal, também é possível ativar Aposta Espelho e Teimosinha. É a forma mais completa de gerar jogos combinando todos os sinais estatísticos do aplicativo num único fluxo guiado.</p>
+    <div class="shot-img"><img src="manual-img/desktop_gerar_ia.png" alt="Modal Gerar com IA, com os critérios V1 a V12 e os jogos sugeridos"><div class="cap">Modal "Gerar com IA" — critérios V1-V12 e jogos sugeridos com score.</div></div>
+
+    <h3 id="g-comparar">4.9 Comparar Motores</h3>
+    <p>O botão "🔬 Comparar Motores" gera um pequeno lote de jogos por cada um dos métodos disponíveis (Clássico vs. IA, por exemplo) lado a lado, permitindo comparar visualmente o resultado de cada abordagem antes de decidir qual usar para a geração "de verdade".</p>
+
+    <h3 id="g-manual">4.10 Jogos manuais</h3>
+    <p>Para quem prefere escolher os números manualmente (sem nenhum gerador), o modal de jogos manuais permite marcar as dezenas diretamente num volante virtual na tela — esse jogo fica disponível depois para conferência de resultado e pode também ser vinculado a um bolão.</p>
+    <div class="shot-img"><img src="manual-img/desktop_jogos_manuais.png" alt="Modal Inserir Jogos para Conferência, com o volante virtual pra marcar dezenas manualmente"><div class="cap">Modal "Inserir Jogos para Conferência" — volante virtual para marcar um jogo manual.</div></div>
   </section>
 
   <section id="desktop">
-    <h2>2. Desktop — Gestão de Bolões</h2>
+    <h2>5. Bolões — Gestão de Grupos de Apostas</h2>
+    <p>Um "bolão" é um grupo de pessoas que dividem o custo de uma ou mais apostas. Esta seção reúne tudo que é preciso para organizar um bolão do início ao fim: criação, participantes, cotas, geração dos jogos do bolão, controle de pagamento, ativação, documentos e notificações.</p>
 
-    <h3 id="d-criar">2.1 Criar um bolão e adicionar participantes</h3>
+    <h3 id="d-criar">5.1 Criar um bolão e adicionar participantes</h3>
     <ol>
       <li>Na tela "🌐 Bolões Multi-Loteria", clique em "➕ Criar Bolão".</li>
       <li>Dê um nome ao bolão (a loteria só é definida depois que o primeiro jogo é gerado ou vinculado).</li>
@@ -142,31 +299,32 @@
     <div class="callout">💡 Exemplo real: valor base R$25,00, com "Cotas isentas" ativado, o app mostra em verde algo como <i>"= R$37,50 cobrado do participante (inclui rateio da organização)"</i> — o cálculo aparece ao vivo enquanto você digita.</div>
     <div class="shot-img"><img src="manual-img/desktop_rateio_organizacao.png" alt="Campo Valor da cota com o texto verde do cálculo do rateio da organização"><div class="cap">R$20,00 de base + 2 cotas isentas rateadas entre os participantes ativos = R$40,00 cobrado de cada um.</div></div>
     <div class="callout"><b>Atenção:</b> esse cálculo só é refeito quando você altera algum campo dentro do próprio card Administrador. Se você adicionar ou remover um participante, o texto verde pode ficar desatualizado até você tocar em algum campo do card (ex.: reabrir o seletor de cotas isentas) — não é um valor errado, só precisa de um "empurrão" pra recalcular.</div>
+    <p>É possível importar uma lista de participantes a partir de um PDF, útil para bolões que já existiam em papel antes de serem cadastrados no aplicativo.</p>
 
-    <h3 id="d-semana">2.2 Semana do bolão (segunda a domingo)</h3>
+    <h3 id="d-semana">5.2 Semana do bolão (segunda a domingo)</h3>
     <p>Como a Caixa passou a realizar sorteios aos domingos, a semana do bolão mudou de domingo–sábado para segunda–domingo — o domingo agora fecha a semana em vez de abri-la. Isso vale tanto para o preenchimento automático de "Data início/fim da semana" quanto para o corte de semanas do bolão mensal.</p>
 
-    <h3 id="d-prazo">2.3 Prazo de pagamento e aviso automático</h3>
+    <h3 id="d-prazo">5.3 Prazo de pagamento e aviso automático</h3>
     <p>Os campos "Data limite p/ pagamento" e "Hora limite p/ pagamento" definem até quando os participantes podem pagar a cota. Esse prazo acontece antes de ativar o bolão — não deve ser confundido com o encerramento do bolão em si (que é sempre o fim da semana ou do mês).</p>
     <p>Quando esses campos são preenchidos, o sistema envia automaticamente uma notificação push para os participantes 10 minutos antes do prazo terminar. Clique em "✏️ Aviso 10min antes" para personalizar o título e o texto dessa mensagem — se deixar em branco, é usado um texto padrão.</p>
 
-    <h3 id="d-ativar">2.4 Ativar o Bolão</h3>
+    <h3 id="d-ativar">5.4 Ativar o Bolão</h3>
     <p>O botão "🔒 Ativar Bolão" fecha o bolão para novos participantes e o disponibiliza no app dos participantes que já aceitaram o convite.</p>
     <div class="callout"><b>Importante:</b> ao ativar, participantes que ainda não pagaram a cota são <b>removidos automaticamente</b> do bolão — ativos ou inativos, não importa — em vez do sistema apenas bloquear a ativação com um aviso. Vale conferir a lista de pagamentos antes de confirmar. A remoção não apaga o cadastro da pessoa, só o vínculo dela com esse bolão específico.</div>
     <div class="shot-img"><img src="manual-img/desktop_ativar_bolao_confirmacao.png" alt="Popup de confirmação ao clicar em Ativar Bolão, avisando que a ação fecha o bolão e não pode ser desfeita"><div class="cap">Confirmação antes de ativar — mostra quantos participantes pagos serão mantidos e avisa que a ação não pode ser desfeita.</div></div>
     <p>Os participantes que permanecem, com conta vinculada, recebem automaticamente uma notificação push avisando que o bolão está ativo.</p>
 
-    <h3 id="d-docs">2.5 Documentos: Termo de Constituição, Termos e Condições e Regras de ITCMD</h3>
+    <h3 id="d-docs">5.5 Documentos: Termo de Constituição, Termos e Condições e Regras de ITCMD</h3>
     <p>Os botões "📄 Termo de Constituição" e "📜 Termos e Condições" (disponíveis após ativar o bolão) geram documentos prontos para impressão, com os dados do bolão preenchidos automaticamente — incluindo o prazo de pagamento, quando definido.</p>
     <p>O Termo de Constituição tem duas áreas de assinatura: a coluna "Assinatura" na tabela de participantes e o bloco de linhas para assinatura física no rodapé. Quem já assinou digitalmente pelo app aparece com a imagem da assinatura e a data em ambos os lugares — não precisa assinar de novo na folha impressa.</p>
     <p>Um terceiro link, "📄 Regras de Funcionamento e Isenção de ITCMD", fica na mesma barra de documentos. Diferente dos outros dois, é um documento institucional fixo (o mesmo para todos os bolões) que explica as regras gerais de funcionamento dos bolões e a isenção do ITCMD (Imposto de Transmissão Causa Mortis e Doação) sobre a divisão do prêmio entre os participantes.</p>
     <div class="shot-img"><img src="manual-img/desktop_documentos_notificacoes.png" alt="Barra de documentos com Termos e Condições, Termo de Constituição, Dossiê do Prêmio e Regras de ITCMD, e card Administrador com aviso de prêmio e ativado em"><div class="cap">Barra de documentos (Participantes) e, acima, o card Administrador já ativado — com o limite de aviso de prêmio grande.</div></div>
 
-    <h3 id="d-impressao">2.6 Impressão: completa ou só premiados</h3>
+    <h3 id="d-impressao">5.6 Impressão: completa ou só premiados</h3>
     <p>Ao clicar em "🖨 Imprimir", é possível escolher entre o relatório completo (todos os jogos) ou só os jogos premiados — útil para relatórios mais curtos quando o bolão tem muitos jogos vinculados.</p>
     <div class="shot-img"><img src="manual-img/desktop_imprimir_opcoes.png" alt="Modal Imprimir Relatório do Bolão com as opções Todos os jogos vinculados ou Só os jogos premiados"><div class="cap">Modal "Imprimir Relatório do Bolão" — escolha entre relatório completo ou só os jogos premiados.</div></div>
 
-    <h3 id="d-notif">2.7 Notificações: prêmio grande, jogos/bilhetes e mensagens</h3>
+    <h3 id="d-notif">5.7 Notificações: prêmio grande, jogos/bilhetes e mensagens</h3>
     <p>Além do aviso de prazo de pagamento e de ativação, existem mais três tipos de notificação:</p>
     <ul>
       <li><b>Prêmio grande</b> — quando o prêmio por cota de um participante passa de um valor configurável (padrão R$500), ele recebe um aviso automático. O campo "🏆 Avisar prêmio &gt; R$___ por cota", no cabeçalho do card Administrador, permite mudar esse limite a qualquer momento.</li>
@@ -175,23 +333,49 @@
     </ul>
     <p>Importante: essas notificações só chegam a quem já ativou notificações no app mobile.</p>
 
-    <h3 id="d-update">2.8 Atualização automática do Desktop</h3>
+    <h3 id="d-update">5.8 Atualização automática do Desktop</h3>
     <p>A partir da versão 3.9, o aplicativo instalado no Windows confere automaticamente se existe uma versão nova ao abrir e depois a cada 30 minutos, enquanto estiver aberto. Ao encontrar uma, baixa em segundo plano (sem atrapalhar o uso) e mostra um aviso fixo na tela com o botão <b>"Instalar e Reiniciar"</b> — ao clicar, o aplicativo fecha, instala e reabre sozinho já na versão nova, sem precisar baixar nada manualmente.</p>
     <div class="shot-img"><img src="manual-img/desktop_versao.png" alt="Canto superior esquerdo do app mostrando o logo LottoAnalytics e o número da versão instalada"><div class="cap">O número da versão instalada fica sempre visível abaixo do logo, no canto superior esquerdo.</div></div>
 
-    <h3 id="d-saldo">2.9 Prêmio → Saldo: prêmios de baixo valor viram orçamento</h3>
+    <h3 id="d-saldo">5.9 Prêmio → Saldo: prêmios de baixo valor viram orçamento</h3>
     <p>O botão "🏆 Prêmio → Saldo", na barra de Participantes, converte prêmios de baixo valor já recebidos em saldo disponível para os próximos jogos, em vez de repassar o dinheiro aos participantes. Esse saldo aparece detalhado por loteria em "Gasto e Saldo por Loteria", junto com o histórico de rodadas semanais — a mesma lógica documentada nas <a href="regras-funcionamento-itcmd.html" target="_blank" rel="noopener">Regras de Funcionamento e Isenção de ITCMD</a>.</p>
     <div class="shot-img"><img src="manual-img/desktop_gasto_saldo_loteria.png" alt="Tela Gasto e Saldo por Loteria, mostrando gasto total e saldo restante de cada loteria, e histórico de rodadas semanais"><div class="cap">Gasto e saldo por loteria, e histórico de rodadas — para onde vai o dinheiro dos prêmios de baixo valor.</div></div>
   </section>
 
+  <section id="outras">
+    <h3 id="c-bilhetes">6. Conferir Bilhetes</h3>
+    <p>A aba "CONFERIR BILHETES" compara todos os jogos salvos ou gerados pelo usuário com o resultado oficial mais recente daquela loteria, calculando automaticamente em qual faixa de premiação cada jogo se encaixou (quando aplicável). O aplicativo já conhece as tabelas de premiação específicas de cada loteria — incluindo regras especiais, como as faixas próprias da +Milionária ou as particularidades da Lotomania, Powerball e Mega Millions.</p>
+    <ol>
+      <li>Abra a aba "CONFERIR BILHETES" da loteria.</li>
+      <li>O aplicativo compara automaticamente todos os jogos salvos com o resultado mais recente.</li>
+      <li>Jogos premiados aparecem destacados, com a faixa de prêmio identificada.</li>
+      <li>É possível imprimir o relatório de conferência completo.</li>
+    </ol>
+    <div class="shot-img"><img src="manual-img/desktop_conferir_bilhetes.png" alt="Conferir Bilhetes com total ganho, jogos premiados e resultado oficial do concurso"><div class="cap">Conferir Bilhetes — total ganho, jogos premiados e resultado oficial.</div></div>
+
+    <h3 id="c-volantes">7. Impressão de Volantes Oficiais</h3>
+    <p>Além de gerar e conferir jogos dentro do próprio aplicativo, o LottoAnalytics também imprime os jogos gerados diretamente no formato oficial do volante da Caixa — pronto para ser registrado numa Casa Lotérica. O sistema marca automaticamente, em escala real, os quadradinhos correspondentes a cada dezena escolhida, a quantidade de números apostados, a Teimosinha (quando marcada) e, em algumas loterias, campos extras como trevos (+Milionária), mês da sorte (Dia de Sorte) ou a caixinha de Aposta Espelho (Lotomania).</p>
+    <p>Cada volante é posicionado com margem mínima na folha impressa, com marcas de corte em cruz nos quatro cantos, facilitando recortar exatamente no tamanho do volante oficial depois de impresso — a maioria das loterias imprime até 3 volantes por folha A4 em modo paisagem; a +Milionária, por ter um bilhete mais largo, imprime 2 por folha em modo retrato.</p>
+    <div class="callout">Seções como SURPRESINHA e BOLÃO (impressas no próprio volante oficial pela Caixa) <b>nunca recebem marca automática</b> — são recursos em que "o sistema da Caixa escolhe por você", e o aplicativo respeita isso deixando esses campos em branco no volante impresso.</div>
+    <div class="shot-img"><img src="manual-img/desktop_impressao_volante.png" alt="Preview de impressão do volante oficial da Mega-Sena com os quadradinhos preenchidos"><div class="cap">Preview de impressão do volante oficial — quadradinhos marcados nas dezenas do jogo.</div></div>
+
+    <h3 id="c-admin">8. Administração e Conta</h3>
+    <p>Contas com permissão de administrador têm acesso ao "🛠️ Painel de Administração", onde é possível gerenciar usuários — criar contas de teste, conceder acesso permanente, remover usuários — e configurar o limite máximo de jogos que podem ser gerados de uma vez (padrão de 50.000 jogos por geração, ajustável entre 1.000 e 50.000).</p>
+    <p>O login e o cadastro de contas são feitos via Supabase; cada tela do aplicativo (fora o Painel Inicial) exige login prévio — se o usuário tentar abrir uma ferramenta sem estar logado, o próprio aplicativo abre automaticamente o formulário de login.</p>
+    <div class="shot-img"><img src="manual-img/desktop_admin.png" alt="Painel de Administração com o limite máximo de jogos por geração e criação de usuário de teste"><div class="cap">Painel de Administração — limite de jogos por geração e gestão de usuários (lista omitida por privacidade).</div></div>
+  </section>
+
   <section id="faq">
-    <h2>3. Perguntas frequentes</h2>
+    <h2>9. Perguntas frequentes</h2>
 
     <div class="faq-q">O Desktop instalado no Windows atualiza sozinho?</div>
-    <p>Sim, a partir da versão 3.9 — ver <a href="#d-update">seção 2.8</a>.</p>
+    <p>Sim, a partir da versão 3.9 — ver <a href="#d-update">seção 5.8</a>.</p>
 
     <div class="faq-q">Qual a diferença entre "prazo de pagamento" e "encerramento do bolão"?</div>
     <p>O prazo de pagamento é o horário até quando dá para pagar a cota — definido livremente pelo organizador e sempre antes da ativação do bolão. O encerramento do bolão em si é sempre o fim da semana (domingo) ou do mês, e não precisa ser configurado à parte.</p>
+
+    <div class="faq-q">Qual a diferença entre os modos de geração de jogos?</div>
+    <p>Veja a <a href="#g-modos">seção 4.2</a> — resumindo: Filtrado usa estatística básica, Aleatório Puro e CSPRNG não usam estatística nenhuma (a diferença entre eles é o gerador de números aleatórios usado), e PRNG com Seed é reproduzível a partir da mesma semente.</p>
 
     <div class="faq-q">Dúvidas do lado do participante (app mobile)?</div>
     <p>Veja o manual próprio do app mobile: <a href="https://lottoanalytics-participante.netlify.app/manual.html" target="_blank" rel="noopener">lottoanalytics-participante.netlify.app/manual.html</a>.</p>
