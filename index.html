@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.5</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.6</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.5</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.6</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -14254,10 +14254,15 @@ function renderFrequencias(body,d,universe,freq,teoria,hist){
 function renderOndas(body,d,hist){
   const sorted=[...hist].sort((a,b)=>a.concurso>b.concurso?1:-1).slice(-50);
   const labels=sorted.map(h=>h.data||h.concurso);
-  // Mostra as posições (bolas em ordem crescente) — cor exclusiva por linha, sem repetição (mesmo com d.min alto, ex. Lotomania=50)
+  // Super Sete: "posição" é a COLUNA real (1-7), com repetição entre elas
+  // — ordenar embaralharia qual coluna teve qual dígito. As demais
+  // loterias não repetem número no mesmo concurso, então o rank ordenado
+  // (1º menor, 2º menor...) é a leitura correta pra elas.
+  // Também usa "??" em vez de "||" pra não sumir com o dígito 0 do Super
+  // Sete (0 é falsy em JS — "0||null" virava null, um buraco no gráfico).
   const datasets=Array.from({length:d.min},(_, i)=>({
-    label:`Bola ${i+1}`,
-    data:sorted.map(h=>[...h.dezenas].sort((a,b)=>a-b)[i]||null),
+    label:d.superSete?`Coluna ${i+1}`:`Bola ${i+1}`,
+    data:sorted.map(h=>(d.superSete?h.dezenas[i]:[...h.dezenas].sort((a,b)=>a-b)[i])??null),
     borderColor:laLineColor(i,d.min),
     backgroundColor:'transparent',
     borderWidth:2,
@@ -14265,7 +14270,7 @@ function renderOndas(body,d,hist){
     pointBackgroundColor:laLineColor(i,d.min),
     tension:0.4,
   }));
-  body.innerHTML=`<div class="analise-chart-wrap"><div class="analise-chart-title">Ondas — valor de cada bola por posição nos últimos ${sorted.length} sorteios</div><canvas id="chartOndas" height="140"></canvas></div>`;
+  body.innerHTML=`<div class="analise-chart-wrap"><div class="analise-chart-title">Ondas — valor de cada ${d.superSete?'coluna':'bola'} por posição nos últimos ${sorted.length} sorteios</div><canvas id="chartOndas" height="140"></canvas></div>`;
   const ctx=document.getElementById('chartOndas').getContext('2d');
   const ch=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,plugins:{legend:{labels:{color:chartCorTexto('forte'),font:{size:10}}}},scales:{x:{ticks:{color:chartCorTexto('fraca'),font:{size:8},maxRotation:45},grid:{color:chartCorGrade()}},y:{ticks:{color:chartCorTexto('fraca'),font:{size:9}},grid:{color:chartCorGrade()}}}}});
   _analiseCharts.push(ch);
@@ -14456,7 +14461,11 @@ function renderResultados(body,d,hist,freq){
         :'';
     const dateHtml=`<span class="dt-date">${h.data||''}</span>${mesTimeInline}`;
     const _bct=d.corTexto?`color:${d.corTexto}`:'';
-    const ball1InlineHtml=dzSorted.map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('');
+    // Super Sete: a ordem IMPORTA (cada dígito é o resultado de uma coluna
+    // específica) — mostrar em ordem crescente (dzSorted) falseia qual foi
+    // o resultado real de cada coluna. As demais loterias não têm noção de
+    // posição/coluna, então ordenado é a convenção certa pra elas.
+    const ball1InlineHtml=(d.superSete?dz:dzSorted).map(n=>`<div class="b m"${_bct?` style="${_bct}"`:``}>${n}</div>`).join('');
     // Dupla Sena (extraInfo.tipo==='dezenas2'): 1º sorteio fica na MESMA
     // linha do concurso/data, e o 2º sorteio numa linha própria logo
     // abaixo, alinhado com o 1º — antes os dois sorteios ficavam
@@ -14990,11 +14999,18 @@ function renderFreqBolas(body,d,universe,hist){
   /* Frequência por posição da bola (sorteio ordenado) — GRÁFICO DE LINHAS:
      uma curva por bola + curva suavizada tracejada da tendência (formato LottoAnalyzer) */
   const nPos=d.min;
+  // Super Sete não tem "bolas" — cada posição é uma coluna do volante.
+  const lblBola=i=>d.superSete?`Coluna ${i+1}`:`Bola ${i+1}`;
   const colors=['#4A9BE0','#00c97a','#ef4444','#eab308','#a855f7','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#f43f5e','#8b5cf6','#22c55e','#fb923c','#60a5fa','#e879f9','#facc15','#34d399','#f87171','#818cf8'];
   const posData=Array.from({length:nPos},()=>{const o={};universe.forEach(n=>{o[n]=0;});return o;});
   hist.forEach(({dezenas})=>{
-    const sorted=[...dezenas].sort((a,b)=>a-b);
-    sorted.forEach((n,i)=>{if(posData[i]&&posData[i][n]!==undefined)posData[i][n]++;});
+    // Super Sete: "posição" é a COLUNA real do sorteio (1-7), não o rank
+    // ordenado — cada coluna é sorteada de forma independente, com
+    // repetição permitida, então ordenar embaralharia qual coluna teve
+    // qual dígito. As demais loterias sorteiam sem repetição, e aí sim
+    // faz sentido olhar o rank ordenado (1º menor, 2º menor...).
+    const ordem=d.superSete?dezenas:[...dezenas].sort((a,b)=>a-b);
+    ordem.forEach((n,i)=>{if(posData[i]&&posData[i][n]!==undefined)posData[i][n]++;});
   });
   // Suavização (média móvel) para a curva de tendência tracejada de cada bola
   function smooth(arr,w){
@@ -15012,7 +15028,7 @@ function renderFreqBolas(body,d,universe,hist){
     const cor=colors[i%colors.length];
     // Linha sólida fina: frequência real da bola
     datasets.push({
-      label:`Bola ${i+1}`,
+      label:lblBola(i),
       data:raw,
       borderColor:cor,
       backgroundColor:'transparent',
@@ -15034,20 +15050,22 @@ function renderFreqBolas(body,d,universe,hist){
       order:1
     });
   });
-  // Faixa de cada bola para a legenda (mín–máx possíveis no sorteio ordenado)
+  // Faixa de cada bola para a legenda (mín–máx possíveis no sorteio ordenado).
+  // Só faz sentido pra loterias sem repetição — no Super Sete qualquer
+  // coluna aceita qualquer dígito 0-9, sem faixa restrita por posição.
   const uniMin=universe[0],uniMax=universe[universe.length-1];
-  const faixaBola=i=>`(${uniMin+i}–${uniMax-(nPos-1-i)})`;
+  const faixaBola=i=>d.superSete?`(${uniMin}–${uniMax})`:`(${uniMin+i}–${uniMax-(nPos-1-i)})`;
   body.innerHTML=`<div class="analise-chart-wrap">
     <div class="analise-chart-title">Frequência por posição — linha sólida = real · tracejada = tendência. ${hist.length} sorteios</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-      ${posData.map((_,i)=>`<span style="font-size:10px;color:${colors[i%colors.length]};font-weight:700;border:1px solid ${colors[i%colors.length]}55;border-radius:99px;padding:2px 9px">● Bola ${i+1}</span>`).join('')}
+      ${posData.map((_,i)=>`<span style="font-size:10px;color:${colors[i%colors.length]};font-weight:700;border:1px solid ${colors[i%colors.length]}55;border-radius:99px;padding:2px 9px">● ${lblBola(i)}</span>`).join('')}
     </div>
     <canvas id="chartFB" height="140"></canvas>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--text-muted)">
-      <span style="font-family:var(--font-mono)">sorteios: ${hist.length} · Bolas: ${nPos} · Número: ${uniMin}..${uniMax}</span>
+      <span style="font-family:var(--font-mono)">sorteios: ${hist.length} · ${d.superSete?'Colunas':'Bolas'}: ${nPos} · Número: ${uniMin}..${uniMax}</span>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
-      ${posData.map((_,i)=>`<span style="font-size:9px;color:${colors[i%colors.length]};font-weight:700">● Bola ${i+1} ${faixaBola(i)}</span>`).join('')}
+      ${posData.map((_,i)=>`<span style="font-size:9px;color:${colors[i%colors.length]};font-weight:700">● ${lblBola(i)} ${faixaBola(i)}</span>`).join('')}
       <span style="font-size:9px;color:var(--text-dim)">● Tendência (tracejada)</span>
     </div></div>`;
   const ch=new Chart(document.getElementById('chartFB').getContext('2d'),{
@@ -15084,8 +15102,10 @@ function renderDesvios(body,d,universe,freq,teoria,hist,atraso){
   for(let i=0;i<nPos;i++){
     const pf={};universe.forEach(n=>{pf[n]=0;});
     hist.forEach(({dezenas})=>{
-      const sorted=[...dezenas].map(Number).sort((a,b)=>a-b);
-      if(sorted[i]!==undefined && pf[sorted[i]]!==undefined) pf[sorted[i]]++;
+      // Super Sete: posição = coluna real (1-7), sem ordenar — ver mesma
+      // observação em renderOndas/renderFreqBolas.
+      const ordem=d.superSete?dezenas.map(Number):[...dezenas].map(Number).sort((a,b)=>a-b);
+      if(ordem[i]!==undefined && pf[ordem[i]]!==undefined) pf[ordem[i]]++;
     });
     posFreq.push(pf);
   }
@@ -15144,7 +15164,7 @@ function renderDesvios(body,d,universe,freq,teoria,hist,atraso){
   const bolasSelector=Array.from({length:nPos},(_,i)=>`
     <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border:1px solid var(--glass-border);border-radius:999px;background:rgba(255,255,255,.03);transition:all .15s" id="pos-lbl-${i}">
       <input type="checkbox" ${i===0?'checked':''} onchange="window._desvPosToggle(${i},this.checked)" style="accent-color:var(--ac)">
-      <span style="font-size:11px;font-weight:700;font-family:var(--font-head)">Bola ${i+1}</span>
+      <span style="font-size:11px;font-weight:700;font-family:var(--font-head)">${d.superSete?`Coluna ${i+1}`:`Bola ${i+1}`}</span>
     </label>`).join('');
 
   /* heatmap header cells */
@@ -15196,10 +15216,10 @@ function renderDesvios(body,d,universe,freq,teoria,hist,atraso){
   <!-- ═══ 2. DESVIOS POR POSIÇÃO ═══ -->
   <div class="analise-chart-wrap">
     <div class="analise-chart-title">Desvios por posição
-      <span style="font-size:9px;color:var(--text-dim);font-weight:400;margin-left:8px">Desvio da frequência real de cada número por bola em relação à distribuição teórica. Selecione a bola para visualizar.</span>
+      <span style="font-size:9px;color:var(--text-dim);font-weight:400;margin-left:8px">Desvio da frequência real de cada número por ${d.superSete?'coluna':'bola'} em relação à distribuição teórica. Selecione ${d.superSete?'a coluna':'a bola'} para visualizar.</span>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center">
-      <span style="font-size:10px;font-weight:700;color:var(--text-dim);font-family:var(--font-mono);margin-right:4px">BOLA #</span>
+      <span style="font-size:10px;font-weight:700;color:var(--text-dim);font-family:var(--font-mono);margin-right:4px">${d.superSete?'COLUNA #':'BOLA #'}</span>
       ${bolasSelector}
     </div>
     <canvas id="chartDevPos" height="110"></canvas>
