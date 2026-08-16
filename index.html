@@ -1519,7 +1519,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     if(document.getElementById('banner-update-pronta')) return; // já mostrando, não duplica
     var b=document.createElement('div');
     b.id='banner-update-pronta';
-    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid var(--ac,#3A9B4E);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
+    b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid var(--ac,#3A9B4E);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
     b.innerHTML=
       '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">🎉 Atualização v'+versao+' pronta para instalar</span>'+
       '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:var(--ac,#3A9B4E);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.0</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.1</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.0</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.1</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
