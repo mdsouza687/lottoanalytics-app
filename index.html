@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.6</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.7</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.6</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.7</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -13532,10 +13532,14 @@ function atualizarManualDica(){
       dica.innerHTML=`<span style="color:${_corMarcaLegivelHero(d)}"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,14)}${d.nome}</span></span> — ${d.superSete?'1 dígito (0–9) por coluna':faixa+` de ${pad2(d.start)} a ${pad2(d.start+d.universe-1)}`}${d.bolaExtra?` + ${d.bolaExtraNome} 1–${d.bolaExtraMax}`:''}${d.hasTrevo?` + ${d.trevosMin||2} trevos`:''}`;
     }
   }
-  // Troca de loteria zera seleção e jogos adicionados
-  if(_manualJogos.length) toast('Loteria alterada — jogos adicionados foram limpos.');
+  // Troca de loteria zera só a seleção EM ANDAMENTO no cartão (não faz
+  // sentido carregar dezenas marcadas pra uma loteria diferente) — os
+  // jogos JÁ ADICIONADOS ficam no carrinho, de qualquer loteria, pra dar
+  // pra revisar tudo junto antes de salvar/vincular ao bolão (pedido do
+  // usuário: antes, trocar de loteria apagava o que já tinha sido
+  // adicionado nas outras, sem aviso nenhum de que isso ia acontecer até
+  // o toast surgir — perda de trabalho real).
   _manualSel=new Set();
-  _manualJogos=[];
   _manualMes=null;
   _manualTime=null;
   _manualTeimosinha=null;
@@ -13805,8 +13809,11 @@ async function adicionarJogoManual(){
     jogo._teimosinhaConcursos=calcConcursosTeimosinha(concursoNum,_manualTeimosinha);
   }
 
-  // Evita duplicado entre os já adicionados (estrutura de colunas considerada no Super Sete)
-  const assina=j=>(j._ssCols?j._ssCols.map(c=>c.join('')).join('-'):j.join(','))+'|'+(j._extra?[j._extra]:(j._trevos||[])).join(',')+'|'+(j._mes??'')+'|'+(j._time??'')+'|'+(j._teimosinhaConcursos?j._teimosinhaConcursos.join(','):'');
+  jogo._loteria=key; // carrinho agora guarda jogos de várias loterias juntos — cada um precisa saber a sua
+  // Evita duplicado entre os já adicionados (estrutura de colunas considerada
+  // no Super Sete; loteria entra na assinatura porque o carrinho agora pode
+  // ter mais de uma — dezenas iguais em loterias diferentes não são o mesmo jogo)
+  const assina=j=>j._loteria+'|'+(j._ssCols?j._ssCols.map(c=>c.join('')).join('-'):j.join(','))+'|'+(j._extra?[j._extra]:(j._trevos||[])).join(',')+'|'+(j._mes??'')+'|'+(j._time??'')+'|'+(j._teimosinhaConcursos?j._teimosinhaConcursos.join(','):'');
   if(_manualJogos.some(j=>assina(j)===assina(jogo))){
     toast('Este jogo já foi adicionado.');return;
   }
@@ -13825,27 +13832,40 @@ function removerJogoManual(i){
 
 function renderManualLista(){
   const lista=document.getElementById('manual-lista'); if(!lista)return;
-  const key=document.getElementById('manual-loteria-sel')?.value;
-  const d=key?CFG[key]:null;
-  if(!_manualJogos.length||!d){lista.innerHTML='';return;}
-  let html=`<div style="font-size:10px;font-weight:700;color:var(--text-dim);margin-bottom:6px">Jogos adicionados — ${_manualJogos.length}</div>`;
+  if(!_manualJogos.length){lista.innerHTML='';return;}
+  // O carrinho pode ter jogos de VÁRIAS loterias juntos (não se apaga mais
+  // ao trocar o seletor) — agrupa por loteria pra exibir todos, cada um
+  // com a config (cor, bolas, Super Sete etc.) da SUA PRÓPRIA loteria, não
+  // da que estiver selecionada no momento no dropdown. Preserva o índice
+  // original de cada jogo (usado por removerJogoManual) mesmo agrupado.
+  const grupos=[]; const porLoteria={};
   _manualJogos.forEach((jogo,i)=>{
-    let balls;
-    if(jogo._ssCols){
-      // Super Sete: agrupar dígitos por coluna
-      balls=jogo._ssCols.map((c,ci)=>
-        `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${_corMarcaLegivelHero(d)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${n}</span>`).join('')}</span>`
-      ).join('');
-    } else {
-      balls=jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;border-radius:4px;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(n)}</span>`).join('');
-    }
-    const extra=jogo._extra?`<span style="font-size:8px;color:${d.bolaExtraCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:${d.bolaExtraCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(jogo._extra)}</span>`:'';
-    const trevos=jogo._trevos?.length?`<span style="font-size:9px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${d.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(t)}</span>`).join('')}`:'';
-    html+=`<div style="padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:6px;margin-bottom:3px;display:flex;align-items:center;gap:6px">
-      <span style="font-size:9px;color:var(--text-dim);min-width:18px;font-family:var(--font-mono)">${i+1}.</span>
-      <div style="flex:1;display:flex;flex-wrap:wrap;gap:2px;align-items:center">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>
-      <button onclick="removerJogoManual(${i})" title="Remover jogo" style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:5px;color:rgba(255,90,90,.9);cursor:pointer;font-size:10px;font-weight:700;padding:2px 7px">✕</button>
-    </div>`;
+    const lk=jogo._loteria;
+    if(!porLoteria[lk]){ porLoteria[lk]=[]; grupos.push(lk); }
+    porLoteria[lk].push([i,jogo]);
+  });
+  let html=`<div style="font-size:10px;font-weight:700;color:var(--text-dim);margin-bottom:6px">Jogos adicionados — ${_manualJogos.length}</div>`;
+  grupos.forEach(lk=>{
+    const d=CFG[lk]; if(!d) return;
+    html+=`<div style="display:flex;align-items:center;gap:6px;margin:8px 0 4px"><span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:${_corMarcaLegivelHero(d)}">${iconLoteria(d,12)}${d.nome}</span><span style="font-size:9px;color:var(--text-dim)">(${porLoteria[lk].length})</span></div>`;
+    porLoteria[lk].forEach(([i,jogo])=>{
+      let balls;
+      if(jogo._ssCols){
+        // Super Sete: agrupar dígitos por coluna
+        balls=jogo._ssCols.map((c,ci)=>
+          `<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:5px"><span style="font-size:7px;font-weight:800;color:${_corMarcaLegivelHero(d)}">${ci+1}</span>${c.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${n}</span>`).join('')}</span>`
+        ).join('');
+      } else {
+        balls=jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;border-radius:4px;background:${d.cor};color:${corBolaTexto(d)};font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(n)}</span>`).join('');
+      }
+      const extra=jogo._extra?`<span style="font-size:8px;color:${d.bolaExtraCor||'#00BCD4'};font-weight:800;align-self:center;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:${d.bolaExtraCor||'#00BCD4'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(jogo._extra)}</span>`:'';
+      const trevos=jogo._trevos?.length?`<span style="font-size:9px;align-self:center;padding:0 2px">🍀</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${d.trevoCor||'#0fae8a'};color:#fff;font-family:var(--font-mono);font-size:8px;font-weight:800">${pad2(t)}</span>`).join('')}`:'';
+      html+=`<div style="padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:6px;margin-bottom:3px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:9px;color:var(--text-dim);min-width:18px;font-family:var(--font-mono)">${i+1}.</span>
+        <div style="flex:1;display:flex;flex-wrap:wrap;gap:2px;align-items:center">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div>
+        <button onclick="removerJogoManual(${i})" title="Remover jogo" style="background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.22);border-radius:5px;color:rgba(255,90,90,.9);cursor:pointer;font-size:10px;font-weight:700;padding:2px 7px">✕</button>
+      </div>`;
+    });
   });
   lista.innerHTML=html;
 }
@@ -13866,71 +13886,94 @@ async function salvarJogosManuais(){
   }
 }
 async function _salvarJogosManuaisImpl(){
-  const sel=document.getElementById('manual-loteria-sel');
-  const key=sel?.value; const d=key?CFG[key]:null;
-  if(!d){toast('Selecione a loteria.');return;}
   if(!_manualJogos.length){toast('Adicione ao menos um jogo no cartão.');return;}
   if(!(await _sessaoValidaOuAvisar())) return;
 
-  const nomeDefault=`Manual ${d.nome} · ${new Date().toLocaleDateString('pt-BR')}`;
-  const nome=(await _promptModal('Nome para este conjunto de jogos:',nomeDefault))||nomeDefault;
+  // O carrinho pode ter jogos de várias loterias juntos (não se apaga mais
+  // ao trocar o seletor) — agrupa por loteria antes de salvar, porque
+  // salvarDual() grava um lote de cada vez, sempre de uma loteria só (é
+  // assim que o schema novo guarda: cada lote_id pertence a uma única
+  // loteria). O resultado prático é um lote por loteria usada, todos
+  // vinculados ao mesmo bolão quando um bolão é escolhido — a base
+  // "Multi-Loteria" do bolão já foi pensada pra isso.
+  const porLoteria={}; const ordemLoterias=[];
+  _manualJogos.forEach(jogo=>{
+    const lk=jogo._loteria;
+    if(!porLoteria[lk]){ porLoteria[lk]=[]; ordemLoterias.push(lk); }
+    porLoteria[lk].push(jogo);
+  });
+  const multiplas=ordemLoterias.length>1;
+
+  const nomeDefault=multiplas
+    ? `Manual multi-loteria · ${new Date().toLocaleDateString('pt-BR')}`
+    : `Manual ${CFG[ordemLoterias[0]].nome} · ${new Date().toLocaleDateString('pt-BR')}`;
+  const nomeBase=(await _promptModal('Nome para este conjunto de jogos:',nomeDefault))||nomeDefault;
+
+  // vincId: uuid do bolão (schema novo) — não é mais numérico, parseInt
+  // quebraria (NaN||0 nunca vinculava nada, bug que só apareceria em
+  // produção porque nenhum teste manual clicou "vincular" nesse fluxo).
+  var vincSel=document.getElementById('manual-vinculo-sel');
+  var vincId=vincSel?vincSel.value:'';
 
   // Corte final (Item 3, 2026-07-12): grava só no schema novo, mesmo
   // caminho de _salvarJogosImpl — não existe mais "manual:true" como campo
   // do registro (o schema novo não distingue inserção manual de gerada;
   // ambas são jogos avulsos iguais, a diferença só importava pra exibição
   // no schema antigo).
+  var totalSalvo=0, totalPulado=0;
   try{
-    var linhas=await JogosSalvosRepo.salvarDual(key,_manualJogos,nome);
-    var novoId=linhas&&linhas[0]?(linhas[0].lote_id||linhas[0].id):null;
-    // Fase 64 (2026-08-02, bug real ao vivo): a RPC agora pula (em vez de
-    // abortar o lote inteiro) qualquer jogo que colida com outro já
-    // existente (mesmas dezenas ativas) — mas isso significa que
-    // linhas.length pode ser MENOR que _manualJogos.length. Usar
-    // _manualJogos.length nos toasts abaixo mentia pro usuário que TODOS
-    // os jogos do carrinho foram salvos mesmo quando alguns foram
-    // ignorados (foi exatamente o que aconteceu: um lote de 4 jogos da
-    // Mega-Sena sumiu inteiro por causa de 1 colisão, sem nenhum aviso
-    // de que os outros 3 também tinham sumido).
-    var _qtdSalva=(linhas||[]).length;
-    var _qtdPulada=_manualJogos.length-_qtdSalva;
-    if(!_qtdSalva){
-      toast(_qtdPulada===1?'Este jogo já existe (mesmas dezenas) — nenhum jogo novo foi salvo.':`Os ${_qtdPulada} jogos já existiam (mesmas dezenas) — nenhum jogo novo foi salvo.`);
-      _manualJogos=[]; _manualSel=new Set(); closeModal('modal-manuais');
-      return;
+    for(const lk of ordemLoterias){
+      const jogosDoGrupo=porLoteria[lk];
+      const d=CFG[lk];
+      const nomeLote=multiplas?`${nomeBase} — ${d.nome}`:nomeBase;
+      var linhas=await JogosSalvosRepo.salvarDual(lk,jogosDoGrupo,nomeLote);
+      var novoId=linhas&&linhas[0]?(linhas[0].lote_id||linhas[0].id):null;
+      // Fase 64 (2026-08-02, bug real ao vivo): a RPC pula (em vez de
+      // abortar o lote inteiro) qualquer jogo que colida com outro já
+      // existente (mesmas dezenas ativas) — por isso conta o que a RPC
+      // realmente salvou por grupo, em vez de assumir que tudo foi salvo.
+      var _qtdSalva=(linhas||[]).length;
+      totalSalvo+=_qtdSalva;
+      totalPulado+=jogosDoGrupo.length-_qtdSalva;
+      if(!_qtdSalva) continue; // grupo inteiro colidiu — nada pra registrar/vincular desta loteria
+      _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalva} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
+      if(vincId && typeof vincularSalvoAoBolao==='function'){
+        // Antes chamava vincularJogosAoBolao(), que cria um espelho NOVO e
+        // independente em Jogos Salvos — o item recém-criado acima (dbPut)
+        // ficava esquecido, "solto" (nunca marcado como vinculado), enquanto
+        // um segundo registro idêntico ("Bolão: ...") também existia. Isso
+        // duplicava toda inserção manual vinculada a um bolão. Agora usa
+        // vincularSalvoAoBolao(), que RENOMEIA/marca o MESMO registro já
+        // criado — um único jogo, um único registro por loteria, exatamente
+        // como o fluxo do Gerador de Jogos (_salvarComEscolha) já faz.
+        // semRefreshModalSalvar (Fase 94b): esse fluxo fecha modal-manuais
+        // sozinho logo abaixo — não usa modal-salvar em nada, então não faz
+        // sentido deixar vincularSalvoAoBolao() abrir esse popup por baixo
+        // dos panos (mesma causa raiz corrigida no Resultado da Geração).
+        await vincularSalvoAoBolao(novoId, vincId, {semRefreshModalSalvar:true});
+      }
     }
-    _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalva} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
-    // vincId: uuid do bolão (schema novo) — não é mais numérico, parseInt
-    // quebraria (NaN||0 nunca vinculava nada, bug que só apareceria em
-    // produção porque nenhum teste manual clicou "vincular" nesse fluxo).
-    var vincSel=document.getElementById('manual-vinculo-sel');
-    var vincId=vincSel?vincSel.value:'';
-    var _avisoPulados=_qtdPulada?` (${_qtdPulada} jogo${_qtdPulada!==1?'s':''} ignorado${_qtdPulada!==1?'s':''} — mesmas dezenas já existiam)`:'';
-    if(vincId && typeof vincularSalvoAoBolao==='function'){
-      // Antes chamava vincularJogosAoBolao(), que cria um espelho NOVO e
-      // independente em Jogos Salvos — o item recém-criado acima (dbPut)
-      // ficava esquecido, "solto" (nunca marcado como vinculado), enquanto
-      // um segundo registro idêntico ("Bolão: ...") também existia. Isso
-      // duplicava toda inserção manual vinculada a um bolão. Agora usa
-      // vincularSalvoAoBolao(), que RENOMEIA/marca o MESMO registro já
-      // criado — um único jogo, um único registro, exatamente como o
-      // fluxo do Gerador de Jogos (_salvarComEscolha) já faz.
-      // semRefreshModalSalvar (Fase 94b): esse fluxo fecha modal-manuais
-      // sozinho logo abaixo — não usa modal-salvar em nada, então não faz
-      // sentido deixar vincularSalvoAoBolao() abrir esse popup por baixo
-      // dos panos (mesma causa raiz corrigida no Resultado da Geração).
-      await vincularSalvoAoBolao(novoId, vincId, {semRefreshModalSalvar:true});
-      toast(`✅ ${_qtdSalva} jogo(s) salvos e vinculados ao bolão${_avisoPulados}`);
-    } else {
-      toast(`✅ ${_qtdSalva} jogo${_qtdSalva!==1?'s':''} manual${_qtdSalva!==1?'is':''} salvos como "${nome}"${_avisoPulados}`);
-    }
-    _manualJogos=[];
-    _manualSel=new Set();
-    closeModal('modal-manuais');
   }catch(e){
     var _dupManual=/jogos_content_hash_unique|duplicate key/i.test(e.message||'');
     toast(_dupManual?'Este jogo já existe (mesmas dezenas) — atualize o resultado da loteria antes de tentar de novo, o concurso vigente pode estar desatualizado.':('Erro ao salvar: '+e.message));
+    // Não limpa o carrinho num erro no meio do caminho: loterias já
+    // processadas com sucesso são puladas como duplicata numa nova
+    // tentativa (a RPC já cobre isso), e as que faltavam continuam ali
+    // pra tentar salvar de novo sem perder nada.
+    return;
   }
+
+  var _avisoPulados=totalPulado?` (${totalPulado} jogo${totalPulado!==1?'s':''} ignorado${totalPulado!==1?'s':''} — mesmas dezenas já existiam)`:'';
+  if(!totalSalvo){
+    toast(totalPulado===1?'Este jogo já existe (mesmas dezenas) — nenhum jogo novo foi salvo.':`Os ${totalPulado} jogos já existiam (mesmas dezenas) — nenhum jogo novo foi salvo.`);
+  } else if(vincId){
+    toast(`✅ ${totalSalvo} jogo(s) salvos e vinculados ao bolão${_avisoPulados}`);
+  } else {
+    toast(`✅ ${totalSalvo} jogo${totalSalvo!==1?'s':''} manual${totalSalvo!==1?'is':''} salvos${_avisoPulados}`);
+  }
+  _manualJogos=[];
+  _manualSel=new Set();
+  closeModal('modal-manuais');
 }
 
 // Limpeza Bucket C (Item 3, corte final, 2026-07-12): removidos daqui
