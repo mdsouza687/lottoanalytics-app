@@ -57,6 +57,9 @@
     color:var(--text-dim); font-size:12px; text-align:center; padding:28px 16px; margin:14px 0;
   }
   .shot b{display:block; color:var(--text-dim); font-weight:700; margin-bottom:4px}
+  .shot-img{margin:14px 0}
+  .shot-img img{width:100%; display:block; border:1px solid var(--border); border-radius:10px}
+  .shot-img .cap{font-size:11.5px; color:var(--text-dim); margin-top:6px; text-align:center}
   .faq-q{font-weight:700; margin-top:18px}
   .crosslink{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:18px 0; font-size:13.5px}
   footer{color:var(--text-dim); font-size:11px; padding:20px 48px; border-top:1px solid var(--border)}
@@ -73,6 +76,7 @@
     section{page-break-inside:avoid}
     a{color:#111; text-decoration:none}
     .shot{border-color:#999}
+    .shot-img img{border-color:#999}
     .callout{background:#fff8e6; border-color:#e0a52c; color:#7a5a00}
     .callout b{color:#7a5a00}
   }
@@ -95,6 +99,7 @@
   <a href="#d-impressao">2.6 Impressão</a>
   <a href="#d-notif">2.7 Notificações</a>
   <a href="#d-update">2.8 Atualização automática</a>
+  <a href="#d-saldo">2.9 Prêmio → Saldo</a>
 
   <h2>Ajuda</h2>
   <a href="#faq">3. Perguntas frequentes</a>
@@ -129,11 +134,14 @@
       <li>Preencha os dados do administrador (nome, telefone, PIX) e adicione os participantes manualmente ou importando uma lista (Nome, E-mail, WhatsApp).</li>
     </ol>
     <p><b>CPF/CNPJ do administrador:</b> tem um seletor de tipo (CPF ou CNPJ), com máscara própria para cada um. Esse campo passa a ser obrigatório quando o bolão tem mais de 3 participantes — necessário para o Termo de Constituição.</p>
+    <div class="shot-img"><img src="manual-img/desktop_criar_bolao.png" alt="Tela de criação do bolão, com dados do bolão e semanas do bolão mensal"><div class="cap">Dados do bolão — nome, datas, prazo de pagamento e valor da cota calculado automaticamente.</div></div>
 
     <h3 id="d-cota">Valor da cota e rateio da organização</h3>
     <p>No card <b>Administrador</b>, o campo "Valor da cota (R$)" define o preço de 1 cota usado no aplicativo mobile para o participante escolher quantas cotas quer, antes de assinar os termos.</p>
     <p>Quando o bolão tem "Cobrança de organização" (cotas isentas do administrador ou valor fixo), o valor que o participante <b>efetivamente vê e paga</b> já vem com a fração dessa taxa somada automaticamente — dividida entre os participantes ativos — sem o organizador precisar calcular isso na mão. Sem cobrança de organização, o valor pago é exatamente o digitado nesse campo.</p>
     <div class="callout">💡 Exemplo real: valor base R$25,00, com "Cotas isentas" ativado, o app mostra em verde algo como <i>"= R$37,50 cobrado do participante (inclui rateio da organização)"</i> — o cálculo aparece ao vivo enquanto você digita.</div>
+    <div class="shot-img"><img src="manual-img/desktop_rateio_organizacao.png" alt="Campo Valor da cota com o texto verde do cálculo do rateio da organização"><div class="cap">R$20,00 de base + 2 cotas isentas rateadas entre os participantes ativos = R$40,00 cobrado de cada um.</div></div>
+    <div class="callout"><b>Atenção:</b> esse cálculo só é refeito quando você altera algum campo dentro do próprio card Administrador. Se você adicionar ou remover um participante, o texto verde pode ficar desatualizado até você tocar em algum campo do card (ex.: reabrir o seletor de cotas isentas) — não é um valor errado, só precisa de um "empurrão" pra recalcular.</div>
 
     <h3 id="d-semana">2.2 Semana do bolão (segunda a domingo)</h3>
     <p>Como a Caixa passou a realizar sorteios aos domingos, a semana do bolão mudou de domingo–sábado para segunda–domingo — o domingo agora fecha a semana em vez de abri-la. Isso vale tanto para o preenchimento automático de "Data início/fim da semana" quanto para o corte de semanas do bolão mensal.</p>
@@ -145,16 +153,18 @@
     <h3 id="d-ativar">2.4 Ativar o Bolão</h3>
     <p>O botão "🔒 Ativar Bolão" fecha o bolão para novos participantes e o disponibiliza no app dos participantes que já aceitaram o convite.</p>
     <div class="callout"><b>Importante:</b> ao ativar, participantes que ainda não pagaram a cota são <b>removidos automaticamente</b> do bolão — ativos ou inativos, não importa — em vez do sistema apenas bloquear a ativação com um aviso. Vale conferir a lista de pagamentos antes de confirmar. A remoção não apaga o cadastro da pessoa, só o vínculo dela com esse bolão específico.</div>
+    <div class="shot-img"><img src="manual-img/desktop_ativar_bolao_confirmacao.png" alt="Popup de confirmação ao clicar em Ativar Bolão, avisando que a ação fecha o bolão e não pode ser desfeita"><div class="cap">Confirmação antes de ativar — mostra quantos participantes pagos serão mantidos e avisa que a ação não pode ser desfeita.</div></div>
     <p>Os participantes que permanecem, com conta vinculada, recebem automaticamente uma notificação push avisando que o bolão está ativo.</p>
 
     <h3 id="d-docs">2.5 Documentos: Termo de Constituição, Termos e Condições e Regras de ITCMD</h3>
     <p>Os botões "📄 Termo de Constituição" e "📜 Termos e Condições" (disponíveis após ativar o bolão) geram documentos prontos para impressão, com os dados do bolão preenchidos automaticamente — incluindo o prazo de pagamento, quando definido.</p>
     <p>O Termo de Constituição tem duas áreas de assinatura: a coluna "Assinatura" na tabela de participantes e o bloco de linhas para assinatura física no rodapé. Quem já assinou digitalmente pelo app aparece com a imagem da assinatura e a data em ambos os lugares — não precisa assinar de novo na folha impressa.</p>
     <p>Um terceiro link, "📄 Regras de Funcionamento e Isenção de ITCMD", fica na mesma barra de documentos. Diferente dos outros dois, é um documento institucional fixo (o mesmo para todos os bolões) que explica as regras gerais de funcionamento dos bolões e a isenção do ITCMD (Imposto de Transmissão Causa Mortis e Doação) sobre a divisão do prêmio entre os participantes.</p>
-    <div class="shot"><b>🖼 Tela: Termo de Constituição</b>Participante que já assinou digitalmente aparece com a imagem da assinatura em vez de linha em branco.</div>
+    <div class="shot-img"><img src="manual-img/desktop_documentos_notificacoes.png" alt="Barra de documentos com Termos e Condições, Termo de Constituição, Dossiê do Prêmio e Regras de ITCMD, e card Administrador com aviso de prêmio e ativado em"><div class="cap">Barra de documentos (Participantes) e, acima, o card Administrador já ativado — com o limite de aviso de prêmio grande.</div></div>
 
     <h3 id="d-impressao">2.6 Impressão: completa ou só premiados</h3>
     <p>Ao clicar em "🖨 Imprimir", é possível escolher entre o relatório completo (todos os jogos) ou só os jogos premiados — útil para relatórios mais curtos quando o bolão tem muitos jogos vinculados.</p>
+    <div class="shot-img"><img src="manual-img/desktop_imprimir_opcoes.png" alt="Modal Imprimir Relatório do Bolão com as opções Todos os jogos vinculados ou Só os jogos premiados"><div class="cap">Modal "Imprimir Relatório do Bolão" — escolha entre relatório completo ou só os jogos premiados.</div></div>
 
     <h3 id="d-notif">2.7 Notificações: prêmio grande, jogos/bilhetes e mensagens</h3>
     <p>Além do aviso de prazo de pagamento e de ativação, existem mais três tipos de notificação:</p>
@@ -167,6 +177,11 @@
 
     <h3 id="d-update">2.8 Atualização automática do Desktop</h3>
     <p>A partir da versão 3.9, o aplicativo instalado no Windows confere automaticamente se existe uma versão nova ao abrir e depois a cada 30 minutos, enquanto estiver aberto. Ao encontrar uma, baixa em segundo plano (sem atrapalhar o uso) e mostra um aviso fixo na tela com o botão <b>"Instalar e Reiniciar"</b> — ao clicar, o aplicativo fecha, instala e reabre sozinho já na versão nova, sem precisar baixar nada manualmente.</p>
+    <div class="shot-img"><img src="manual-img/desktop_versao.png" alt="Canto superior esquerdo do app mostrando o logo LottoAnalytics e o número da versão instalada"><div class="cap">O número da versão instalada fica sempre visível abaixo do logo, no canto superior esquerdo.</div></div>
+
+    <h3 id="d-saldo">2.9 Prêmio → Saldo: prêmios de baixo valor viram orçamento</h3>
+    <p>O botão "🏆 Prêmio → Saldo", na barra de Participantes, converte prêmios de baixo valor já recebidos em saldo disponível para os próximos jogos, em vez de repassar o dinheiro aos participantes. Esse saldo aparece detalhado por loteria em "Gasto e Saldo por Loteria", junto com o histórico de rodadas semanais — a mesma lógica documentada nas <a href="regras-funcionamento-itcmd.html" target="_blank" rel="noopener">Regras de Funcionamento e Isenção de ITCMD</a>.</p>
+    <div class="shot-img"><img src="manual-img/desktop_gasto_saldo_loteria.png" alt="Tela Gasto e Saldo por Loteria, mostrando gasto total e saldo restante de cada loteria, e histórico de rodadas semanais"><div class="cap">Gasto e saldo por loteria, e histórico de rodadas — para onde vai o dinheiro dos prêmios de baixo valor.</div></div>
   </section>
 
   <section id="faq">
