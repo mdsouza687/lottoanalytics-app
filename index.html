@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.4</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.5</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.4</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.5</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -14409,7 +14409,18 @@ function renderResultados(body,d,hist,freq){
   const mainCols=[]; for(let i=d.start;i<d.start+d.universe;i++) mainCols.push(i);
   const extraCols=[]; if(extraInfo){ const st=extraInfo.tipo==='dezenas2'?d.start:1; for(let i=st;i<st+extraInfo.universe;i++) extraCols.push(i); }
 
-  let theadMain=mainCols.map(n=>`<th>${n}</th>`).join('');
+  // Super Sete é posicional (1 dígito 0-9 por coluna, 7 colunas, com
+  // repetição permitida entre colunas) — "coluna" pra ele é a POSIÇÃO do
+  // sorteio (1 a 7), igual ao volante de aposta ("Cada coluna é uma
+  // posição do Super Sete"), não o valor do dígito. As demais loterias
+  // sorteiam sem repetição, então pra elas "coluna" = valor (0..universe-1)
+  // funciona e é o que faz sentido mostrar. gridCols é só pro cabeçalho e
+  // pras linhas da tabela — mainCols continua intacto porque o painel
+  // "Números para o gerador", mais abaixo, é sobre VALORES a incluir na
+  // geração, não posições, e usa mainCols direto.
+  const gridCols=d.superSete?[1,2,3,4,5,6,7]:mainCols;
+
+  let theadMain=gridCols.map(n=>`<th>${n}</th>`).join('');
   let theadExtra=extraCols.map(n=>`<th class="he-th">${n}</th>`).join('');
 
   let thead=`<tr><th class="stk" style="min-width:170px">#</th>${theadMain}${extraCols.length?'<th class="dt-sep"></th>'+theadExtra:''}</tr>`;
@@ -14419,21 +14430,8 @@ function renderResultados(body,d,hist,freq){
   sorted.forEach(h=>{
     const dz=(h.dezenas||[]).map(Number);
     const dzSorted=[...dz].sort((a,b)=>a-b);
-    const posMap={}; // número -> posição ordenada (1-based), usada no modo "Posições"
-    // Super Sete sorteia COM repetição (1 dígito por coluna, 7 colunas) —
-    // um mesmo dígito pode sair em mais de uma coluna. As demais loterias
-    // nunca repetem número dentro do mesmo concurso, então guardar um único
-    // valor por número em posMap é seguro; pro Super Sete isso sobrescrevia
-    // a posição de uma ocorrência anterior sempre que o dígito repetia,
-    // perdendo a informação e deixando menos de 7 posições visíveis na
-    // tabela. Aqui cada valor vira uma LISTA de colunas reais (posição no
-    // array original, não no ordenado — "posição" pro Super Sete é a
-    // coluna do sorteio, não o rank do valor).
-    if(d.superSete){
-      dz.forEach((n,i)=>{ (posMap[n]=posMap[n]||[]).push(i+1); });
-    } else {
-      dzSorted.forEach((n,i)=>{ posMap[n]=i+1; });
-    }
+    const posMap={}; // número -> posição ordenada (1-based), usada no modo "Posições" (não se aplica ao Super Sete, que usa gridCols/dz[i] direto — ver mainTds)
+    dzSorted.forEach((n,i)=>{ posMap[n]=i+1; });
 
     let extraVals=[];
     if(extraInfo){
@@ -14497,19 +14495,21 @@ function renderResultados(body,d,hist,freq){
     else infoHtml=ballsHtml;
 
     const _ct=d.corTexto?`;color:${d.corTexto}`:'';
-    let mainTds=mainCols.map(n=>{
-      const hit=dz.includes(n);
-      // Super Sete: a coluna já é o VALOR do dígito, então repetir esse
-      // mesmo valor dentro da célula (modo "Números") não soma nenhuma
-      // informação nova — o que interessa aqui é sempre a POSIÇÃO (1-7) de
-      // onde saiu, mostrando todas juntas quando o dígito repete (ex.:
-      // "3,4"). Por isso, ao contrário das demais loterias, o Super Sete
-      // não depende do alternador Números/Posições — é sempre posição.
-      const val=d.superSete
-        ? (hit?posMap[n].join(','):'')
-        : (view.mode==='posicoes'?(hit?posMap[n]:''):n);
-      return `<td><div class="fc2${hit?' hm':''}"${hit?` style="background:${hitColorMain(n)}${_ct}"`:''}>${hit?val:n}</div></td>`;
-    }).join('');
+    // Super Sete: cada coluna (1-7) é uma posição real do sorteio, sempre
+    // preenchida com o dígito daquela posição — sem conceito de "hit" (não
+    // tem como uma posição "não sair", ela sempre tem um dígito 0-9) e sem
+    // depender do alternador Números/Posições, que é sobre outra coisa
+    // (rank do valor) nas demais loterias e não se aplica aqui.
+    let mainTds=d.superSete
+      ? gridCols.map((col,i)=>{
+          const digito=dz[i];
+          return `<td><div class="fc2 hm" style="background:${hitColorMain(digito)}${_ct}">${digito}</div></td>`;
+        }).join('')
+      : mainCols.map(n=>{
+          const hit=dz.includes(n);
+          const val=view.mode==='posicoes'?(hit?posMap[n]:''):n;
+          return `<td><div class="fc2${hit?' hm':''}"${hit?` style="background:${hitColorMain(n)}${_ct}"`:''}>${hit?val:n}</div></td>`;
+        }).join('');
 
     let extraTds='';
     if(extraCols.length){
