@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.2</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.3</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.2</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.3</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -14420,7 +14420,20 @@ function renderResultados(body,d,hist,freq){
     const dz=(h.dezenas||[]).map(Number);
     const dzSorted=[...dz].sort((a,b)=>a-b);
     const posMap={}; // número -> posição ordenada (1-based), usada no modo "Posições"
-    dzSorted.forEach((n,i)=>{ posMap[n]=i+1; });
+    // Super Sete sorteia COM repetição (1 dígito por coluna, 7 colunas) —
+    // um mesmo dígito pode sair em mais de uma coluna. As demais loterias
+    // nunca repetem número dentro do mesmo concurso, então guardar um único
+    // valor por número em posMap é seguro; pro Super Sete isso sobrescrevia
+    // a posição de uma ocorrência anterior sempre que o dígito repetia,
+    // perdendo a informação e deixando menos de 7 posições visíveis na
+    // tabela. Aqui cada valor vira uma LISTA de colunas reais (posição no
+    // array original, não no ordenado — "posição" pro Super Sete é a
+    // coluna do sorteio, não o rank do valor).
+    if(d.superSete){
+      dz.forEach((n,i)=>{ (posMap[n]=posMap[n]||[]).push(i+1); });
+    } else {
+      dzSorted.forEach((n,i)=>{ posMap[n]=i+1; });
+    }
 
     let extraVals=[];
     if(extraInfo){
@@ -14486,7 +14499,9 @@ function renderResultados(body,d,hist,freq){
     const _ct=d.corTexto?`;color:${d.corTexto}`:'';
     let mainTds=mainCols.map(n=>{
       const hit=dz.includes(n);
-      const val=view.mode==='posicoes'?(hit?posMap[n]:''):n;
+      // Super Sete: posMap[n] é uma lista (pode ter mais de uma coluna pro
+      // mesmo dígito); as demais loterias continuam com um único número.
+      const val=view.mode==='posicoes'?(hit?(d.superSete?posMap[n].join(','):posMap[n]):''):n;
       return `<td><div class="fc2${hit?' hm':''}"${hit?` style="background:${hitColorMain(n)}${_ct}"`:''}>${hit?val:n}</div></td>`;
     }).join('');
 
