@@ -45,6 +45,15 @@
   th{color:var(--text-dim); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.03em}
   tr:hover td{background:rgba(255,255,255,.03)}
   .disclaimer{color:var(--text-dim); font-size:12.5px; font-style:italic; margin-top:28px; padding-top:16px; border-top:1px solid var(--border)}
+  h3{font-size:15px; color:var(--accent); margin:22px 0 8px}
+  .template{
+    background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:6px; padding:12px 14px; margin:10px 0 16px; font-size:12.5px; color:var(--text-dim);
+    font-style:italic; white-space:pre-wrap;
+  }
+  .template .lbl{display:block; font-style:normal; font-weight:700; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px}
+  ol{margin:0 0 14px; padding-left:22px}
+  ol li{margin-bottom:6px}
   footer{color:var(--text-dim); font-size:11px; padding:20px 0; text-align:center}
   @media print{
     .actions{display:none!important}
@@ -56,6 +65,8 @@
     .callout b{color:#7a5a00}
     th{color:#555}
     th,td{border-bottom:1px solid #ccc}
+    .template{background:#f5f5f0; border-color:#ccc; border-left-color:#3a9b4e; color:#333}
+    .template .lbl{color:#2f7d40}
   }
 </style>
 </head>
@@ -155,6 +166,54 @@
     </div>
 
     <p class="disclaimer">Este resumo tem caráter informativo, com base nas alíquotas gerais de cada estado. Ele não substitui a orientação de um contador ou advogado tributarista — principalmente se houver um prêmio de valor mais alto envolvido.</p>
+  </section>
+
+  <section>
+    <h2>Como declarar no Imposto de Renda (reforça a isenção de ITCMD)</h2>
+    <p>Para que o grupo de apostadores fique blindado contra a cobrança de ITCMD e contra pendências na malha fina, o preenchimento do Imposto de Renda também precisa ser minucioso. Como o recebimento é centralizado na Caixa, a Receita Federal cruza os dados da transferência do prêmio da conta do organizador para a conta de cada participante — por isso a forma de declarar, dos dois lados, importa tanto quanto o Termo de Constituição.</p>
+
+    <h3>1. O histórico exato para a declaração dos participantes</h3>
+    <p>Cada participante preenche a ficha <b>Rendimentos Sujeitos à Tributação Exclusiva/Definitiva (Código 12 – Outros)</b>, informando o CNPJ da Caixa Econômica Federal (<b>00.360.305/0001-04</b>) como Fonte Pagadora.</p>
+    <p>No campo <b>Descrição</b>, usar este texto padrão:</p>
+    <div class="template"><span class="lbl">Descrição — Rendimentos Tributação Exclusiva (participante)</span>"Valor líquido correspondente à cota-parte de [Inserir a porcentagem, ex: 10%] em aposta conjunta (bolão) do concurso nº [Inserir número] da [Inserir a loteria, ex: Mega-Sena], realizado em [Data do Sorteio]. O bilhete premiado foi registrado e resgatado pelo organizador do bolão, [Seu Nome Completo], CPF [Seu CPF], que realizou o repasse do valor proporcional a esta cota via PIX em [Data do PIX], conforme Termo de Constituição de Bolão firmado entre as partes."</div>
+
+    <h3>2. Como o organizador deve declarar</h3>
+    <p>Como o prêmio total cai na conta do organizador, a Receita Federal o vê como o recebedor inicial do montante integral. Para não pagar imposto sobre o dinheiro dos outros, o organizador faz duas declarações integradas:</p>
+
+    <p><b>A. Declarando a própria parte do prêmio</b></p>
+    <ol>
+      <li>Ir em Rendimentos Sujeitos à Tributação Exclusiva/Definitiva (Código 12).</li>
+      <li>Informar o CNPJ da Caixa e declarar apenas o valor líquido da própria cota.</li>
+    </ol>
+    <div class="template"><span class="lbl">Descrição — Rendimentos Tributação Exclusiva (organizador, cota própria)</span>"Valor líquido da cota-parte própria de [sua %, ex: 20%] no concurso nº [X] da [Loteria], recebido em aposta conjunta (bolão) com mais [X] participantes. O valor total do prêmio foi creditado em minha conta e repassado aos demais membros conforme suas cotas."</div>
+
+    <p><b>B. Declarando o repasse aos participantes (para afastar o ITCMD)</b></p>
+    <p>Para justificar a saída do dinheiro da conta do organizador para a dos participantes sem que pareça doação ou empréstimo, usar a ficha de <b>Dívidas e Ônus Reais</b>:</p>
+    <ol>
+      <li>Criar um item sob o código <b>14 – Outras Dívidas e Ônus Reais</b>.</li>
+      <li>No campo Discriminação, informar o texto abaixo.</li>
+      <li>Informar o valor total repassado aos outros no campo de movimentação do ano, para zerar o saldo.</li>
+    </ol>
+    <div class="template"><span class="lbl">Discriminação — Dívidas e Ônus Reais (organizador)</span>"Obrigação de repasse de cotas-partes de prêmio de loteria referente ao concurso [X]. O valor total de [Valor Total do Prêmio] foi creditado em minha conta corrente e os valores dos participantes foram transferidos nas datas correspondentes, restando líquido apenas o meu percentual de direito."</div>
+
+    <h3>3. Caso o dinheiro seja aplicado no mesmo ano (Bens e Direitos)</h3>
+    <p>Se o participante receber o prêmio e mantiver o dinheiro na conta, poupança ou investimentos até 31 de dezembro do ano do sorteio, precisa abrir a ficha de <b>Bens e Direitos</b>:</p>
+    <ul>
+      <li><b>Código:</b> selecionar o correspondente (ex.: <code>01 – Conta Corrente</code>, <code>02 – Poupança</code>, ou os códigos de fundos/ações).</li>
+      <li><b>Situação em 31/12:</b> informar o saldo atual acrescido do prêmio.</li>
+    </ul>
+    <div class="template"><span class="lbl">Discriminação — Bens e Direitos</span>"Saldo em conta originado do recebimento de cota-partes de prêmio de loteria do concurso nº [X], conforme declarado na ficha de Rendimentos Sujeitos à Tributação Exclusiva."</div>
+
+    <h3>4. Checklist do "kit de defesa" (guardar por 5 anos)</h3>
+    <p>Além da declaração em si, o grupo deve baixar e guardar numa pasta na nuvem os seguintes documentos:</p>
+    <ul>
+      <li><b>Termo de Constituição do Bolão</b> — data, nome de todos, CPF e a porcentagem de cada um, registrados antes do sorteio.</li>
+      <li><b>Comprovante de compra da aposta</b> — o PDF gerado pelo site das Loterias Caixa.</li>
+      <li><b>Comprovante de resgate</b> — cópia do documento emitido pela Caixa com o prêmio no nome de quem resgatou.</li>
+      <li><b>Extrato do relatório com timestamp</b> — o documento gerado pelo app comprovando o rateio oficial.</li>
+      <li><b>Comprovante do PIX</b> — o comprovante bancário de cada transferência feita aos participantes.</li>
+    </ul>
+    <p class="disclaimer">Este roteiro de preenchimento tem caráter informativo e geral. Ele não substitui a orientação de um contador — principalmente porque as fichas e códigos do Imposto de Renda podem mudar de um ano para o outro, e cada caso (valor do prêmio, número de participantes, estado de cada um) pode exigir um ajuste específico.</p>
   </section>
 
   <footer>LottoAnalytics — documento institucional, o mesmo para todos os bolões</footer>
