@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.10</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.11</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.10</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.11</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -2312,7 +2312,7 @@ e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
              definido em CFG) — Powerball/Mega Millions só têm depois que um
              estado é escolhido na barra acima. -->
         <div id="result-teimosinha-bar" style="display:none;align-items:center;justify-content:center;gap:8px;padding:7px 13px;background:rgba(124,58,237,.06);border-bottom:1px solid var(--glass-border);flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--text-dim)">🔁 Teimosinha (repetir por vários concursos)</span>
+          <span id="result-teimosinha-label" style="font-size:11px;color:var(--text-dim)">🔁 Teimosinha (repetir por vários concursos)</span>
           <select id="result-teimosinha-select" onchange="aplicarTeimosinhaResultado(this.value)" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;color:var(--text);font-size:11px;font-family:var(--font-body)">
             <option value="">Não usar</option>
           </select>
@@ -2730,7 +2730,7 @@ garantida entre os jogos">⭐ Score</button>
            ainda não transferiu os jogos para o painel principal neste
            ponto. Só aparece quando a loteria atual oferece a modalidade. -->
       <div id="ia-teimosinha-bar" style="display:none;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:8px;flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--text-dim)">🔁 Teimosinha (repetir por vários concursos)</span>
+        <span id="ia-teimosinha-label" style="font-size:11px;color:var(--text-dim)">🔁 Teimosinha (repetir por vários concursos)</span>
         <select id="ia-teimosinha-select" onchange="aplicarTeimosinhaIA(this.value)" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;color:var(--text);font-size:11px;font-family:var(--font-body)">
           <option value="">Não usar</option>
         </select>
@@ -11566,6 +11566,8 @@ function exibirTeimosinhaBar(d){
   const sel=document.getElementById('result-teimosinha-select');
   if(!barT||!sel) return;
   if(!d||!d.teimosinha||!d.teimosinha.length){ barT.style.display='none'; return; }
+  const lbl=document.getElementById('result-teimosinha-label');
+  if(lbl) lbl.textContent=(d.americano?'🔁 Multi-Draw (repetir por vários concursos)':'🔁 Teimosinha (repetir por vários concursos)');
   sel.innerHTML='<option value="">Não usar</option>'+_teimosinhaOptionsHtml(d);
   sel.value='';
   document.getElementById('result-teimosinha-info').textContent='';
@@ -11616,6 +11618,8 @@ function exibirTeimosinhaBarIA(d){
   const sel=document.getElementById('ia-teimosinha-select');
   if(!barT||!sel) return;
   if(!d||!d.teimosinha||!d.teimosinha.length){ barT.style.display='none'; return; }
+  const lblIA=document.getElementById('ia-teimosinha-label');
+  if(lblIA) lblIA.textContent=(d.americano?'🔁 Multi-Draw (repetir por vários concursos)':'🔁 Teimosinha (repetir por vários concursos)');
   sel.innerHTML='<option value="">Não usar</option>'+_teimosinhaOptionsHtml(d);
   sel.value='';
   const info=document.getElementById('ia-teimosinha-info');
@@ -13713,11 +13717,12 @@ function buildManualVolante(){
 
   // Teimosinha (repetir o mesmo jogo por vários concursos consecutivos) —
   // mesma modalidade/opções já usadas no Gerador de Jogos (result-teimosinha-bar),
-  // faltava na inserção manual. Só loterias da Caixa que oferecem a
-  // modalidade têm d.teimosinha definido (ver CFG); Powerball/Mega Millions não têm.
+  // faltava na inserção manual. Loterias da Caixa sempre têm d.teimosinha
+  // definido (ver CFG); Powerball/Mega Millions só têm depois que um estado
+  // é escolhido na aba de resultado (Multi-Draw — ver US_MULTIDRAW_ESTADOS).
   if(d.teimosinha&&d.teimosinha.length){
     extraSel+=`<div style="margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🔁</span><span style="font-size:11px;font-weight:800;color:${_corMarcaLegivelHero(d)}">Teimosinha (repetir por vários concursos)</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🔁</span><span style="font-size:11px;font-weight:800;color:${_corMarcaLegivelHero(d)}">${d.americano?'Multi-Draw (repetir por vários concursos)':'Teimosinha (repetir por vários concursos)'}</span></div>
       <select id="manual-teimosinha-sel" onchange="_manualTeimosinha=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">Não usar</option>
         ${_teimosinhaOptionsHtml(d,_manualTeimosinha)}
@@ -22383,7 +22388,7 @@ function ptRenderFamiliaTeimosinha(fam,idx){
   return '<div style="padding:9px 10px;border:1px solid var(--glass-border);border-radius:var(--radius-md);background:var(--bg2);margin-bottom:6px;font-size:11px">'+
     '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:2px">'+
       '<span style="color:var(--text-muted);margin-right:4px;font-weight:700">'+(idx+1)+'.</span>'+
-      '<span class="pt-chip" style="background:rgba(58,155,78,.14);color:var(--ac);border-color:rgba(58,155,78,.3)">🔁 Teimosinha ('+fam.concursos.length+')</span>'+mesTime+
+      '<span class="pt-chip" style="background:rgba(58,155,78,.14);color:var(--ac);border-color:rgba(58,155,78,.3)">🔁 '+((fam.loteria==='powerball'||fam.loteria==='megamillions')?'Multi-Draw':'Teimosinha')+' ('+fam.concursos.length+')</span>'+mesTime+
     '</div>'+linhas+
   '</div>';
 }
