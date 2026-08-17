@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.9</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.10</div>
     <div class="ag-sub" id="ag-sub">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')">Entrar</div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.9</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.10</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -2294,9 +2294,23 @@ e marcas de corte para recorte.">🎫 Imprimir Volantes</button>
           <span id="result-concurso-num" style="font-size:13px;font-weight:900;"></span>
           <span id="result-concurso-data" style="font-size:11px;color:var(--text-dim)"></span>
         </div>
+        <!-- Multi-Draw (equivalente americano da Teimosinha) — Powerball e
+             Mega Millions não têm um número fixo de concursos repetíveis
+             como a Caixa: cada estado americano define seu próprio limite
+             (e às vezes um limite diferente pra compra física e online), já
+             que não existe uma loteria federal única nos EUA. Escolher o
+             estado aqui popula d.teimosinha/d.teimosinhaFisico com os
+             valores certos daquele estado, e a barra de Teimosinha logo
+             abaixo passa a funcionar normalmente com eles. -->
+        <div id="result-estado-multidraw-bar" style="display:none;align-items:center;justify-content:center;gap:8px;padding:7px 13px;background:rgba(124,58,237,.04);border-bottom:1px solid var(--glass-border);flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text-dim)">📍 Estado (Multi-Draw)</span>
+          <select id="result-estado-select" onchange="_selecionarEstadoMultiDraw(currentKey,this.value)" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;color:var(--text);font-size:11px;font-family:var(--font-body)"></select>
+          <span style="font-size:9.5px;color:var(--text-dim)">Cada estado tem seu próprio limite de concursos repetíveis</span>
+        </div>
         <!-- Teimosinha: repetir os jogos por N concursos consecutivos. Só
              aparece quando a loteria atual oferece a modalidade (d.teimosinha
-             definido em CFG) — Powerball/Mega Millions não têm Teimosinha. -->
+             definido em CFG) — Powerball/Mega Millions só têm depois que um
+             estado é escolhido na barra acima. -->
         <div id="result-teimosinha-bar" style="display:none;align-items:center;justify-content:center;gap:8px;padding:7px 13px;background:rgba(124,58,237,.06);border-bottom:1px solid var(--glass-border);flex-wrap:wrap">
           <span style="font-size:11px;color:var(--text-dim)">🔁 Teimosinha (repetir por vários concursos)</span>
           <select id="result-teimosinha-select" onchange="aplicarTeimosinhaResultado(this.value)" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;color:var(--text);font-size:11px;font-family:var(--font-body)">
@@ -2869,8 +2883,8 @@ const CFG = {
   diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,9,12]},
   supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#A6CE39',corD:'#80C342',corClara:'#CBE38C',orb:[166,206,57], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
   maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#1E3F8A',corD:'#152e66',corClara:'#6E84B8',orb:[30,63,138],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
-  powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26},
-  megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#FFB800',corD:'#cc9200',orb:[255,184,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25},
+  powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26, estadosMultiDraw:true},
+  megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#FFB800',corD:'#cc9200',orb:[255,184,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25, estadosMultiDraw:true},
 };
 // Cor dourada de destaque usada em toda a UI para "especial/premiado"
 // (ex.: Mega da Virada, análise de concursos especiais) — mesma cor da
@@ -11402,6 +11416,119 @@ function exibirConcursoBar(){
   window._teimosinhaConcursoBaseData=concursoData;
   exibirTeimosinhaBar(d);
 }
+// ════ MULTI-DRAW (Powerball / Mega Millions) — equivalente americano da
+// Teimosinha, por ESTADO. Diferente da Caixa (uma loteria federal única,
+// com valores oficiais e iguais em todo o Brasil), Powerball e Mega
+// Millions são vendidas por loterias ESTADUAIS independentes nos EUA —
+// cada estado define seu próprio limite de concursos consecutivos que dá
+// pra comprar de uma vez (Multi-Draw), sem nenhum valor "nacional" comum.
+// Como o app não sabe fisicamente em qual estado o apostador está (é usado
+// também por quem aposta via serviço intermediário, fora dos EUA), o
+// usuário escolhe o estado manualmente — a escolha fica salva por loteria.
+// Pesquisado estado por estado nas fontes oficiais de cada loteria
+// estadual em 2026-08-17; alguns valores ficaram sem confirmação 100%
+// oficial (Massachusetts inteiro; físico da Pensilvânia; e Ohio/West
+// Virginia/Wyoming tiveram uma fonte isolada divergente da maioria) —
+// marcados abaixo. Illinois tem a rara inversão onde a compra física (25)
+// permite MAIS concursos que a online (8) — como o padrão de exibição do
+// app (grupo "físico" como subconjunto do "online") assume o contrário,
+// usei o maior valor (25) sem separar os dois grupos, em vez de montar uma
+// UI só pra essa exceção. Mesma simplificação em New Hampshire, cujo canal
+// online não é "N concursos", é uma assinatura limitada por um teto de
+// gasto mensal — não cabe no mesmo modelo, então uso só o valor do balcão.
+function _faixaMultiDraw(n){ const a=[]; for(let i=1;i<=n;i++) a.push(i); return a; }
+const US_MULTIDRAW_ESTADOS = {
+  AZ:{nome:'Arizona', powerball:_faixaMultiDraw(10), megamillions:_faixaMultiDraw(10)},
+  AR:{nome:'Arkansas', powerball:_faixaMultiDraw(20), megamillions:_faixaMultiDraw(20)},
+  CA:{nome:'Califórnia', powerball:_faixaMultiDraw(10), megamillions:[2,3,4,5,6,7,8,10]},
+  CO:{nome:'Colorado', powerball:_faixaMultiDraw(39), megamillions:_faixaMultiDraw(26)},
+  CT:{nome:'Connecticut', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  DE:{nome:'Delaware', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(15)},
+  FL:{nome:'Flórida', powerball:_faixaMultiDraw(52), megamillions:_faixaMultiDraw(26)},
+  GA:{nome:'Geórgia', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  ID:{nome:'Idaho', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(10)},
+  IL:{nome:'Illinois', powerball:_faixaMultiDraw(25), megamillions:_faixaMultiDraw(25)},
+  IN:{nome:'Indiana', powerball:_faixaMultiDraw(12), megamillions:_faixaMultiDraw(10)},
+  IA:{nome:'Iowa', powerball:_faixaMultiDraw(10), megamillions:_faixaMultiDraw(10)},
+  KS:{nome:'Kansas', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(15)},
+  KY:{nome:'Kentucky', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  LA:{nome:'Louisiana', powerball:_faixaMultiDraw(20), megamillions:_faixaMultiDraw(20)},
+  ME:{nome:'Maine', powerball:_faixaMultiDraw(30), megamillions:_faixaMultiDraw(20)},
+  MD:{nome:'Maryland', powerball:[2,3,4,5,10,15], megamillions:[2,3,4,5,10,15]},
+  MA:{nome:'Massachusetts (não confirmado oficialmente)', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(24)},
+  MI:{nome:'Michigan', powerball:_faixaMultiDraw(30), megamillions:_faixaMultiDraw(30)},
+  MN:{nome:'Minnesota', powerball:_faixaMultiDraw(14), megamillions:_faixaMultiDraw(14)},
+  MS:{nome:'Mississippi', powerball:_faixaMultiDraw(24), megamillions:_faixaMultiDraw(26)},
+  MO:{nome:'Missouri', powerball:_faixaMultiDraw(15), megamillions:[1,2,3,4,5,10,15]},
+  MT:{nome:'Montana', powerball:_faixaMultiDraw(24), megamillions:_faixaMultiDraw(24)},
+  NE:{nome:'Nebraska', powerball:_faixaMultiDraw(24), megamillions:_faixaMultiDraw(24)},
+  NH:{nome:'New Hampshire', powerball:_faixaMultiDraw(20), megamillions:_faixaMultiDraw(20)},
+  NJ:{nome:'New Jersey', powerball:_faixaMultiDraw(12), megamillions:_faixaMultiDraw(8)},
+  NM:{nome:'Novo México', powerball:_faixaMultiDraw(20), megamillions:_faixaMultiDraw(20)},
+  NY:{nome:'Nova York', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  NC:{nome:'Carolina do Norte', powerball:_faixaMultiDraw(30), megamillions:_faixaMultiDraw(26)},
+  ND:{nome:'Dakota do Norte', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(9)},
+  OH:{nome:'Ohio (fonte isolada diverge: 15)', powerball:_faixaMultiDraw(10), megamillions:_faixaMultiDraw(10)},
+  OK:{nome:'Oklahoma', powerball:_faixaMultiDraw(10), megamillions:_faixaMultiDraw(10)},
+  OR:{nome:'Oregon', powerball:[1,2,3,4,5,6,10,20], megamillions:[1,2,3,4,5,6,10,20]},
+  PA:{nome:'Pensilvânia (valor do balcão diverge nas fontes)', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  RI:{nome:'Rhode Island', powerball:_faixaMultiDraw(26), megamillions:_faixaMultiDraw(26)},
+  SC:{nome:'Carolina do Sul', powerball:_faixaMultiDraw(30), megamillions:_faixaMultiDraw(20)},
+  SD:{nome:'Dakota do Sul', powerball:_faixaMultiDraw(9), megamillions:_faixaMultiDraw(9)},
+  TN:{nome:'Tennessee', powerball:_faixaMultiDraw(10), megamillions:_faixaMultiDraw(10)},
+  TX:{nome:'Texas', powerball:_faixaMultiDraw(15), megamillions:_faixaMultiDraw(10)},
+  VT:{nome:'Vermont', powerball:_faixaMultiDraw(30), megamillions:_faixaMultiDraw(20)},
+  VA:{nome:'Virgínia', powerball:_faixaMultiDraw(156), powerballFisico:_faixaMultiDraw(39), megamillions:_faixaMultiDraw(52), megamillionsFisico:_faixaMultiDraw(26)},
+  WA:{nome:'Washington', powerball:_faixaMultiDraw(24), megamillions:_faixaMultiDraw(16)},
+  DC:{nome:'Distrito de Columbia', powerball:[1,2,4,6,8,10,12,14,16,18,20], megamillions:[1,2,4,6,8,10,12,14,16,18,20]},
+  WV:{nome:'West Virginia (fonte isolada diverge: 36 no Powerball)', powerball:_faixaMultiDraw(24), megamillions:[2,4,8,10,12,24]},
+  WI:{nome:'Wisconsin', powerball:_faixaMultiDraw(12), megamillions:_faixaMultiDraw(8)},
+  WY:{nome:'Wyoming', powerball:_faixaMultiDraw(20), megamillions:[1,2,3,4,5,10,20]},
+};
+function _estadoMultiDrawOptionsHtml(ufSelecionada){
+  return Object.keys(US_MULTIDRAW_ESTADOS)
+    .sort((a,b)=>US_MULTIDRAW_ESTADOS[a].nome.localeCompare(US_MULTIDRAW_ESTADOS[b].nome,'pt-BR'))
+    .map(uf=>`<option value="${uf}"${uf===ufSelecionada?' selected':''}>${US_MULTIDRAW_ESTADOS[uf].nome}</option>`)
+    .join('');
+}
+// Aplica o estado escolhido: popula d.teimosinha/d.teimosinhaFisico (CFG é
+// um objeto vivo — mutar aqui propaga automaticamente pra todo o resto do
+// app que já lê d.teimosinha, sem precisar tocar em nenhum outro lugar:
+// barra principal, modal de IA e o carrinho de "Inserir Jogos Manual"
+// passam a funcionar sozinhos assim que um estado é escolhido). A escolha
+// fica salva por loteria (Powerball e Mega Millions guardam estados
+// diferentes, já que o apostador pode preferir/usar serviços diferentes
+// pra cada uma).
+function _selecionarEstadoMultiDraw(key,uf){
+  const d=CFG[key]; if(!d||!d.estadosMultiDraw) return;
+  try{ if(uf) localStorage.setItem('la_estado_multidraw_'+key,uf); else localStorage.removeItem('la_estado_multidraw_'+key); }catch(e){}
+  const estado=uf?US_MULTIDRAW_ESTADOS[uf]:null;
+  d.teimosinha=estado?(estado[key]||[]):[];
+  d.teimosinhaFisico=estado?(estado[key+'Fisico']||undefined):undefined;
+  if(currentKey===key){
+    if(typeof exibirTeimosinhaBar==='function') exibirTeimosinhaBar(d);
+    if(document.getElementById('ia-teimosinha-bar')&&typeof exibirTeimosinhaBarIA==='function') exibirTeimosinhaBarIA(d);
+  }
+}
+// Mostra/esconde e popula a barra de escolha de estado — chamada de dentro
+// de exibirTeimosinhaBar (mesmo ciclo de vida: sempre que a barra de
+// concurso é exibida/atualizada pra loteria atual).
+function _exibirEstadoMultiDrawBar(d){
+  const bar=document.getElementById('result-estado-multidraw-bar');
+  const sel=document.getElementById('result-estado-select');
+  if(!bar||!sel) return;
+  if(!d||!d.estadosMultiDraw){ bar.style.display='none'; return; }
+  let ufSalva=null;
+  try{ ufSalva=localStorage.getItem('la_estado_multidraw_'+d.apiKey); }catch(e){}
+  sel.innerHTML='<option value="">— Selecione —</option>'+_estadoMultiDrawOptionsHtml(ufSalva);
+  bar.style.display='flex';
+  // Reaplica a última escolha salva (se houver) pra já deixar d.teimosinha
+  // populado sem precisar o usuário reselecionar toda vez que troca de aba
+  // — só na PRIMEIRA vez (d.teimosinha ainda vazio), senão essa função e
+  // exibirTeimosinhaBar ficariam chamando uma à outra indefinidamente toda
+  // vez que a barra é redesenhada com um estado já aplicado.
+  if(ufSalva && US_MULTIDRAW_ESTADOS[ufSalva] && (!d.teimosinha||!d.teimosinha.length)) _selecionarEstadoMultiDraw(d.apiKey,ufSalva);
+}
 // Popula e exibe a barra de seleção de Teimosinha com as opções oficiais
 // da loteria atual (d.teimosinha, definido em CFG) — esconde a barra
 // inteira para loterias que não oferecem a modalidade (ex.: Powerball,
@@ -11434,6 +11561,7 @@ function _teimosinhaOptionsHtml(d,selecionado){
   return html;
 }
 function exibirTeimosinhaBar(d){
+  _exibirEstadoMultiDrawBar(d); // Powerball/Mega Millions: mostra o seletor de estado antes de decidir se a barra de Teimosinha tem o que exibir
   const barT=document.getElementById('result-teimosinha-bar');
   const sel=document.getElementById('result-teimosinha-select');
   if(!barT||!sel) return;
