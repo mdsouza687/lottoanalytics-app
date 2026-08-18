@@ -81,7 +81,12 @@ body.theme-light .page-orb2{opacity:.08}
 .idioma-dropdown{position:relative}
 .idioma-trigger{gap:4px}
 .idioma-caret{font-size:8px;opacity:.65;margin-left:1px}
-.idioma-menu{display:none;flex-direction:column;gap:2px;position:absolute;top:calc(100% + 4px);right:0;min-width:132px;padding:4px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:60}
+/* position:fixed (não absolute) + top/left calculados em JS ao abrir —
+   a navbar (.la-nav) tem overflow-x:auto, e por regra do CSS isso força
+   overflow-y:auto também (mesmo sem escrever), o que RECORTAVA o menu
+   absolute (preso ao fluxo da navbar) ao tentar abrir pra baixo. Fixed
+   escapa desse recorte e do clipping de qualquer ancestral com overflow. */
+.idioma-menu{display:none;flex-direction:column;gap:2px;position:fixed;min-width:132px;padding:4px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:1000}
 .idioma-menu.open{display:flex}
 .idioma-opcao{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:none;border-radius:7px;background:transparent;color:var(--text);font-family:var(--btn-font);font-size:12px;text-align:left;cursor:pointer;transition:var(--btn-transition);}
 .idioma-opcao:hover{background:var(--glass-bg);}
@@ -1573,7 +1578,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.0.2</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.0.3</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1891,7 +1896,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.0.2</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.0.3</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -4216,9 +4221,20 @@ function _montarSeletorIdioma(){
 }
 function _toggleIdiomaMenu(ev){
   ev.stopPropagation();
-  const menu = ev.currentTarget.nextElementSibling;
-  document.querySelectorAll('.idioma-menu.open').forEach(m=>{ if(m!==menu) m.classList.remove('open'); });
-  menu.classList.toggle('open');
+  const trigger = ev.currentTarget;
+  const menu = trigger.nextElementSibling;
+  const estavaAberto = menu.classList.contains('open');
+  document.querySelectorAll('.idioma-menu.open').forEach(m=>m.classList.remove('open'));
+  if(estavaAberto) return;
+  // Abre (fica mensurável) ANTES de calcular a posição — offsetWidth some
+  // enquanto display:none. Sempre ancorado à esquerda do botão, mas
+  // recuado se isso fizer o menu vazar pela borda direita da tela.
+  menu.classList.add('open');
+  const r = trigger.getBoundingClientRect();
+  let esquerda = r.left;
+  if(esquerda + menu.offsetWidth > window.innerWidth - 8) esquerda = Math.max(8, window.innerWidth - menu.offsetWidth - 8);
+  menu.style.top = (r.bottom + 4) + 'px';
+  menu.style.left = esquerda + 'px';
 }
 document.addEventListener('click', ()=>{ document.querySelectorAll('.idioma-menu.open').forEach(m=>m.classList.remove('open')); });
 _aplicarI18nDOM();
