@@ -86,6 +86,12 @@ body.theme-light .page-orb2{opacity:.08}
 .idioma-opcao{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:none;border-radius:7px;background:transparent;color:var(--text);font-family:var(--btn-font);font-size:12px;text-align:left;cursor:pointer;transition:var(--btn-transition);}
 .idioma-opcao:hover{background:var(--glass-bg);}
 .idioma-opcao.active{background:var(--glass-hover);font-weight:700;}
+/* Botões de ação da navbar (Manual/Atualizar/Admin/Participante/Sair)
+   agrupados com espaçamento menor entre eles do que o gap padrão da
+   .la-nav (12px) — pedido do usuário: só reduzir o espaço, mantendo
+   texto e ícone de cada botão (não trocar por ícone-only). */
+.nav-actions{display:flex;align-items:center;gap:4px}
+.nav-actions .btn-sm{padding:7px 11px}
 /* Força a fonte de emoji nativa do sistema, em vez da fonte de texto do
    botão (var(--btn-font)) — fontes de display/headline costumam não ter
    glyphs de emoji, fazendo o navegador cair num substituto monocromático
@@ -1894,12 +1900,12 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
       <button class="theme-btn"        id="theme-colorful" onclick="setTheme('colorful')" title="Tema colorido" data-i18n-title="nav.tema_colorido"><span class="emoji-ico">🌈</span></button>
     </div>
     <div class="theme-switcher" id="idioma-switcher"></div>
-    <div class="theme-switcher">
-      <button class="theme-btn" onclick="window.open('manual.html','_blank')" title="Manual do usuário — Desktop e app mobile" data-i18n-title="nav.manual_title"><span class="emoji-ico">📖</span></button>
-      <button class="theme-btn" id="btn-update-all" onclick="atualizarTodas()" title="Atualizar" data-i18n-title="nav.atualizar"><span class="emoji-ico">🔄</span></button>
-      <button class="theme-btn" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" data-i18n-title="nav.admin_title" style="display:none"><span class="emoji-ico">🛠️</span></button>
-      <button class="theme-btn" id="btn-ver-participante" onclick="showParticipanteArea()" title="Ver sua área de participante" data-i18n-title="nav.participante_title" style="display:none"><span class="emoji-ico">🎟️</span></button>
-      <button class="theme-btn" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" data-i18n-title="nav.sair_title" style="display:none"><span class="emoji-ico">🚪</span></button>
+    <div class="nav-actions">
+      <button class="btn-sm" onclick="window.open('manual.html','_blank')" title="Manual do usuário — Desktop e app mobile" data-i18n-title="nav.manual_title"><span class="emoji-ico">📖</span> <span data-i18n="nav.manual">Manual</span></button>
+      <button class="btn-sm" id="btn-update-all" onclick="atualizarTodas()"><span class="emoji-ico">🔄</span> <span data-i18n="nav.atualizar">Atualizar</span></button>
+      <button class="btn-sm" id="btn-admin" onclick="abrirPainelAdmin()" title="Painel de administração" data-i18n-title="nav.admin_title" style="display:none"><span class="emoji-ico">🛠️</span> <span data-i18n="nav.admin">Admin</span></button>
+      <button class="btn-sm" id="btn-ver-participante" onclick="showParticipanteArea()" title="Ver sua área de participante" data-i18n-title="nav.participante_title" style="display:none"><span class="emoji-ico">🎟️</span> <span data-i18n="nav.participante">Participante</span></button>
+      <button class="btn-sm" id="btn-logout" onclick="agFazerLogout()" title="Sair da conta" data-i18n-title="nav.sair_title" style="display:none"><span class="emoji-ico">🚪</span> <span data-i18n="nav.sair">Sair</span></button>
     </div>
   </div>
 
