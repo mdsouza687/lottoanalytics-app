@@ -1521,7 +1521,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     b.id='banner-update-pronta';
     b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid var(--ac,#3A9B4E);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
     b.innerHTML=
-      '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">🎉 Atualização v'+versao+' pronta para instalar</span>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">'+t('geral.atualizacao_pronta',{v:versao})+'</span>'+
       '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:var(--ac,#3A9B4E);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
     document.body.appendChild(b);
     document.getElementById('btn-instalar-update').onclick=function(){
@@ -1555,7 +1555,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px">Versão 3.9.11</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 3.9.12</div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
       <div class="ag-tab active" id="ag-tab-login" onclick="agSwitchTab('login')" data-i18n="ag.entrar">Entrar</div>
@@ -1650,7 +1650,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
         <div style="display:flex;flex-direction:column;gap:4px">
           <label id="plbl-todos" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:9px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);transition:all .15s" onclick="setPrintSel('todos')">
             <input type="radio" name="print-sel" value="todos" checked style="accent-color:var(--ac);flex-shrink:0"/>
-            <div><div style="font-size:12px;font-weight:700;color:#fff">Tudo</div><div style="font-size:10px;color:var(--text-dim)">Jogos individuais e bolão juntos</div></div>
+            <div><div style="font-size:12px;font-weight:700;color:#fff" data-i18n="gerador.imp_tudo">Tudo</div><div style="font-size:10px;color:var(--text-dim)" data-i18n="gerador.imp_tudo_desc">Jogos individuais e bolão juntos</div></div>
           </label>
           <label id="plbl-individual" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:9px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);transition:all .15s" onclick="setPrintSel('individual')">
             <input type="radio" name="print-sel" value="individual" style="accent-color:var(--ac);flex-shrink:0"/>
@@ -1658,7 +1658,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
           </label>
           <label id="plbl-bolao" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:9px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);transition:all .15s" onclick="setPrintSel('bolao')">
             <input type="radio" name="print-sel" value="bolao" style="accent-color:var(--ac);flex-shrink:0"/>
-            <div><div style="font-size:12px;font-weight:700;color:#fff">Somente bolão</div><div style="font-size:10px;color:var(--text-dim)">Apenas os jogos de bolão</div></div>
+            <div><div style="font-size:12px;font-weight:700;color:#fff" data-i18n="gerador.imp_somente_bolao">Somente bolão</div><div style="font-size:10px;color:var(--text-dim)" data-i18n="gerador.imp_somente_bolao_desc">Apenas os jogos de bolão</div></div>
           </label>
         </div>
       </div>
@@ -1670,7 +1670,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
           <span style="font-size:26px;flex-shrink:0">🖨</span>
           <span style="display:flex;flex-direction:column;gap:2px">
             <span style="font-size:13px;font-weight:800;font-family:var(--font-head)">Impressora</span>
-            <span style="font-size:10px;color:var(--text-dim)">Enviar para a impressora padrão do sistema</span>
+            <span style="font-size:10px;color:var(--text-dim)" data-i18n="gerador.imp_impressora_padrao">Enviar para a impressora padrão do sistema</span>
           </span>
         </button>
         <button onclick="doPrint('pdf')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:11px;color:#fff;cursor:pointer;text-align:left;transition:all .15s;width:100%" onmouseover="this.style.background='rgba(255,255,255,.09)';this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.05)';this.style.borderColor='rgba(255,255,255,.1)'">
@@ -1719,7 +1719,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
       </label>
     </div>
     <div class="modal-footer">
-      <button class="result-hdr-btn" onclick="imprimirConferir()">🖨 Imprimir Relatório</button>
+      <button class="result-hdr-btn" onclick="imprimirConferir()" data-i18n="gerador.btn_imprimir_relatorio">🖨 Imprimir Relatório</button>
       <button class="result-hdr-btn" onclick="closeModal('modal-conferir')">Fechar</button>
     </div>
   </div>
@@ -1734,9 +1734,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
      desvinculados. -->
 <div class="modal-overlay" id="modal-imprimir-bolao">
   <div class="modal" style="max-width:420px;">
-    <div class="modal-hdr" id="hdr-imprimir-bolao"><span class="modal-title">🖨 Imprimir Relatório do Bolão</span><button class="modal-close" onclick="closeModal('modal-imprimir-bolao')">✕</button></div>
+    <div class="modal-hdr" id="hdr-imprimir-bolao"><span class="modal-title" data-i18n="boloes.titulo_imprimir_relatorio">🖨 Imprimir Relatório do Bolão</span><button class="modal-close" onclick="closeModal('modal-imprimir-bolao')">✕</button></div>
     <div class="modal-body">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">O que deseja incluir no relatório?</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="boloes.o_que_incluir_relatorio">O que deseja incluir no relatório?</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 10px;border:1px solid var(--glass-border);border-radius:8px">
           <input type="radio" name="bolao-print-filtro" value="todos" checked/> Todos os jogos vinculados
@@ -1747,7 +1747,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
       </div>
     </div>
     <div class="modal-footer">
-      <button class="result-hdr-btn" onclick="confirmarImpressaoBolao()">🖨 Gerar Relatório</button>
+      <button class="result-hdr-btn" onclick="confirmarImpressaoBolao()" data-i18n="boloes.btn_gerar_relatorio">🖨 Gerar Relatório</button>
       <button class="result-hdr-btn" onclick="closeModal('modal-imprimir-bolao')">Cancelar</button>
     </div>
   </div>
@@ -1758,13 +1758,13 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
      saldo, dividido pelas cotas dos participantes ativos e pagos. -->
 <div class="modal-overlay" id="modal-premio-saldo">
   <div class="modal" style="max-width:420px;">
-    <div class="modal-hdr"><span class="modal-title">🏆 Prêmio → Saldo</span><button class="modal-close" onclick="closeModal('modal-premio-saldo')">✕</button></div>
+    <div class="modal-hdr"><span class="modal-title" data-i18n="boloes.titulo_premio_saldo">🏆 Prêmio → Saldo</span><button class="modal-close" onclick="closeModal('modal-premio-saldo')">✕</button></div>
     <div class="modal-body">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">O valor informado é dividido proporcionalmente pelas cotas dos participantes ativos e já pagos, e somado à Contribuição de cada um.</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:12px">
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Prêmio apurado (total)</span><span id="premio-saldo-apurado" style="font-weight:800">—</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Já creditado ao saldo</span><span id="premio-saldo-ja-creditado" style="font-weight:800">—</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Disponível para creditar</span><span id="premio-saldo-disponivel" style="font-weight:800;color:#16a34a">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)" data-i18n="boloes.premio_apurado_total">Prêmio apurado (total)</span><span id="premio-saldo-apurado" style="font-weight:800">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)" data-i18n="boloes.ja_creditado_saldo">Já creditado ao saldo</span><span id="premio-saldo-ja-creditado" style="font-weight:800">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)" data-i18n="boloes.disponivel_para_creditar">Disponível para creditar</span><span id="premio-saldo-disponivel" style="font-weight:800;color:#16a34a">—</span></div>
       </div>
       <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Valor a creditar</label>
       <div style="display:flex;gap:6px">
@@ -1795,7 +1795,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
      ══ -->
 <div class="modal-overlay" id="modal-gb-resultado">
   <div class="modal" style="max-width:880px;width:94vw;max-height:88vh;display:flex;flex-direction:column;">
-    <div class="modal-hdr"><span class="modal-title">🎲 Resultado da Geração</span><button class="modal-close" onclick="gbCloseResultado()">✕</button></div>
+    <div class="modal-hdr"><span class="modal-title" data-i18n="gerador.titulo_resultado_geracao">🎲 Resultado da Geração</span><button class="modal-close" onclick="gbCloseResultado()">✕</button></div>
     <div class="modal-body" id="gb-resultado-slot" style="overflow-y:auto;flex:1;padding:0;min-width:0;"></div>
   </div>
 </div>
@@ -1825,7 +1825,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 
 <div class="modal-overlay" id="modal-padroes">
   <div class="modal" style="max-width:600px;">
-    <div class="modal-hdr" id="hdr-padroes"><span class="modal-title">🔢 Padrões</span><button class="modal-close" onclick="closeModal('modal-padroes')">✕</button></div>
+    <div class="modal-hdr" id="hdr-padroes"><span class="modal-title" data-i18n="gerador.titulo_padroes">🔢 Padrões</span><button class="modal-close" onclick="closeModal('modal-padroes')">✕</button></div>
     <div class="modal-body" id="body-padroes"></div>
     <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-padroes')">Fechar</button></div>
   </div>
@@ -1834,7 +1834,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 <!-- ══ MODAL NUMS MAIS SORTEADOS ══ -->
 <div class="modal-overlay" id="modal-nums">
   <div class="modal" style="max-width:560px;">
-    <div class="modal-hdr" id="hdr-nums"><span class="modal-title">🔥 Núm. Mais Sorteados</span><button class="modal-close" onclick="closeModal('modal-nums')">✕</button></div>
+    <div class="modal-hdr" id="hdr-nums"><span class="modal-title" data-i18n="gerador.titulo_num_mais_sorteados">🔥 Núm. Mais Sorteados</span><button class="modal-close" onclick="closeModal('modal-nums')">✕</button></div>
     <div class="modal-body" id="body-nums"></div>
     <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-nums')">Fechar</button></div>
   </div>
@@ -1872,7 +1872,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px">Versão 3.9.11</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 3.9.12</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -1961,10 +1961,10 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     </div>
     <span style="font-size:9px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;flex-shrink:0">Participante</span>
     <div class="pt-nav-tabs">
-      <button class="pt-tab" data-pt-tab="boloes" onclick="ptIrPara('boloes')">🎟 Bolões</button>
+      <button class="pt-tab" data-pt-tab="boloes" onclick="ptIrPara('boloes')" data-i18n="pt.tab_boloes">🎟 Bolões</button>
       <button class="pt-tab" data-pt-tab="notif" onclick="ptIrPara('notif')"><span id="pt-tab-notif-ico">🔔</span> Avisos</button>
-      <button class="pt-tab" data-pt-tab="relatorios" onclick="ptIrPara('relatorios')">📋 Relatórios</button>
-      <button class="pt-tab" data-pt-tab="historico" onclick="ptIrPara('historico')">📜 Histórico</button>
+      <button class="pt-tab" data-pt-tab="relatorios" onclick="ptIrPara('relatorios')" data-i18n="pt.tab_relatorios">📋 Relatórios</button>
+      <button class="pt-tab" data-pt-tab="historico" onclick="ptIrPara('historico')" data-i18n="pt.tab_historico">📜 Histórico</button>
     </div>
     <div class="pt-nav-right">
       <button class="btn-sm" id="pt-btn-perfil" onclick="ptIrPara('perfil')" title="Seu perfil"><span class="emoji-ico">👤</span> Perfil</button>
@@ -2010,7 +2010,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 </svg>
     </div>
     <div class="topbar-divider"></div>
-    <button class="btn-voltar" id="btn-voltar" onclick="showDashboard()">← Início</button>
+    <button class="btn-voltar" id="btn-voltar" onclick="showDashboard()" data-i18n="geral.btn_inicio">← Início</button>
     <div class="topbar-divider"></div>
     <div class="topbar-tabs-wrap" id="topbar-tabs-wrap">
       <div class="topbar-tabs" id="topbar-tabs" onscroll="atualizarFadeTopbarTabs()">
@@ -2682,7 +2682,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;flex-wrap:wrap">
         <label style="font-size:11px;font-weight:700;color:rgba(200,160,255,.9);white-space:nowrap" data-i18n="gerador.quantidade_jogos">Quantidade de jogos</label>
         <input id="ia-qty" type="number" min="1" max="50000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),_getMaxJogosGeracao())"/>
-        <span id="ia-qty-max-hint" style="font-size:9px;color:var(--text-dim)">máx. 50000</span>
+        <span id="ia-qty-max-hint" style="font-size:9px;color:var(--text-dim)" data-i18n="gerador.ia_max_padrao">máx. 50000</span>
         <button onclick="gerarComIA(window._iaTipo||'jogo')" style="margin-left:auto;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:11px;font-weight:800;padding:7px 14px;cursor:pointer">🤖 <span data-i18n="geral.gerar">Gerar</span></button>
       </div>
       <!-- Aposta Espelho no modal -->
@@ -3660,6 +3660,24 @@ const LA_I18N = { 'pt-BR': {
   'resultados.sem_dados_clique_atualizar':'Sem dados — clique em Atualizar',
   'boloes.concursos_por_participante':'Concursos por Participante',
   'geral.erro_desconhecido':'erro desconhecido',
+  'geral.versao':'Versão', 'geral.btn_inicio':'← Início',
+  'geral.atualizacao_pronta':'🎉 Atualização v{v} pronta para instalar',
+  'gerador.imp_tudo':'Tudo', 'gerador.imp_tudo_desc':'Jogos individuais e bolão juntos',
+  'gerador.imp_somente_bolao':'Somente bolão', 'gerador.imp_somente_bolao_desc':'Apenas os jogos de bolão',
+  'gerador.imp_impressora_padrao':'Enviar para a impressora padrão do sistema',
+  'gerador.btn_imprimir_relatorio':'🖨 Imprimir Relatório',
+  'gerador.titulo_resultado_geracao':'🎲 Resultado da Geração',
+  'gerador.titulo_padroes':'🔢 Padrões',
+  'gerador.titulo_num_mais_sorteados':'🔥 Núm. Mais Sorteados',
+  'gerador.ia_max_padrao':'máx. 50000',
+  'boloes.titulo_imprimir_relatorio':'🖨 Imprimir Relatório do Bolão',
+  'boloes.o_que_incluir_relatorio':'O que deseja incluir no relatório?',
+  'boloes.btn_gerar_relatorio':'🖨 Gerar Relatório',
+  'boloes.titulo_premio_saldo':'🏆 Prêmio → Saldo',
+  'boloes.premio_apurado_total':'Prêmio apurado (total)',
+  'boloes.ja_creditado_saldo':'Já creditado ao saldo',
+  'boloes.disponivel_para_creditar':'Disponível para creditar',
+  'pt.tab_boloes':'🎟 Bolões', 'pt.tab_relatorios':'📋 Relatórios', 'pt.tab_historico':'📜 Histórico',
   'gerador.exibindo_n_de_n':'⚡ Exibindo {n} de {total} jogos na tela — todos serão salvos, impressos e vinculados normalmente',
   'gerador.n_selecionado':'☑ {n} selecionado{s}',
   'gerador.n_de_n_selecionado':'☑ {n} de {total} selecionado{s}',
