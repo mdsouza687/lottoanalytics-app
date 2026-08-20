@@ -1578,7 +1578,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.0.3</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.0.4</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1896,7 +1896,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.0.3</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.0.4</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -8130,6 +8130,14 @@ async function showLottery(key){
   // pública) — mesma checagem de login que showTab(), com o mesmo padrão
   // de retomar a ação depois que a pessoa autenticar.
   if(typeof _agRequerLogin==='function' && _agRequerLogin({type:'lottery',key})) return;
+  // Trocar de loteria mantém a aba em que o usuário já estava (pedido do
+  // usuário 2026-08-20) — antes sempre voltava pra RESULTADO, obrigando a
+  // clicar de novo em Bolões/Gerar Jogos/etc. depois de cada troca. Lê a
+  // aba ativa ANTES de qualquer alteração no DOM (o próprio botão que
+  // acabou de ser clicado, se veio de dentro de uma aba); cai pra
+  // 'resultado' se por algum motivo nenhuma aba estiver marcada ativa
+  // ainda (ex.: primeira loteria aberta a partir da home).
+  const _abaAtivaAntes=(function(){ const b=document.querySelector('.tab-btn.active'); return b?b.id.replace('tab-',''):'resultado'; })();
   currentKey=key;const d=CFG[key];
   document.getElementById('dashboard').style.display='none';document.getElementById('card-page').style.display='block';
   // Para o ciclo automático da página inicial — sem isso, o timer continuava
@@ -8137,8 +8145,9 @@ async function showLottery(key){
   // parecerem mudar "sozinhas" enquanto o usuário já estava em outra tela.
   if(typeof laAutoTimer!=='undefined' && laAutoTimer){ clearInterval(laAutoTimer); laAutoTimer=null; }
   setOrb(d.orb,d);renderSkel(d);setupMods(d);buildShortcuts(key);limparResultado();
-  // Reset to resultado tab
-  showTab('resultado');
+  // Permanece na mesma aba de antes (ver _abaAtivaAntes acima) em vez de
+  // sempre resetar pra RESULTADO.
+  showTab(_abaAtivaAntes);
   // Atualiza o indicador de fade das abas depois do layout assentar (a
   // largura disponível só é conhecida após o navegador desenhar o frame).
   setTimeout(()=>{ if(typeof atualizarFadeTopbarTabs==='function') atualizarFadeTopbarTabs(); },50);
