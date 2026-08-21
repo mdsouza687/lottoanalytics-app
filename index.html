@@ -95,7 +95,7 @@ body.theme-light .page-orb2{opacity:.08}
    agrupados com espaçamento menor entre eles do que o gap padrão da
    .la-nav (12px) — pedido do usuário: só reduzir o espaço, mantendo
    texto e ícone de cada botão (não trocar por ícone-only). */
-.nav-actions{display:flex;align-items:center;gap:4px}
+.nav-actions{display:flex;align-items:center;gap:2px}
 .nav-actions .btn-sm{padding:7px 11px}
 /* Força a fonte de emoji nativa do sistema, em vez da fonte de texto do
    botão (var(--btn-font)) — fontes de display/headline costumam não ter
@@ -1198,7 +1198,12 @@ body.theme-light .la-home #laAurora b{opacity:.16}
    onde sempre existiu (estrutural do layout, não depende de tamanho). */
 .la-nav .theme-switcher{margin-left:auto}
 .la-nav .theme-btn{padding:3.75px 6px;font-size:11.25px}
-.la-nav .btn-sm{padding:6px 12px;font-size:8.625px}
+.la-nav .btn-sm{padding:5px 8px;font-size:8.625px;gap:4px}
+/* Pedido do usuário (2026-08-21): aproxima o seletor de idioma (segundo
+   .theme-switcher, ver #idioma-switcher) do seletor de tema — sem isso os
+   dois ficam afastados pelo gap padrão de 12px da .la-nav, igual ao
+   espaço entre qualquer outro par de itens da barra. */
+.la-nav #idioma-switcher{margin-left:-6px}
 .la-nav .la-pill{font-size:8.25px;padding:6px 7.5px}
 .la-pills{display:flex;gap:5px;flex-wrap:nowrap;flex-shrink:0}
 .la-pill{font-family:var(--font-head);font-weight:700;font-size:11px;white-space:nowrap;padding:8px 10px;border-radius:999px;cursor:pointer;
