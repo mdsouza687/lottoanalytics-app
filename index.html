@@ -7530,9 +7530,19 @@ function laSizeWave(){
   const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
   cv._w=r.width; cv._h=r.height;
 }
+// Fase 114 (2026-08-22, achado ao vivo): rodava a 60fps sem limite —
+// medido consumindo boa parte de um núcleo de CPU o tempo TODO que o
+// dashboard fica visível (não só no boot), a ponto do usuário sentir o
+// app "travando" mesmo depois de aberto. O movimento é lento/suave
+// (ondas senoidais), 24fps já fica visualmente idêntico — throttle
+// simples baseado no timestamp que o próprio requestAnimationFrame já
+// passa, sem precisar de setInterval/setTimeout separado.
+let _laWaveUltimoFrame=0;
 function laDrawWave(now){
   const cv=document.getElementById('laWaveCanvas');
   if(!cv||document.getElementById('dashboard').style.display==='none'){ requestAnimationFrame(laDrawWave); return; }
+  if(now-_laWaveUltimoFrame<41){ requestAnimationFrame(laDrawWave); return; } // ~24fps
+  _laWaveUltimoFrame=now;
   const ctx=cv.getContext('2d'), wW=cv._w||0, wH=cv._h||0;
   ctx.clearRect(0,0,wW,wH);
   ctx.strokeStyle='rgba(125,141,161,.08)'; ctx.lineWidth=1;
