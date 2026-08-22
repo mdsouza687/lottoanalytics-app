@@ -51,6 +51,14 @@
   --dt-hit-main:#3b6fd1;--dt-hit-extra:#d18a00;--dt-extra-dim:#5a8a90;
   --glass-border-faint:rgba(255,255,255,.04);
 }
+/* Tooltip global (pedido do usuário, 2026-08-22): substitui o tooltip
+   nativo do navegador (atributo title, preto/quadrado, sem tema) por um
+   estilo próprio — contorno + cantos arredondados usando os MESMOS
+   tokens de cada tema (--bg2/--glass-border/--text/--radius-sm), pra
+   ficar automaticamente correto em qualquer tema sem duplicar cor.
+   Ver script no fim do arquivo (delegação global em [title]). */
+.la-tooltip{position:fixed;z-index:99999;pointer-events:none;background:var(--bg2);color:var(--text);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:7px 11px;font-family:var(--font-body);font-size:11px;line-height:1.45;max-width:260px;white-space:pre-line;box-shadow:var(--shadow);opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease;}
+.la-tooltip.show{opacity:1;transform:translateY(0);}
 body{font-family:var(--font-body);background:linear-gradient(180deg,#0b0d12,#0e131a) fixed;min-height:100vh;color:var(--text);overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.6;}
 .page-orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);transition:background 1.2s ease;}
@@ -25884,6 +25892,59 @@ function ptAlternarParaOrganizador(){
   if(typeof showDashboard==='function') showDashboard();
 }
 
+// Tooltip global (pedido do usuário, 2026-08-22): delegação num listener
+// só, no document — cobre TODO elemento com atributo title existente hoje
+// e qualquer um que passe a existir depois (a app inteira renderiza via
+// innerHTML/template string, nunca cria elemento por elemento; um
+// MutationObserver teria que rodar em cima de milhares de re-renders por
+// sessão à toa). Lê o title fresco a cada mouseover, então funciona igual
+// depois de qualquer re-render, sem precisar tocar nos ~centenas de
+// title="..." espalhados pelo app. Remove o title nativo enquanto mostra
+// o customizado (senão os dois apareciam juntos) e devolve no mouseout.
+(function(){
+  var ttEl=null, ttTimer=null, ttAlvo=null;
+  function elTooltip(){
+    if(!ttEl){ ttEl=document.createElement('div'); ttEl.className='la-tooltip'; document.body.appendChild(ttEl); }
+    return ttEl;
+  }
+  function posicionar(e){
+    var el=elTooltip();
+    var x=e.clientX+14, y=e.clientY+18;
+    var maxX=window.innerWidth-el.offsetWidth-8, maxY=window.innerHeight-el.offsetHeight-8;
+    el.style.left=Math.max(4,Math.min(x,maxX))+'px';
+    el.style.top=Math.max(4,Math.min(y,maxY))+'px';
+  }
+  function esconder(){
+    ttAlvo=null; clearTimeout(ttTimer);
+    if(ttEl) ttEl.classList.remove('show');
+  }
+  document.addEventListener('mouseover',function(e){
+    var alvo=e.target&&e.target.closest&&e.target.closest('[title]');
+    if(!alvo||!alvo.getAttribute('title')||alvo===ttAlvo) return;
+    ttAlvo=alvo;
+    var texto=alvo.getAttribute('title');
+    alvo.setAttribute('data-la-title',texto);
+    alvo.removeAttribute('title');
+    clearTimeout(ttTimer);
+    ttTimer=setTimeout(function(){
+      if(ttAlvo!==alvo) return;
+      var el=elTooltip();
+      el.textContent=texto;
+      el.classList.add('show');
+      posicionar(e);
+    },350);
+  });
+  document.addEventListener('mousemove',function(e){
+    if(ttAlvo&&ttEl&&ttEl.classList.contains('show')) posicionar(e);
+  });
+  document.addEventListener('mouseout',function(e){
+    var alvo=e.target&&e.target.closest&&e.target.closest('[data-la-title]');
+    if(alvo){ alvo.setAttribute('title',alvo.getAttribute('data-la-title')); alvo.removeAttribute('data-la-title'); }
+    if(alvo===ttAlvo) esconder();
+  });
+  document.addEventListener('mousedown',esconder);
+  document.addEventListener('scroll',esconder,true);
+})();
 </script>
 </body>
 
