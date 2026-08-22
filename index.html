@@ -5819,6 +5819,49 @@ async function atualizarJackpotUS(key){
   }
 }
 
+// Faixas de premiação REAIS por concurso (Fase 67, 2026-08-21). Até aqui
+// esta função usava premiacoesPB/premiacoesMM — uma lista de ganhadores
+// FIXA no código, sempre os mesmos números pra qualquer concurso (achado
+// ao vivo pelo usuário, que reconheceu os valores exatos e perguntou se
+// eram inventados — eram, placeholder desde o commit inicial do app).
+// O backend (atualizar-resultados/buscarFaixasPowerball e
+// buscarFaixasMegaMillions, lottoanalytics-backend) já faz a raspagem
+// real por concurso e grava em resultados.dados.faixas no Supabase —
+// esta função só LÊ esse dado pronto (não raspa de novo aqui: o
+// Desktop roda no navegador do Electron com webSecurity:true, e nem
+// powerball.com nem mega-millions.com respondem com CORS liberado pra
+// fetch direto do navegador — confirmado ao vivo, por isso a raspagem
+// mora só no backend, que não tem essa restrição).
+window._faixasBusy=window._faixasBusy||{};
+async function atualizarFaixasUS(key){
+  if(window._faixasBusy[key]) return;
+  window._faixasBusy[key]=true;
+  try{
+    const sb=_getSbClient(); if(!sb) return;
+    const {data,error}=await sb.from('resultados').select('concurso,dados').eq('loteria',key).maybeSingle();
+    if(error||!data||!Array.isArray(data.dados&&data.dados.faixas)) return;
+    window['_usFaixas_'+key]={concurso:String(data.concurso), faixas:data.dados.faixas};
+    // Concurso exibido no momento é o mesmo do dado que acabou de chegar:
+    // recalcula ganhadores/acumulou reais e re-renderiza igual ao padrão
+    // já usado pra jackpot (atualizarJackpotUS acima).
+    if(resultados[key] && String(resultados[key].concurso)===String(data.concurso)){
+      const top=data.dados.faixas[0];
+      resultados[key].ganhadores=data.dados.faixas.map(f=>({
+        f:f.descricao, q:f.ganhadores.toLocaleString('pt-BR'),
+        p:f.ganhadores===0&&f.valorPremio===0?'JACKPOT':('$ '+f.valorPremio.toLocaleString('pt-BR')),
+        valorNum:f.valorPremio
+      }));
+      resultados[key].acumulou=top?top.ganhadores===0:resultados[key].acumulou;
+      try{ await dbPut('resultados',{...resultados[key],loteria:key}); }catch(e){}
+      if(typeof currentKey!=='undefined'&&currentKey===key){
+        try{ renderCard(resultados[key],CFG[key]); }catch(e){}
+      }
+    }
+  } finally {
+    window._faixasBusy[key]=false;
+  }
+}
+
 function seedToResult(s, key){
   // Estimativa REAL em dólar (vinda do theLotter) — nunca usa valores fictícios
   const _jp=window['_usJackpot_'+key];
@@ -5829,38 +5872,54 @@ function seedToResult(s, key){
   const _num=usDrawNumber(key,_dt);
   if(_num) s={...s,concurso:String(_num)};
 
-  // Faixas de premiação reais (valores em USD → exibidos como $)
-  const premiacoesPB=[
-    {descricao:'5 + PowerBall',  ganhadores:0,  valorPremio:0,          premio:'Jackpot'},
-    {descricao:'5 acertos',      ganhadores:2,  valorPremio:1000000,     premio:'$ 1.000.000'},
-    {descricao:'4 + PowerBall',  ganhadores:35, valorPremio:50000,       premio:'$ 50.000'},
-    {descricao:'4 acertos',      ganhadores:820,valorPremio:100,         premio:'$ 100'},
-    {descricao:'3 + PowerBall',  ganhadores:891,valorPremio:100,         premio:'$ 100'},
-    {descricao:'3 acertos',      ganhadores:22841,valorPremio:7,         premio:'$ 7'},
-    {descricao:'2 + PowerBall',  ganhadores:19210,valorPremio:7,         premio:'$ 7'},
-    {descricao:'1 + PowerBall',  ganhadores:102540,valorPremio:4,        premio:'$ 4'},
-    {descricao:'0 + PowerBall',  ganhadores:219120,valorPremio:4,        premio:'$ 4'},
+  // Valores oficiais/fixos de prêmio por faixa (não variam por concurso,
+  // diferente do Nº DE GANHADORES — ver atualizarFaixasUS acima).
+  const valoresPB=[
+    {descricao:'5 + PowerBall',  valorPremio:0},
+    {descricao:'5 acertos',      valorPremio:1000000},
+    {descricao:'4 + PowerBall',  valorPremio:50000},
+    {descricao:'4 acertos',      valorPremio:100},
+    {descricao:'3 + PowerBall',  valorPremio:100},
+    {descricao:'3 acertos',      valorPremio:7},
+    {descricao:'2 + PowerBall',  valorPremio:7},
+    {descricao:'1 + PowerBall',  valorPremio:4},
+    {descricao:'0 + PowerBall',  valorPremio:4},
   ];
-  const premiacoesMM=[
-    {descricao:'5 + Mega Ball',  ganhadores:0,  valorPremio:0,           premio:'Jackpot'},
-    {descricao:'5 acertos',      ganhadores:1,  valorPremio:1000000,     premio:'$ 1.000.000'},
-    {descricao:'4 + Mega Ball',  ganhadores:22, valorPremio:10000,       premio:'$ 10.000'},
-    {descricao:'4 acertos',      ganhadores:615,valorPremio:500,         premio:'$ 500'},
-    {descricao:'3 + Mega Ball',  ganhadores:770,valorPremio:200,         premio:'$ 200'},
-    {descricao:'3 acertos',      ganhadores:19360,valorPremio:10,        premio:'$ 10'},
-    {descricao:'2 + Mega Ball',  ganhadores:20380,valorPremio:10,        premio:'$ 10'},
-    {descricao:'1 + Mega Ball',  ganhadores:109560,valorPremio:4,        premio:'$ 4'},
-    {descricao:'0 + Mega Ball',  ganhadores:230410,valorPremio:2,        premio:'$ 2'},
+  const valoresMM=[
+    {descricao:'5 + Mega Ball',  valorPremio:0},
+    {descricao:'5 acertos',      valorPremio:1000000},
+    {descricao:'4 + Mega Ball',  valorPremio:10000},
+    {descricao:'4 acertos',      valorPremio:500},
+    {descricao:'3 + Mega Ball',  valorPremio:200},
+    {descricao:'3 acertos',      valorPremio:10},
+    {descricao:'2 + Mega Ball',  valorPremio:10},
+    {descricao:'1 + Mega Ball',  valorPremio:4},
+    {descricao:'0 + Mega Ball',  valorPremio:2},
   ];
-  const premiacoes=key==='powerball'?premiacoesPB:premiacoesMM;
+  const valoresPorFaixa=key==='powerball'?valoresPB:valoresMM;
+
+  // Ganhadores reais, só se já chegaram do Supabase E forem deste MESMO
+  // concurso (ver atualizarFaixasUS) — senão fica "—" em vez de inventar
+  // um número, até a busca em segundo plano terminar.
+  const _fx=window['_usFaixas_'+key];
+  const faixasReais=(_fx&&_fx.concurso===String(s.concurso))?_fx.faixas:null;
+  const premiacoes=valoresPorFaixa.map((v,i)=>({
+    descricao:v.descricao,
+    valorPremio:v.valorPremio,
+    ganhadores:faixasReais?faixasReais[i].ganhadores:null,
+  }));
 
   // Monta ganhadores no formato do renderCard
   const ganhadores=premiacoes.map(p=>({
     f:p.descricao,
-    q:p.ganhadores.toLocaleString('pt-BR'),
-    p:p.ganhadores===0&&p.valorPremio===0?'JACKPOT':p.premio,
+    q:p.ganhadores==null?'—':p.ganhadores.toLocaleString('pt-BR'),
+    p:p.ganhadores===0&&p.valorPremio===0?'JACKPOT':(p.valorPremio?'$ '+p.valorPremio.toLocaleString('pt-BR'):'—'),
     valorNum:p.valorPremio
   }));
+  // null = ainda não sabemos (busca em segundo plano não chegou) — não
+  // assume nem "acumulou" nem "tem ganhador", só mostra quando a Fase 67
+  // (atualizarFaixasUS) trouxer o dado real.
+  const acumulou=premiacoes[0].ganhadores==null?null:premiacoes[0].ganhadores===0;
 
   // Calcula próximo sorteio
   const parts=s.data.split('/');
@@ -5880,7 +5939,7 @@ function seedToResult(s, key){
     loteria:key, concurso:s.concurso, data:s.data,
     dezenas:s.dezenas, bolaExtra:s.bolaExtra,
     dezenas2:null, trevos:null, timeCoracao:null, mes:null,
-    acumulou:true,
+    acumulou,
     local:locais[key]||'—',
     ganhadores, estimativa:jackpot, cashValue,
     estimativaFonte:(_jp&&_jp.fonte)||null,
@@ -6036,8 +6095,10 @@ async function fetchUSJson(url, ms=12000){
 
 async function fetchUSResult(key){
   // 0. Jackpot/cash em SEGUNDO PLANO — nunca bloqueia o card (atualizarJackpotUS
-  //    preenche prêmio e re-renderiza quando o valor chegar)
+  //    preenche prêmio e re-renderiza quando o valor chegar). Ganhadores reais
+  //    por faixa, mesmo padrão (atualizarFaixasUS).
   atualizarJackpotUS(key);
+  atualizarFaixasUS(key);
   // 1. Carrega seed no IndexedDB. Antes, só inseria o seed inteiro quando NÃO havia
   // nenhum registro salvo daquela loteria (jaTemSeed) — então, se o usuário já tinha
   // histórico salvo de uma versão anterior do app, sorteios novos adicionados ao
@@ -6912,6 +6973,7 @@ function atualizarBtnDash(key,res){
     }
     // Loterias americanas: busca jackpot + cash reais e atualiza ao chegar
     if(d.americano&&(!res.estimativa||res.estimativa==='—'||!res.cashValue)) atualizarJackpotUS(key);
+    if(d.americano&&Array.isArray(res.ganhadores)&&res.ganhadores[0]&&res.ganhadores[0].q==='—') atualizarFaixasUS(key);
   }
   const next=document.getElementById(`next-${key}`);
   if(next){
@@ -8243,6 +8305,7 @@ function _buildResultCardHtml(res,d){
   if(res.mes)h+=`<div class="badge-row">🌟 <span>${t('resultado.mes_da_sorte')}</span><span class="badge" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}">${res.mes}</span></div>`;
   h+=`<div class="status-wrap">`;
   if(res.origem==='manual'){h+=`<div class="status-txt" style="font-size:16px;color:#b45309">${t('resultado.aguardando_sincronizacao')}<span class="res-manual-tag">📝 ${t('resultado.manual_maiusc')}</span></div>`;}
+  else if(res.acumulou==null){h+=`<div class="status-txt" style="color:var(--text-dim)">—</div>`;}
   else if(res.acumulou){h+=`<div class="status-txt">${t('resultado.acumulou_maiusc_exc')}</div>`;}
   else{const n=parseInt(((res.ganhadores||[])[0]?.q||'0').replace(/\./g,''))||0;h+=`<div class="status-txt">${n.toLocaleString('pt-BR')} ${n===1?t('resultado.ganhador_maiusc'):t('resultado.ganhadores_maiusc')}</div>`;}
   h+=`</div><div class="card-divider"></div>`;
