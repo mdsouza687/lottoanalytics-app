@@ -20372,6 +20372,27 @@ async function confirmarCreditoPremio(){
   var valorPorCota=valor/totalCotas;
   elegiveis.forEach(function(p){ p.valorCota=(p.valorCota||0)+valorPorCota*(p.cotas||0); });
   s.premioCreditado=(s.premioCreditado||0)+valor;
+  // Grava valor_cota AO VIVO em bolao_participantes, direto (mesmo padrão
+  // de _alterarCotasParticipante) — achado ao vivo (2026-08-22): desde a
+  // Fase 111, sincronizarParticipantesDual (chamada dentro de
+  // salvarBolao() logo abaixo) propositalmente PARA de incluir valor_cota
+  // no upsert de quem já existe, pra não sobrescrever cota alterada pelo
+  // mobile. Isso também bloqueava, sem querer, o crédito de prêmio: o
+  // valor só ficava em memória, nunca era persistido — e salvarBolao()
+  // ainda por cima recarrega os participantes DIRETO DO BANCO logo depois
+  // (Fase 111 também), o que desfazia visualmente o crédito na hora, sem
+  // precisar nem fechar/reabrir. premioCreditado (que fica na linha do
+  // bolão, não em bolao_participantes) gravava normalmente — por isso o
+  // valor aparecia "já creditado" mas a Arrecadação Total, o Meu Saldo de
+  // cada participante e o Gasto/Saldo por Loteria (todos derivados da
+  // soma de valor_cota) nunca refletiam o crédito.
+  var sbCred=_getSbClient();
+  if(sbCred){
+    await Promise.all(elegiveis.filter(function(p){return p.id;}).map(function(p){
+      return sbCred.from('bolao_participantes').update({valor_cota:p.valorCota}).eq('id',p.id)
+        .then(function(r){ if(r&&r.error) console.warn('[confirmarCreditoPremio]',p.id,r.error.message); });
+    }));
+  }
   _registrarAuditoria('creditar_premio_saldo',{bolaoId:s.editId,detalhes:'R$ '+valor.toFixed(2)+' dividido entre '+elegiveis.length+' participante(s) pago(s)'});
   closeModal('modal-premio-saldo');
   renderFormBolao();
