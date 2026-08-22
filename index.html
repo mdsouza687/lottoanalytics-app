@@ -4047,6 +4047,9 @@ const LA_I18N = { 'pt-BR': {
   'boloes.escolha_bolao':'Escolha um bolão.', 'boloes.escolha_participante':'Escolha um participante.',
   'boloes.mensagem_enviada':'✓ Mensagem enviada — chega em quem já ativou notificações no app.',
   'boloes.erro_enviar_msg':'Erro ao enviar: {msg}',
+  'boloes.abrir_whatsapp':'Abrir no WhatsApp',
+  'boloes.nenhum_whatsapp_encontrado':'Nenhum participante com WhatsApp cadastrado nesse destino.',
+  'boloes.abrir_um_por_um':'{n} participantes — abra um de cada vez:',
   'boloes.salve_antes_convidar':'Salve o bolão antes de convidar este participante.',
   'boloes.ativado_sem_convidar':'Bolão já ativado — não é mais possível convidar participantes adicionados depois.',
   'boloes.whatsapp_prompt':'WhatsApp de {nome} (com DDD, só números) — usado para reconhecer a mesma pessoa em outros bolões:',
@@ -20686,6 +20689,8 @@ async function abrirMensagensGerais(modoInicial,bolaoIdInicial){
         '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.mensagem')+'</label>'+
         '<textarea id="mg-corpo" rows="4" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:16px;resize:vertical;box-sizing:border-box"></textarea>'+
         '<button onclick="_mgEnviar()" style="width:100%;border:none;border-radius:9px;padding:11px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-weight:800;font-size:13px;cursor:pointer">'+t('boloes.enviar')+'</button>'+
+        '<button onclick="_mgAbrirWhatsapp()" style="width:100%;border:none;border-radius:9px;padding:11px;background:#25D366;color:#fff;font-weight:800;font-size:13px;cursor:pointer;margin-top:8px">📱 '+t('boloes.abrir_whatsapp')+'</button>'+
+        '<div id="mg-whatsapp-lista" style="margin-top:10px"></div>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -20697,6 +20702,7 @@ async function _mgAtualizarSeletor(bolaoIdPreselecionado){
   var modo=document.getElementById('mg-modo').value;
   var area=document.getElementById('mg-seletor-area');
   if(!area) return;
+  var listaWa=document.getElementById('mg-whatsapp-lista'); if(listaWa) listaWa.innerHTML='';
   if(modo==='todos'){ area.innerHTML=''; return; }
   area.innerHTML='<div style="font-size:11px;color:var(--text-muted)">'+t('geral.carregando')+'</div>';
   var sb=_getSbClient(); if(!sb) return;
@@ -20738,6 +20744,56 @@ async function _mgEnviar(){
     toast(t('boloes.mensagem_enviada'));
     var modalEl=document.getElementById('modal-mensagens-gerais'); if(modalEl) modalEl.remove();
   }catch(e){ console.error(e); toast(t('boloes.erro_enviar_msg',{msg:e.message})); }
+}
+// ── Fase 115: mesma mensagem/destinatário do "Enviar" (push) acima, mas
+// abrindo direto no WhatsApp (link wa.me, mesmo padrão de
+// convidarParticipanteBol) em vez de mandar notificação — pedido do
+// usuário como alternativa mais simples à WhatsApp Business API (que
+// exigiria conta Meta Business, número verificado e templates
+// aprovados). Não é envio automático: abre uma janela do WhatsApp com o
+// texto já pronto por participante, falta só clicar "Enviar" lá — pra
+// mais de um destinatário, mostra a lista pra abrir um de cada vez
+// (não dá pra abrir várias janelas de uma vez sem gesto do usuário em
+// cada uma, o navegador bloqueia popup em lote).
+async function _mgAbrirWhatsapp(){
+  var modo=document.getElementById('mg-modo').value;
+  var titulo=(document.getElementById('mg-titulo').value||'').trim();
+  var corpo=(document.getElementById('mg-corpo').value||'').trim();
+  if(!titulo||!corpo){ toast(t('boloes.preencha_titulo_mensagem')); return; }
+  var params={ p_modo:modo, p_bolao_id:null, p_participante_user_id:null };
+  if(modo==='bolao'){
+    var sel=document.getElementById('mg-bolao-id');
+    if(!sel||!sel.value){ toast(t('boloes.escolha_bolao')); return; }
+    params.p_bolao_id=sel.value;
+  } else if(modo==='participante'){
+    var sel2=document.getElementById('mg-participante-id');
+    if(!sel2||!sel2.value){ toast(t('boloes.escolha_participante')); return; }
+    params.p_participante_user_id=sel2.value;
+  }
+  var lista=document.getElementById('mg-whatsapp-lista');
+  if(lista) lista.innerHTML='<div style="font-size:11px;color:var(--text-muted)">'+t('geral.carregando')+'</div>';
+  try{
+    var sb=_getSbClient(); if(!sb) throw new Error(t('boloes.supabase_indisponivel'));
+    var { data, error }=await sb.rpc('rpc_admin_listar_whatsapp_mensagem',params);
+    if(error) throw error;
+    var destinatarios=data||[];
+    if(!destinatarios.length){ if(lista) lista.innerHTML=''; toast(t('boloes.nenhum_whatsapp_encontrado')); return; }
+    var msg=titulo+'\n\n'+corpo;
+    if(destinatarios.length===1){
+      if(lista) lista.innerHTML='';
+      window.open('https://wa.me/'+_waNumeroCompat(destinatarios[0].whatsapp)+'?text='+encodeURIComponent(msg),'_blank');
+      return;
+    }
+    if(lista) lista.innerHTML=
+      '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.abrir_um_por_um',{n:destinatarios.length})+'</div>'+
+      destinatarios.map(function(p,i){
+        var url='https://wa.me/'+_waNumeroCompat(p.whatsapp)+'?text='+encodeURIComponent(msg);
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.06)">'+
+          '<span style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(p.nome||p.whatsapp)+'</span>'+
+          '<button onclick="window.open(\''+url+'\',\'_blank\')" style="border:none;border-radius:6px;padding:6px 10px;background:#25D366;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">📱 '+t('geral.abrir')+'</button>'+
+        '</div>';
+      }).join('');
+  }catch(e){ console.error(e); if(lista) lista.innerHTML=''; toast(t('boloes.erro_enviar_msg',{msg:e.message})); }
 }
 
 /* ── Impressão ── */
