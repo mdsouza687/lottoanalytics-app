@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.2</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.3</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1906,7 +1906,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.2</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.3</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -19008,13 +19008,13 @@ function renderFormBolao(){
           '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_adicionar'))+'"':'title="'+t('boloes.title_carregar_lista')+'"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📂 '+t('boloes.carregar_lista_salva')+'</button>'+
           (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="'+t('boloes.title_bilhetes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 '+t('boloes.bilhetes')+'</button>' : '')+
           (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="'+t('boloes.title_comprovantes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 '+t('boloes.comprovantes')+'</button>' : '')+
-          (_boloesState.editId ? '<button onclick="verCadastroParticipantes()" title="'+t('boloes.title_cadastro')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📝 '+t('boloes.cadastro')+'</button>' : '')+
           '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 '+t('boloes.jogos_do_bolao')+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
           '<button onclick="salvarBolao()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">💾 '+t('boloes.salvar_bolao')+'</button>'+
           (s.editId?'<button onclick="abrirModalPremioSaldo()" title="'+t('boloes.title_premio_saldo')+'" style="border:1px solid #16a34a;border-radius:8px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 '+t('boloes.premio_seta_saldo')+'</button>':'')+
           '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">🖨 '+t('geral.imprimir')+'</button>'+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          (_boloesState.editId ? '<button onclick="verCadastroParticipantes()" title="'+t('boloes.title_cadastro')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📝 '+t('boloes.cadastro')+'</button>' : '')+
           '<button onclick="imprimirTermosCondicoes()" title="'+t('boloes.title_termos_condicoes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📜 '+t('boloes.termos_condicoes')+'</button>'+
           (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="'+t('boloes.title_termo_constituicao')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 '+t('boloes.termo_constituicao')+'</button>' : '')+
           (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="'+t('boloes.title_dossie_premio')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 '+t('boloes.dossie_premio')+'</button>' : '')+
