@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
@@ -66,12 +66,37 @@ function attachExternalLinkHandling(win) {
   });
 }
 
+// Fase 116 (pedido do usuário, uso com 2 monitores): a janela nascia
+// sempre sem x/y definidos — o Electron/Windows decide sozinho (na
+// prática, sempre o monitor primário), então quem trabalha no monitor
+// secundário via o app "pular" pra tela errada a cada abertura. Guarda
+// em qual monitor a janela estava ao fechar (userData/window-display.json,
+// mesmo padrão de last-version.txt/autoupdate.log já usados aqui) e
+// reabre nele da próxima vez — valida contra os monitores REALMENTE
+// conectados no momento (screen.getAllDisplays()), pra nunca tentar abrir
+// fora da tela se o usuário desconectou o monitor secundário depois.
+function _arqDisplay() { return path.join(app.getPath('userData'), 'window-display.json'); }
+function _lerDisplaySalvo() {
+  try { return JSON.parse(fs.readFileSync(_arqDisplay(), 'utf8')); } catch (e) { return null; }
+}
+function _salvarDisplayAtual(win) {
+  try {
+    const disp = screen.getDisplayMatching(win.getBounds());
+    fs.writeFileSync(_arqDisplay(), JSON.stringify({ x: disp.workArea.x, y: disp.workArea.y }));
+  } catch (e) { /* não crítico */ }
+}
 function createWindow() {
+  const salvo = _lerDisplaySalvo();
+  // Só usa a posição salva se ela ainda bater com um monitor conectado
+  // agora (compara a origem da área de trabalho) — evita abrir fora da
+  // tela se o monitor secundário foi desconectado desde a última vez.
+  const dispSalvo = salvo && screen.getAllDisplays().find(d => d.workArea.x === salvo.x && d.workArea.y === salvo.y);
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1000,
     minHeight: 700,
+    ...(dispSalvo ? { x: dispSalvo.workArea.x + 20, y: dispSalvo.workArea.y + 20 } : {}),
     icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     title: 'LottoAnalytics',
     backgroundColor: '#0a0e14',
@@ -91,6 +116,8 @@ function createWindow() {
     autoHideMenuBar: true,
     show: false
   });
+
+  win.on('close', () => _salvarDisplayAtual(win));
 
   win.loadFile('index.html');
 
