@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.5</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.6</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1906,7 +1906,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.5</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.6</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -19279,7 +19279,20 @@ function carregarListaParticipantesModelo(){
     ? '✓ '+t('boloes.participantes_carregados',{n:adicionados})+(jaExistiam?' · '+t('boloes.ja_estavam_na_lista',{n:jaExistiam}):'')
     : t('boloes.todos_participantes_ja_no_bolao'));
 }
-function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
+// Fase 131 (achado ao vivo, pedido do usuário — Tânia Regina ficou "pago"
+// mas o Saldo Disponível não atualizou): mudar status de pagamento OU
+// participação (ativo/inativo) pelo dropdown afeta a Arrecadação Total
+// (soma de quem está ativo E pago), mas só recalculava na TELA — sem
+// sincronizar com boloes.arrecadacao_total até o próximo "Salvar Bolão".
+// O app mobile lê Saldo Disponível direto dessa coluna (RPC
+// rpc_participante_status_pagamento), então ficava desatualizado até lá.
+// Mesmo padrão (best-effort, debounced) de _atualizarValoresDerivadosUI.
+function setPartStatus(i,campo,val){
+  if(!_boloesState.participantes[i]) return;
+  _boloesState.participantes[i][campo]=val;
+  renderParticipantesBoloes();
+  if(campo==='statusPag'||campo==='statusPart') _sincronizarArrecadacaoLive(_calcArrecadacaoPorContribuicoes(_boloesState));
+}
 
 var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
 // Fase 1 do app mobile de participante: gera o convite (via RPC) e mostra
@@ -22856,6 +22869,11 @@ async function _executarVerificacaoOcr(c, p){
   var {error}=await sb.from('bolao_participantes').update({status_pag:'pago'}).eq('id',c.bolao_participante_id);
   if(error) return {ok:false, motivo:'falha_leitura'};
   p.statusPag='pago';
+  // Fase 131 (achado ao vivo): confirmar automaticamente também precisa
+  // atualizar boloes.arrecadacao_total (Saldo Disponível do app mobile
+  // vem dali) — mesmo esquecimento que existia no dropdown manual
+  // (setPartStatus), agora corrigido nos dois lugares.
+  _sincronizarArrecadacaoLive(_calcArrecadacaoPorContribuicoes(_boloesState));
   return {ok:true, data:parse.data};
 }
 // Fase 119b (pedido do usuário): segunda notificação pro organizador,
