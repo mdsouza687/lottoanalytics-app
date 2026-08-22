@@ -5083,53 +5083,6 @@ function _registrarAuditoria(operacao,detalhes){
 // localmente e baixa só os registros mais novos que ainda faltam.
 // Isso garante que as estatísticas usam dados completos mesmo após
 // trocar de domínio ou limpar o navegador.
-// Fase 112 (2026-08-22): esta função rodava SERIAL — uma loteria de cada
-// vez, e dentro de cada uma, uma transação de IndexedDB POR LINHA (até
-// 500 por loteria, 9 loterias = até 4500 transações individuais no
-// mesmo object store "historico"). Isso não travava a thread (cada
-// await libera o event loop), mas o IndexedDB serializa transações por
-// store — qualquer clique que precisasse ler "historico" (ex.: abrir
-// uma loteria) ficava numa fila atrás de milhares de transações
-// pendentes, exatamente o "abre o Desktop e os botões demoram muito pra
-// responder" relatado pelo usuário (bug estrutural, existia desde
-// sempre — não regressão de nenhuma fase recente). Duas mudanças:
-// 1) as 9 loterias em paralelo (Promise.all) em vez de sequencial; 2)
-// uma transação SÓ por loteria (todas as linhas dentro dela) em vez de
-// uma por linha — reduz de até 4500 pra até 9 transações no total.
-async function _syncHistoricoDoSupabase(){
-  if(!supabaseAtivo()) return;
-  const LOTERIAS_KEYS=['megasena','lotofacil','quina','lotomania','timemania','duplasena','diasorte','supersete','maismilionaria'];
-  await Promise.all(LOTERIAS_KEYS.map(async key=>{
-    try{
-      // Maior concurso já no IndexedDB local para esta loteria
-      const locais=await dbOp('historico','readonly',st=>{
-        const idx=st.index('loteria');
-        return idx.getAll(key);
-      }).catch(()=>[]);
-      const maxLocal=locais.reduce((m,r)=>Math.max(m,parseInt(r.concurso)||0),0);
-      // Busca do Supabase só o que é maior que o máximo local
-      const url=`${SUPABASE_CONFIG.url}/rest/v1/historico?loteria=eq.${key}&concurso=gt.${maxLocal}&select=*&order=concurso.asc&limit=500`;
-      const r=await fetch(url,{headers:{'apikey':SUPABASE_CONFIG.key,'Authorization':`Bearer ${SUPABASE_CONFIG.key}`}});
-      if(!r.ok) return;
-      const rows=await r.json();
-      if(!rows.length) return;
-      await new Promise(res=>{
-        const tx=db.transaction('historico','readwrite');
-        const st=tx.objectStore('historico');
-        rows.forEach(row=>{
-          st.put({
-            loteria:row.loteria, concurso:row.concurso,
-            dezenas:row.dezenas||[], trevos:row.trevos||null,
-            data:row.data||null, dados:row.dados||null,
-            mes:row.dados?.mesSorte||null, timeCoracao:row.dados?.timeCoracao||null
-          });
-        });
-        tx.oncomplete=()=>res(); tx.onerror=()=>res();
-      });
-      _histCacheInvalidar();
-    }catch(e){}
-  }));
-}
 const dbPut=(s,d)=>dbOp(s,'readwrite',st=>st.put(d));
 const dbDel=(s,k)=>dbOp(s,'readwrite',st=>st.delete(k));
 
@@ -15731,11 +15684,20 @@ async function _bootApp(){
   // onde essas funções viviam, próximo a initDB) — bolões/jogos salvos
   // agora vivem só no schema novo, sincronizado via RLS/RPCs, não via essa
   // ponte manual pra tabelas que o app parou de escrever.
-  if(supabaseAtivo()){
-    // Sincroniza histórico completo do Supabase para o IndexedDB local —
-    // baixa apenas concursos que ainda não existem localmente (incremental).
-    try{ await _syncHistoricoDoSupabase(); }catch(e){}
-  }
+  //
+  // Fase 112 (2026-08-22): o boot NÃO sincroniza mais o histórico
+  // completo das 9 loterias com o Supabase — pedido explícito do
+  // usuário ("não buscar histórico nenhum ao abrir o app"). Abrir o
+  // Desktop baixando até 500 concursos por loteria antes de qualquer
+  // clique funcionar deixava os botões travados atrás da fila de
+  // transações do IndexedDB (ver comentário em garantirHistorico/
+  // garantirHistoricoLocal). Esse caminho já existe e é o único usado
+  // agora: quando o usuário abre uma loteria específica (gerador/
+  // estatísticas), garantirHistoricoLocal() lê o cache local na hora
+  // (nunca acessa rede) e garantirHistorico() busca em segundo plano só
+  // os concursos que ainda faltam PARA AQUELA loteria — por isso
+  // _syncHistoricoDoSupabase() (que buscava as 9 de uma vez, sempre, a
+  // cada boot) foi removida.
   // Carrega seed das loterias americanas no IndexedDB (garante dados mesmo sem internet)
   for(const usKey of ['powerball','megamillions']){
     const jatem=await dbGet('resultados',usKey);
