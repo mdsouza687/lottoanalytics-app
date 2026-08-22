@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.3</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.4</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1906,7 +1906,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.3</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.4</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -19279,11 +19279,6 @@ function carregarListaParticipantesModelo(){
     ? '✓ '+t('boloes.participantes_carregados',{n:adicionados})+(jaExistiam?' · '+t('boloes.ja_estavam_na_lista',{n:jaExistiam}):'')
     : t('boloes.todos_participantes_ja_no_bolao'));
 }
-function removerParticipanteBol(i){
-  var p=_boloesState.participantes[i];
-  if(p && !confirm(t('boloes.confirm_remover_participante',{nome:p.nome||t('boloes.este_participante')}))) return;
-  _boloesState.participantes.splice(i,1); _boloesState._sel=[]; renderParticipantesBoloes();
-}
 function setPartStatus(i,campo,val){ if(_boloesState.participantes[i]){ _boloesState.participantes[i][campo]=val; renderParticipantesBoloes(); } }
 
 var PARTICIPANTE_APP_URL = 'https://lottoanalytics-participante.netlify.app';
@@ -20027,7 +20022,11 @@ function renderParticipantesBoloes(){
       var colPag = primeira
         ? '<select onchange="setPartStatus('+i+',\'statusPag\',this.value)" '+(bolaoFinalizado?'disabled ':'')+'style="'+selStyle+';color:'+pagColor+';font-weight:800'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"><option value="pago" style="color:#000"'+(pago?' selected':'')+'>'+t('geral.pago')+'</option><option value="naopagou" style="color:#000"'+(!pago?' selected':'')+'>'+t('geral.pendente')+'</option></select>'
         : '<span style="font-size:10px;color:'+pagColor+';font-weight:700;text-align:center">'+(pago?t('geral.pago_minusc'):t('geral.pendente_minusc'))+'</span>';
-      var colRem = primeira ? (bolaoFinalizado?'<span></span>':'<button onclick="removerParticipanteBol('+i+')" title="'+t('geral.remover')+'" style="border:none;background:transparent;color:#dc2626;cursor:pointer;font-size:13px">✕</button>') : '<span></span>';
+      // Fase 130 (pedido do usuário): removido — já dá pra excluir marcando
+      // o checkbox da linha + "🗑 Remover Selecionados" (removerSelecionadosPart,
+      // abaixo da tabela), então o ✕ por linha era redundante e disputava
+      // espaço com o convite/mensagem na mesma área da tabela.
+      var colRem = '<span></span>';
       // Coluna de convite pro app do participante (Fase 1): só faz sentido
       // na 1ª linha (cota extra não é uma "pessoa" própria) e só depois do
       // participante já ter sido salvo (precisa de id pra vincular o
@@ -20043,14 +20042,18 @@ function renderParticipantesBoloes(){
       // impedir adicionar gente NOVA depois que o resultado já pode sair.
       var _instalou=p.convite_status==='aceito';
       var _cadastradoAntesAtivacao = !s.ativadoEm || !p.created_at || new Date(p.created_at) <= new Date(s.ativadoEm);
-      var _convCor=_instalou?'#2563eb':'var(--accent,#3a9b4e)';
-      var _convBg=_instalou?'rgba(37,99,235,.12)':'rgba(58,155,78,.12)';
+      // Fase 130 (pedido do usuário): no tema colorido, "já instalou" usa
+      // azul turquesa (#2dd4bf) em vez do azul padrão (#2563eb) — só nesse
+      // tema, os outros continuam iguais.
+      var _temaColorful = document.body.classList.contains('theme-colorful');
+      var _convCor=_instalou?(_temaColorful?'#2dd4bf':'#2563eb'):'var(--accent,#3a9b4e)';
+      var _convBg=_instalou?(_temaColorful?'rgba(45,212,191,.12)':'rgba(37,99,235,.12)'):'rgba(58,155,78,.12)';
       var _btnMsg = (primeira&&p.id) ? '<button onclick="abrirMensagensParticipante(\''+p.id+'\',\''+_esc(p.nome).replace(/'/g,"\\'")+'\')" title="'+t('boloes.title_mensagens_com',{nome:_esc(p.nome)})+(_naoLidasP?' '+t('boloes.n_nao_lidas',{n:_naoLidasP,s:_naoLidasP>1?'s':''}):'')+'" style="position:relative;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;padding:2px;flex-shrink:0">💬'+(_naoLidasP?'<span style="position:absolute;top:-3px;right:-4px;background:#dc2626;color:#fff;border-radius:99px;font-size:8px;font-weight:800;line-height:1;padding:2px 4px;min-width:13px;text-align:center">'+_naoLidasP+'</span>':'')+'</button>' : '';
       var _convBtn = !primeira ? '<span></span>'
         : !p.id ? '<span title="'+t('boloes.title_salve_para_convidar')+'" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
         : (s.ativadoEm && !_instalou && !_cadastradoAntesAtivacao) ? '<span title="'+t('boloes.title_convite_expirado')+'" style="font-size:19px;text-align:center;display:block;opacity:.4">📨</span>'
-        : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?t('boloes.title_ja_instalou'):t('boloes.title_convidar_app'))+'" style="border:1.5px solid '+_convCor+';border-radius:7px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:9px;font-weight:800;line-height:1;padding:5px 4px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;white-space:nowrap;transition:transform .1s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'\'">'+(_instalou?t('boloes.reenviar'):t('boloes.convidar'))+'<span style="font-size:14px">📨</span></button>';
-      var colConvite = !primeira ? _convBtn : '<div style="display:flex;align-items:center;gap:3px">'+_convBtn+_btnMsg+'</div>';
+        : '<button onclick="convidarParticipanteBol('+i+')" title="'+(_instalou?t('boloes.title_ja_instalou'):t('boloes.title_convidar_app'))+'" style="border:1.5px solid '+_convCor+';border-radius:7px;background:'+_convBg+';color:'+_convCor+';cursor:pointer;font-size:9px;font-weight:800;line-height:1;padding:5px 4px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;white-space:nowrap;transition:transform .1s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'\'">'+(_instalou?t('boloes.reenviar'):t('boloes.convidar'))+'<span style="font-size:14px">📨</span></button>';
+      var colConvite = !primeira ? _convBtn : '<div style="display:flex;align-items:center;gap:3px">'+_btnMsg+_convBtn+'</div>';
       // Contribuição: o valor que ESTE participante está pagando para
       // cobrir os jogos da semana — editável na 1ª linha, igual às demais
       // colunas próprias do participante (não é mais calculado a partir de
