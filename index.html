@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.6</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.7</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1906,7 +1906,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.6</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.7</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -22844,6 +22844,18 @@ function _ocrParseValorEData(texto){
   if(dataMatch){
     var dd=+dataMatch[1], mm=+dataMatch[2];
     if(dd>=1&&dd<=31&&mm>=1&&mm<=12) data=dataMatch[0];
+  }
+  if(!data){
+    // Achado ao vivo (2026-08-22, comprovante da Laíza Araújo de Souza):
+    // Nubank (e outros bancos) mostram a data como "22 AGO 2026" ou
+    // "22 de agosto de 2026" — sem barra nenhuma — então nunca batia com
+    // o regex numérico acima, mesmo com o valor certinho no comprovante.
+    var MESES_ABREV={jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
+    var m2=/(\d{1,2})\s*(?:de\s+)?(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-zç]*\s*(?:de\s+)?(\d{4})/i.exec(texto);
+    if(m2){
+      var dd2=+m2[1], mm2=MESES_ABREV[m2[2].toLowerCase()];
+      if(dd2>=1&&dd2<=31&&mm2) data=String(dd2).padStart(2,'0')+'/'+String(mm2).padStart(2,'0')+'/'+m2[3];
+    }
   }
   return {valores:valores, data:data};
 }
