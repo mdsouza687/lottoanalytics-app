@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.8</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.9</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1906,7 +1906,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.8</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.9</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20841,24 +20841,65 @@ async function _mgAtualizarSeletor(bolaoIdPreselecionado){
   var area=document.getElementById('mg-seletor-area');
   if(!area) return;
   var listaWa=document.getElementById('mg-whatsapp-lista'); if(listaWa) listaWa.innerHTML='';
-  if(modo==='todos'){ area.innerHTML=''; return; }
+  if(modo==='todos'){ area.innerHTML=''; _mgSetTituloPadrao(); return; }
   area.innerHTML='<div style="font-size:11px;color:var(--text-muted)">'+t('geral.carregando')+'</div>';
   var sb=_getSbClient(); if(!sb) return;
   if(modo==='bolao'||modo==='bolao_pendentes'){
     var { data:userData }=await sb.auth.getUser();
     var uid=userData&&userData.user&&userData.user.id;
-    var { data, error }=uid?await sb.from('boloes').select('id,nome').eq('user_id',uid).is('deleted_at',null).order('nome'):{data:null,error:null};
+    var { data, error }=uid?await sb.from('boloes').select('id,nome,data_hora_encerramento').eq('user_id',uid).is('deleted_at',null).order('nome'):{data:null,error:null};
     if(error){ area.innerHTML='<div style="color:#e0503c;font-size:12px">'+t('boloes.erro_carregar_boloes',{msg:_esc(error.message)})+'</div>'; return; }
-    var opts=(data||[]).map(function(b){ return '<option value="'+b.id+'"'+(b.id===bolaoIdPreselecionado?' selected':'')+'>'+_esc(b.nome)+'</option>'; }).join('');
+    _mgBoloesCache=data||[];
+    var opts=_mgBoloesCache.map(function(b){ return '<option value="'+b.id+'"'+(b.id===bolaoIdPreselecionado?' selected':'')+'>'+_esc(b.nome)+'</option>'; }).join('');
     area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.bolao_label')+'</label>'+
-      '<select id="mg-bolao-id" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts||'<option value="">'+t('boloes.nenhum_bolao_salvo_opt')+'</option>')+'</select>';
+      '<select id="mg-bolao-id" onchange="_mgBolaoSelecionado()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts||'<option value="">'+t('boloes.nenhum_bolao_salvo_opt')+'</option>')+'</select>';
+    _mgBolaoSelecionado();
   } else if(modo==='participante'){
     var { data:pData, error:pErr }=await sb.rpc('rpc_admin_listar_participantes_vinculados');
     if(pErr){ area.innerHTML='<div style="color:#e0503c;font-size:12px">'+t('boloes.erro_carregar_participantes',{msg:_esc(pErr.message)})+'</div>'; return; }
     var opts2=(pData||[]).map(function(p){ return '<option value="'+p.participante_user_id+'">'+_esc(p.nome)+'</option>'; }).join('');
     area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.participante_label')+'</label>'+
       '<select id="mg-participante-id" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts2||'<option value="">'+t('boloes.nenhum_participante_vinculado')+'</option>')+'</select>';
+    _mgSetTituloPadrao();
   }
+}
+// Fase 135b (pedido do usuário): o título da mensagem passa a ser sempre
+// o nome do bolão, sempre que um bolão específico está selecionado (modo
+// 'bolao' ou 'bolao_pendentes') — atualiza tanto na primeira carga do
+// seletor quanto toda vez que o usuário troca o bolão escolhido. No modo
+// "pendentes de pagamento" também preenche o corpo com o texto fixo de
+// cobrança pedido pelo usuário, já com a data/hora de encerramento
+// (boloes.data_hora_encerramento) inseridas — se o bolão não tiver esse
+// prazo definido, cai num aviso genérico em vez de quebrar o texto.
+var _mgBoloesCache=[];
+function _mgSetTituloPadrao(){
+  var tit=document.getElementById('mg-titulo');
+  if(tit) tit.value='📣 '+t('boloes.aviso_organizador');
+}
+function _mgTextoPendentesPagamento(nome,dataHoraEncerramento){
+  var quando='[defina o prazo de pagamento do bolão]', aposHora='[hora do prazo]';
+  if(dataHoraEncerramento){
+    var dt=new Date(dataHoraEncerramento);
+    var hh=String(dt.getHours()).padStart(2,'0');
+    quando=dt.toLocaleDateString('pt-BR')+' às '+hh+':'+String(dt.getMinutes()).padStart(2,'0');
+    aposHora=hh+'h';
+  }
+  return 'Aos participantes,\n\n'+
+    'O prazo para adesão ao '+nome+' se encerra hoje, '+quando+'.\n\n'+
+    'Todo o processo é realizado pelo app: escolha do número de cotas, envio do comprovante e liberação automática após a confirmação do pagamento.\n\n'+
+    'Após as '+aposHora+', o bolão será encerrado, o participante será removido e o envio de comprovantes ficará bloqueado. Não será possível realizar inclusões ou liberações manualmente. Uma nova participação só poderá ocorrer no próximo bolão.\n\n'+
+    'Atenciosamente,\nOrganização';
+}
+function _mgBolaoSelecionado(){
+  var modo=document.getElementById('mg-modo').value;
+  var sel=document.getElementById('mg-bolao-id');
+  var tit=document.getElementById('mg-titulo');
+  var corpo=document.getElementById('mg-corpo');
+  if(!sel||!sel.value){ if(tit) tit.value='📣 '+t('boloes.aviso_organizador'); return; }
+  var b=_mgBoloesCache.filter(function(x){ return x.id===sel.value; })[0];
+  if(!b) return;
+  if(tit) tit.value=b.nome;
+  if(corpo&&modo==='bolao_pendentes') corpo.value=_mgTextoPendentesPagamento(b.nome,b.data_hora_encerramento);
 }
 async function _mgEnviar(){
   var modo=document.getElementById('mg-modo').value;
