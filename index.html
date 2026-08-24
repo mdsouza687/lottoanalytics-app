@@ -1589,7 +1589,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.11</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.4.12</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1909,7 +1909,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.11</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.4.12</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -15170,8 +15170,13 @@ function abrirJogosManuais(){
   }
   // Pré-selecionar a loteria atual
   if(sel&&currentKey) sel.value=currentKey;
-  _manualSel=new Set();
-  _manualJogos=[];
+  // Fase 141 (pedido do usuário): NÃO zera _manualJogos/_manualSel aqui —
+  // antes, fechar o modal por descuido (ou de propósito, sem salvar) e
+  // reabrir apagava todos os jogos já inseridos na sessão, obrigando a
+  // digitar tudo de novo. Os jogos adicionados agora só somem quando o
+  // usuário salva (salvarJogosManuais(), que já limpa no sucesso) ou
+  // exclui um item manualmente da lista — nunca só por fechar/reabrir a
+  // tela.
   // Zera o vínculo de bolão a CADA abertura do modal — sem isso, o select
   // "manual-vinculo-sel" mantinha a seleção da última vez que o modal foi
   // usado (popularDropdownManualBolao() restaura dd.value de propósito ao
