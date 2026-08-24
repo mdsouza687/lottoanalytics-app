@@ -1547,6 +1547,45 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // na hora, só "feche e abra manualmente". Vira um banner FIXO (some só
 // quando a pessoa instala) com um botão que chama quitAndInstall() de
 // verdade, sem precisar fechar/abrir o app na mão.
+// Fase 146 (pedido do usuário): a partir de agora, toda vez que sai uma
+// versão nova (mobile ou Desktop), mostra um resumo de "Novidades" pra
+// quem já tinha o app aberto antes — chave é o próprio número de versão
+// já exibido no rodapé (ver spans "geral.versao" na tela). PRECISA
+// lembrar de adicionar uma entrada aqui a cada bump de versão daqui pra
+// frente (se a versão não tiver entrada, cai de volta no toast simples
+// de sempre — nunca quebra por falta de changelog).
+var LA_CHANGELOG_DESKTOP={
+  '4.5.1':[
+    'Mensagens: o título passa a ser "{bolão} informa" quando um bolão específico é escolhido no modal Enviar Mensagem.',
+    'Texto padrão nas mensagens: "Aos Participantes... (mensagem automática) ... Atenciosamente, {seu nome}".',
+    'Novo campo pra anexar arquivo nas mensagens — abre a pasta do arquivo no Explorador ao clicar "Abrir no WhatsApp".',
+    'Depois de cada atualização, esta telinha de novidades passa a aparecer sozinha — sem precisar ir atrás do que mudou.'
+  ]
+};
+function _mostrarNovidadesVersao(versao){
+  var itens=LA_CHANGELOG_DESKTOP[versao];
+  if(!itens||!itens.length){ toast('🎉 Atualizado para a versão '+versao+'!'); return; }
+  var modalId='modal-novidades-versao';
+  var elExistente=document.getElementById(modalId); if(elExistente) elExistente.remove();
+  var div=document.createElement('div');
+  div.innerHTML='<div id="'+modalId+'" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px">'+
+    '<div style="background:var(--bg,#12151f);border:1px solid var(--glass-border);border-radius:16px;max-width:440px;width:100%;max-height:80vh;overflow-y:auto">'+
+      '<div style="padding:20px 22px 14px;border-bottom:1px solid var(--glass-border)">'+
+        '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Atualizado</div>'+
+        '<div style="font-family:var(--font-head,inherit);font-weight:800;font-size:17px;color:var(--text)">🎉 Novidades da versão '+versao+'</div>'+
+      '</div>'+
+      '<div style="padding:16px 22px">'+
+        '<ul style="margin:0;padding-left:20px;color:var(--text);font-size:13px;line-height:1.7">'+
+          itens.map(function(txt){ return '<li style="margin-bottom:8px">'+_esc(txt)+'</li>'; }).join('')+
+        '</ul>'+
+      '</div>'+
+      '<div style="padding:14px 22px 20px">'+
+        '<button onclick="document.getElementById(\''+modalId+'\').remove()" style="width:100%;border:none;border-radius:9px;padding:11px;background:'+MULTI_LOTERIA_COR+';color:#fff;font-weight:800;font-size:13px;cursor:pointer">Continuar</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(div.firstChild);
+}
 (function(){
   var _fila=[];
   function _bannerUpdatePronta(versao){
@@ -1567,7 +1606,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
     if(typeof toast!=='function' || !document.body){ _fila.push(p); return; }
     if(p.type==='available') toast('🔄 Atualização v'+p.version+' encontrada — baixando em segundo plano...');
     else if(p.type==='downloaded') _bannerUpdatePronta(p.version);
-    else if(p.type==='updated') toast('🎉 Atualizado para a versão '+p.version+'!');
+    else if(p.type==='updated') _mostrarNovidadesVersao(p.version);
     else if(p.type==='error') toast('⚠️ Erro ao checar atualização: '+p.message);
   }
   if(window.lottoUpdater) window.lottoUpdater.onEvent(_mostrar);
@@ -1589,7 +1628,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.0</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.1</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1909,7 +1948,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.0</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.1</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
