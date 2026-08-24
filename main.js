@@ -13,6 +13,18 @@ ipcMain.on('auto-update-instalar-agora', function () {
   autoUpdater.quitAndInstall(false, true);
 });
 
+// Fase 144 (pedido do usuário): "anexar arquivo" no botão Abrir no
+// WhatsApp do modal de mensagens — WhatsApp Web/Desktop não aceita
+// anexo vindo de fora via URL (wa.me só pré-preenche texto), então a
+// única forma de ajudar é abrir a pasta do arquivo já escolhido no
+// Explorador do Windows, com o arquivo selecionado, pra o organizador
+// arrastar ele pro WhatsApp manualmente logo depois de abrir a
+// conversa. shell.showItemInFolder só existe no processo main —
+// exposto ao renderer via preload/contextBridge (window.lottoFS).
+ipcMain.on('mostrar-arquivo-na-pasta', function (_event, caminhoArquivo) {
+  if (caminhoArquivo) shell.showItemInFolder(caminhoArquivo);
+});
+
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
 // contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local
 // (mesma pasta userData) — o backend de armazenamento do Electron só

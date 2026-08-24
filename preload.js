@@ -15,3 +15,12 @@ contextBridge.exposeInMainWorld('lottoUpdater', {
     ipcRenderer.send('auto-update-instalar-agora');
   }
 });
+
+// Fase 144: mostrar, no Explorador do Windows, a pasta do arquivo
+// escolhido pra "anexar" numa mensagem de WhatsApp (ver main.js —
+// shell.showItemInFolder só existe no processo main).
+contextBridge.exposeInMainWorld('lottoFS', {
+  mostrarNaPasta: function (caminhoArquivo) {
+    ipcRenderer.send('mostrar-arquivo-na-pasta', caminhoArquivo);
+  }
+});
