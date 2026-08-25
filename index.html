@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.5.7':[
+    'Corrigido bug real de dinheiro: adicionar um jogo novo com Teimosinha a um concurso que já tinha outros jogos vinculados fazia TODOS os concursos daquela Teimosinha ficarem com o mesmo custo do concurso atual, em vez do próprio — inflava o Custo Total/Saldo do bolão indevidamente.'
+  ],
   '4.5.6':[
     'Corrigido de vez: a v4.5.4 tinha invertido a correção da cor da Timemania — o nome, valores e rótulos dela (fora da bolinha) voltam a aparecer verde, a cor de texto oficial da marca (Manual de Identidade Visual Loterias CAIXA, item 7.1.1). O amarelo continua só no fundo da bolinha/ícone.'
   ],
@@ -1649,7 +1652,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.6</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.7</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1969,7 +1972,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.6</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.7</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -22430,14 +22433,14 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // empurra uma NOVA entrada em g.concursos (nunca mescla numa já
     // existente), e sincronizarConcursoDual faz um UPSERT que SOBRESCREVE
     // bolao_concursos.custo inteiro com o que vier nessa entrada — então,
-    // ao adicionar jogos a um concurso que JÁ tinha jogos vinculados antes
-    // (ex.: 3 jogos/R$18 já lá, adiciona mais 1), gravar só o custo DESTA
-    // adição (R$6) apagava/desatualizava o custo dos jogos anteriores em
-    // vez de somar (ficou R$18 de antes intacto por acaso — noutro caso
-    // teria virado R$6, perdendo os R$18). Soma ao custo já existente
-    // deste concurso (se houver) antes de gravar.
-    var _concursoExistenteS=(g.concursos||[]).find(function(c){return String(c.num)===String(_novoNumS)&&c.loteria===loteriaItem;});
-    var _custoS=((_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0)+(_concursoExistenteS?(parseFloat(_concursoExistenteS.custo)||0):0);
+    // ao adicionar jogos a um concurso que JÁ tinha jogos vinculados antes,
+    // gravar só o custo DESTA adição apagava/desatualizava o custo dos
+    // jogos anteriores em vez de somar. Fase 151 (2026-08-25): a soma com
+    // o custo já existente agora é feita DENTRO de _pushConcursoEntry, por
+    // concurso — fazer aqui, olhando só _novoNumS, quebrava a Teimosinha
+    // (aplicava a soma de UM concurso a todos os outros da sequência).
+    // Aqui só o custo dos jogos NOVOS sendo adicionados.
+    var _custoS=(_dBolaoS&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,_dBolaoS)||0):0;
     // uuids dos jogos avulsos originais que vão ser vinculados — capturado
     // ANTES de _pushConcursoEntry (que clona jogos internamente pra cada
     // concurso da Teimosinha; o array "jogos" em si não é mutado).
@@ -24585,10 +24588,22 @@ function _extrasArraysDeJogos(jogos){
 // as variáveis capturadas no fechamento mudavam de nome (_dataSorteioS vs
 // _dataSorteio etc.). Agora é uma função só, chamada pelos dois.
 function _pushConcursoEntry(g, jogos, opts){
-  var loteria=opts.loteria, custo=opts.custo, semana=opts.semana, dataSorteio=opts.dataSorteio, num=opts.num;
+  // Fase 151 (correção, achado ao vivo pelo usuário 2026-08-25 — dinheiro
+  // real errado num bolão): opts.custo é o custo só dos jogos NOVOS sendo
+  // adicionados (não mais "já somado com o existente" — quem chamava
+  // fazia essa soma UMA vez, olhando só o concurso `num`, e esse MESMO
+  // total acabava sendo aplicado a TODOS os concursos da lista de
+  // teimosinha. Um jogo novo com teimosinha em concurso que já tinha
+  // outros jogos (ex.: concurso A com R$18 + jogo novo R$6 = R$24, certo
+  // pro A) fazia o concurso B da mesma teimosinha (que só tinha R$6 antes)
+  // também virar R$24 em vez de R$12. Agora cada concurso da lista soma
+  // com o que JÁ EXISTIA nele mesmo, individualmente, aqui dentro.
+  var loteria=opts.loteria, custoNovosJogos=opts.custo, semana=opts.semana, dataSorteio=opts.dataSorteio, num=opts.num;
   var teimosinhaLista=(jogos[0]&&jogos[0]._teimosinhaConcursos)||null;
   if(teimosinhaLista&&teimosinhaLista.length>1){
     teimosinhaLista.forEach(function(numT,idxT){
+      var _existenteT=(g.concursos||[]).find(function(c){return String(c.num)===String(numT)&&c.loteria===loteria;});
+      var _custoT=custoNovosJogos+(_existenteT?(parseFloat(_existenteT.custo)||0):0);
       // _clonarJogosComExtras() — cada concurso precisa de sua PRÓPRIA cópia
       // PROFUNDA (array externo E cada jogo individual, com _extra/_trevos/
       // etc.), não só jogos.slice() (que só copia o array externo — os
@@ -24599,10 +24614,12 @@ function _pushConcursoEntry(g, jogos, opts){
       // vinculoId: UUID real por concurso (Doc 2, item 1) — substitui o
       // antigo pseudo-ID "Date.now()+idxT" como identidade; savedAt
       // continua existindo só para ordenação cronológica.
-      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
+      g.concursos.push(Object.assign({num:numT,data:idxT===0?dataSorteio:'',jogos:_clonarJogosComExtras(jogos),custo:_custoT,status:'Aguardando',semana:semana,savedAt:Date.now()+idxT,loteria:loteria,teimosinhaOrigem:teimosinhaLista[0],vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
     });
   } else {
-    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:custo,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
+    var _existenteUnico=(g.concursos||[]).find(function(c){return String(c.num)===String(num)&&c.loteria===loteria;});
+    var _custoUnico=custoNovosJogos+(_existenteUnico?(parseFloat(_existenteUnico.custo)||0):0);
+    g.concursos.push(Object.assign({num:num,data:dataSorteio,jogos:jogos,custo:_custoUnico,status:'Aguardando',semana:semana,savedAt:Date.now(),loteria:loteria,vinculoId:_novoId(),jogosAvisadosEm:null},_extrasArraysDeJogos(jogos)));
   }
 }
 // Reanexa jogo._mes/_time/_extra/_trevos/_ssCols a partir dos arrays
@@ -24759,13 +24776,13 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     var _dataConhecidaEsp=_especialFixo?(CONCURSOS_ESPECIAIS_DATA[loteriaKey]||{})[_especialFixo]:null;
     var _dataSorteio=_dataConhecidaEsp||(_calc.concursoData&&_calc.concursoData!=='—'?_calc.concursoData:(res?(res.proximoConcurso||res.data||''):''));
     var _semLabel=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
-    // Fase 64 (2026-08-02): mesma correção de _vincularSalvoAoBolaoImpl —
-    // soma ao custo já existente deste concurso (se houver) em vez de
-    // gravar só o custo desta adição, senão o UPSERT de
+    // Fase 64 (2026-08-02): soma ao custo já existente deste concurso (se
+    // houver) em vez de gravar só o custo desta adição, senão o UPSERT de
     // sincronizarConcursoDual sobrescreve/perde o custo dos jogos já
-    // vinculados antes.
-    var _concursoExistenteG=(g.concursos||[]).find(function(c){return String(c.num)===String(_novoNum)&&c.loteria===loteriaKey;});
-    var _custoG=((d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):0)+(_concursoExistenteG?(parseFloat(_concursoExistenteG.custo)||0):0);
+    // vinculados antes. Fase 151 (2026-08-25): essa soma agora é feita
+    // DENTRO de _pushConcursoEntry, por concurso — ver comentário gêmeo em
+    // _vincularSalvoAoBolaoImpl. Aqui só o custo dos jogos NOVOS.
+    var _custoG=(d&&typeof calcCustoTotal==='function')?(calcCustoTotal(jogos,d)||0):0;
     // Teimosinha: CADA concurso da sequência (jogo._teimosinhaConcursos) vira
     // sua PRÓPRIA entrada em g.concursos[], com custo e status independentes
     // — é uma aposta separada por sorteio, não uma única aposta "estendida".
