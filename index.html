@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.5.4':[
+    'Corrigido de vez de verdade: corMarca() (a função central de cor de marca) usava corTexto (campo só pra contraste do número DENTRO da bolinha) como cor da loteria — a Timemania (único CFG com corTexto definido) aparecia verde em vez de amarela em toda parte: nome, rótulos, ícones, em qualquer tema. Agora sempre usa a cor real.'
+  ],
   '4.5.3':[
     'Corrigido de vez: no tema claro, NENHUMA loteria troca mais de cor — nem no painel Hero (o único lugar que ainda restava do ajuste de 12/08). Mega-Sena, Lotomania, Timemania, Dia de Sorte, Super Sete e Mega Millions voltam a mostrar a cor real da marca em todo lugar.'
   ],
@@ -1634,7 +1637,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.3</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.4</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1954,7 +1957,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.3</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.4</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -7848,7 +7851,15 @@ function _luminanciaHex(hex){
 // definida no Manual de Identidade Visual Loterias CAIXA (item 7.1.1):
 // seu amarelo oficial não garante contraste como texto, então usa-se o
 // verde (mesma cor da Mega-Sena) — d.corTexto, quando presente.
-function corMarca(d){ return (d&&d.corTexto)||(d&&d.cor)||'#fff'; }
+// Fase 148 (pedido do usuário, ao vivo): corMarca() priorizava
+// d.corTexto sobre d.cor -- corTexto existe só pra dar contraste ao
+// NÚMERO escrito DENTRO de uma bolinha cujo fundo já é d.cor (ver
+// corBolaTexto, a função certa pra isso; só a Timemania tem corTexto
+// definido hoje, '#00AB67' verde), nunca serviu como "a cor da marca"
+// em geral. Usar corTexto aqui fazia a Timemania aparecer verde (cor do
+// Mega-Sena) em toda parte que chama corMarca() — nome da loteria,
+// rótulos, ícones — em vez do amarelo real dela. Sempre usa d.cor.
+function corMarca(d){ return (d&&d.cor)||'#fff'; }
 // Cor de marca legível sobre os fundos translúcidos escuros do Hero da home
 // — tanto o painel .la-hero-info (rgba(0,0,0,.22) sobre o fundo do tema)
 // quanto o próprio .la-hero (rgba(30,58,95,.5), mais claro que o painel, onde
