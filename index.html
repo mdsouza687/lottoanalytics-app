@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.5.5':[
+    'Corrigido: o banner "Atualização pronta para instalar" podia ficar ilegível (botão amarelo/laranja com texto branco) se a última loteria vista no Hero fosse clara (ex.: Timemania, Lotomania) — o banner usava a cor "atual" da tela em vez de uma cor fixa. Agora sempre verde, independente da tela anterior.'
+  ],
   '4.5.4':[
     'Corrigido de vez de verdade: corMarca() (a função central de cor de marca) usava corTexto (campo só pra contraste do número DENTRO da bolinha) como cor da loteria — a Timemania (único CFG com corTexto definido) aparecia verde em vez de amarela em toda parte: nome, rótulos, ícones, em qualquer tema. Agora sempre usa a cor real.'
   ],
@@ -1601,10 +1604,16 @@ function _mostrarNovidadesVersao(versao){
     if(document.getElementById('banner-update-pronta')) return; // já mostrando, não duplica
     var b=document.createElement('div');
     b.id='banner-update-pronta';
-    b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid var(--ac,#3A9B4E);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
+    // Fase 149 (achado ao vivo, pedido do usuário): usava var(--ac), que é
+    // GLOBAL e fica "sequestrada" pela cor da última loteria vista no Hero
+    // (document.documentElement.style.setProperty('--ac', d.cor), ver
+    // renderHero/verResultadoLoteria) — com loteria clara (ex.: Timemania
+    // amarelo, Lotomania laranja) o botão "Instalar e Reiniciar" (texto
+    // branco fixo) ficava ilegível. Cor fixa aqui, sem depender de --ac.
+    b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid #3A9B4E;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
     b.innerHTML=
       '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">'+t('geral.atualizacao_pronta',{v:versao})+'</span>'+
-      '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:var(--ac,#3A9B4E);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
+      '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:#3A9B4E;color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
     document.body.appendChild(b);
     document.getElementById('btn-instalar-update').onclick=function(){
       this.disabled=true; this.textContent='Instalando...';
@@ -1637,7 +1646,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.4</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.5</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1957,7 +1966,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.4</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.5</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
