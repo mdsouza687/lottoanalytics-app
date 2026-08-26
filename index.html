@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.6.0':[
+    'Corrigido de vez a Contribuição (causa raiz real, confirmada pelos logs do Supabase — nenhuma das duas tentativas anteriores sequer chegava a gravar): a comparação "mudou?" no campo comparava com um valor que já tinha sido adiantado pela digitação, então a gravação nunca disparava, em silêncio. Agora compara com o valor de quando o campo ganhou foco.'
+  ],
   '4.5.9':[
     'Corrigido de vez: a v4.5.8 gravava a Contribuição, mas clicar em "Salvar Bolão" logo em seguida corria contra essa gravação (assíncrona) — o recarregamento do Salvar podia ler o banco antes dela terminar e trazer o valor antigo de volta. "Salvar Bolão" agora espera a gravação da Contribuição terminar antes de recarregar.'
   ],
@@ -1658,7 +1661,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.5.9</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.6.0</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1978,7 +1981,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.5.9</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.6.0</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20186,8 +20189,9 @@ function renderParticipantesBoloes(){
         ? '<div style="position:relative"><span style="position:absolute;left:5px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--text-muted);pointer-events:none">R$</span>'+
           '<input id="np-contrib-'+i+'" type="text" inputmode="decimal" value="'+(contribuicao?contribuicao.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0,00" title="'+t('boloes.title_contribuicao_sem_limite')+'" '+
           (bolaoFinalizado?'disabled ':'')+
+          'onfocus="this.dataset.valorAoFocar=this.value" '+
           'oninput="_boloesState.participantes['+i+'].valorCota=_parseMoeda(this.value);_atualizarValoresDerivadosUI()" '+
-          'onblur="_alterarContribuicaoParticipante('+i+',this.value)" '+
+          'onblur="_alterarContribuicaoParticipante('+i+',this.value,this.dataset.valorAoFocar)" '+
           'style="border:1px solid var(--glass-border);border-radius:6px;background:var(--bg2,#fff);color:var(--text);font-size:11px;font-weight:700;width:100%;padding:3px 3px 3px 22px;box-sizing:border-box'+(bolaoFinalizado?';opacity:.6;cursor:not-allowed':'')+'"/></div>'
         : '<span style="font-size:10px;color:var(--text-dim);text-align:center">—</span>';
       linhasCota+='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:'+(primeira?'7px':'4px')+' 8px;align-items:center;border-bottom:1px solid var(--glass-border);background:'+(sel?'rgba(220,38,38,.06)':(primeira?'transparent':'rgba(255,255,255,.015)'))+';opacity:'+(inativo?'.5':'1')+'">'+
@@ -23892,12 +23896,23 @@ async function _alterarWhatsappParticipante(i,novoValor){
 // mesmo a gravação em si estando correta. Salvar Bolão agora espera
 // qualquer gravação de Contribuição em andamento antes de recarregar.
 var _pendingContribuicaoWrites=[];
-async function _alterarContribuicaoParticipante(i,novoValorTexto){
+// Fase 154 (correção, 2026-08-26 — 3ª tentativa, causa raiz real
+// encontrada via log do Supabase: NUNCA saiu um PATCH sequer pra
+// bolao_participantes em nenhuma das 2 tentativas anteriores): o
+// onblur comparava novoValor com p.valorCota pra decidir se algo
+// realmente mudou — mas oninput (que roda a CADA tecla) já tinha
+// acabado de gravar esse MESMO valor em p.valorCota um instante antes
+// do blur disparar. A comparação sempre dava "não mudou" e a função
+// saía sem nunca gravar nada, em silêncio — por isso nenhum PATCH
+// jamais apareceu nos logs. Agora compara com o valor de QUANDO O
+// CAMPO GANHOU FOCO (data-valor-ao-focar, gravado no onfocus), não
+// com o estado atual (que o oninput já adiantou).
+async function _alterarContribuicaoParticipante(i,novoValorTexto,valorAoFocarTexto){
   var p=_boloesState.participantes[i]; if(!p) return;
   var valorNovo=_parseMoeda(novoValorTexto)||0;
-  var valorAntigo=p.valorCota;
-  if(valorNovo===valorAntigo) return; // nada mudou, evita gravação à toa
+  var valorAntigo=_parseMoeda(valorAoFocarTexto)||0;
   p.valorCota=valorNovo;
+  if(valorNovo===valorAntigo) return; // nada mudou de fato, evita gravação à toa
   if(!p.id) return; // ainda não salvo — o próximo "Salvar Bolão" grava no insert
   var sb=_getSbClient(); if(!sb) return;
   var _promessa=(async function(){
