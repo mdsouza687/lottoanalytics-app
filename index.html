@@ -20059,9 +20059,20 @@ function _atualizarValoresDerivadosUI(){
 // relatório impresso).
 function _premiosEstimVigentesPorLoteria(s){
   var porLot={};
-  var concursosBase=(s.concursos&&s.concursos.length)?s.concursos:(s.concurso?[{loteria:s.loteria||currentKey,num:s.concurso}]:[]);
+  // Achado ao vivo (2026-08-27, pedido do usuário): bolão de concurso
+  // especial (ex.: Lotofácil da Independência) SEM nenhum jogo ainda
+  // vinculado (s.concursos vazio) caía no fallback "s.loteria||currentKey"
+  // — s.loteria é a loteria que estava ativa no TOPO do app no instante em
+  // que o bolão foi criado (pode ser qualquer uma, ex. Super Sete), sem
+  // nenhuma relação com o "Tipo de Sorteio" escolhido no formulário. Usa
+  // _sorteioParaLoteria(s.sorteio,s) — a mesma resolução que já vincula
+  // corretamente concurso/data/prêmio em _atualizarConcursoPremio() — que
+  // cai nesse MESMO fallback quando o sorteio é 'normal'/não mapeado, então
+  // não muda nada pro caso comum.
+  var loteriaFallback=(typeof _sorteioParaLoteria==='function')?_sorteioParaLoteria(s.sorteio,s):(s.loteria||currentKey);
+  var concursosBase=(s.concursos&&s.concursos.length)?s.concursos:(s.concurso?[{loteria:loteriaFallback,num:s.concurso}]:[]);
   concursosBase.forEach(function(cc){
-    var lk=cc.loteria||(s.loteria||currentKey);
+    var lk=cc.loteria||loteriaFallback;
     if(!porLot[lk]) porLot[lk]=[];
     var lista=(cc.teimosinhaTodos&&cc.teimosinhaTodos.length)?cc.teimosinhaTodos:[cc.num];
     lista.forEach(function(n){ if(n!=null) porLot[lk].push(n); });
@@ -20073,8 +20084,19 @@ function _premiosEstimVigentesPorLoteria(s){
     var algumVigente=nums.some(function(n){ return !_concursoJaRealizado(lk,n); });
     if(!algumVigente) return;
     var dL=CFG[lk]||{};
-    var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
-    var premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    // Concurso especial já catalogado com valor oficial conhecido (ex.:
+    // R$300 milhões da Lotofácil da Independência) usa ESSE valor — a
+    // estimativa semanal comum da API não tem nada a ver com o prêmio
+    // promocional da edição especial (mesma regra de _atualizarConcursoPremio).
+    var premioL=null;
+    nums.forEach(function(n){
+      var vEspecial=(CONCURSOS_ESPECIAIS_PREMIO[lk]||{})[n];
+      if(vEspecial!=null) premioL=_bMoney(vEspecial);
+    });
+    if(premioL==null){
+      var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
+      premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    }
     out.push({loteria:lk,nome:dL.nome||lk,cor:dL.cor||MULTI_LOTERIA_COR,premio:premioL,premioNum:_parseBRL(premioL),cfg:dL});
   });
   return out;
@@ -21453,8 +21475,18 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   }
   var loteriasImp=Object.keys(porLoteriaImp).map(function(lk){
     var dL=CFG[lk]||{};
-    var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
-    var premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    // Concurso especial catalogado (ex.: Lotofácil da Independência) usa o
+    // valor oficial da edição, não a estimativa semanal comum — mesma
+    // regra de _atualizarConcursoPremio()/_premiosEstimVigentesPorLoteria().
+    var premioL=null;
+    (porLoteriaImp[lk].concursos||[]).forEach(function(c){
+      var vEspecial=(CONCURSOS_ESPECIAIS_PREMIO[lk]||{})[c.num];
+      if(vEspecial!=null) premioL=_bMoney(vEspecial);
+    });
+    if(premioL==null){
+      var resL=(typeof resultados!=='undefined')?resultados[lk]:null;
+      premioL=(resL&&resL.estimativa&&resL.estimativa!=='—')?resL.estimativa:(resL&&resL.acumulado&&resL.acumulado!=='—'?resL.acumulado:'—');
+    }
     var _real=_premioRealLoteria(lk,porLoteriaImp[lk].jogos);
     // Deduplica concursos repetidos: se a mesma loteria recebeu várias
     // vinculações de jogos para o MESMO número de concurso (ex.: usuário
