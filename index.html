@@ -20813,6 +20813,18 @@ async function editarBolao(id){
   var r=await _carregarBolaoNovoSchemaPorUuid(id);
   if(r.erro){ toast(t('boloes.bolao_nao_encontrado')); console.warn('[editarBolao]',r.erro); return; }
   _boloesState=r.estado;
+  // Achado ao vivo (2026-08-27, pedido do usuário): concurso/data/prêmio/
+  // período de um sorteio especial só eram recalculados no INSTANTE em que
+  // o organizador trocava o "Tipo de Sorteio" no formulário
+  // (_setSorteioBolao) — um bolão salvo antes de uma correção no catálogo,
+  // ou salvo com o cálculo antigo, reabria sempre com os valores
+  // congelados de quando foi criado, mesmo fechando e abrindo o app de
+  // novo. Enquanto o bolão não for ativado/finalizado, reabrir pra edição
+  // também reconsulta as informações oficiais do especial, iguais a uma
+  // troca manual do tipo de sorteio.
+  if(_boloesState.sorteio && _boloesState.sorteio!=='normal' && !_boloesState.ativadoEm && !_bolaoConcursoJaRealizado(_boloesState)){
+    await _atualizarConcursoPremio();
+  }
   _ordenarParticipantes();
   renderFormBolao();
   _atualizarNaoLidasParticipantes();
