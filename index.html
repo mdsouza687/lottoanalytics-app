@@ -17535,36 +17535,85 @@ function novoBolao(){
   // vincularJogosAoBolao), que populam s.concursos[] por loteria.
   _preencherAdminDoUltimoBolao();
 }
-// Achado ao vivo (2026-08-27, pedido do usuário): o Administrador é quase
-// sempre a MESMA pessoa (o próprio organizador) em todo bolão novo, mas o
-// formulário sempre nascia em branco — nome/telefone/CPF/Pix precisavam
-// ser redigitados toda vez. Já existia precedente disso em outro lugar do
-// app (_mgCarregarMeuNome, usado só pra sugerir assinatura de mensagem):
-// "não existe um perfil único de conta, admin_nome fica duplicado em cada
-// bolão — pega do bolão mais recente que tiver". Aplica a mesma ideia
-// aqui, mas completando TODOS os campos do Administrador, não só o nome.
-// Só preenche o que ainda estiver vazio quando a resposta chegar (a busca
-// é assíncrona — o organizador pode já ter começado a digitar um
-// Administrador diferente enquanto isso) e só se ainda for este MESMO
-// bolão novo (editId ainda null) que estava aberto quando a busca começou.
-async function _preencherAdminDoUltimoBolao(){
+// Achado ao vivo (2026-08-27, pedido do usuário: "o aplicativo quando eu
+// começar a preencher os campos deve me dar as opções de nomes, telefone
+// etc") — o Administrador nunca tinha autocomplete nenhum, nem o mecanismo
+// já usado pros participantes. Como o organizador pode ter usado mais de
+// um Administrador diferente entre os próprios bolões (nem sempre é a
+// mesma pessoa/conta bancária), em vez de só travar no último usado, o
+// campo Nome vira um datalist com TODOS os administradores distintos já
+// usados pelo usuário — igual ao datalist de participantes — e completa
+// telefone/CPF/Pix ao reconhecer um nome já usado. Mesma fonte de dados
+// (tabela boloes) que já alimentava _mgCarregarMeuNome (usada só pra
+// sugerir assinatura de mensagem, "admin_nome fica duplicado em cada
+// bolão"), agora reaproveitada e generalizada pra TODOS os campos.
+var _adminsAutocompleteCarregado=false;
+var _adminsState=[];
+async function _carregarAdminsParaAutocomplete(){
+  if(_adminsAutocompleteCarregado){ _atualizarDatalistAdmins(); return; }
   var sb=_getSbClient(); if(!sb) return;
-  var estadoNoInicio=_boloesState;
   try{
     var { data:userData }=await sb.auth.getUser();
     var uid=userData&&userData.user&&userData.user.id;
     if(!uid) return;
     var { data }=await sb.from('boloes').select('admin_nome,admin_telefone,admin_pix,admin_pix_tipo,admin_cpf,admin_cpf_tipo')
-      .eq('user_id',uid).is('deleted_at',null).not('admin_nome','is',null).order('created_at',{ascending:false}).limit(1).maybeSingle();
-    if(!data||!data.admin_nome) return;
-    if(_boloesState!==estadoNoInicio || _boloesState.editId!==null) return; // usuário já saiu desse bolão novo
-    var a=_boloesState.admin;
-    if(!a.nome) a.nome=data.admin_nome;
-    if(!a.telefone && data.admin_telefone) a.telefone=data.admin_telefone;
-    if(!a.pix && data.admin_pix){ a.pix=data.admin_pix; a.pixTipo=data.admin_pix_tipo||'cpf'; }
-    if(!a.cpf && data.admin_cpf){ a.cpf=data.admin_cpf; a.cpfTipo=data.admin_cpf_tipo||'cpf'; }
-    renderFormBolao();
-  }catch(e){ console.warn('[_preencherAdminDoUltimoBolao]',e.message); }
+      .eq('user_id',uid).is('deleted_at',null).not('admin_nome','is',null).order('created_at',{ascending:false});
+    var porNome={};
+    (data||[]).forEach(function(a){ // já vem ordenado desc — 1ª ocorrência de cada nome é a mais recente
+      var chave=(a.admin_nome||'').trim().toLowerCase(); if(!chave) return;
+      if(!porNome[chave]) porNome[chave]=a;
+    });
+    _adminsState=Object.keys(porNome).map(function(k){ return porNome[k]; });
+    _adminsAutocompleteCarregado=true;
+    _atualizarDatalistAdmins();
+  }catch(e){ console.warn('[_carregarAdminsParaAutocomplete]',e.message); }
+}
+function _atualizarDatalistAdmins(){
+  var dl=document.getElementById('adm-nome-list'); if(!dl) return;
+  dl.innerHTML=(_adminsState||[]).map(function(a){ return '<option value="'+_esc(a.admin_nome)+'"></option>'; }).join('');
+}
+// Preenche o Administrador de um bolão NOVO com o mais recente dos
+// distintos já usados (índice 0, já que _adminsState mantém a ordem do
+// mais recente pra cada nome). Só preenche o que ainda estiver vazio
+// quando a resposta chegar (busca assíncrona) e só se ainda for este
+// MESMO bolão novo (editId ainda null) que estava aberto quando começou.
+async function _preencherAdminDoUltimoBolao(){
+  var estadoNoInicio=_boloesState;
+  await _carregarAdminsParaAutocomplete();
+  var ultimo=_adminsState&&_adminsState[0];
+  if(!ultimo) return;
+  if(_boloesState!==estadoNoInicio || _boloesState.editId!==null) return; // usuário já saiu desse bolão novo
+  var a=_boloesState.admin;
+  if(!a.nome) a.nome=ultimo.admin_nome;
+  if(!a.telefone && ultimo.admin_telefone) a.telefone=ultimo.admin_telefone;
+  if(!a.pix && ultimo.admin_pix){ a.pix=ultimo.admin_pix; a.pixTipo=ultimo.admin_pix_tipo||'cpf'; }
+  if(!a.cpf && ultimo.admin_cpf){ a.cpf=ultimo.admin_cpf; a.cpfTipo=ultimo.admin_cpf_tipo||'cpf'; }
+  renderFormBolao();
+}
+// Ao digitar/selecionar no datalist um nome de Administrador já usado
+// antes: completa telefone/CPF/Pix (só os campos ainda vazios) sem
+// re-renderizar o formulário inteiro (perderia o foco/cursor do campo
+// Nome, que dispara isso a cada tecla) — mesmo padrão de
+// _npNomeAutocomplete, aplicado ao card do Administrador.
+function _admNomeAutocomplete(){
+  var nomeEl=document.getElementById('adm-nome'); if(!nomeEl) return;
+  var nome=(nomeEl.value||'').trim();
+  var match=nome?(_adminsState||[]).find(function(p){ return p.admin_nome && p.admin_nome.trim().toLowerCase()===nome.toLowerCase(); }):null;
+  if(!match) return;
+  var a=_boloesState.admin;
+  var telEl=document.getElementById('adm-tel'), cpfEl=document.getElementById('adm-cpf'), pixEl=document.getElementById('adm-pix'),
+      docTipoEl=document.getElementById('adm-doc-tipo'), pixTipoEl=document.getElementById('adm-pix-tipo');
+  var preenchido=false;
+  if(telEl && !telEl.value && match.admin_telefone){ telEl.value=match.admin_telefone; a.telefone=match.admin_telefone; preenchido=true; }
+  if(cpfEl && !cpfEl.value && match.admin_cpf){
+    a.cpfTipo=match.admin_cpf_tipo||'cpf'; if(docTipoEl) docTipoEl.value=a.cpfTipo;
+    cpfEl.value=match.admin_cpf; a.cpf=match.admin_cpf; preenchido=true;
+  }
+  if(pixEl && !pixEl.value && match.admin_pix){
+    a.pixTipo=match.admin_pix_tipo||'cpf'; if(pixTipoEl) pixTipoEl.value=a.pixTipo;
+    pixEl.value=match.admin_pix; a.pix=match.admin_pix; preenchido=true;
+  }
+  if(preenchido) toast(t('boloes.avulso_reconhecido',{nome:match.admin_nome}));
 }
 
 
@@ -19042,7 +19091,7 @@ function renderFormBolao(){
       '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">'+
-      '<div><label style="'+lbl+'">'+t('boloes.nome_asterisco')+'</label><input id="adm-nome" style="'+inp+'" value="'+_esc(s.admin.nome)+'" oninput="_boloesState.admin.nome=this.value"/></div>'+
+      '<div><label style="'+lbl+'">'+t('boloes.nome_asterisco')+'</label><input id="adm-nome" list="adm-nome-list" style="'+inp+'" value="'+_esc(s.admin.nome)+'" oninput="_boloesState.admin.nome=this.value;_admNomeAutocomplete()"/><datalist id="adm-nome-list"></datalist></div>'+
       '<div><label style="'+lbl+'">'+t('boloes.telefone_asterisco')+'</label><input id="adm-tel" style="'+inp+'" value="'+_esc(s.admin.telefone)+'" placeholder="(00) 00000-0000" maxlength="16" oninput="_maskTel(this)"/></div>'+
       (function(){
         var docObrig=(s.participantes||[]).length>3;
@@ -19210,6 +19259,7 @@ function renderFormBolao(){
   '</div>';
   renderParticipantesBoloes();
   _carregarAvulsosParaAutocomplete();
+  _carregarAdminsParaAutocomplete();
 }
 // Achado ao vivo (2026-08-21, pedido do usuário): "se o nome já está no
 // banco de dados, por que não reconhece e completa os campos?" — o
