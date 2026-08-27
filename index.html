@@ -4432,6 +4432,18 @@ const CONCURSOS_ESPECIAIS_DATA = {
   lotofacil: {3780:'15/09/2026'},
 };
 
+// Prêmio estimado OFICIAL da edição especial (o valor promocional divulgado
+// pela Caixa/imprensa pro concurso específico, ex.: R$300 milhões da
+// Lotofácil da Independência 2026) — bem diferente da estimativa semanal
+// "normal" que a API de resultados traz pro próximo concurso do dia a dia.
+// Pedido do usuário (2026-08-27): ao selecionar um concurso especial, o
+// prêmio mostrado no bolão (e rateado por participante) tem que ser o
+// prêmio REAL daquela edição, não a estimativa semanal comum. Atualizar
+// aqui junto sempre que a Caixa confirmar/reajustar o valor de uma edição.
+const CONCURSOS_ESPECIAIS_PREMIO = {
+  lotofacil: {3780:300000000},
+};
+
 /* ════ APOSTA ESPELHO ════
    O universo é dividido OCULTAMENTE em 2 grupos complementares (ex: Mega 30+30).
    Cada aposta usa N dezenas (do dropdown) sorteadas de um grupo; principal e espelho
@@ -19706,8 +19718,17 @@ async function _atualizarConcursoPremio(){
         // Data do próximo sorteio — vem da API da Caixa/americana
         if(res.proximoConcurso) _boloesState.dataSorteio=res.proximoConcurso;
       }
-      var est=res.estimativa&&res.estimativa!=='—'?res.estimativa:(res.acumulado&&res.acumulado!=='—'?res.acumulado:'');
-      if(est){ var num=parseFloat(String(est).replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.')); if(!isNaN(num)) _boloesState.premio=num; }
+      // Prêmio: edição especial com valor oficial já catalogado usa ESSE
+      // valor (a estimativa semanal comum da API não tem nada a ver com o
+      // prêmio promocional da edição especial); sem valor catalogado,
+      // cai no fallback de sempre (estimativa/acumulado do próximo concurso).
+      var premioEspecial=especialNum?(CONCURSOS_ESPECIAIS_PREMIO[key]||{})[especialNum]:null;
+      if(premioEspecial){
+        _boloesState.premio=premioEspecial;
+      }else{
+        var est=res.estimativa&&res.estimativa!=='—'?res.estimativa:(res.acumulado&&res.acumulado!=='—'?res.acumulado:'');
+        if(est){ var num=parseFloat(String(est).replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.')); if(!isNaN(num)) _boloesState.premio=num; }
+      }
       // Concurso Especial: preenche Início/Fim automaticamente com o
       // período REAL de vigência daquele concurso — do dia em que o
       // organizador está abrindo o bolão até o dia do sorteio/encerramento
