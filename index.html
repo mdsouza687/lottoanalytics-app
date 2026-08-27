@@ -17530,6 +17530,38 @@ function novoBolao(){
   // real só deve vir de um sorteio especial escolhido explicitamente
   // (_setSorteioBolao) ou de um jogo vinculado (vincularSalvoAoBolao/
   // vincularJogosAoBolao), que populam s.concursos[] por loteria.
+  _preencherAdminDoUltimoBolao();
+}
+// Achado ao vivo (2026-08-27, pedido do usuário): o Administrador é quase
+// sempre a MESMA pessoa (o próprio organizador) em todo bolão novo, mas o
+// formulário sempre nascia em branco — nome/telefone/CPF/Pix precisavam
+// ser redigitados toda vez. Já existia precedente disso em outro lugar do
+// app (_mgCarregarMeuNome, usado só pra sugerir assinatura de mensagem):
+// "não existe um perfil único de conta, admin_nome fica duplicado em cada
+// bolão — pega do bolão mais recente que tiver". Aplica a mesma ideia
+// aqui, mas completando TODOS os campos do Administrador, não só o nome.
+// Só preenche o que ainda estiver vazio quando a resposta chegar (a busca
+// é assíncrona — o organizador pode já ter começado a digitar um
+// Administrador diferente enquanto isso) e só se ainda for este MESMO
+// bolão novo (editId ainda null) que estava aberto quando a busca começou.
+async function _preencherAdminDoUltimoBolao(){
+  var sb=_getSbClient(); if(!sb) return;
+  var estadoNoInicio=_boloesState;
+  try{
+    var { data:userData }=await sb.auth.getUser();
+    var uid=userData&&userData.user&&userData.user.id;
+    if(!uid) return;
+    var { data }=await sb.from('boloes').select('admin_nome,admin_telefone,admin_pix,admin_pix_tipo,admin_cpf,admin_cpf_tipo')
+      .eq('user_id',uid).is('deleted_at',null).not('admin_nome','is',null).order('created_at',{ascending:false}).limit(1).maybeSingle();
+    if(!data||!data.admin_nome) return;
+    if(_boloesState!==estadoNoInicio || _boloesState.editId!==null) return; // usuário já saiu desse bolão novo
+    var a=_boloesState.admin;
+    if(!a.nome) a.nome=data.admin_nome;
+    if(!a.telefone && data.admin_telefone) a.telefone=data.admin_telefone;
+    if(!a.pix && data.admin_pix){ a.pix=data.admin_pix; a.pixTipo=data.admin_pix_tipo||'cpf'; }
+    if(!a.cpf && data.admin_cpf){ a.cpf=data.admin_cpf; a.cpfTipo=data.admin_cpf_tipo||'cpf'; }
+    renderFormBolao();
+  }catch(e){ console.warn('[_preencherAdminDoUltimoBolao]',e.message); }
 }
 
 
