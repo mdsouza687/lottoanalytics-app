@@ -20345,6 +20345,26 @@ async function importarParticipantes(file){
     else if(ext==='doc'||ext==='docx'){ nomes=await _importDOCX(file); }
     else { toast(t('boloes.formato_nao_suportado')); return; }
     if(!nomes.length){ toast(t('boloes.nenhum_nome_encontrado')); return; }
+    // Achado ao vivo (2026-08-27, pedido do usuário): planilha só com nomes
+    // (sem e-mail/WhatsApp de gente que já está cadastrada — avulsos ou
+    // histórico de outro bolão) rejeitava a linha inteira, obrigando a
+    // redigitar contato de quem o sistema já conhece. Antes de validar,
+    // completa e-mail/WhatsApp/CPF que faltarem na planilha usando a MESMA
+    // base do autocomplete do cadastro manual (_avulsosState) — só nos
+    // campos vazios, igual _npNomeAutocomplete nunca sobrescreve o que já
+    // veio preenchido.
+    if(!_avulsosAutocompleteCarregado) await _carregarAvulsosParaAutocomplete();
+    nomes.forEach(function(n){
+      var match=(_avulsosState||[]).find(function(p){ return p.nome && p.nome.trim().toLowerCase()===n.nome.trim().toLowerCase(); });
+      if(!match) return;
+      if(!n.email && match.email) n.email=match.email;
+      if(!n.whatsapp && match.whatsapp){
+        var pw=_paisEWhatsappParaExibir(match.whatsapp);
+        n.whatsapp=_normalizarWhatsappPais(pw.numero,pw.pais);
+        n._whatsappJaNormalizado=true;
+      }
+      if(!n.cpf && match.cpf) n.cpf=match.cpf;
+    });
     // E-mail e WhatsApp são obrigatórios pro mesmo motivo do cadastro manual
     // (addParticipanteBol) — é o contato que o auto-vínculo do backend usa
     // pra reconhecer a mesma pessoa em bolões diferentes. Mesmo padrão
@@ -20357,7 +20377,8 @@ async function importarParticipantes(file){
       var whatsappOk=n.whatsapp&&_whatsappValido(n.whatsapp);
       if(!emailOk||!whatsappOk){ rejeitados.push(n.nome); return; }
       importados++;
-      _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:n.whatsapp.replace(/\D/g,''), admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
+      var whatsappFinal=n._whatsappJaNormalizado?n.whatsapp:n.whatsapp.replace(/\D/g,'');
+      _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:whatsappFinal, cpf:n.cpf||'', admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
     });
     _ordenarParticipantes();
     renderParticipantesBoloes();
