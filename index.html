@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.6.2':[
+    'Bolão novo pré-preenche o Administrador (nome, telefone, CPF, Pix) com os dados do último bolão que você criou — não precisa mais redigitar os mesmos dados toda vez.'
+  ],
   '4.6.1':[
     'Bolão de concurso especial (ex.: Lotofácil da Independência): o período do bolão agora vai de hoje até a data do sorteio/encerramento das apostas, em vez de uma semana fixa em torno do sorteio; o prêmio mostrado usa o valor oficial da edição especial, não a estimativa semanal comum; reabrir um bolão salvo também reconsulta essas informações, em vez de ficar com o valor congelado de quando foi criado.',
     'Corrigido: importar lista de participantes (planilha/PDF) rejeitava quem já estava cadastrado na base mas não tinha e-mail/WhatsApp na própria planilha — agora completa esses campos automaticamente a partir do cadastro existente, igual já acontecia no cadastro manual.'
@@ -1665,7 +1668,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.6.1</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.6.2</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1985,7 +1988,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.6.1</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.6.2</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
