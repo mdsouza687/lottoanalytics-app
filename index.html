@@ -23961,6 +23961,18 @@ async function _recarregarParticipantesDoBanco(bolaoId){
   try{
     var {data,error}=await sb.from('bolao_participantes').select('*').eq('bolao_id',bolaoId).is('deleted_at',null).order('created_at',{ascending:true});
     if(error||!data) return false;
+    // Achado ao vivo (2026-08-28, relatado pelo usuário: "meu nome aparece
+    // na lista, depois de um tempo desaparece") — este reload dispara
+    // sozinho via realtime (_assinarRealtimeParticipantes) sempre que
+    // QUALQUER mudança acontece em bolao_participantes desse bolão, mesmo
+    // vinda de outro participante sendo salvo/vinculado. Antes ele
+    // SUBSTITUÍA _boloesState.participantes inteiro pelo que veio do
+    // banco — se o organizador tivesse acabado de clicar "+ Adicionar"
+    // pra alguém que AINDA não existe no banco (sem id, "Salvar Bolão"
+    // não foi clicado ainda), essa pessoa desaparecia da tela sem
+    // nenhum aviso, mesmo sem nenhum erro real ter acontecido. Preserva
+        // quem está só localmente (sem id) por cima do que veio do banco.
+    var naoSalvos=(_boloesState.participantes||[]).filter(function(p){ return !p.id; });
     _boloesState.participantes=data.map(function(p){
       return { id:p.id, nome:p.nome, admin:p.is_admin?p.nome:(_boloesState.admin&&_boloesState.admin.nome||''), cotas:p.cotas,
         valorCota:parseFloat(p.valor_cota||0), statusPag:p.status_pag, statusPart:p.status,
@@ -23968,7 +23980,7 @@ async function _recarregarParticipantesDoBanco(bolaoId){
         participante_user_id:p.participante_user_id||null,
         email:p.email||'', whatsapp:p.whatsapp||'', cpf:p.cpf||'',
         termosAssinaturaPng:p.termos_assinatura_png||null, termosAceitosEm:p.termos_aceitos_em||null };
-    });
+    }).concat(naoSalvos);
     _ordenarParticipantes();
     return true;
   }catch(e){ console.warn('[_recarregarParticipantesDoBanco]',e.message); return false; }
