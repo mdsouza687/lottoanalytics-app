@@ -19791,6 +19791,16 @@ function _proximoEspecialConhecido(key){
 }
 async function _atualizarConcursoPremio(){
   var key=_sorteioParaLoteria(_boloesState.sorteio,_boloesState);
+  // Achado ao vivo (2026-08-28, com dado real no banco: um bolão de
+  // Lotofácil da Independência foi salvo com loteria="quina" no banco) —
+  // s.loteria nasce travado na loteria que estava ativa no TOPO do app no
+  // instante em que o bolão foi criado (novoBolao(): loteria:currentKey) e
+  // nunca era atualizado ao escolher um sorteio especial depois. Como
+  // s.loteria é o que vai pra coluna `boloes.loteria` (usada pelo app do
+  // participante pra identificar a loteria do bolão), fica dessincronizado
+  // do Tipo de Sorteio real escolhido. Mantém sincronizado com `key` (a
+  // mesma resolução que já vincula concurso/data/prêmio corretamente).
+  if(_boloesState.sorteio && _boloesState.sorteio!=='normal') _boloesState.loteria=key;
   try{
     var res=(typeof resultados!=='undefined')?resultados[key]:null;
     if((!res||!res.estimativa) && typeof atualizarUma==='function'){
