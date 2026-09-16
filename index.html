@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.9.1':[
+    'Corrigido: na grade de seleção manual de números da Lotomania ("Inserir Jogos para Conferência"), a ordem de exibição começava em 00 — diferente do volante físico da Caixa, que começa em 01 e termina em 00. Ajustado só a ordem visual; o número gravado para "00" continua sendo 0, sem afetar conferência de prêmio nem jogos já salvos.'
+  ],
   '4.9.0':[
     'Novo: o organizador agora pode enviar o comprovante PIX EM NOME de um participante que mandou o print/foto direto pra ele (WhatsApp, etc.), em vez de exigir que a pessoa envie pelo próprio app — o comprovante entra na conferência automática (OCR) normalmente, e a lista mostra "enviado pelo organizador" pra deixar claro quem anexou.'
   ],
@@ -1715,7 +1718,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.0</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.1</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2039,7 +2042,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.0</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.1</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -15558,9 +15561,14 @@ function buildManualVolante(){
     grade+='</div><div style="margin-top:8px;font-size:10px;color:var(--text-dim)">'+t('gerador.selecione_1a3_digitos_total_7a21')+'</div>';
 
   } else if(d.universe===100){
-    // Lotomania: 0–99
+    // Lotomania: pedido do usuário (2026-09-16) — pra ficar idêntico ao
+    // volante físico da Caixa, a grade visual começa em 01 e termina em
+    // 00 (não em 00 primeiro) — só a ORDEM DE EXIBIÇÃO muda; o número
+    // gravado pro "00" continua sendo 0, igual sempre foi (não afeta
+    // conferência de prêmio nem nada já salvo).
     grade='<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px">';
-    for(let i=0;i<100;i++){
+    for(let k=1;k<=100;k++){
+      const i=k%100; // 1,2,...,99,0
       const selb=_manualSel.has(i);
       grade+=`<button type="button" onclick="toggleManualBall(${i})"
         style="width:100%;aspect-ratio:1;border-radius:5px;border:1px solid ${selb?ac:'var(--glass-border)'};background:${selb?ac:'var(--glass-bg)'};color:${selb?'#000':'var(--text)'};font-family:var(--font-head);font-size:10px;font-weight:800;cursor:pointer;transition:all .1s">${pad2(i)}</button>`;
