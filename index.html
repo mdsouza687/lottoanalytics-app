@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.8.2':[
+    'Corrigido: a tela de Participantes de um bolão já tinha atualização automática quando alguém mudava a cota pelo app mobile com a tela aberta no Desktop — mas se a conexão em tempo real caísse silenciosamente (rede instável, notebook hibernado), a tela ficava travada na última leitura sem nenhum aviso. Agora reconecta sozinha quando isso acontece, e passa a ter também uma checagem de segurança a cada 45s como reforço.'
+  ],
   '4.8.1':[
     'Corrigido: quando a leitura automática do bilhete (OCR) não reconhece a letra de um dos jogos, suas dezenas podiam grudar no jogo seguinte, virando uma lista com mais dezenas do que a loteria permite. Agora, na tela de revisão, um jogo assim aparece com aviso e borda vermelha, deixando claro que precisa ser removido e refeito manualmente pelo cartão antes de vincular ao bolão ou salvar.'
   ],
@@ -1709,7 +1712,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.8.1</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.8.2</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2033,7 +2036,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.8.1</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.8.2</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -21133,30 +21136,69 @@ async function editarBolao(id){
 // sozinho, sem esperar nenhuma ação do organizador. Um canal só por vez
 // (guardado em _canalParticipantesRealtime) — trocar de bolão, ou sair
 // da tela, cancela o anterior antes de abrir outro.
+//
+// Achado ao vivo (2026-09-16, relatado pelo usuário: mudou cotas de 1
+// para 2 no mobile, tela de participantes já estava aberta no Desktop e
+// não atualizou sozinha): o `.subscribe()` original não tinha NENHUM
+// callback de status — se o canal caísse pra CHANNEL_ERROR/TIMED_OUT (o
+// que o cliente do Supabase Realtime pode fazer silenciosamente após
+// perda de rede, hibernação do notebook, etc.), a tela ficava travada na
+// última leitura pra sempre, sem nenhum sinal visível do problema, e sem
+// nenhuma tentativa de reconectar. RLS/publicação da tabela já estavam
+// corretas (conferido ao vivo) — a falha é de transporte (WebSocket),
+// não de permissão. Duas camadas de defesa agora, nenhuma delas depende
+// da outra:
+// 1) reconexão automática com backoff quando o canal cai (status callback);
+// 2) um polling de segurança a cada 45s, redundante com o realtime — pior
+//    caso passa a ser "atualiza em até 45s" em vez de "nunca atualiza".
 var _canalParticipantesRealtime=null;
+var _pollParticipantesTimer=null;
 function _cancelarRealtimeParticipantes(){
   if(_canalParticipantesRealtime){
     try{ var sb=_getSbClient(); if(sb) sb.removeChannel(_canalParticipantesRealtime); }catch(e){}
     _canalParticipantesRealtime=null;
   }
+  if(_pollParticipantesTimer){ clearInterval(_pollParticipantesTimer); _pollParticipantesTimer=null; }
 }
 function _assinarRealtimeParticipantes(bolaoId){
   _cancelarRealtimeParticipantes();
   var sb=_getSbClient(); if(!sb||!bolaoId) return;
   var _pendente=null;
-  _canalParticipantesRealtime=sb.channel('bolao-participantes-'+bolaoId)
-    .on('postgres_changes',{event:'*',schema:'public',table:'bolao_participantes',filter:'bolao_id=eq.'+bolaoId},function(){
-      // Debounce simples: várias mudanças em sequência (ex.: fase111 grava
-      // cotas + assinatura em dois updates próximos) viram um recarregar
-      // só, não um por evento.
-      if(_pendente) clearTimeout(_pendente);
-      _pendente=setTimeout(async function(){
-        if(_boloesState.editId!==bolaoId) return; // já trocou de bolão nesse meio-tempo
-        var ok=await _recarregarParticipantesDoBanco(bolaoId);
-        if(ok) renderParticipantesBoloes();
-      },400);
-    })
-    .subscribe();
+  var _recarregarSeAindaNesteBolao=async function(){
+    if(_boloesState.editId!==bolaoId) return; // já trocou de bolão nesse meio-tempo
+    var ok=await _recarregarParticipantesDoBanco(bolaoId);
+    if(ok) renderParticipantesBoloes();
+  };
+  var _tentativasReconexao=0;
+  var _abrirCanal=function(){
+    _canalParticipantesRealtime=sb.channel('bolao-participantes-'+bolaoId)
+      .on('postgres_changes',{event:'*',schema:'public',table:'bolao_participantes',filter:'bolao_id=eq.'+bolaoId},function(){
+        // Debounce simples: várias mudanças em sequência (ex.: fase111 grava
+        // cotas + assinatura em dois updates próximos) viram um recarregar
+        // só, não um por evento.
+        if(_pendente) clearTimeout(_pendente);
+        _pendente=setTimeout(_recarregarSeAindaNesteBolao,400);
+      })
+      .subscribe(function(status){
+        if(_boloesState.editId!==bolaoId) return; // já trocou de bolão, ignora callback tardio
+        if(status==='SUBSCRIBED'){ _tentativasReconexao=0; return; }
+        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+          console.warn('[_assinarRealtimeParticipantes] canal caiu ('+status+'), reconectando…');
+          try{ sb.removeChannel(_canalParticipantesRealtime); }catch(e){}
+          _tentativasReconexao++;
+          var espera=Math.min(30000,2000*_tentativasReconexao);
+          setTimeout(function(){ if(_boloesState.editId===bolaoId) _abrirCanal(); },espera);
+        }
+      });
+  };
+  _abrirCanal();
+  // Polling de segurança (independente do realtime acima) — garante que
+  // "atualizar automático" continua verdadeiro mesmo se o WebSocket
+  // ficar preso num estado que o cliente não reporta como erro.
+  _pollParticipantesTimer=setInterval(function(){
+    if(_boloesState.editId!==bolaoId){ _cancelarRealtimeParticipantes(); return; }
+    _recarregarSeAindaNesteBolao();
+  },45000);
 }
 // Contagem de mensagens não lidas por participante (Fase 100b) — busca uma
 // vez ao abrir o bolão (fora do fluxo síncrono de renderParticipantesBoloes,
