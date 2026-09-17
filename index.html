@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.9.3':[
+    'Leitura automática de bilhete: enviar vários bilhetes seguidos (de loterias diferentes ou não) pro mesmo bolão agora ACUMULA os jogos reconhecidos na mesma tela "Inserir Jogos para Conferência" em vez de reiniciar a cada novo bilhete — só precisa clicar "Salvar para Conferência" uma vez no final, depois de conferir todos juntos.'
+  ],
   '4.9.2':[
     'Corrigido (erro grave): quando um bolão tinha mais de um concurso da mesma loteria vinculado ao longo do tempo (ex.: um comum + a Lotofácil da Independência + outro comum mais recente), o "Prêmio Estimado" continuava mostrando o valor da edição especial (R$300 milhões) mesmo depois de a loteria já ter avançado pra um concurso comum já sorteado — corrigido pra só usar o valor especial quando o concurso MAIS RECENTE vinculado é de fato o catalogado como especial. Afetava a tela de Participantes e o relatório impresso do bolão.',
     'Leitura automática de bilhete (OCR): "Time do Coração" da Timemania agora é reconhecido no formato "Comprovante de Aposta" (PDF de compra online) — antes esse campo nunca era preenchido nesse formato. Também corrigido um bug real: o índice do time lido era gravado direto sem casar contra a lista de times do app, o que gravaria o time errado.',
@@ -1723,7 +1726,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.2</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.3</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2047,7 +2050,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.2</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.3</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -23450,6 +23453,16 @@ async function _lerBilheteOcrDesktop(fotoUrl, ehPdf){
 // é uma regressão (comportamento idêntico ao manual já em produção); só
 // jogos COM Teimosinha usam os concursos exatos lidos do bilhete, porque
 // _pushConcursoEntry já lê jogo._teimosinhaConcursos como override.
+// _ocrAcumulandoBolaoId (2026-09-17, pedido do usuário: subir vários
+// bilhetes de loterias diferentes pro mesmo bolão sem precisar clicar
+// "Salvar" a cada um) — guarda pra QUAL bolão o carrinho está acumulando
+// jogos lidos por OCR nesta sessão. Enquanto for o MESMO bolão, cada novo
+// bilhete lido é ACRESCENTADO ao carrinho (que já suporta múltiplas
+// loterias juntas, ver _salvarJogosManuaisImpl); só reinicia quando muda
+// de bolão ou quando salvarJogosManuais() limpa o carrinho de verdade —
+// preserva a proteção original da Fase 141 (não misturar com uma sessão
+// manual antiga e não relacionada) sem forçar salvar um por um.
+var _ocrAcumulandoBolaoId=null;
 function abrirRevisaoBilheteOcrDesktop(bolaoId, resultadoOcr){
   var wrap=document.getElementById('modal-bilhetes-bolao'); if(wrap) wrap.remove();
   var loteria=resultadoOcr.loteria;
@@ -23459,7 +23472,7 @@ function abrirRevisaoBilheteOcrDesktop(bolaoId, resultadoOcr){
     abrirJogosManuais();
     return;
   }
-  _manualJogos=[]; // evita misturar com jogos de uma sessão anterior do modal (Fase 141: não se zera sozinho)
+  if(_ocrAcumulandoBolaoId!==bolaoId){ _manualJogos=[]; _ocrAcumulandoBolaoId=bolaoId; }
   var _timeNaoEncontrado=null;
   resultadoOcr.jogos.forEach(function(jd){
     // Super Sete: os dígitos vêm do parser NA ORDEM DE COLUNA (1ª coluna,
