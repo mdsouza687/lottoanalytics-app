@@ -1555,6 +1555,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '4.9.5':[
+    'Corrigido: leitura automática de bilhete (OCR) do Super Sete com 1 dígito faltando aparecia como números de 2 algarismos confusos (ex.: um dígito de coluna "7" mostrado como "07", fácil de confundir com "87" na tela) — agora sempre exibido no formato correto de 1 dígito por coluna, mesmo quando a leitura vem incompleta.'
+  ],
   '4.9.4':[
     'Nova pergunta de segurança: ao vincular uma Teimosinha lida de um bilhete/comprovante antigo (sequência de concursos que já foram todos sorteados), o app agora pergunta se é pra repetir a mesma sequência de apostas a partir do concurso vigente, em vez de gravar silenciosamente apostas para sorteios que já aconteceram.'
   ],
@@ -1729,7 +1732,7 @@ function _mostrarNovidadesVersao(versao){
          configurado pra expor app.getVersion() ao renderer). Bumpar esta
          string manualmente junto com "version" do package.json a cada
          release (ver npm run release:win). -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.4</div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> 4.9.5</div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2053,7 +2056,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.4</span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> 4.9.5</span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -15861,7 +15864,11 @@ function renderManualLista(){
       // aqui, então esta checagem só dispara mesmo pra jogos pré-populados
       // (OCR), exatamente onde é útil. Não bloqueia nada, só avisa — o
       // organizador remove e refaz esse jogo pelo cartão se for o caso.
-      const foraDaFaixa=!jogo._ssCols && (jogo.length<d.min || jogo.length>d.max);
+      // _ssCols agora é montado mesmo com leitura incompleta (ver
+      // abrirRevisaoBilheteOcrDesktop) — precisa checar a faixa pelo
+      // próprio comprimento de _ssCols nesse caso, senão o aviso de "fora
+      // da faixa" nunca dispararia pra Super Sete incompleto.
+      const foraDaFaixa=jogo._ssCols ? (jogo._ssCols.length<d.min || jogo._ssCols.length>d.max) : (jogo.length<d.min || jogo.length>d.max);
       const avisoFaixa=foraDaFaixa?`<div style="font-size:9px;color:#ff6b6b;font-weight:700;margin-top:3px">⚠️ ${t('gerador.dezenas_fora_da_faixa_n_esperado_min_max',{n:jogo.length,min:d.min,max:d.max})}</div>`:'';
       html+=`<div style="padding:5px 8px;background:${foraDaFaixa?'rgba(255,60,60,.08)':'rgba(255,255,255,.04)'};border:1px solid ${foraDaFaixa?'rgba(255,60,60,.4)':'var(--glass-border)'};border-radius:6px;margin-bottom:3px">
         <div style="display:flex;align-items:center;gap:6px">
@@ -23486,7 +23493,15 @@ function abrirRevisaoBilheteOcrDesktop(bolaoId, resultadoOcr){
     // onde a ordem de leitura não importa (é sempre um conjunto de dezenas).
     var arr=d.superSete?(jd.numeros||[]).slice():(jd.numeros||[]).slice().sort(function(a,b){return a-b;});
     arr._loteria=loteria;
-    if(d.superSete&&arr.length===7) arr._ssCols=arr.map(function(n){return [n];});
+    // Antes exigia arr.length===7 pra montar _ssCols — uma leitura
+    // incompleta (comum: OCR derruba 1 dígito no meio da sequência coluna/
+    // valor) caía no fallback de bolinha genérica de 2 dígitos (pad2), que
+    // mostra um dígito de coluna tipo "7" como "07" — visualmente idêntico
+    // a uma dezena de 2 algarismos de outra loteria, confuso de conferir.
+    // Monta _ssCols com o que foi lido, mesmo incompleto, pra sempre exibir
+    // no formato "1 dígito por coluna" do Super Sete (achado ao vivo,
+    // 2026-09-17).
+    if(d.superSete&&arr.length) arr._ssCols=arr.map(function(n){return [n];});
     if(d.hasTrevo&&resultadoOcr.extras&&resultadoOcr.extras.trevos) arr._trevos=resultadoOcr.extras.trevos.slice();
     if(d.apiKey==='diadesorte'&&resultadoOcr.extras&&resultadoOcr.extras.mes!=null) arr._mes=resultadoOcr.extras.mes;
     if(d.apiKey==='timemania'&&resultadoOcr.extras&&resultadoOcr.extras.time){
