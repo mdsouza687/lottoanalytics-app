@@ -18820,12 +18820,24 @@ function renderFormBolao(){
       return -1;
     };
     var _gastoPorSemanaReal=_sems.map(function(){return 0;});
+    // BUG real corrigido em 2026-09-22 (pedido do usuário — "adicionados
+    // vários jogos e seus custos não foram abatidos do total arrecadado"):
+    // _ded era a SOMA dos baldes de _gastoPorSemanaReal, e uma rodada cujo
+    // savedAt cai FORA das 4 semanas fixas do mês (ex.: vinculada 1 dia
+    // antes de semana_inicio) não bate em nenhum balde (_semanaIdxDeData
+    // devolve -1) — o custo dela sumia da dedução inteira, não só do
+    // detalhamento por semana. _ded agora soma o custo de TODAS as rodadas
+    // de s.concursos sempre, e o bucketing por semana (só usado pro card
+    // "Gastos por Semana") fica isolado — uma rodada fora da grade some do
+    // detalhamento por semana, mas nunca mais do total deduzido.
+    var _ded=0;
     (s.concursos||[]).forEach(function(cc){
-      if(!cc.custo||!cc.savedAt) return;
+      if(!cc.custo) return;
+      _ded+=cc.custo;
+      if(!cc.savedAt) return;
       var wi=_semanaIdxDeData(cc.savedAt);
       if(wi>=0) _gastoPorSemanaReal[wi]+=cc.custo;
     });
-    var _ded=_gastoPorSemanaReal.reduce(function(a,v){return a+v;},0);
     var _saldoMen=(s.arrecadacaoTotal||0)-_ded;
     var _corSaldo=_saldoMen>=0?'#4ade80':'#f87171';
     var _bgSaldo=_saldoMen>=0?'rgba(74,222,128,.10)':'rgba(248,113,113,.10)';
@@ -23781,6 +23793,7 @@ async function verBilhetesBolao(){
             : '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="'+t('boloes.ver_tamanho_real')+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"/>';
           return '<div style="position:relative">'+thumb+
             '<button onclick="_excluirBilheteBolao(\''+b.id+'\')" title="'+t('geral.excluir')+'" style="position:absolute;top:4px;right:4px;border:none;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button>'+
+            (b.created_at ? '<div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:2px;white-space:nowrap">'+ptFmtData(b.created_at)+'</div>' : '')+
           '</div>';
         }).join('')+
       '</div>'
