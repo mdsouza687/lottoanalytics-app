@@ -18814,9 +18814,23 @@ function renderFormBolao(){
     // por ali ficava de fora da soma, mesmo já estando corretamente
     // registrado em s.concursos[]. Calcular direto da fonte elimina essa
     // dependência de manter duas estruturas sincronizadas manualmente.
+    // Achado ao vivo (2026-09-22, pedido explícito do usuário): uma rodada
+    // vinculada ANTES do início oficial da 1ª semana (ex.: o bolão foi
+    // criado dia 16 mas o período mensal só começa a contar dia 21, e um
+    // jogo foi vinculado no dia 20 — dentro da vida do bolão, mas fora da
+    // grade de 4 semanas) conta CONTABILMENTE como pertencente à 1ª
+    // semana — "tudo que é realizado do dia que foi criado até o dia
+    // inicial pertence à mesma semana". A DATA real de vínculo continua
+    // intacta em todo o resto (Histórico de Rodadas, Gastos Diários) — só
+    // este balde de agregação semanal (usado por Gastos por Semana E por
+    // Gasto/Saldo por Loteria, que consomem a mesma função) trata essa
+    // janela "antes do início" como parte da semana 1, em vez de descartar
+    // a rodada inteira (devolvendo -1) como fazia antes.
     var _semanaIdxDeData=function(ts){
       var dia=_calcSemanaDeData(new Date(ts));
       for(var wi=0;wi<_sems.length;wi++){ if(_sems[wi].inicio===dia.inicio) return wi; }
+      var inicioPrimeiraSemana=_sems[0]&&_parseDataBR(_sems[0].inicio);
+      if(inicioPrimeiraSemana&&new Date(ts)<inicioPrimeiraSemana) return 0;
       return -1;
     };
     var _gastoPorSemanaReal=_sems.map(function(){return 0;});
