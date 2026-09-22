@@ -18839,22 +18839,21 @@ function renderFormBolao(){
     // Gasto/Saldo por Loteria, que consomem a mesma função) trata essa
     // janela "antes do início" como parte da semana 1, em vez de descartar
     // a rodada inteira (devolvendo -1) como fazia antes.
-    // Pedido do usuário (mesmo dia, refinamento): "o ajuste contábil deve
-    // ser o mesmo para todas as semanas do bolão" — a mesma folga se
-    // aplica simetricamente do OUTRO lado da grade (uma rodada vinculada
-    // DEPOIS do fim da 4ª semana cai contabilmente na 4ª semana, em vez de
-    // ficar de fora), em vez de ser um caso especial só da 1ª semana.
-    // Comparação feita pelo INÍCIO da semana (sempre meia-noite de uma
-    // segunda-feira, dos dois lados) — evita qualquer sutileza de hora do
-    // dia que uma comparação direta em cima de `ts` bruto teria.
+    // Pedido do usuário (mesmo dia, esclarecido em seguida): a rolagem
+    // NORMAL de semana (domingo encerra, segunda começa a próxima) já
+    // funciona sozinha pelo casamento exato acima — uma rodada de segunda
+    // sempre bate certinho numa das 4 janelas. A folga só faz sentido do
+    // lado de ANTES da 1ª semana (prazo entre a criação do bolão e o
+    // início oficial do período). Depois do fim da 4ª semana o bolão
+    // ENCERRA — não existe "5ª semana" pra empurrar uma rodada tardia pra
+    // dentro dela; tentativa anterior de tratar as duas pontas do mesmo
+    // jeito foi revertida por pedido explícito do usuário.
     var _semanaIdxDeData=function(ts){
       var dia=_calcSemanaDeData(new Date(ts));
       for(var wi=0;wi<_sems.length;wi++){ if(_sems[wi].inicio===dia.inicio) return wi; }
       var diaInicio=_parseDataBR(dia.inicio);
       var primeiraSemanaInicio=_sems[0]&&_parseDataBR(_sems[0].inicio);
-      var ultimaSemanaInicio=_sems.length&&_parseDataBR(_sems[_sems.length-1].inicio);
       if(diaInicio&&primeiraSemanaInicio&&diaInicio<primeiraSemanaInicio) return 0;
-      if(diaInicio&&ultimaSemanaInicio&&diaInicio>ultimaSemanaInicio) return _sems.length-1;
       return -1;
     };
     var _gastoPorSemanaReal=_sems.map(function(){return 0;});
