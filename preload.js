@@ -24,3 +24,12 @@ contextBridge.exposeInMainWorld('lottoFS', {
     ipcRenderer.send('mostrar-arquivo-na-pasta', caminhoArquivo);
   }
 });
+
+// Versão real instalada (app.getVersion(), mesma fonte do auto-update) —
+// ver comentário em main.js sobre o rodapé "Versão X.Y.Z" que ficava
+// preso num texto fixo.
+contextBridge.exposeInMainWorld('lottoApp', {
+  getVersion: function () {
+    return ipcRenderer.invoke('get-app-version');
+  }
+});

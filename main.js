@@ -25,6 +25,18 @@ ipcMain.on('mostrar-arquivo-na-pasta', function (_event, caminhoArquivo) {
   if (caminhoArquivo) shell.showItemInFolder(caminhoArquivo);
 });
 
+// Achado ao vivo (2026-09-22, pedido do usuário): o rodapé "Versão X.Y.Z"
+// da tela estava escrito como texto FIXO direto no index.html — cada
+// release trocava a versão real (auto-update confirmado funcionando, ver
+// autoupdate.log) mas o número exibido na tela nunca acompanhava, porque
+// ninguém lembrava de editar essas 2 linhas manualmente a cada bump de
+// versão. app.getVersion() já é a fonte real (mesma usada pelo
+// auto-update) — exposta ao renderer por IPC pra nunca mais ficar
+// desatualizada sozinha.
+ipcMain.handle('get-app-version', function () {
+  return app.getVersion();
+});
+
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
 // contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local
 // (mesma pasta userData) — o backend de armazenamento do Electron só
