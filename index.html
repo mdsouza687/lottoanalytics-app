@@ -933,7 +933,7 @@ table.dt-expanded.dt-cols td:nth-child(11n+1):not(.dt-sep){border-left:1.5px das
 
   /* ── Resultado: bolas menores ── */
   .result-ball{min-width:28px;height:28px;font-size:11px;border-radius:6px;}
-  .result-game{padding:8px 6px;border-radius:8px;}
+  .result-game{padding:8px 6px;border-radius:10px;}
   .result-balls-row{gap:3px;flex-wrap:wrap;}
 
   /* ── Modais full-screen ── */
@@ -1271,7 +1271,7 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-pred-lot .la-name{font-family:var(--font-head);font-weight:900;font-size:17px;color:var(--text)}
 .la-pred-lot .la-next{font-family:var(--font-mono);font-size:10px;color:var(--text-muted)}
 .la-pred-nav{display:flex;gap:6px}
-.la-pn{width:26px;height:26px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-muted);cursor:pointer;display:grid;place-items:center;font-size:12px}
+.la-pn{width:26px;height:26px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-muted);cursor:pointer;display:grid;place-items:center;font-size:12px}
 .la-pn:hover{color:var(--text)}
 /* Tamanho único e fixo (não varia por loteria) — calibrado pelo pior caso
    (Timemania: 4 variantes + chip "TIME" numa linha própria, que era quem
@@ -1332,7 +1332,7 @@ body.theme-light .la-mcel.mfr{background:rgba(15,23,42,.06)}
 .la-hist-row:hover{background:rgba(255,255,255,.04)}
 body.theme-light .la-hist-row:hover{background:rgba(15,23,42,.04)}
 .la-hist-row .la-hd{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);width:60px;flex:0 0 auto}
-.la-hd-col{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;width:64px;flex:0 0 auto;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:8px;padding:5px 4px;margin-top:1px;box-sizing:border-box}
+.la-hd-col{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;width:64px;flex:0 0 auto;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:10px;padding:5px 4px;margin-top:1px;box-sizing:border-box}
 body.theme-light .la-hd-col{background:rgba(15,23,42,.06)}
 .la-hd-data{font-family:var(--font-mono);font-size:10.3px;font-weight:700;color:var(--text);line-height:1.25;white-space:nowrap}
 .la-hd-dia{font-family:var(--font-mono);font-size:9.2px;color:var(--text-muted);line-height:1.25;text-transform:lowercase;white-space:nowrap}
@@ -1705,7 +1705,7 @@ function _mostrarNovidadesVersao(versao){
     b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;background:var(--card,#12151f);border:1px solid #3A9B4E;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:var(--font-head,inherit)';
     b.innerHTML=
       '<span style="font-size:13px;font-weight:700;color:var(--text,#fff)">'+t('geral.atualizacao_pronta',{v:versao})+'</span>'+
-      '<button id="btn-instalar-update" style="border:none;border-radius:8px;padding:8px 16px;background:#3A9B4E;color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
+      '<button id="btn-instalar-update" style="border:none;border-radius:10px;padding:8px 16px;background:#3A9B4E;color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">Instalar e Reiniciar</button>';
     document.body.appendChild(b);
     document.getElementById('btn-instalar-update').onclick=function(){
       this.disabled=true; this.textContent='Instalando...';
@@ -1751,7 +1751,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">4.9.10</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">4.9.11</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -1934,10 +1934,10 @@ function _mostrarNovidadesVersao(versao){
     <div class="modal-body">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="boloes.o_que_incluir_relatorio">O que deseja incluir no relatório?</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 10px;border:1px solid var(--glass-border);border-radius:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 10px;border:1px solid var(--glass-border);border-radius:10px">
           <input type="radio" name="bolao-print-filtro" value="todos" checked/> Todos os jogos vinculados
         </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 10px;border:1px solid var(--glass-border);border-radius:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 10px;border:1px solid var(--glass-border);border-radius:10px">
           <input type="radio" name="bolao-print-filtro" value="premiados"/> Só os jogos premiados 🏆
         </label>
       </div>
@@ -1964,11 +1964,11 @@ function _mostrarNovidadesVersao(versao){
       </div>
       <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Valor a creditar</label>
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <input id="premio-saldo-valor" type="text" placeholder="0,00" style="flex:1;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;box-sizing:border-box"/>
-        <button id="premio-saldo-usar-total" disabled style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 10px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">Usar total</button>
+        <input id="premio-saldo-valor" type="text" placeholder="0,00" style="flex:1;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:10px;padding:8px 11px;color:var(--text);font-size:13px;box-sizing:border-box"/>
+        <button id="premio-saldo-usar-total" disabled style="border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">Usar total</button>
       </div>
       <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px" data-i18n="boloes.rodada_semana_opcional">Rodada/Semana (opcional)</label>
-      <select id="premio-saldo-semana" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;box-sizing:border-box"></select>
+      <select id="premio-saldo-semana" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;box-sizing:border-box"></select>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px" data-i18n="boloes.rodada_semana_dica">Só fica registrado no histórico de qual rodada saiu esse prêmio — não muda quem recebe o crédito.</div>
       <div style="margin-top:14px;border-top:1px solid var(--glass-border);padding-top:10px">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">📜 <span data-i18n="boloes.historico_creditos">Histórico de créditos deste bolão</span></div>
@@ -2022,7 +2022,7 @@ function _mostrarNovidadesVersao(versao){
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr" id="hdr-resultado-manual"><span class="modal-title">📝 Inserir Resultado Manual</span><button class="modal-close" onclick="closeModal('modal-resultado-manual')">✕</button></div>
     <div class="modal-body" id="body-resultado-manual"></div>
-    <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-resultado-manual')">Cancelar</button><button class="result-hdr-btn" style="background:var(--accent);color:#000;font-weight:800" onclick="salvarResultadoManual()">Confirmar</button></div>
+    <div class="modal-footer"><button class="result-hdr-btn" onclick="closeModal('modal-resultado-manual')">Cancelar</button><button class="result-hdr-btn" style="background:linear-gradient(135deg,#3A9B4E,#2d7a3d);color:#fff;font-weight:800" onclick="salvarResultadoManual()">Confirmar</button></div>
   </div>
 </div>
 
@@ -2075,7 +2075,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">4.9.10</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">4.9.11</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -2371,7 +2371,7 @@ function _mostrarNovidadesVersao(versao){
           :(_premioAuto?'<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">'+t('boloes.premio_conferido_sem_premiados',{concurso:grupo.concurso})+'</div>':'<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">'+t('boloes.premio_nao_sincronizado',{concurso:grupo.concurso})+'</div>');
         var parcJson=JSON.stringify(partic).replace(/'/g,'&#39;');
         var financeiro=
-          '<div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:8px;padding:12px 14px">'+
+          '<div style="background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:10px;padding:12px 14px">'+
             '<div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">💰 '+t('boloes.calcular_rateio')+'</div>'+
             _avisoAuto+
             '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">'+
@@ -2725,7 +2725,7 @@ function _mostrarNovidadesVersao(versao){
               <div class="field-grp"><span class="field-lbl" data-i18n="gerador.dezenas_jogo">Dezenas / jogo</span><div id="jogo-dez-wrap"></div></div>
             </div>
             <div id="espelho-wrap" style="display:none">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 12px;border:1px solid var(--glass-border);border-radius:8px;background:rgba(124,58,237,.06)">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 12px;border:1px solid var(--glass-border);border-radius:10px;background:rgba(124,58,237,.06)">
                 <input type="checkbox" id="jogo-espelho" style="cursor:pointer;width:16px;height:16px" onchange="toggleFchEspelho(this.checked)"/>
                 <span style="font-size:12px;font-weight:700;color:var(--text)">🪞 Aposta Espelho</span>
                 <span id="espelho-info" style="font-size:10px;color:var(--text-muted);margin-left:auto"></span>
@@ -2769,7 +2769,7 @@ function _mostrarNovidadesVersao(versao){
                 <select class="f-sel" id="jogo-topn"><option value="10" data-i18n="gerador.top_10_dezenas">Top 10 dezenas</option></select>
               </div>
               <div class="field-grp" style="flex:1;justify-content:flex-end">
-                <button type="button" id="jogo-ver-ranking-btn" onclick="calcularScoreEPreview()" data-lotbtn style="width:100%;text-align:left;border:1px solid var(--glass-border);border-radius:8px;padding:7px 11px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font-family:var(--font-body);font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer">
+                <button type="button" id="jogo-ver-ranking-btn" onclick="calcularScoreEPreview()" data-lotbtn style="width:100%;text-align:left;border:1px solid var(--glass-border);border-radius:10px;padding:7px 11px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font-family:var(--font-body);font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer">
                   <span style="font-size:14px">⭐</span><span data-i18n="gerador.ver_ranking_score">Ver Ranking por Score</span>
                 </button>
               </div>
@@ -2889,10 +2889,10 @@ function _mostrarNovidadesVersao(versao){
         <label style="font-size:11px;font-weight:700;color:rgba(200,160,255,.9);white-space:nowrap" data-i18n="gerador.quantidade_jogos">Quantidade de jogos</label>
         <input id="ia-qty" type="number" min="1" max="50000" value="5" class="f-inp" style="width:90px;font-size:12px;text-align:center" onchange="window._iaQtyTouched=true;this.value=Math.min(Math.max(parseInt(this.value)||1,1),_getMaxJogosGeracao())"/>
         <span id="ia-qty-max-hint" style="font-size:9px;color:var(--text-dim)" data-i18n="gerador.ia_max_padrao">máx. 50000</span>
-        <button onclick="gerarComIA(window._iaTipo||'jogo')" style="margin-left:auto;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:11px;font-weight:800;padding:7px 14px;cursor:pointer">🤖 <span data-i18n="geral.gerar">Gerar</span></button>
+        <button onclick="gerarComIA(window._iaTipo||'jogo')" style="margin-left:auto;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:10px;color:#fff;font-family:var(--font-body);font-size:11px;font-weight:800;padding:7px 14px;cursor:pointer">🤖 <span data-i18n="geral.gerar">Gerar</span></button>
       </div>
       <!-- Aposta Espelho no modal -->
-      <div id="ia-espelho-wrap" style="display:none;margin-bottom:8px;padding:8px 12px;border:1px solid rgba(124,58,237,.3);border-radius:8px;background:rgba(124,58,237,.06)">
+      <div id="ia-espelho-wrap" style="display:none;margin-bottom:8px;padding:8px 12px;border:1px solid rgba(124,58,237,.3);border-radius:10px;background:rgba(124,58,237,.06)">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
           <input type="checkbox" id="ia-modal-espelho" style="cursor:pointer;width:16px;height:16px;accent-color:#7c3aed"/>
           <span style="font-size:12px;font-weight:700;color:#fff">🪞 <span data-i18n="gerador.aposta_espelho">Aposta Espelho</span></span>
@@ -2908,7 +2908,7 @@ function _mostrarNovidadesVersao(versao){
            a window._jogosIA em vez de jogosGerados, já que o modal de IA
            ainda não transferiu os jogos para o painel principal neste
            ponto. Só aparece quando a loteria atual oferece a modalidade. -->
-      <div id="ia-teimosinha-bar" style="display:none;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:8px;flex-wrap:wrap">
+      <div id="ia-teimosinha-bar" style="display:none;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:10px;flex-wrap:wrap">
         <span id="ia-teimosinha-label" style="font-size:11px;color:var(--text-dim)" data-i18n="resultado.teimosinha_label">🔁 Teimosinha (repetir por vários concursos)</span>
         <select id="ia-teimosinha-select" onchange="aplicarTeimosinhaIA(this.value)" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:3px 8px;color:var(--text);font-size:11px;font-family:var(--font-body)">
           <option value="" data-i18n="resultado.nao_usar">Não usar</option>
@@ -5062,7 +5062,7 @@ async function renderPainelAdmin(msg,msgTipo){
     </tr>`;
   }).join('');
   body.innerHTML=`
-    ${msg?`<div style="font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:16px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
+    ${msg?`<div style="font-size:12px;border-radius:10px;padding:8px 10px;margin-bottom:16px;background:${msgTipo==='ok'?'rgba(74,222,128,.12)':'rgba(248,113,113,.12)'};color:${msgTipo==='ok'?'#86efac':'#fca5a5'}">${_esc(msg)}</div>`:''}
     ${souSuperAdmin?`<div style="background:${_cronAtrasado?'rgba(248,113,113,.08)':'rgba(74,222,128,.08)'};border:1px solid ${_cronAtrasado?'rgba(248,113,113,.25)':'rgba(74,222,128,.25)'};border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:6px">🩺 ${t('admin.saude_sistema')}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">${t('admin.roda_sozinho_desc')} ${_ultimaExecCron?`${t('admin.ultima_vez')} <b style="color:${_cronAtrasado?'#f87171':'#4ade80'}">${_minutosDesdeUltima<2?t('admin.agora_mesmo'):t('admin.ha_n_min',{n:_minutosDesdeUltima})}</b>${_cronAtrasado?' — '+t('admin.mais_90min_sem_rodar'):''}`:t('admin.nenhuma_execucao')}</div>
@@ -5077,7 +5077,7 @@ async function renderPainelAdmin(msg,msgTipo){
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">🎲 ${t('admin.limite_geracao_jogos')}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">${t('admin.limite_geracao_desc')}</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <input id="adm-max-jogos" type="number" min="1000" max="50000" step="1" value="${_getMaxJogosGeracao()}" style="width:140px;padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-max-jogos" type="number" min="1000" max="50000" step="1" value="${_getMaxJogosGeracao()}" style="width:140px;padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
         <button class="ag-btn" onclick="adminSalvarMaxJogos()">${t('geral.salvar')}</button>
         <span id="adm-max-jogos-msg" style="font-size:11px;color:#4ade80"></span>
       </div>
@@ -5095,9 +5095,9 @@ async function renderPainelAdmin(msg,msgTipo){
     ${souSuperAdmin?`<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ ${t('admin.criar_usuario_teste_desc')}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-        <input id="adm-nome" placeholder="${t('admin.nome_completo')}" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
-        <input id="adm-email" type="email" placeholder="${t('geral.email')}" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
-        <input id="adm-senha" type="text" placeholder="${t('admin.senha_minimo')}" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-nome" placeholder="${t('admin.nome_completo')}" style="padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-email" type="email" placeholder="${t('geral.email')}" style="padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
+        <input id="adm-senha" type="text" placeholder="${t('admin.senha_minimo')}" style="padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:#fff"/>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><input type="checkbox" id="adm-permanente"/> ${t('admin.marcar_permanente')}</label>
       </div>
       <button class="ag-btn" style="margin-top:4px" onclick="adminCriarUsuarioTeste()">${t('admin.criar_usuario_teste')}</button>
@@ -9206,7 +9206,7 @@ function buildFixosGrid(tipo) {
     <div style="width:100%">
       <button type="button" id="vol-btn-${tipo}"
         onclick="abrirVolante('${tipo}')"
-        style="width:100%;text-align:left;border:1px solid ${ac}55;border-radius:8px;padding:7px 11px;background:${fixos.size>0?ac+'18':'rgba(255,255,255,.04)'};color:${fixos.size>0?ac:'rgba(255,255,255,.45)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
+        style="width:100%;text-align:left;border:1px solid ${ac}55;border-radius:10px;padding:7px 11px;background:${fixos.size>0?ac+'18':'rgba(255,255,255,.04)'};color:${fixos.size>0?ac:'rgba(255,255,255,.45)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
         <span style="font-size:14px">🎯</span>
         <span id="vol-label-${tipo}" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${countLabel}</span>
         ${fixos.size > 0 ? `<span onclick="event.stopPropagation();limparFixos('${tipo}')" style="color:rgba(255,100,100,.7);font-size:12px;padding:0 2px;cursor:pointer" title="${t('gerador.limpar_fixos_title')}">✕</span>` : ''}
@@ -9348,7 +9348,7 @@ function abrirVolante(tipo) {
     // Super Sete: 7 colunas verticais, cada uma com dígitos 0–9 (até 3 por coluna)
     grade = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">';
     for (let col = 0; col < 7; col++) {
-      grade += `<div style="display:flex;flex-direction:column;gap:3px;background:rgba(255,255,255,.03);border-radius:8px;padding:4px">`;
+      grade += `<div style="display:flex;flex-direction:column;gap:3px;background:rgba(255,255,255,.03);border-radius:10px;padding:4px">`;
       grade += `<div style="text-align:center;font-size:11px;font-weight:800;color:#fff;background:${ac};border-radius:6px;padding:4px 0;margin-bottom:2px">${col+1}</div>`;
       for (let dig = 0; dig < 10; dig++) {
         const val = col * 10 + dig;
@@ -9423,7 +9423,7 @@ function abrirVolante(tipo) {
       const timeAtual = getFixosTime(tipo)[0];
       grade += `<div style="margin-top:10px;margin-bottom:6px;font-size:10px;font-weight:700;color:${ac};letter-spacing:.5px">${t('gerador.time_coracao_maiusc')}</div>`;
       grade += `<select id="vol-time-${tipo}" onchange="selecionarTimeVolante('${tipo}',this.value)"
-        style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}55;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+        style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid ${ac}55;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">${t('gerador.aleatorio_sorteio_automatico')}</option>
         ${LA_TIMEMANIA_TIMES.map((t2,idx)=>`<option value="${idx}"${timeAtual===idx?' selected':''}>${t2}</option>`).join('')}
       </select>`;
@@ -9444,7 +9444,7 @@ function abrirVolante(tipo) {
             ${t('gerador.n_fixo_max',{n:[..._volFixos[tipo]].filter(v=>v<1000).length,s:[..._volFixos[tipo]].filter(v=>v<1000).length!==1?'s':'',max:fMax})}
           </div>
         </div>
-        <button onclick="document.getElementById('modal-volante').remove()" style="border:none;background:rgba(0,0,0,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+        <button onclick="document.getElementById('modal-volante').remove()" style="border:none;background:rgba(0,0,0,.3);color:#fff;border-radius:10px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
       </div>
       <!-- Grade -->
       <div style="padding:16px 18px;overflow-y:auto;flex:1">
@@ -9566,7 +9566,7 @@ function buildMesTimeSec(tipo, d){
     </div>
     <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">${t('gerador.em_todo_concurso_mes_sorteado')}</div>
     <select id="direto-mes-${tipo}" onchange="selecionarMesDireto('${tipo}',this.value)"
-      style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer">
+      style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer">
       <option value="">${t('gerador.aleatorio_sorteio_automatico_por_jogo')}</option>
       ${LA_MESES_NOMES.map((m,idx)=>`<option value="${idx+1}"${mesAtual===idx+1?' selected':''}>${m}</option>`).join('')}
     </select>`;
@@ -9578,7 +9578,7 @@ function buildMesTimeSec(tipo, d){
     </div>
     <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">${t('gerador.em_todo_concurso_clube_sorteado')}</div>
     <select id="direto-time-${tipo}" onchange="selecionarTimeDireto('${tipo}',this.value)"
-      style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer">
+      style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer">
       <option value="">${t('gerador.aleatorio_sorteio_automatico_por_jogo')}</option>
       ${LA_TIMEMANIA_TIMES.map((t3,idx)=>`<option value="${idx}"${timeAtual===idx?' selected':''}>${t3}</option>`).join('')}
     </select>`;
@@ -11038,7 +11038,7 @@ function _aplicarTetoRender(jogos){
   _selPadraoTodos=true;
   if(lista.length<=RENDER_TETO_LIMIAR){ _tetoTotalApostas=0; return {lista:lista, aviso:''}; }
   _tetoTotalApostas=lista.reduce((n,g)=>n+((g&&g._espelho)?2:1),0);
-  const aviso='<div style="margin-bottom:10px;padding:9px 12px;border:1px dashed var(--glass-border);border-radius:8px;background:rgba(245,158,11,.08);color:#f59e0b;font-size:11px;font-weight:700;text-align:center">'
+  const aviso='<div style="margin-bottom:10px;padding:9px 12px;border:1px dashed var(--glass-border);border-radius:10px;background:rgba(245,158,11,.08);color:#f59e0b;font-size:11px;font-weight:700;text-align:center">'
     +_esc(t('gerador.exibindo_n_de_n',{n:RENDER_TETO,total:lista.length.toLocaleString('pt-BR')}))+'</div>';
   return {lista:lista.slice(0,RENDER_TETO), aviso:aviso};
 }
@@ -12199,7 +12199,7 @@ function doPrint(destino){
       const g=window._espelhoGrupos;
       const ballsA=g.grupoA.map(n=>`<span class="ball" style="background:${g.cor};color:${corBolaTexto(d)}">${String(n).padStart(2,'0')}</span>`).join('');
       const ballsB=g.grupoB.map(n=>`<span class="ball" style="background:${g.corEsp}">${String(n).padStart(2,'0')}</span>`).join('');
-      html+=`<div style="border:1px solid #ddd;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:#faf8ff">`+
+      html+=`<div style="border:1px solid #ddd;border-radius:10px;padding:8px 10px;margin-bottom:10px;background:#faf8ff">`+
         `<div style="font-size:10px;font-weight:800;color:#666;text-transform:uppercase;margin-bottom:6px">${t('gerador.divisao_aposta_espelho_maiusc')}</div>`+
         `<div style="margin-bottom:6px"><div style="font-size:9px;font-weight:800;color:${corMarca(g)};margin-bottom:3px">${t('gerador.principal_n_parentese',{n:g.grupoA.length})}</div><div class="jogo-balls">${ballsA}</div></div>`+
         `<div><div style="font-size:9px;font-weight:800;color:${g.corEsp};margin-bottom:3px">${t('gerador.espelho_n_parentese',{n:g.grupoB.length})}</div><div class="jogo-balls">${ballsB}</div></div>`+
@@ -12307,7 +12307,7 @@ async function openModalSalvar(escopo){
 
   let htmlInd='';
   if(!todasLot&&jogosGerados.length){
-    htmlInd+=`<div style="margin-bottom:10px;padding:9px 12px;background:rgba(255,255,255,.05);border-radius:8px;font-size:12px;color:var(--text-muted)">${t('gerador.prontos_para_salvar_dois_pontos')}<strong style="color:#fff">${t('gerador.n_jogos_gerados',{n:jogosGerados.length})}</strong>${paraInd.length>=10?'<br><span style="color:#F08020">'+t('gerador.limite_10_mais_antigo_substituido')+'</span>':''}</div>`;
+    htmlInd+=`<div style="margin-bottom:10px;padding:9px 12px;background:rgba(255,255,255,.05);border-radius:10px;font-size:12px;color:var(--text-muted)">${t('gerador.prontos_para_salvar_dois_pontos')}<strong style="color:#fff">${t('gerador.n_jogos_gerados',{n:jogosGerados.length})}</strong>${paraInd.length>=10?'<br><span style="color:#F08020">'+t('gerador.limite_10_mais_antigo_substituido')+'</span>':''}</div>`;
   }
   // ── Bolinhas no estilo result-ball ──
   // Quando o conjunto possui números fixos: fixos = cor da loteria + contorno; aleatórios = #e5097f (padrão comum a todas as loterias)
@@ -12465,7 +12465,7 @@ async function openModalSalvar(escopo){
               (partic.length>5?'<span style="font-size:9px;color:var(--text-dim)">'+t('gerador.mais_n_participantes',{n:partic.length-5})+'</span>':'')+
             '</div>'+
             '<button onclick="reabrirRelatorioBolao('+gi+')" '+
-            'style="width:100%;border:1px solid '+cfgB.cor+'55;border-radius:8px;padding:7px;background:'+cfgB.cor+'18;color:'+corMarca(cfgB)+';font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s">'+
+            'style="width:100%;border:1px solid '+cfgB.cor+'55;border-radius:10px;padding:7px;background:'+cfgB.cor+'18;color:'+corMarca(cfgB)+';font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s">'+
             t('gerador.ver_calcular_rateio')+'</button>'+
           '</div>'+
         '</div>';
@@ -13555,7 +13555,7 @@ function buildExclusoesGrid(tipo){
     <div style="width:100%">
       <button type="button"
         onclick="abrirVolanteExcl('${tipo}')"
-        style="width:100%;text-align:left;border:1px solid ${_volExcl.size>0?EXCL_COR+'88':EXCL_COR+'55'};border-radius:8px;padding:7px 11px;background:${_volExcl.size>0?'rgba(255,77,109,.12)':EXCL_COR+'0d'};color:${_volExcl.size>0?EXCL_COR:'var(--text-dim)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
+        style="width:100%;text-align:left;border:1px solid ${_volExcl.size>0?EXCL_COR+'88':EXCL_COR+'55'};border-radius:10px;padding:7px 11px;background:${_volExcl.size>0?'rgba(255,77,109,.12)':EXCL_COR+'0d'};color:${_volExcl.size>0?EXCL_COR:'var(--text-dim)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
         <span style="font-size:14px">🚫</span>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${countLabel}</span>
         ${_volExcl.size > 0 ? `<span onclick="event.stopPropagation();limparExclusoes('${tipo}')" style="color:rgba(255,100,100,.7);font-size:12px;padding:0 2px;cursor:pointer" title="${t('gerador.limpar_exclusoes_title')}">✕</span>` : ''}
@@ -13676,7 +13676,7 @@ function abrirVolanteExcl(tipo) {
             ${t('gerador.n_numero_excluido',{n:_volExcl.size,s:_volExcl.size!==1?'s':''})}
           </div>
         </div>
-        <button onclick="document.getElementById('modal-volante-excl').remove()" style="border:none;background:rgba(0,0,0,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+        <button onclick="document.getElementById('modal-volante-excl').remove()" style="border:none;background:rgba(0,0,0,.3);color:#fff;border-radius:10px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
       </div>
       <!-- Grade -->
       <div style="padding:16px 18px;overflow-y:auto;flex:1">
@@ -13842,7 +13842,7 @@ async function calcularScoreEPreview(){
         const cor=corFn(pct);
         const dim=noTop?'':'opacity:.3;transform:scale(.82)';
         const ring=noTop?';box-shadow:0 0 0 2px rgba(255,255,255,.3)':'';
-        return `<div title="${tendEmoji} ${t('gerador.score_barra_100',{sc:sc})}" style="display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:34px;height:38px;border-radius:8px;background:${cor};color:#fff;font-family:var(--font-mono);font-size:11px;font-weight:800;cursor:default;transition:all .1s;${dim}${ring}">
+        return `<div title="${tendEmoji} ${t('gerador.score_barra_100',{sc:sc})}" style="display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:34px;height:38px;border-radius:10px;background:${cor};color:#fff;font-family:var(--font-mono);font-size:11px;font-weight:800;cursor:default;transition:all .1s;${dim}${ring}">
           <span>${String(n).padStart(2,'0')}</span><span style="font-size:7px;opacity:.75">${sc}</span></div>`;
       }).join('')+'</div>';
   }
@@ -14322,10 +14322,10 @@ function _promptModal(mensagem,valorPadrao){
       '<div id="modal-prompt-custom" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px">'+
         '<div style="background:var(--bg,#12151f);border:1px solid var(--glass-border);border-radius:14px;max-width:420px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.5)">'+
           '<div style="white-space:pre-wrap;font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.5">'+_esc(mensagem||'')+'</div>'+
-          '<textarea id="prompt-custom-input" rows="1" style="width:100%;box-sizing:border-box;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);resize:vertical;min-height:38px"></textarea>'+
+          '<textarea id="prompt-custom-input" rows="1" style="width:100%;box-sizing:border-box;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:10px;padding:9px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);resize:vertical;min-height:38px"></textarea>'+
           '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'+
-            '<button id="prompt-custom-cancel" style="border:1px solid var(--glass-border);border-radius:8px;padding:8px 16px;background:transparent;color:var(--text);font-weight:700;font-size:12px;cursor:pointer">Cancelar</button>'+
-            '<button id="prompt-custom-ok" style="border:none;border-radius:8px;padding:8px 16px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:700;font-size:12px;cursor:pointer">OK</button>'+
+            '<button id="prompt-custom-cancel" style="border:1px solid var(--glass-border);border-radius:10px;padding:8px 16px;background:transparent;color:var(--text);font-weight:700;font-size:12px;cursor:pointer">Cancelar</button>'+
+            '<button id="prompt-custom-ok" style="border:none;border-radius:10px;padding:8px 16px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:700;font-size:12px;cursor:pointer">OK</button>'+
           '</div>'+
         '</div>'+
       '</div>';
@@ -15204,28 +15204,28 @@ async function gerarComIA(tipo){
     // selecionados: dava pra marcar os 2 e o painel mostrar "0 de 1").
     let _seqIA=0;
     document.getElementById('ia-modal-resultado').innerHTML=
-      `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--glass-border)">${paramsHtml}</div>`+
+      `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--glass-border)">${paramsHtml}</div>`+
       espelhoHdrModal+
       `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="ia-chk-all" checked onchange="iaToggleTodos(this.checked)" style="width:16px;height:16px;accent-color:${corMarca(d)};cursor:pointer"/>${t('resultado.selecionar_todos')}</label><span id="ia-sel-count" style="margin-left:auto"></span></div>`+
       jogosIA.map(({jogo,mode},i)=>{
         // Bolas do jogo principal
         const balls=jogo._ssCols
           ?jogo._ssCols.map((c,ci)=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=fixosSet.has(ci*10+dg);return `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)};font-family:var(--font-mono);font-size:11px;font-weight:800">${dg}</span>`;}).join('')}</span>`).join('')
-          :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${d.cor};color:${corTextoSobre(d.cor)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
-        const extra=jogo._extra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</span>`:'';
+          :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${d.cor};color:${corTextoSobre(d.cor)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
+        const extra=jogo._extra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</span>`:'';
         const trevos=jogo._trevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
         const modeTag=`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}</span>`;
         if(jogo._espelho){
-          const espBalls=jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('');
-          const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:'';
+          const espBalls=jogo._espelho.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${ESP_COR_IA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800">${pad(n)}</span>`).join('');
+          const espExtra=jogo._espExtra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._espExtra)}</span>`:'';
           const espTrev=jogo._espTrevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._espTrevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
           const espMesTime=(jogo._espMes!=null||jogo._espTime!=null)?mesTimeHtml({_mes:jogo._espMes,_time:jogo._espTime},{cor:ESP_COR_IA},34):'';
           const numP=++_seqIA, numE=++_seqIA;
-          return `<div class="ia-game-row" id="ia-rg-${i}-p" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-p" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:54px">${t('gerador.principal_maiusc')}</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.12);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:''}</div>${modeTag}</div>`+
-            `<div class="ia-game-row" id="ia-rg-${i}-e" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-e" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${ESP_COR_IA};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numE}.</span><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ${t('gerador.espelho_maiusc')}</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${espBalls}${espExtra}${espTrev}${espMesTime}${jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR_IA};font-weight:700">⭐${jogo._espScoreJogo}</span>`:''}</div>${modeTag}</div>`;
+          return `<div class="ia-game-row" id="ia-rg-${i}-p" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-p" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'p',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numP}.</span><span style="font-size:9px;font-weight:800;color:${corMarca(d)};min-width:54px">${t('gerador.principal_maiusc')}</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}${jogo._scoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.12);color:#f59e0b;font-weight:700">⭐${jogo._scoreJogo}</span>`:''}</div>${modeTag}</div>`+
+            `<div class="ia-game-row" id="ia-rg-${i}-e" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}-e" checked title="Incluir esta aposta" onchange="iaToggleUm(${i},'e',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${ESP_COR_IA};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numE}.</span><span style="font-size:9px;font-weight:800;color:${ESP_COR_IA};min-width:54px">🪞 ${t('gerador.espelho_maiusc')}</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${espBalls}${espExtra}${espTrev}${espMesTime}${jogo._espScoreJogo!=null?`<span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(124,58,237,.12);color:${ESP_COR_IA};font-weight:700">⭐${jogo._espScoreJogo}</span>`:''}</div>${modeTag}</div>`;
         }
         const numN=++_seqIA;
-        return `<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}" checked title="Incluir este jogo" onchange="iaToggleUm(${i},'s',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numN}.</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}${jogo._scoreJogo!=null?` · ⭐${jogo._scoreJogo}`:''}</span></div>`;
+        return `<div class="ia-game-row" id="ia-rg-${i}" style="padding:8px 12px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><input type="checkbox" class="ia-chk" id="ia-chk-${i}" checked title="Incluir este jogo" onchange="iaToggleUm(${i},'s',this.checked)" style="width:16px;height:16px;flex-shrink:0;accent-color:${corMarca(d)};cursor:pointer"/><span style="font-size:11px;font-weight:700;color:var(--text-dim);min-width:22px;font-family:var(--font-mono)">${numN}.</span><div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${balls}${extra}${trevos}${mesTimeHtml(jogo,d)}</div><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}${jogo._scoreJogo!=null?` · ⭐${jogo._scoreJogo}`:''}</span></div>`;
       }).join('');
     // Fase 82: window._jogosIA precisa estar atualizado ANTES de contar —
     // iaAtualizarContagem() lê window._jogosIA.length pra saber quantas
@@ -15583,7 +15583,7 @@ function buildManualVolante(){
   if(d.apiKey==='diadesorte'){
     extraSel=`<div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🌟</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">${t('gerador.mes_da_sorte_minusc')}</span></div>
-      <select id="manual-mes-sel" onchange="_manualMes=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+      <select id="manual-mes-sel" onchange="_manualMes=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">${t('gerador.aleatorio_sorteio_automatico')}</option>
         ${LA_MESES_NOMES.map((m,idx)=>`<option value="${idx+1}"${_manualMes===idx+1?' selected':''}>${m}</option>`).join('')}
       </select>
@@ -15591,7 +15591,7 @@ function buildManualVolante(){
   } else if(d.apiKey==='timemania'){
     extraSel=`<div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">⚽</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">${t('gerador.time_coracao_minusc')}</span></div>
-      <select id="manual-time-sel" onchange="_manualTime=this.value!==''?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+      <select id="manual-time-sel" onchange="_manualTime=this.value!==''?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">${t('gerador.aleatorio_sorteio_automatico')}</option>
         ${LA_TIMEMANIA_TIMES.map((t2,idx)=>`<option value="${idx}"${_manualTime===idx?' selected':''}>${t2}</option>`).join('')}
       </select>
@@ -15606,7 +15606,7 @@ function buildManualVolante(){
   if(d.teimosinha&&d.teimosinha.length){
     extraSel+=`<div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:14px">🔁</span><span style="font-size:11px;font-weight:800;color:${corMarca(d)}">${d.americano?t('gerador.multidraw_sem_emoji'):t('gerador.teimosinha_sem_emoji')}</span></div>
-      <select id="manual-teimosinha-sel" onchange="_manualTeimosinha=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
+      <select id="manual-teimosinha-sel" onchange="_manualTeimosinha=this.value?parseInt(this.value):null" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid ${ac}88;background:var(--glass-bg);color:var(--text);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer">
         <option value="">${t('resultado.nao_usar')}</option>
         ${_teimosinhaOptionsHtml(d,_manualTeimosinha)}
       </select>
@@ -15617,7 +15617,7 @@ function buildManualVolante(){
     // Super Sete no formato oficial: 7 colunas verticais (dígitos 0–9), 1 a 3 dígitos por coluna (7 a 21 números)
     grade='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
     for(let col=0;col<7;col++){
-      grade+=`<div style="display:flex;flex-direction:column;gap:3px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:4px">`;
+      grade+=`<div style="display:flex;flex-direction:column;gap:3px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;padding:4px">`;
       grade+=`<div style="text-align:center;font-size:11px;font-weight:800;color:#fff;background:${ac};border-radius:6px;padding:4px 0;margin-bottom:2px">${col+1}</div>`;
       for(let dig=0;dig<10;dig++){
         const val=col*10+dig;
@@ -18803,7 +18803,7 @@ function renderFormBolao(){
       '<div style="font-size:10px;color:var(--text-muted)">'+(s.modalidade==='mensal'?t('boloes.o_mes_bolao'):(s.modalidade==='semanal'?t('boloes.a_semana_bolao'):t('boloes.o_concurso_num',{n:_esc(s.concurso)})))+(s.modalidade==='unico'?t('boloes.ja_foi_realizado'):t('boloes.ja_foi_encerrado'))+' '+t('boloes.dados_bloqueados_historico')+'</div></div>'+
     '</div>'
     :'';
-  var inp = 'width:100%;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);box-sizing:border-box';
+  var inp = 'width:100%;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:10px;padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--font-body);box-sizing:border-box';
   // Arrecadação Total — DERIVADA da soma das Contribuições dos
   // participantes (+ Saldo do Orçamento do Admin, se aplicável). Mantém
   // s.arrecadacaoTotal sincronizado para qualquer leitura legada.
@@ -18946,13 +18946,13 @@ function renderFormBolao(){
     var _rows=_sems.map(function(sem,i){
       var vFmt=_bMoney(_gastoPorSemanaReal[i]);
       var pFmt=_bMoney(_premioPorSemanaReal[i]);
-      return '<div style="display:grid;grid-template-columns:40px 1fr 180px 180px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:4px">'+
+      return '<div style="display:grid;grid-template-columns:40px 1fr 180px 180px;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);margin-bottom:4px">'+
         '<span style="font-size:11px;font-weight:800;color:var(--text-muted);text-align:center">'+_ordinals[i]+'</span>'+
         '<div style="font-size:12px;font-weight:700;color:var(--text)">'+sem.inicio+' a '+sem.fim+'</div>'+
-        '<div style="text-align:right;padding:7px 10px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:8px" data-tt="'+t('boloes.tt_premios_semana')+'">'+
+        '<div style="text-align:right;padding:7px 10px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:10px" data-tt="'+t('boloes.tt_premios_semana')+'">'+
           '<span style="font-family:var(--font-head);font-size:13px;font-weight:800;color:#4ade80">'+pFmt+'</span>'+
         '</div>'+
-        '<div style="text-align:right;padding:7px 10px;background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.2);border-radius:8px" data-tt="'+t('boloes.tt_gasto_semana')+'">'+
+        '<div style="text-align:right;padding:7px 10px;background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.2);border-radius:10px" data-tt="'+t('boloes.tt_gasto_semana')+'">'+
           '<span style="font-size:13px;font-weight:700;color:#93c5fd">'+vFmt+'</span>'+
         '</div>'+
       '</div>';
@@ -18993,7 +18993,7 @@ function renderFormBolao(){
           var saldoM=arrecAlocadaM-g.total;
           var corSaldoM=saldoM>=0?'#4ade80':'#f87171';
           var detalheSemanas=g.porSemana.map(function(v,wi){ return v>0?(_ordinals[wi]+': '+_bMoney(v)):null; }).filter(Boolean).join(' · ');
-          return '<div style="padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:4px">'+
+          return '<div style="padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:4px">'+
             '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px">'+
               '<span style="color:'+corMarca(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
               '<span style="color:#fb923c">'+t('boloes.gasto_total')+' <b>'+_bMoney(g.total)+'</b></span>'+
@@ -19059,7 +19059,7 @@ function renderFormBolao(){
           '<span></span><span>'+t('boloes.periodo_seg_dom')+'</span><span style="text-align:right">'+t('boloes.premios_semana_rs')+'</span><span style="text-align:right">'+t('boloes.gasto_semana_rs')+'</span>'+
         '</div>'+
         _rows+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px;margin-top:8px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px;margin-top:8px">'+
           '<div><span style="display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+t('boloes.total_deducoes_4sem')+'</span>'+
             '<span id="bol-men-deducoes" style="font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(_ded)+'</span></div>'+
           '<div><span id="bol-men-saldo-lbl" style="display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+(_saldoMen>=0?t('boloes.saldo_disponivel'):t('geral.deficit'))+'</span>'+
@@ -19083,7 +19083,7 @@ function renderFormBolao(){
         '<input id="bol-sem-ini" type="date" style="'+inp+'" value="'+_esc(_ddmmParaIso(s.semanaInicio))+'" onchange="_atualizarDataInicioBolao(this.value)" title="'+t('boloes.title_data_inicio')+'"/></div>'+
       '<div><label style="'+lbl+'">'+(s.modalidade==='mensal'?t('boloes.data_fim_bolao'):(s.sorteio&&s.sorteio!=='normal')?t('boloes.data_fim_periodo'):t('boloes.data_fim_semana'))+'</label>'+
         '<input id="bol-sem-fim" type="text" style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim||'')+'" readonly title="'+t('boloes.title_data_fim')+'"/></div>'+
-      '<button onclick="_recalcularSemanaBolao()" title="'+t('boloes.title_recalcular')+'" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
+      '<button onclick="_recalcularSemanaBolao()" title="'+t('boloes.title_recalcular')+'" style="border:1px solid var(--glass-border);border-radius:10px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
     '</div>'+
 
     // Prazo de pagamento (NÃO é o encerramento do bolão em si — esse é
@@ -19096,7 +19096,7 @@ function renderFormBolao(){
         '<input id="bol-data-encerr" type="date" style="'+inp+'" value="'+_esc(s.dataEncerramento||'')+'" onchange="_boloesState.dataEncerramento=this.value"/></div>'+
       '<div><label style="'+lbl+'">'+t('boloes.hora_limite_pagamento')+'</label>'+
         '<input id="bol-hora-encerr" type="time" style="'+inp+'" value="'+_esc(s.horaEncerramento||'')+'" onchange="_boloesState.horaEncerramento=this.value"/></div>'+
-      '<button onclick="_editarAvisoEncerramento()" title="'+t('boloes.title_editar_aviso')+'" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ '+t('boloes.avisos_devedores')+'</button>'+
+      '<button onclick="_editarAvisoEncerramento()" title="'+t('boloes.title_editar_aviso')+'" style="border:1px solid var(--glass-border);border-radius:10px;padding:9px 12px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✏️ '+t('boloes.avisos_devedores')+'</button>'+
     '</div>'+
 
     // Linha 2: Tipo de sorteio | Modalidade
@@ -19245,9 +19245,9 @@ function renderFormBolao(){
       '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#93c5fd;margin-bottom:10px">'+t('boloes.controle_gastos')+'</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
         '<div><label style="'+lbl+'">'+t('boloes.custo_apostas_todas')+'</label>'+
-          '<div style="padding:9px 12px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:8px;font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(custRod)+'</div></div>'+
+          '<div style="padding:9px 12px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:10px;font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(custRod)+'</div></div>'+
         '<div><label style="'+lbl+'">'+(saldo>=0?t('boloes.saldo_disponivel'):t('geral.deficit'))+' '+t('boloes.geral_parenteses')+'</label>'+
-          '<div style="padding:9px 12px;background:'+bgSaldo+';border:1px solid '+brSaldo+';border-radius:8px;font-size:15px;font-weight:800;color:'+corSaldo+'">'+_bMoney(Math.abs(saldo))+'</div></div>'+
+          '<div style="padding:9px 12px;background:'+bgSaldo+';border:1px solid '+brSaldo+';border-radius:10px;font-size:15px;font-weight:800;color:'+corSaldo+'">'+_bMoney(Math.abs(saldo))+'</div></div>'+
       '</div>'+
       porLoteriaHtml+
       '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">'+t('boloes.historico_rodadas')+'</div>'+
@@ -19360,7 +19360,7 @@ function renderFormBolao(){
           '<input style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaInicio)+'" readonly title="'+t('boloes.title_preenchido_seg')+'"/></div>'+
         '<div><label style="'+lbl+'">'+t('boloes.fim_semana')+'</label>'+
           '<input style="'+inp+';opacity:.75;cursor:not-allowed" value="'+_esc(s.semanaFim)+'" readonly title="'+t('boloes.title_preenchido_dom')+'"/></div>'+
-        '<button onclick="_recalcularSemanaBolao()" title="'+t('boloes.title_recalcular_semana')+'" style="border:1px solid var(--glass-border);border-radius:8px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
+        '<button onclick="_recalcularSemanaBolao()" title="'+t('boloes.title_recalcular_semana')+'" style="border:1px solid var(--glass-border);border-radius:10px;padding:9px 10px;background:var(--glass-bg);color:var(--text);font-size:13px;cursor:pointer">🔄</button>'+
       '</div>'+
       // Campo Arrecadação Total — agora SOMENTE LEITURA, derivado da soma
       // das Contribuições de cada participante (ver tabela abaixo).
@@ -19374,9 +19374,9 @@ function renderFormBolao(){
       // Custo rodadas e Saldo (geral)
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'+
         '<div><label style="'+lbl+'">'+t('boloes.custo_apostas_todas')+'</label>'+
-          '<div style="padding:9px 12px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:8px;font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(custRod)+'</div></div>'+
+          '<div style="padding:9px 12px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:10px;font-size:15px;font-weight:800;color:#fb923c">'+_bMoney(custRod)+'</div></div>'+
         '<div><label style="'+lbl+'">'+(saldo>=0?t('boloes.saldo_disponivel'):t('geral.deficit'))+' '+t('boloes.geral_parenteses')+'</label>'+
-          '<div style="padding:9px 12px;background:'+bgSaldo+';border:1px solid '+brSaldo+';border-radius:8px;font-size:15px;font-weight:800;color:'+corSaldo+'">'+_bMoney(Math.abs(saldo))+'</div></div>'+
+          '<div style="padding:9px 12px;background:'+bgSaldo+';border:1px solid '+brSaldo+';border-radius:10px;font-size:15px;font-weight:800;color:'+corSaldo+'">'+_bMoney(Math.abs(saldo))+'</div></div>'+
       '</div>'+
       // Gasto e Saldo por loteria (só aparece com 2+ loterias no bolão)
       porLoteriaSemHtml+
@@ -19393,10 +19393,10 @@ function renderFormBolao(){
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:var(--text)">👤 '+t('boloes.administrador')+'</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
-        '<span title="'+t('boloes.title_avisar_premio')+'" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 '+t('boloes.avisar_premio_maior')+' R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>'+t('boloes.por_cota')+'</span>'+
+        '<span title="'+t('boloes.title_avisar_premio')+'" style="display:inline-flex;align-items:center;gap:5px;border:1px solid var(--glass-border);border-radius:10px;padding:4px 10px;background:var(--glass-bg);font-size:11px;color:var(--text-muted)">🏆 '+t('boloes.avisar_premio_maior')+' R$<input type="number" min="0" step="1" value="'+(_boloesState.pushLimitePremioCota==null?500:_boloesState.pushLimitePremioCota)+'" style="width:60px;border:none;background:transparent;color:var(--text);font-size:11px;font-weight:700" onchange="_boloesState.pushLimitePremioCota=parseFloat(this.value)||500;salvarBolao()"/>'+t('boloes.por_cota')+'</span>'+
         (_boloesState.ativadoEm
-          ? '<span title="'+t('boloes.title_bolao_ativado')+'" style="border:1px solid var(--glass-border);border-radius:8px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ '+t('boloes.ativado_em',{data:_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))})+'</span>'
-          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="'+t('boloes.title_ativar_bolao')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 '+t('boloes.ativar_bolao')+'</button>')+
+          ? '<span title="'+t('boloes.title_bolao_ativado')+'" style="border:1px solid var(--glass-border);border-radius:10px;padding:6px 12px;background:var(--glass-bg);color:var(--text-muted);font-weight:700;font-size:11px">✅ '+t('boloes.ativado_em',{data:_esc(new Date(_boloesState.ativadoEm).toLocaleDateString('pt-BR'))})+'</span>'
+          : '<button onclick="abrirConfirmacaoAtivarBolao()" title="'+t('boloes.title_ativar_bolao')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🔒 '+t('boloes.ativar_bolao')+'</button>')+
       '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">'+
@@ -19517,25 +19517,25 @@ function renderFormBolao(){
       // deixou de ser o único botão sólido da barra por esse motivo.
       '<div style="display:flex;flex-direction:column;gap:8px">'+
         '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_importar'))+'"':'title="'+t('boloes.title_colunas_importar')+'"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📥 '+t('boloes.importar_lista')+'</button>'+
-          '<button onclick="salvarListaParticipantesModelo()" title="'+t('boloes.title_salvar_lista')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📌 '+t('boloes.salvar_lista')+'</button>'+
-          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_adicionar'))+'"':'title="'+t('boloes.title_carregar_lista')+'"')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📂 '+t('boloes.carregar_lista_salva')+'</button>'+
-          (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="'+t('boloes.title_bilhetes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 '+t('boloes.bilhetes')+'</button>' : '')+
-          (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="'+t('boloes.title_comprovantes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 '+t('boloes.comprovantes')+'</button>' : '')+
-          '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 '+t('boloes.jogos_do_bolao')+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
-          '<button onclick="salvarBolao()" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">💾 '+t('boloes.salvar_bolao')+'</button>'+
-          (s.editId?'<button onclick="abrirModalPremioSaldo()" title="'+t('boloes.title_premio_saldo')+'" style="border:1px solid #16a34a;border-radius:8px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 '+t('boloes.premio_seta_saldo')+'</button>':'')+
-          '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">🖨 '+t('geral.imprimir')+'</button>'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_importar'))+'"':'title="'+t('boloes.title_colunas_importar')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📥 '+t('boloes.importar_lista')+'</button>'+
+          '<button onclick="salvarListaParticipantesModelo()" title="'+t('boloes.title_salvar_lista')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📌 '+t('boloes.salvar_lista')+'</button>'+
+          '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_adicionar'))+'"':'title="'+t('boloes.title_carregar_lista')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">📂 '+t('boloes.carregar_lista_salva')+'</button>'+
+          (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="'+t('boloes.title_bilhetes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📎 '+t('boloes.bilhetes')+'</button>' : '')+
+          (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="'+t('boloes.title_comprovantes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🧾 '+t('boloes.comprovantes')+'</button>' : '')+
+          '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">🎟 '+t('boloes.jogos_do_bolao')+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
+          '<button onclick="salvarBolao()" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">💾 '+t('boloes.salvar_bolao')+'</button>'+
+          (s.editId?'<button onclick="abrirModalPremioSaldo()" title="'+t('boloes.title_premio_saldo')+'" style="border:1px solid #16a34a;border-radius:10px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">🏆 '+t('boloes.premio_seta_saldo')+'</button>':'')+
+          '<button onclick="abrirOpcoesImpressaoBolao()" style="border:1px solid #f59e0b;border-radius:10px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">🖨 '+t('geral.imprimir')+'</button>'+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-          (_boloesState.editId ? '<button onclick="verCadastroParticipantes()" title="'+t('boloes.title_cadastro')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📝 '+t('boloes.cadastro')+'</button>' : '')+
-          '<button onclick="imprimirTermosCondicoes()" title="'+t('boloes.title_termos_condicoes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📜 '+t('boloes.termos_condicoes')+'</button>'+
-          (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="'+t('boloes.title_termo_constituicao')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 '+t('boloes.termo_constituicao')+'</button>' : '')+
-          (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="'+t('boloes.title_dossie_premio')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 '+t('boloes.dossie_premio')+'</button>' : '')+
-          '<a href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center">📄 '+t('boloes.regras_funcionamento_itcmd')+'</a>'+
-          (_boloesState.editId ? '<button onclick="_enviarMensagemJogosEBilhetesBolao(\''+_boloesState.editId+'\')" title="'+t('boloes.title_avisar_participantes')+'" style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📣 '+t('boloes.avisar_participantes')+'</button>' : '')+
-          '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="'+t('boloes.title_finalizado_sem_vincular')+'"':'')+' style="border:1px solid '+cor+';border-radius:8px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 '+t('gerador.gerar_jogos')+'</button>'+
-          (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="'+t('boloes.title_mensagem_push')+'" style="border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">📣 '+t('boloes.mensagem')+'</button>' : '')+
+          (_boloesState.editId ? '<button onclick="verCadastroParticipantes()" title="'+t('boloes.title_cadastro')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📝 '+t('boloes.cadastro')+'</button>' : '')+
+          '<button onclick="imprimirTermosCondicoes()" title="'+t('boloes.title_termos_condicoes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📜 '+t('boloes.termos_condicoes')+'</button>'+
+          (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="'+t('boloes.title_termo_constituicao')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📄 '+t('boloes.termo_constituicao')+'</button>' : '')+
+          (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="'+t('boloes.title_dossie_premio')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📑 '+t('boloes.dossie_premio')+'</button>' : '')+
+          '<a href="'+URL_REGRAS_FUNCIONAMENTO+'" target="_blank" rel="noopener" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center">📄 '+t('boloes.regras_funcionamento_itcmd')+'</a>'+
+          (_boloesState.editId ? '<button onclick="_enviarMensagemJogosEBilhetesBolao(\''+_boloesState.editId+'\')" title="'+t('boloes.title_avisar_participantes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">📣 '+t('boloes.avisar_participantes')+'</button>' : '')+
+          '<button onclick="'+(bolaoFinalizado?'':'gerarJogosDoForm()')+'" '+(bolaoFinalizado?'disabled title="'+t('boloes.title_finalizado_sem_vincular')+'"':'')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+(bolaoFinalizado?'not-allowed':'pointer')+(bolaoFinalizado?';opacity:.5':'')+'">🎲 '+t('gerador.gerar_jogos')+'</button>'+
+          (_boloesState.editId ? '<button onclick="abrirEnviarMensagemBolao()" title="'+t('boloes.title_mensagem_push')+'" style="border:1px solid #f59e0b;border-radius:10px;padding:6px 12px;background:#f59e0b18;color:#f59e0b;font-weight:700;font-size:11px;cursor:pointer">📣 '+t('boloes.mensagem')+'</button>' : '')+
         '</div>'+
         '<input type="file" id="bol-file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display:none" onchange="importarParticipantes(this.files[0])"/>'+
       '</div>'+
@@ -19567,7 +19567,7 @@ function renderFormBolao(){
         '<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none">R$</span>'+
         '<input id="np-valor-cota" type="text" inputmode="decimal" style="'+inp+';padding-left:26px;width:110px" placeholder="0,00" title="'+t('boloes.title_valor_participante_semana')+'"/>'+
       '</div>'+
-      '<button onclick="addParticipanteBol()" style="border:none;border-radius:8px;padding:8px 16px;background:'+cor+';color:#fff;font-weight:700;font-size:12px;cursor:pointer">+ '+t('geral.adicionar')+'</button>'+
+      '<button onclick="addParticipanteBol()" style="border:none;border-radius:10px;padding:8px 16px;background:'+cor+';color:#fff;font-weight:700;font-size:12px;cursor:pointer">+ '+t('geral.adicionar')+'</button>'+
     '</div>'))+
     '<div id="boloes-part-lista"></div>'+
   '</div>';
@@ -19857,8 +19857,8 @@ async function abrirMensagensParticipante(bolaoParticipanteId, nomeParticipante)
         '</div>'+
         '<div id="msgp-lista" style="flex:1;overflow-y:auto;margin-bottom:12px;min-height:120px;font-size:12px;color:var(--text-muted)">'+t('geral.carregando')+'</div>'+
         '<div style="display:flex;gap:6px">'+
-          '<input id="msgp-input" placeholder="'+t('boloes.escreva_resposta')+'" style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--bg2,#1a1e2b);color:var(--text);font-size:13px" onkeydown="if(event.key===\'Enter\'){enviarMensagemDesktop(\''+bolaoParticipanteId+'\')}"/>'+
-          '<button onclick="enviarMensagemDesktop(\''+bolaoParticipanteId+'\')" style="border:none;border-radius:8px;padding:9px 16px;background:var(--accent,#3a9b4e);color:#fff;font-weight:700;cursor:pointer">'+t('boloes.enviar')+'</button>'+
+          '<input id="msgp-input" placeholder="'+t('boloes.escreva_resposta')+'" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--bg2,#1a1e2b);color:var(--text);font-size:13px" onkeydown="if(event.key===\'Enter\'){enviarMensagemDesktop(\''+bolaoParticipanteId+'\')}"/>'+
+          '<button onclick="enviarMensagemDesktop(\''+bolaoParticipanteId+'\')" style="border:none;border-radius:10px;padding:9px 16px;background:linear-gradient(135deg,#3A9B4E,#2d7a3d);color:#fff;font-weight:700;cursor:pointer">'+t('boloes.enviar')+'</button>'+
         '</div>'+
         '<div id="msgp-erro"></div>'+
       '</div>'+
@@ -20770,7 +20770,7 @@ function renderParticipantesBoloes(){
   }).join('');
   var resumoFooterHtml=_gerarResumoFooterHtml(s,pagantesAtivos,cotasAdmin,nPagantes,valorRateioPorPart,valorCota);
   var barraSel = nSel>0
-    ? '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:8px;margin-bottom:8px">'+
+    ? '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:10px;margin-bottom:8px">'+
         '<span style="font-size:12px;font-weight:700;color:#dc2626">'+t('boloes.n_selecionados',{n:nSel,s:nSel>1?'s':''})+'</span>'+
         '<button onclick="removerSelecionadosPart()" style="border:none;border-radius:7px;padding:5px 12px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;cursor:pointer">🗑 '+t('boloes.remover_selecionados')+'</button>'+
         '<button onclick="_boloesState._sel=[];renderParticipantesBoloes()" style="border:1px solid var(--glass-border);border-radius:7px;padding:5px 12px;background:var(--glass-bg);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">'+t('boloes.limpar_selecao')+'</button>'+
@@ -20794,7 +20794,7 @@ function _gerarConcursosPorParticipanteHtml(s,concursosLista){
       concursosLista.map(function(cc){
         var corTxt=_corTextoChipLoteria(cc);
         var iconeCc=cc._cfg?_iconeChipLoteria(cc._cfg,12,corTxt):'🌐';
-        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:8px;background:'+_corFundoChipLoteria(cc)+';border:1px solid '+cc.cor+'55;color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
+        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:10px;background:'+_corFundoChipLoteria(cc)+';border:1px solid '+cc.cor+'55;color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
       }).join('')+
     '</div>';
   };
@@ -21621,7 +21621,7 @@ async function abrirMensagensGerais(modoInicial,bolaoIdInicial){
       '</div>'+
       '<div style="padding:20px">'+
         '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.enviar_para')+'</label>'+
-        '<select id="mg-modo" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px" onchange="_mgAtualizarSeletor()">'+
+        '<select id="mg-modo" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px" onchange="_mgAtualizarSeletor()">'+
           '<option value="bolao">'+t('boloes.um_bolao_especifico')+'</option>'+
           '<option value="bolao_pendentes">'+t('boloes.pendentes_pagamento_bolao')+'</option>'+
           '<option value="participante">'+t('boloes.um_participante_especifico')+'</option>'+
@@ -21629,9 +21629,9 @@ async function abrirMensagensGerais(modoInicial,bolaoIdInicial){
         '</select>'+
         '<div id="mg-seletor-area" style="margin-bottom:12px"></div>'+
         '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.titulo')+'</label>'+
-        '<input id="mg-titulo" value="📣 '+t('boloes.aviso_organizador')+'" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px;box-sizing:border-box"/>'+
+        '<input id="mg-titulo" value="📣 '+t('boloes.aviso_organizador')+'" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:12px;box-sizing:border-box"/>'+
         '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.mensagem')+'</label>'+
-        '<textarea id="mg-corpo" rows="4" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:16px;resize:vertical;box-sizing:border-box"></textarea>'+
+        '<textarea id="mg-corpo" rows="4" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px;margin-bottom:16px;resize:vertical;box-sizing:border-box"></textarea>'+
         '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.anexar_arquivo_opcional')+'</label>'+
         '<input id="mg-anexo" type="file" style="width:100%;padding:6px 0;color:var(--text);font-size:12px;margin-bottom:6px"/>'+
         '<div style="font-size:10.5px;color:var(--text-muted);margin-bottom:16px">'+t('boloes.dica_anexo_whatsapp')+'</div>'+
@@ -21678,14 +21678,14 @@ async function _mgAtualizarSeletor(bolaoIdPreselecionado){
     _mgBoloesCache=data||[];
     var opts=_mgBoloesCache.map(function(b){ return '<option value="'+b.id+'"'+(b.id===bolaoIdPreselecionado?' selected':'')+'>'+_esc(b.nome)+'</option>'; }).join('');
     area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.bolao_label')+'</label>'+
-      '<select id="mg-bolao-id" onchange="_mgBolaoSelecionado()" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts||'<option value="">'+t('boloes.nenhum_bolao_salvo_opt')+'</option>')+'</select>';
+      '<select id="mg-bolao-id" onchange="_mgBolaoSelecionado()" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts||'<option value="">'+t('boloes.nenhum_bolao_salvo_opt')+'</option>')+'</select>';
     _mgBolaoSelecionado();
   } else if(modo==='participante'){
     var { data:pData, error:pErr }=await sb.rpc('rpc_admin_listar_participantes_vinculados');
     if(pErr){ area.innerHTML='<div style="color:#e0503c;font-size:12px">'+t('boloes.erro_carregar_participantes',{msg:_esc(pErr.message)})+'</div>'; return; }
     var opts2=(pData||[]).map(function(p){ return '<option value="'+p.participante_user_id+'">'+_esc(p.nome)+'</option>'; }).join('');
     area.innerHTML='<label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">'+t('boloes.participante_label')+'</label>'+
-      '<select id="mg-participante-id" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts2||'<option value="">'+t('boloes.nenhum_participante_vinculado')+'</option>')+'</select>';
+      '<select id="mg-participante-id" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text);font-size:13px">'+(opts2||'<option value="">'+t('boloes.nenhum_participante_vinculado')+'</option>')+'</select>';
     _mgSetTituloPadrao();
   }
 }
@@ -22471,7 +22471,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
           // lista). Teimosinha usa o concurso de origem aqui — a sequência
           // completa já aparece à parte, dentro de statusJogoHtml.
           var _concursoLabelJ=concursoDoJogoP!=null?('#'+_esc(String(concursoDoJogoP))):'?';
-          return '<div style="border:1px solid #ddd;border-radius:8px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+corLabelJogo+';margin-right:3px" title="Concurso '+_concursoLabelJ+'">'+_concursoLabelJ+'</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
+          return '<div style="border:1px solid #ddd;border-radius:10px;padding:5px 9px;font-family:monospace;display:flex;align-items:center;gap:2px;flex-wrap:wrap"><b style="color:'+corLabelJogo+';margin-right:3px" title="Concurso '+_concursoLabelJ+'">'+_concursoLabelJ+'</b>'+tag+nums+extra+trevos+mesHtmlB+timeHtmlB+statusJogoHtml+'</div>';
         })(_jogosOrdenadosL[_ji], _ji);
         if(_linhaJ) _linhasJogosL.push(_linhaJ);
         _processadosPrint++;
@@ -22488,10 +22488,10 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     // o título solto, sem nenhum jogo embaixo — substitui por uma mensagem
     // clara em vez de deixar a seção parecendo quebrada/vazia.
     if(soPremiados&&jogosHtml===jogosHtmlAntesDoLoop){
-      jogosHtml=jogosHtmlAntesDoLoop+'<div style="margin-top:8px;padding:10px;border:1px dashed #ccc;border-radius:8px;color:#999;font-size:11px;text-align:center">'+t('termos.nenhum_jogo_premiado_bolao_ate_momento')+'</div>';
+      jogosHtml=jogosHtmlAntesDoLoop+'<div style="margin-top:8px;padding:10px;border:1px dashed #ccc;border-radius:10px;color:#999;font-size:11px;text-align:center">'+t('termos.nenhum_jogo_premiado_bolao_ate_momento')+'</div>';
     }
   } else {
-    jogosHtml='<div style="margin-top:18px;padding:10px;border:1px dashed #ccc;border-radius:8px;color:#999;font-size:11px;text-align:center">'+t('termos.nenhum_jogo_vinculado_bolao_vincule')+'</div>';
+    jogosHtml='<div style="margin-top:18px;padding:10px;border:1px dashed #ccc;border-radius:10px;color:#999;font-size:11px;text-align:center">'+t('termos.nenhum_jogo_vinculado_bolao_vincule')+'</div>';
   }
   // Encerra o indicador de progresso — todo o processamento pesado (cálculo
   // de prêmio por jogo) já terminou neste ponto; o restante do relatório
@@ -22598,9 +22598,9 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     'box-shadow:inset 0 0 0 1px #c0392b;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>';
   var printBar='<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:var(--text-muted)">'+t('termos.ajuste_impressora_aviso')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid var(--glass-border);border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid var(--glass-border);border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>';
   var corpo='<h1>'+_esc(s.nome)+'</h1>'+
     '<div class="sub">'+t('termos.sorteio_modalidade_valor_cota',{sorteio:_sorteioNome(s.sorteio),modalidade:_modNome(s.modalidade),valor:_bMoney(valorCota)})+'</div>'+
@@ -22755,9 +22755,9 @@ function imprimirTermoConstituicao(retornarHtml){
     '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>';
   var printBar='<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('termos.documento_governanca_aviso')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>';
   var corpo='<h1>'+t('termos.termo_constituicao_titulo_maiusc')+'</h1>'+
     '<div class="sub">'+t('termos.sub_nome_emitido_em',{nome:_esc(s.nome),data:dataEmissao})+
@@ -22894,9 +22894,9 @@ async function imprimirDossiePremio(){
     '.sec-comprovantes .cap{font-size:8px;color:#555;text-align:center;margin-top:2px;line-height:1.3}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('termos.termo_jogos_comprovantes_documento_so')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     secoes.join('')+
     '</body></html>';
@@ -22946,9 +22946,9 @@ function imprimirTermosCondicoes(){
     'p{margin:4px 0 10px}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('termos.modelo_padrao_aviso')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>'+t('termos.h1')+'</h1>'+
     '<div class="sub">'+t('termos.sub',{nome:_esc(s.nome||t('boloes.bolao_fallback')),admNome:v(s.admin.nome),tipoDoc:tipoDoc,admCpf:v(s.admin.cpf)})+'</div>'+
@@ -23438,7 +23438,7 @@ function abrirPainelQualidade(){
           '<div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;font-size:11px;color:var(--text)">'+chi2Html+'</div>'+
         '</div>'+
         '<div style="margin-top:16px;text-align:center">'+
-          '<button onclick="document.getElementById(\''+modalId+'\').remove();abrirBacktestUI();" style="border:1px solid '+d.cor+'66;border-radius:8px;padding:8px 16px;background:'+d.cor+'14;color:var(--text);font-size:11px;font-weight:700;cursor:pointer">📊 '+t('gerador.ver_validacao_completa')+'</button>'+
+          '<button onclick="document.getElementById(\''+modalId+'\').remove();abrirBacktestUI();" style="border:1px solid '+d.cor+'66;border-radius:10px;padding:8px 16px;background:'+d.cor+'14;color:var(--text);font-size:11px;font-weight:700;cursor:pointer">📊 '+t('gerador.ver_validacao_completa')+'</button>'+
         '</div>'+
         '<div style="margin-top:14px;font-size:10px;color:var(--text-muted);font-style:italic">'+t('gerador.disclaimer_score')+'</div>'+
       '</div>'+
@@ -23826,8 +23826,8 @@ async function verBilhetesBolao(){
         lista.map(function(b){
           var ehPdf=/\.pdf(\?|$)/i.test(b.foto_url);
           var thumb=ehPdf
-            ? '<div onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="'+t('boloes.abrir_pdf')+'" style="width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"><span style="font-size:32px">📄</span><span style="font-size:9px;color:var(--text-muted);font-weight:700">PDF</span></div>'
-            : '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="'+t('boloes.ver_tamanho_real')+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--glass-border)"/>';
+            ? '<div onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="'+t('boloes.abrir_pdf')+'" style="width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.04);border-radius:10px;cursor:pointer;border:1px solid var(--glass-border)"><span style="font-size:32px">📄</span><span style="font-size:9px;color:var(--text-muted);font-weight:700">PDF</span></div>'
+            : '<img src="'+_esc(b.foto_url)+'" onclick="window.open(\''+_esc(b.foto_url)+'\',\'_blank\')" title="'+t('boloes.ver_tamanho_real')+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;border:1px solid var(--glass-border)"/>';
           return '<div style="position:relative">'+thumb+
             '<button onclick="_excluirBilheteBolao(\''+b.id+'\')" title="'+t('geral.excluir')+'" style="position:absolute;top:4px;right:4px;border:none;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button>'+
             (b.created_at ? '<div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:2px;white-space:nowrap">'+ptFmtData(b.created_at)+'</div>' : '')+
@@ -24038,8 +24038,8 @@ async function verComprovantesPix(){
         var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
         var ehPdfComp=/\.pdf(\?|$)/i.test(c.foto_url);
         var thumbComp=ehPdfComp
-          ? '<div onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="'+t('boloes.abrir_pdf')+'" style="width:52px;height:52px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--glass-bg);cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"><span style="font-size:20px">📄</span><span style="font-size:8px;color:var(--text-muted);font-weight:700">PDF</span></div>'
-          : '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="'+t('boloes.ver_tamanho_real')+'" style="width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"/>';
+          ? '<div onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="'+t('boloes.abrir_pdf')+'" style="width:52px;height:52px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--glass-bg);cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"><span style="font-size:20px">📄</span><span style="font-size:8px;color:var(--text-muted);font-weight:700">PDF</span></div>'
+          : '<img src="'+_esc(c.foto_url)+'" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')" title="'+t('boloes.ver_tamanho_real')+'" style="width:52px;height:52px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--glass-border);flex-shrink:0"/>';
         var precisaVerificar=p && p.statusPag!=='pago';
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border)">'+
           thumbComp+
@@ -24350,7 +24350,7 @@ async function verJogosVinculados(){
     // e por isso já saíam com fundo e texto no mesmo tom).
     // Texto do chip: mesma regra única de corMarca (prefere corTexto) —
     // só a Timemania tem corTexto hoje, as demais caem no próprio cor.
-    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
+    var badgeLoteria=(c.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';margin-left:8px;display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c.loteria)+'</span>'):'';
     return '<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;overflow:hidden">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);flex-wrap:wrap;gap:8px">'+
         '<div>'+
@@ -25611,7 +25611,7 @@ async function _renderPainelSchemaNovo(){
   box.innerHTML=ordem.map(function(chave){
     var jogos=grupos[chave];
     var primeiro=jogos[0];
-    return '<div style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;margin-bottom:8px">'+
+    return '<div style="border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
       '<div><b>'+_esc(primeiro.loteria)+'</b> — '+jogos.length+' jogo'+(jogos.length!==1?'s':'')+(primeiro.nome?' · <span style="color:#facc15">"'+_esc(primeiro.nome)+'"</span>':'')+'</div>'+
       '<div style="color:#888;font-size:10px">criado '+new Date(primeiro.created_at).toLocaleString('pt-BR')+'</div>'+
       jogos.map(linhaJogo).join('')+
@@ -26322,9 +26322,9 @@ function ptAbrirTermosCondicoes(){
     'p{margin:4px 0 10px}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('termos.modelo_padrao_aviso')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     '<h1>'+t('termos.h1')+'</h1>'+
     '<div class="sub">'+t('termos.sub',{nome:_esc(info.bolao_nome||t('boloes.bolao_fallback')),admNome:v(info.admin_nome),tipoDoc:tipoDoc,admCpf:v(info.admin_cpf)})+'</div>'+
@@ -26448,9 +26448,9 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
     '.assinatura .linha{border-top:1px solid #333;margin-top:32px;padding-top:4px;font-size:10.5px}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>';
   var printBar='<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('termos.documento_governanca_aviso')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>';
   var corpo='<h1>'+t('termos.termo_constituicao_titulo_maiusc')+'</h1>'+
     '<div class="sub">'+t('termos.sub_nome_emitido_em',{nome:_esc(info.bolao_nome||t('boloes.bolao_fallback')),data:dataEmissao})+
@@ -26618,8 +26618,8 @@ async function _ptBuildHtmlJogosPremiados(bolaoId){
             var bolinhas=(j.numeros||[]).map(function(n){ return ptBolinhaLoteria(n,j.loteria,sorteadas?sorteadas.has(Number(n)):false); }).join('');
             var trevosHtml=(j.trevos&&j.trevos.length)?' <span style="font-size:10px;color:#888">'+t('jogo.trevo_abrev')+'</span> '+j.trevos.map(function(n){return ptBolinha(n,PT_TREVO_COR,null,trevosSort?trevosSort.has(Number(n)):false);}).join(''):'';
             var extraHtml=(extrasJ.extra!=null)?' <span style="font-size:10px;color:#888">+</span> '+ptBolinha(extrasJ.extra,ptBolaExtraCor(j.loteria),null,extraSort!=null?extraSort===Number(extrasJ.extra):false):'';
-            var mesTimeHtml=extrasJ.mes!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:8px;background:#eee;color:#555">'+t('pt.mes_dois_pontos',{v:_esc(PT_MESES[extrasJ.mes-1]||extrasJ.mes)})+'</span>'
-              :(extrasJ.time!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:8px;background:#eee;color:#555">'+t('pt.time_hash',{v:_esc(extrasJ.time)})+'</span>':'');
+            var mesTimeHtml=extrasJ.mes!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:10px;background:#eee;color:#555">'+t('pt.mes_dois_pontos',{v:_esc(PT_MESES[extrasJ.mes-1]||extrasJ.mes)})+'</span>'
+              :(extrasJ.time!=null?' <span style="font-size:9px;padding:2px 6px;border-radius:10px;background:#eee;color:#555">'+t('pt.time_hash',{v:_esc(extrasJ.time)})+'</span>':'');
             var premio=' <span style="color:#b8860b;font-weight:800;font-size:12px;white-space:nowrap">🏆 '+ptBMoney(j.valor)+'</span>';
             return '<div class="linha-jogo">'+bolinhas+trevosHtml+extraHtml+mesTimeHtml+premio+'</div>';
           }).join('');
@@ -26735,9 +26735,9 @@ async function ptAbrirDossiePremio(bolaoId){
     '.sec-comprovantes .cap{font-size:8px;color:#555;text-align:center;margin-top:2px;line-height:1.3}'+
     '@media print{#print-bar{display:none!important}#print-spacer{display:none!important}}</style></head><body>'+
     '<div id="print-bar" style="position:fixed;top:0;left:0;right:0;background:#1a1f2e;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)">'+
-      '<button onclick="window.print()" style="border:none;border-radius:8px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
+      '<button onclick="window.print()" style="border:none;border-radius:10px;padding:9px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">🖨️ '+t('geral.imprimir')+'</button>'+
       '<span style="font-size:12px;color:#ccc">'+t('pt.termo_relatorio_comprovantes_documento_so')+'</span>'+
-      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:8px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
+      '<button onclick="window.close()" style="margin-left:auto;border:1px solid #444;border-radius:10px;padding:9px 16px;background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer">'+t('geral.fechar')+'</button>'+
     '</div><div id="print-spacer" style="height:52px"></div>'+
     secoes.join('')+
     '</body></html>';
@@ -26856,8 +26856,8 @@ function ptComprovantesPerfilHtml(meusBoloes,comprovantes){
   var itens=lista.map(function(c){
     var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
     var thumb=ehPdf
-      ?'<div style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:8px;border:1px solid var(--glass-border);font-size:18px">📄</div>'
-      :'<img src="'+_esc(c.foto_url)+'" style="width:40px;height:40px;flex:0 0 40px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border)"/>';
+      ?'<div style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:10px;border:1px solid var(--glass-border);font-size:18px">📄</div>'
+      :'<img src="'+_esc(c.foto_url)+'" style="width:40px;height:40px;flex:0 0 40px;object-fit:cover;border-radius:10px;border:1px solid var(--glass-border)"/>';
     return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--glass-border);cursor:pointer" onclick="window.open(\''+_esc(c.foto_url)+'\',\'_blank\')">'+
       thumb+'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(c.bolao_nome)+'</div>'+
       '<div style="font-size:10px;color:var(--text-muted)">'+_esc(ptFmtData(c.created_at))+'</div></div></div>';
