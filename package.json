@@ -1,6 +1,6 @@
 {
   "name": "lottoanalytics",
-  "version": "4.9.11",
+  "version": "4.9.12",
   "description": "LottoAnalytics - Análise estatística de loterias brasileiras e americanas",
   "main": "main.js",
   "author": "Mario",
@@ -25,7 +25,8 @@
       "manual.html",
       "manual-img/**/*",
       "regras-funcionamento-itcmd.html",
-      "build/icon.png"
+      "build/icon.png",
+      "assets/volantes/**/*"
     ],
     "publish": {
       "provider": "github",
