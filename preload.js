@@ -33,3 +33,12 @@ contextBridge.exposeInMainWorld('lottoApp', {
     return ipcRenderer.invoke('get-app-version');
   }
 });
+
+// Impressão via PDF real (ver main.js) — só existe no app Desktop; o site
+// (navegador comum) não tem esse objeto, então abrirJanelaImpressao()
+// detecta a ausência dele e usa o caminho antigo (iframe + window.print).
+contextBridge.exposeInMainWorld('lottoPrint', {
+  imprimirHtml: function (titulo, html) {
+    return ipcRenderer.invoke('imprimir-html', { titulo: titulo, html: html });
+  }
+});

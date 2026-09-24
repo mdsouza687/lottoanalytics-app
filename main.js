@@ -37,6 +37,60 @@ ipcMain.handle('get-app-version', function () {
   return app.getVersion();
 });
 
+// Achado ao vivo (2026-09-24, pedido do usuário): window.print() no
+// Electron sempre abre o diálogo NATIVO do Windows — sem a pré-visualização
+// que o site mostra rodando num navegador de verdade — e imprimir a partir
+// de um <iframe> oculto (abordagem antiga, ver abrirJanelaImpressao no
+// index.html) tem bug conhecido do Electron no Windows onde esse diálogo
+// nativo pode travar a janela principal depois de imprimir/cancelar,
+// exigindo forçar o encerramento do app pelo Gerenciador de Tarefas.
+// Solução: gerar um PDF de verdade (webContents.printToPDF, numa janela
+// OCULTA própria, nunca a principal) e abrir no visualizador padrão do
+// Windows via shell.openPath — dá preview completo e imprime normal,
+// sem depender do diálogo nativo do Electron. O site (rodando em navegador
+// comum, sem window.lottoPrint) continua com o caminho antigo, que já
+// funciona bem lá.
+ipcMain.handle('imprimir-html', async function (_event, dados) {
+  const titulo = (dados && dados.titulo) || 'documento';
+  const html = (dados && dados.html) || '';
+  let janelaImpressao = null;
+  let caminhoHtmlTemp = null;
+  try {
+    janelaImpressao = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+    caminhoHtmlTemp = path.join(app.getPath('temp'), 'lottoanalytics-print-' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.html');
+    fs.writeFileSync(caminhoHtmlTemp, html, 'utf8');
+    await janelaImpressao.loadFile(caminhoHtmlTemp);
+    // Mesma preocupação do antigo esperarImagens() (esperar os templates de
+    // volante terminarem de decodificar antes de gerar o PDF), mas agora
+    // rodando isolado na janela oculta — se travar, só essa janela some no
+    // timeout, nunca a janela principal do app.
+    await janelaImpressao.webContents.executeJavaScript(
+      'Promise.race([' +
+      'Promise.all([...document.images].map(function(img){' +
+      'return img.complete ? (img.decode?img.decode().catch(function(){}):Promise.resolve()) : new Promise(function(res){ img.addEventListener("load",res,{once:true}); img.addEventListener("error",res,{once:true}); });' +
+      '})),' +
+      'new Promise(function(res){ setTimeout(res,4000); })' +
+      '])'
+    );
+    const pdfBuffer = await janelaImpressao.webContents.printToPDF({
+      printBackground: true,
+      preferCSSPageSize: true,
+      margins: { marginType: 'none' }
+    });
+    const nomeArquivo = String(titulo).replace(/[\\/:*?"<>|]+/g, '-').trim() + '.pdf';
+    const caminhoPdf = path.join(app.getPath('temp'), nomeArquivo);
+    fs.writeFileSync(caminhoPdf, pdfBuffer);
+    const erroAbrir = await shell.openPath(caminhoPdf);
+    if (erroAbrir) return { ok: false, erro: erroAbrir };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, erro: e && e.message ? e.message : String(e) };
+  } finally {
+    if (janelaImpressao && !janelaImpressao.isDestroyed()) janelaImpressao.destroy();
+    if (caminhoHtmlTemp) { try { fs.unlinkSync(caminhoHtmlTemp); } catch (e) { /* não crítico */ } }
+  }
+});
+
 // Duas (ou mais) janelas do .exe abertas ao mesmo tempo (ex.: testar
 // contas diferentes em paralelo) tentavam abrir o MESMO IndexedDB local
 // (mesma pasta userData) — o backend de armazenamento do Electron só
