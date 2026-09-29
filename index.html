@@ -1586,6 +1586,10 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // frente (se a versão não tiver entrada, cai de volta no toast simples
 // de sempre — nunca quebra por falta de changelog).
 var LA_CHANGELOG_DESKTOP={
+  '5.3.0':[
+    'Ícones padronizados: os emojis que ainda apareciam em botões, títulos, avisos, relatórios e impressões foram trocados pelos ícones de linha do app — a mesma aparência do app mobile.',
+    'As notificações push e os tooltips continuam com emoji, porque são texto puro.'
+  ],
   '5.2.1':[
     'Versão alinhada com o app mobile (5.2.1) — os dois apps agora andam sempre na mesma versão.'
   ],
@@ -1820,7 +1824,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.2.1</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.3.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2161,7 +2165,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.2.1</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.3.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -4584,6 +4588,32 @@ var LA_ICONES = {
   pasta:'<path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6Z"/>',
   impressora:'<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
   pulso:'<path d="M3 12h4l2-7 4 14 2-7h6"/>',
+  mais:'<path d="M12 5v14M5 12h14"/>',
+  fechar:'<path d="M6 6l12 12M18 6L6 18"/>',
+  olho:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  olhoFechado:'<path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.7C3.8 8.5 2 12 2 12s4 7 10 7c1.6 0 3-.4 4.3-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  alerta:'<path d="M12 3L2 20h20L12 3Z"/><path d="M12 10v4M12 17.5v.01"/>',
+  camera:'<path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z"/><circle cx="12" cy="13" r="3.5"/>',
+  relogio:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  digital:'<path d="M12 11v3a5 5 0 0 1-1.5 3.5"/><path d="M8 11a4 4 0 0 1 8 0v2a9 9 0 0 1-2 5.6"/><path d="M5 11a7 7 0 0 1 14 0v1c0 2-.3 3.6-.9 5"/><path d="M12 15c0 2-.5 3.5-1.5 5"/>',
+  lua:'<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/>',
+  sol:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  paleta:'<path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.3-.5-.8-.5-1.2 0-1.1.9-2 2-2H17a4 4 0 0 0 4-4c0-4.4-4-7.5-9-7.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/>',
+  mao:'<path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2.5 7-6 7-2.5 0-4-1-5.5-3L3 14.5a1.6 1.6 0 0 1 2.5-2L8 15"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
+  fogo:'<path d="M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-1.5.5-2.5 1.5-3.5 0 1.5 1 2 1.5 2C11 7 10.5 5 12 3Z"/>',
+  floco:'<path d="M12 2v20M4 6l16 12M20 6L4 18M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>',
+  balanca:'<path d="M12 3v18M7 21h10M4 7h16"/><path d="M6 7l-3 6a3 3 0 0 0 6 0L6 7ZM18 7l-3 6a3 3 0 0 0 6 0L18 7Z"/>',
+  proibido:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+  numeros:'<path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/>',
+  globo:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+  celular:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  saida:'<path d="M12 15V5m0 0L8.5 8.5M12 5l3.5 3.5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
+  play:'<path d="M7 4l13 8-13 8V4Z"/>',
+  pausa:'<path d="M8 5v14M16 5v14"/>',
+  computador:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/>',
 };
 function _ic(nome, tamanho, cor){
   tamanho = tamanho || 18;
@@ -4591,6 +4621,77 @@ function _ic(nome, tamanho, cor){
   if(!svg) return '';
   return '<svg viewBox="0 0 24 24" width="'+tamanho+'" height="'+tamanho+'" style="stroke:'+(cor||'currentColor')+';fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0">'+svg+'</svg>';
 }
+// ═══ Emoji → ícone de linha (pedido do usuário, 2026-09-29) ═══
+// Mobile e Desktop precisam ter a mesma aparência: os emojis espalhados pelo
+// Desktop (botões, títulos, rótulos, textos traduzidos) viram os mesmos ícones
+// de linha do catálogo LA_ICONES. Em vez de reescrever centenas de textos um a
+// um (muitos vêm de tradução, montados em runtime), este conversor troca o
+// emoji por ícone em QUALQUER texto que entra na tela: uma passada no
+// carregamento + um observador que trata tudo que for inserido depois.
+// Não mexe em <option>/<select>/<textarea>/<input> (não aceitam SVG), em
+// script/style/title, nem em campos editáveis; tooltips (atributo title) e
+// notificações push continuam com o emoji, que é texto puro.
+var LA_EMOJI_ICONE={'🏆':'trofeu','⭐':'estrela','📥':'entrada','💸':'pix','✅':'confirmado','✓':'confirmado','➕':'mais','🎲':'dado','✕':'fechar','✗':'fechar','🔄':'sincronizar','🔁':'sincronizar','🎉':'festa','📄':'documento','👁':'olho','🙈':'olhoFechado','📎':'clipe','🔒':'cadeadoFechado','🔐':'escudo','🪞':'espelho','💾':'salvar','📨':'envelope','🗑':'lixeira','🔎':'lupa','📣':'megafone','🎙':'organizador','🪙':'cifrao','⚠':'alerta','⚙':'engrenagem','📊':'grafico','🤖':'robo','🎫':'impressora','📅':'calendario','✏':'editar','✍':'editar','💬':'mensagem','📷':'camera','⏳':'relogio','⏱':'relogio','⏰':'relogio','🧾':'recibo','🔗':'link','🔔':'avisos','👆':'digital','📁':'pasta','👤':'perfil','🌙':'lua','☀':'sol','🌈':'paleta','📜':'manual','✋':'mao','⚡':'raio','🎟':'dado','ℹ':'info','💰':'saldo','💠':'diamante','🔥':'fogo','🎯':'alvo','🖨':'impressora','🕐':'relogio','❄':'floco','⚖':'balanca','🚫':'proibido','🍀':'trevo','🔢':'numeros','🌐':'globo','📋':'relatorios','☑':'confirmado','👥':'grupo','📈':'grafico','📝':'editar','📌':'pin','⚽':'futebol','🌟':'estrela','📂':'pasta','📱':'celular','🔬':'lupa','📚':'manual','🧪':'grafico','✉':'envelope','📉':'grafico','⏸':'pausa','💻':'computador','🌡':'pulso','📐':'grade','🧑':'perfil','📖':'manual','🛠':'engrenagem','🚪':'sair','✨':'estrela','📍':'pin','🎰':'dado','🔮':'estrela','🔧':'engrenagem','🌸':'trevo','💜':'coracao','💎':'diamante','🧮':'grade','❌':'fechar','▶':'play','🗓':'calendario','🤝':'grupo','📤':'saida','📑':'pasta','🔲':'grade'};
+var _LA_EMOJI_TESTE=new RegExp('('+Object.keys(LA_EMOJI_ICONE).join('|')+')');
+var _LA_EMOJI_RE=new RegExp('('+Object.keys(LA_EMOJI_ICONE).join('|')+')️?','g');
+var _LA_ICONIZA_PULA={OPTION:1,OPTGROUP:1,SELECT:1,TEXTAREA:1,INPUT:1,SCRIPT:1,STYLE:1,TITLE:1,NOSCRIPT:1};
+function _laEscHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Versão para strings HTML (relatórios, textos traduzidos já seguros)
+function _iconizaTexto(html, tam){
+  if(html==null) return '';
+  return String(html).replace(_LA_EMOJI_RE, function(m,e){ return _ic(LA_EMOJI_ICONE[e], tam||'1.15em'); });
+}
+function _iconizaNoTexto(no){
+  var pai=no.parentNode;
+  if(!pai||pai.nodeType!==1) return;
+  if(_LA_ICONIZA_PULA[pai.nodeName]) return;
+  if(pai.namespaceURI!=='http://www.w3.org/1999/xhtml') return;
+  if(pai.isContentEditable) return;
+  var txt=no.nodeValue;
+  if(!_LA_EMOJI_TESTE.test(txt)) return;
+  var html='', ult=0, m;
+  _LA_EMOJI_RE.lastIndex=0;
+  while((m=_LA_EMOJI_RE.exec(txt))){
+    html+=_laEscHtml(txt.slice(ult,m.index))+_ic(LA_EMOJI_ICONE[m[1]],'1.15em');
+    ult=m.index+m[0].length;
+  }
+  html+=_laEscHtml(txt.slice(ult));
+  var doc=no.ownerDocument, r=doc.createRange();
+  r.selectNode(no);
+  pai.replaceChild(r.createContextualFragment(html),no);
+}
+function _iconizaDOM(raiz){
+  if(!raiz) return;
+  if(raiz.nodeType===3){ _iconizaNoTexto(raiz); return; }
+  if(raiz.nodeType!==1&&raiz.nodeType!==9&&raiz.nodeType!==11) return;
+  var doc=raiz.ownerDocument||raiz;
+  var alvo=raiz.nodeType===9?raiz.body:raiz;
+  if(!alvo) return;
+  if(!_LA_EMOJI_TESTE.test(alvo.textContent||'')) return;
+  var w=doc.createTreeWalker(alvo,4,null), lista=[], n;
+  while((n=w.nextNode())){ if(_LA_EMOJI_TESTE.test(n.nodeValue)) lista.push(n); }
+  for(var i=0;i<lista.length;i++) _iconizaNoTexto(lista[i]);
+}
+var _iconizaObs=null;
+function _iconizaIniciar(){
+  if(_iconizaObs||typeof MutationObserver==='undefined'||!document.documentElement) return;
+  var opcoes={childList:true,subtree:true,characterData:true};
+  _iconizaObs=new MutationObserver(function(muts){
+    _iconizaObs.disconnect();
+    try{
+      for(var i=0;i<muts.length;i++){
+        var m=muts[i];
+        if(m.type==='characterData'){ if(m.target.isConnected) _iconizaDOM(m.target); }
+        else{ for(var j=0;j<m.addedNodes.length;j++){ var nn=m.addedNodes[j]; if(nn.isConnected) _iconizaDOM(nn); } }
+      }
+    }catch(e){ console.error('iconiza',e); }
+    finally{ _iconizaObs.observe(document.documentElement,opcoes); }
+  });
+  _iconizaObs.observe(document.documentElement,opcoes);
+  if(document.body) _iconizaDOM(document.body);
+}
+_iconizaIniciar();
+document.addEventListener('DOMContentLoaded',function(){ _iconizaDOM(document.body); });
 function _aplicarI18nDOM(root){
   // data-ic (pedido do usuário, 2026-09-29 — equalização visual com o
   // mobile): mesmo padrão do data-i18n, mas pra ícones de linha estáticos
@@ -11612,6 +11713,7 @@ function abrirJanelaImpressao(tituloDoc, htmlConteudo, opts){
   doc.open();
   doc.write(htmlDocumentoCompleto);
   doc.close();
+  try{ _iconizaDOM(doc.body); }catch(e){}
 
   // Remove qualquer aviso de tentativa anterior antes de começar de novo.
   const removerAviso=()=>{ const a=document.getElementById('print-fallback-overlay'); if(a) a.remove(); };
@@ -23215,7 +23317,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   if(_totalPrint>300){ toast(t('termos.relatorio_grande_aviso',{n:_totalPrint})); }
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups')); return; }
-  w.document.write(html); w.document.close();
+  w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
   setTimeout(function(){ w.print(); }, 500);
 }
 
@@ -23356,7 +23458,7 @@ function imprimirTermoConstituicao(retornarHtml){
   var html=headStyle+printBar+corpo+'</body></html>';
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups')); return; }
-  w.document.write(html); w.document.close();
+  w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
   setTimeout(function(){ w.print(); }, 500);
 }
 
@@ -23463,7 +23565,7 @@ async function imprimirDossiePremio(){
 
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups')); return; }
-  w.document.write(html); w.document.close();
+  w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
   setTimeout(function(){ w.print(); }, 500);
 }
 
@@ -23576,7 +23678,7 @@ function imprimirTermosCondicoes(){
 
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups')); return; }
-  w.document.write(html); w.document.close();
+  w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
   setTimeout(function(){ w.print(); }, 500);
 }
 
@@ -26876,7 +26978,7 @@ function ptClausulaTaxaAdministrativa(info){
 function ptAbrirDocumento(html){
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups_abrir_doc')); return; }
-  w.document.write(html); w.document.close();
+  w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
 }
 function ptAbrirTermosCondicoes(){
   var info=_ptUltimoInfoBolao;
