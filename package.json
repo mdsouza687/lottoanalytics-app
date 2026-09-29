@@ -1,6 +1,6 @@
 {
   "name": "lottoanalytics",
-  "version": "5.0.7",
+  "version": "5.1.0",
   "description": "LottoAnalytics - Análise estatística de loterias brasileiras e americanas",
   "main": "main.js",
   "author": "Mario",
