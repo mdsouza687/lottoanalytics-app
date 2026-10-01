@@ -1588,6 +1588,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.7.3':{
+    'en-US':["Participants button bar tidier: Print moved to the end of the second row, after Message, and the Operating Rules and ITCMD Exemption button now looks like the other buttons."],
+    'es-ES':["Barra de botones de Participantes más ordenada: Imprimir pasó al final de la segunda fila, después de Mensaje, y el botón de Reglas de Funcionamiento y Exención de ITCMD quedó igual a los demás botones."],
+    'it-IT':["Barra dei pulsanti dei Partecipanti più ordinata: Stampa è passato alla fine della seconda riga, dopo Messaggio, e il pulsante Regole di funzionamento ed esenzione ITCMD ora è uguale agli altri pulsanti."]
+  },
   '5.7.2':{
     'en-US':["Version aligned with the mobile app (5.7.2): in the mobile app, the drawing number now comes filled in automatically when adding games, sending a guess, reviewing a ticket photo and linking saved games."],
     'es-ES':["Versión alineada con la app móvil (5.7.2): en la app móvil, el número del sorteo ahora aparece completado automáticamente al agregar juegos, enviar una jugada, revisar la foto del boleto y vincular juegos guardados."],
@@ -1655,6 +1660,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.7.3':[
+    "Barra de botões de Participantes mais organizada: Imprimir passou para o fim da segunda linha, depois de Mensagem, e o botão de Regras de Funcionamento e Isenção de ITCMD ficou igual aos demais botões."
+  ],
   '5.7.2':[
     "Versão alinhada com o app mobile (5.7.2): no app mobile, o número do concurso agora vem preenchido sozinho ao inserir jogos, enviar palpite, revisar bilhete por foto e vincular jogos salvos."
   ],
@@ -1961,7 +1969,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.2</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.3</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2337,7 +2345,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.2</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.3</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
