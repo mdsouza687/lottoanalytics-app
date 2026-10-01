@@ -1588,6 +1588,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.6.1':{
+    'en-US':["Fast results for everyone: during draw times (Monday to Friday from 9 pm; Sunday 11 am to 2 pm) the administrator's Desktop checks the Caixa portal every 3 minutes and publishes the provisional numbers to the server, so the mobile app also shows the result within minutes. The full official result still replaces them automatically when Caixa releases it. Version aligned with the mobile app (5.6.1)."],
+    'es-ES':["Resultados rápidos para todos: en los horarios de sorteo (de lunes a viernes desde las 21 h; domingo de 11 h a 14 h) el Desktop del administrador consulta el portal de Caixa cada 3 minutos y publica los números provisionales en el servidor, para que la app móvil también muestre el resultado en minutos. El resultado oficial completo sigue reemplazándolos automáticamente cuando Caixa lo libera. Versión alineada con la app móvil (5.6.1)."],
+    'it-IT':["Risultati rapidi per tutti: negli orari delle estrazioni (dal lunedì al venerdì dalle 21; domenica dalle 11 alle 14) il Desktop dell'amministratore controlla il portale Caixa ogni 3 minuti e pubblica i numeri provvisori sul server, così anche l'app mobile mostra il risultato in pochi minuti. Il risultato ufficiale completo continua a sostituirli automaticamente quando Caixa lo rilascia. Versione allineata con l'app mobile (5.6.1)."]
+  },
   '5.6.0':{
     'en-US':['New language: Italian, with the whole app translated. Choose your language in the selector (next to Português, English and Español). Legal documents (Terms and Conditions, Incorporation Deed) remain in Portuguese. Version aligned with the mobile app (5.6.0).','Fix: when opening Pools from the home page, the Result screen no longer flashes for a moment before the Pools open.','Faster results: the app now shows the drawn numbers within minutes of the draw (from the Caixa portal), with a notice that the prize breakdown is still being processed, and replaces them automatically with the full official result as soon as Caixa releases it.'],
     'es-ES':['Nuevo idioma: italiano, con toda la app traducida. Elige el idioma en el selector (junto a Português, English y Español). Los documentos legales (Términos y condiciones, Acta de constitución) siguen en portugués. Versión alineada con la app móvil (5.6.0).','Corrección: al abrir Grupos desde la página de inicio, la pantalla de Resultado ya no aparece un instante antes de abrir los Grupos.','Resultados más rápidos: la app ahora muestra los números sorteados a los pocos minutos del sorteo (desde el portal de Caixa), con un aviso de que el detalle de los premios aún se está procesando, y los reemplaza automáticamente por el resultado oficial completo en cuanto Caixa lo libera.'],
@@ -1595,6 +1600,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.6.1':[
+    "Resultados rápidos para todos: nos horários de sorteio (segunda a sexta a partir das 21h; domingo das 11h às 14h) o Desktop do administrador verifica o portal da Caixa a cada 3 minutos e publica os números provisórios no servidor, para o app mobile também mostrar o resultado em minutos. O resultado oficial completo continua substituindo automaticamente quando a Caixa o libera. Versão alinhada com o app mobile (5.6.1)."
+  ],
   '5.6.0':[
     'Novo idioma: Italiano, com todo o app traduzido. Escolha o idioma no seletor (ao lado de Português, English e Español). Os documentos jurídicos (Termos e Condições, Termo de Constituição) continuam em português. Versão alinhada com o app mobile (5.6.0).',
     'Correção: ao abrir Bolões a partir da página inicial, a tela de Resultado não aparece mais por um instante antes de abrir os Bolões.',
@@ -1865,7 +1873,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.1</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2241,7 +2249,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.0</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.1</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -7108,6 +7116,45 @@ async function fetchCaixaOficial(apiKey, ms=8000){
 // escolha em fetchResultado). Mesma ideia do servidor (supabase/functions/atualizar-resultados/portal.ts).
 const PORTAL_HOME_URL='https://servicebus3.caixa.gov.br/portaldeloterias/api/home/ultimos-resultados';
 const PORTAL_HOME_KEYS={megasena:'megasena',lotofacil:'lotofacil',quina:'quina',lotomania:'lotomania',timemania:'timemania',duplasena:'duplasena',diadesorte:'diaDeSorte',supersete:'superSete',maismilionaria:'maisMilionaria'};
+// ── Envio ao SERVIDOR (2026-10-01) ────────────────────────────────────────────────────────────────
+// O Supabase não alcança a Caixa (403 para IP de datacenter), então quem lê o portal é ESTE app e o administrador
+// publica o provisório pra todo mundo (mobile inclusive) pela RPC rpc_publicar_resultado_provisorio — que só aceita
+// administrador, só o PRÓXIMO concurso e nunca sobrescreve/regride nada. O oficial completo substitui depois
+// (atualizar-resultados, no servidor). Falha aqui NUNCA atrapalha o resultado local.
+const _PORTAL_MIN_DEZ={megasena:6,lotofacil:15,quina:5,lotomania:20,timemania:7,duplasena:6,diadesorte:7,supersete:7,maismilionaria:6};
+let _provNegadoAte=0;   // sem permissão (não é administrador / sem login): não insiste por 30 min
+const _provEnviado={};  // apiKey -> último concurso já enviado/confirmado pelo servidor
+function _montarProvisorioServidor(apiKey,h){
+  const n=Number(h&&h.numeroDoConcurso)||0;
+  const dez=Array.isArray(h&&h.dezenas)?h.dezenas.map(String):[];
+  if(!n||dez.length<(_PORTAL_MIN_DEZ[apiKey]||1)||!/^\d{2}\/\d{2}\/\d{4}$/.test(String(h.dataApuracao||''))) return null;
+  const o={
+    id:null, numero:n, tipoJogo:h.tipoJogo??null, acumulado:!!h.acumulado, dataApuracao:h.dataApuracao,
+    listaDezenas:dez,
+    listaDezenasSegundoSorteio:Array.isArray(h.dezenasSegundoSorteio)?h.dezenasSegundoSorteio.map(String):null,
+    nomeTimeCoracaoMesSorte:h.timeDoCoracao??h.mesDaSorte??null,
+    numeroConcursoProximo:n+1, dataProximoConcurso:h.dataProximoConcurso??null,
+    valorEstimadoProximoConcurso:h.valorEstimadoProximoConcurso??null, tipoPublicacao:h.tipoPublicacao??null,
+    listaRateioPremio:[], provisorio:true, fonte:'portal'
+  };
+  if(Array.isArray(h.trevosSorteados)) o.trevosSorteados=h.trevosSorteados.map(String);
+  return o;
+}
+async function _enviarProvisoriosAoServidor(home){
+  if(Date.now()<_provNegadoAte||!home) return;
+  const sb=_getSbClient(); if(!sb) return;
+  for(const apiKey of Object.keys(PORTAL_HOME_KEYS)){
+    const h=home[PORTAL_HOME_KEYS[apiKey]]; if(!h) continue;
+    const n=Number(h.numeroDoConcurso)||0;
+    if(!n||_provEnviado[apiKey]===n) continue;
+    const dados=_montarProvisorioServidor(apiKey,h); if(!dados) continue;
+    try{
+      const {error}=await sb.rpc('rpc_publicar_resultado_provisorio',{p_loteria:apiKey==='diadesorte'?'diasorte':apiKey,p_dados:dados});
+      if(error){ if(/permissao/i.test(error.message||'')){ _provNegadoAte=Date.now()+30*60000; return; } continue; }
+      _provEnviado[apiKey]=n; // 'gravado' ou 'ignorado' (servidor já tem esse concurso ou um mais novo)
+    }catch(e){}
+  }
+}
 let _portalHomeCache=null; // {ts, promise}: 1 chamada serve as 9 loterias do "Atualizar tudo" (cache de 20 s)
 function _buscarPortalHome(ms){
   const agora=Date.now();
@@ -7116,10 +7163,12 @@ function _buscarPortalHome(ms){
     try{
       const r=await fetchComTimeout(PORTAL_HOME_URL,ms);
       if(!r.ok) throw new Error('HTTP '+r.status);
-      return await r.json();
+      const home=await r.json();
+      _enviarProvisoriosAoServidor(home).catch(()=>{});
+      return home;
     }catch(eDireto){
       for(const proxyUrl of _viaProxyGlobal(PORTAL_HOME_URL)){
-        try{ const r=await fetchComTimeout(proxyUrl,ms); if(!r.ok) continue; return await r.json(); }catch(eProxy){}
+        try{ const r=await fetchComTimeout(proxyUrl,ms); if(!r.ok) continue; const home=await r.json(); _enviarProvisoriosAoServidor(home).catch(()=>{}); return home; }catch(eProxy){}
       }
       throw eDireto;
     }
@@ -14790,6 +14839,31 @@ function agendarVerificacaoPeriodica(){
     setDot('loading','Verificando novos resultados...');
     await atualizarTodas(true);
   }, _INTERVALO_VERIFICACAO_MS);
+  // Ciclo RÁPIDO (2026-10-01) nos horários em que a Caixa sorteia: segunda a sexta a partir das 21h (até 23:59) e
+  // domingo das 11h às 14h, horário de Brasília. A cada 3 min lê o portal; se há concurso mais novo que o exibido,
+  // roda a atualização completa (que também publica o provisório ao servidor, se este for um administrador).
+  setInterval(_cicloRapidoSorteio, 3*60*1000);
+}
+function _emJanelaDeSorteio(){
+  const b=new Date(Date.now()-3*3600000), dow=b.getUTCDay(), min=b.getUTCHours()*60+b.getUTCMinutes();
+  if(dow>=1&&dow<=5) return min>=21*60;
+  if(dow===0) return min>=11*60&&min<=14*60;
+  return false;
+}
+let _cicloRapidoBusy=false;
+async function _cicloRapidoSorteio(){
+  if(_cicloRapidoBusy||!_emJanelaDeSorteio()) return;
+  _cicloRapidoBusy=true;
+  try{
+    _portalHomeCache=null; // sempre leitura nova
+    const home=await _buscarPortalHome(8000);
+    const maisNovo=Object.keys(CFG).some(k=>{
+      const h=home&&home[PORTAL_HOME_KEYS[CFG[k].apiKey]]; const cur=resultados&&resultados[k];
+      return h&&Number(h.numeroDoConcurso)>(parseInt(cur&&cur.concurso)||0);
+    });
+    if(maisNovo) await atualizarTodas(true);
+  }catch(e){}
+  finally{ _cicloRapidoBusy=false; }
 }
 function limparResultado(){
   document.getElementById('result-box').style.display='none';
