@@ -1588,6 +1588,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.6.2':{
+    'en-US':["Version aligned with the mobile app (5.6.2): in the mobile app, the role next to the name (Participant, Manager or Administrator) now appears in orange and the logo always uses the brand colors in all three themes."],
+    'es-ES':["Versión alineada con la app móvil (5.6.2): en la app móvil, el rol junto al nombre (Participante, Gestor o Administrador) ahora aparece en naranja y el logo usa siempre los colores de la marca en los tres temas."],
+    'it-IT':["Versione allineata con l'app mobile (5.6.2): nell'app mobile, il ruolo accanto al nome (Partecipante, Gestore o Amministratore) ora appare in arancione e il logo usa sempre i colori del marchio in tutti e tre i temi."]
+  },
   '5.6.1':{
     'en-US':["Fast results for everyone: during draw times (Monday to Friday from 9 pm; Sunday 11 am to 2 pm) the administrator's Desktop checks the Caixa portal every 3 minutes and publishes the provisional numbers to the server, so the mobile app also shows the result within minutes. The full official result still replaces them automatically when Caixa releases it. Version aligned with the mobile app (5.6.1)."],
     'es-ES':["Resultados rápidos para todos: en los horarios de sorteo (de lunes a viernes desde las 21 h; domingo de 11 h a 14 h) el Desktop del administrador consulta el portal de Caixa cada 3 minutos y publica los números provisionales en el servidor, para que la app móvil también muestre el resultado en minutos. El resultado oficial completo sigue reemplazándolos automáticamente cuando Caixa lo libera. Versión alineada con la app móvil (5.6.1)."],
@@ -1600,6 +1605,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.6.2':[
+    "Versão alinhada com o app mobile (5.6.2): no app mobile, o papel ao lado do nome (Participante, Gestor ou Administrador) agora aparece em laranja e a logo usa sempre as cores da marca nos três temas."
+  ],
   '5.6.1':[
     "Resultados rápidos para todos: nos horários de sorteio (segunda a sexta a partir das 21h; domingo das 11h às 14h) o Desktop do administrador verifica o portal da Caixa a cada 3 minutos e publica os números provisórios no servidor, para o app mobile também mostrar o resultado em minutos. O resultado oficial completo continua substituindo automaticamente quando a Caixa o libera. Versão alinhada com o app mobile (5.6.1)."
   ],
@@ -1873,7 +1881,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.1</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.2</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2249,7 +2257,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.1</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.2</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
