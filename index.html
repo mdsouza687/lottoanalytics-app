@@ -1588,6 +1588,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.6.6':{
+    'en-US':["Version aligned with the mobile app (5.6.6): in the mobile app, the LOTTO ANALYTICS lettering got an outline like the buttons in all three themes and became shorter and centered on the initial screens."],
+    'es-ES':["Versión alineada con la app móvil (5.6.6): en la app móvil, el rótulo LOTTO ANALYTICS ganó un contorno igual al de los botones en los tres temas y quedó más bajo y centrado en las pantallas iniciales."],
+    'it-IT':["Versione allineata con l'app mobile (5.6.6): nell'app mobile, la scritta LOTTO ANALYTICS ha un contorno uguale a quello dei pulsanti in tutti e tre i temi ed è più bassa e centrata nelle schermate iniziali."]
+  },
   '5.6.5':{
     'en-US':["Version aligned with the mobile app (5.6.5): in the mobile app, the icon and lettering no longer disappear from the login and home screens, the brand got a rounded background in all three themes, and the share card on the pool screen uses the app's standard colors."],
     'es-ES':["Versión alineada con la app móvil (5.6.5): en la app móvil, el icono y el rótulo ya no desaparecen de las pantallas de inicio de sesión e inicio, la marca ganó un fondo redondeado en los tres temas y la tarjeta de la cuota de la pantalla del grupo usa los colores estándar de la app."],
@@ -1620,6 +1625,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.6.6':[
+    "Versão alinhada com o app mobile (5.6.6): no app mobile, o letreiro LOTTO ANALYTICS ganhou contorno igual ao dos botões nos três temas e ficou mais baixo e centralizado nas telas iniciais."
+  ],
   '5.6.5':[
     "Versão alinhada com o app mobile (5.6.5): no app mobile, o ícone e o letreiro não somem mais das telas de login e inicial, a marca ganhou fundo arredondado nos três temas e o card da cota da tela do bolão usa as cores do padrão do app."
   ],
@@ -1905,7 +1913,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.5</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.6</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2281,7 +2289,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.5</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.6.6</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
