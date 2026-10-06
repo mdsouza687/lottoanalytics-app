@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Manual do Desktop — Participante — LottoAnalytics</title>
+<style>
+:root{--verde:#2f7d45;--verde-esc:#14301d;--turq:#2fd1b4;--laranja:#e8590c;--fundo:#f4f6f3;--card:#fff;--borda:#dfe6df;--texto:#1c2b21;--suave:#5b6b60;--grafite:#3a3f4b}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--fundo);color:var(--texto);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.barra{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.barra .marca{background:var(--grafite);color:#fff;border-radius:10px;padding:5px 12px;font-weight:800;letter-spacing:.04em;font-size:15px}.marca span{color:var(--turq)}
+.barra .titulo{font-weight:700;color:var(--verde-esc);flex:1;min-width:140px}
+.barra select,.barra button{font:inherit;font-size:15px;border:1px solid var(--borda);background:#fff;border-radius:10px;padding:7px 12px;cursor:pointer;color:var(--texto)}
+.barra button{background:var(--verde);color:#fff;border-color:var(--verde);font-weight:700}
+.capa{max-width:980px;margin:0 auto;padding:34px 20px 8px}.capa .marca{display:inline-block;background:var(--grafite);color:#fff;border-radius:14px;padding:8px 20px;font-weight:800;letter-spacing:.05em;font-size:22px;margin-bottom:14px}
+.capa h1{font-size:clamp(28px,5vw,42px);line-height:1.15;margin:6px 0;color:var(--verde-esc)}.capa .sub{font-size:20px;color:var(--suave);margin:0 0 4px}.capa .nivel{color:var(--verde);font-weight:700;margin:0 0 14px}
+.capa .intro{font-size:18px;max-width:760px}
+.layout{max-width:1180px;margin:0 auto;padding:10px 16px 60px;display:grid;grid-template-columns:270px 1fr;gap:28px}
+.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 92px);overflow:auto;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:14px 16px;font-size:14.5px}
+.toc h2{margin:0 0 6px;font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--suave)}.toc ul{list-style:none;margin:0;padding:0}.toc>ul>li{margin:8px 0}.toc>ul>li>a{font-weight:700;color:var(--verde-esc)}.toc ul ul{margin:2px 0 0 10px;border-left:2px solid var(--borda)}.toc ul ul li{padding:1px 0 1px 10px}.toc a{text-decoration:none;color:var(--suave)}.toc a:hover,.toc a.ativo{color:var(--verde);font-weight:700}
+.capitulo{margin-bottom:38px}.capitulo>h2{font-size:clamp(24px,3.4vw,31px);color:var(--verde-esc);border-bottom:3px solid var(--verde);padding-bottom:6px;margin:6px 0 10px}.intro-cap{color:var(--suave);font-size:18px;margin:0 0 16px}
+.secao{background:var(--card);border:1px solid var(--borda);border-radius:18px;padding:20px 22px;margin:0 0 20px;box-shadow:0 2px 10px rgba(20,48,29,.05)}
+.secao-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.secao h3{font-size:23px;margin:0 0 4px;color:var(--verde-esc)}.nsec{color:var(--verde);font-weight:800;margin-right:4px}
+.btn-video{background:var(--laranja);color:#fff;text-decoration:none;font-weight:700;border-radius:12px;padding:8px 14px;font-size:15px;white-space:nowrap}.btn-video:hover{filter:brightness(1.08)}
+.resumo{font-size:18px;color:var(--texto);margin:6px 0 14px}
+.passos{list-style:none;padding:0;margin:0;counter-reset:p}.passo{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--borda)}.passo:first-child{border-top:0}
+.num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--verde);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.passo-corpo{flex:1;min-width:0;display:flow-root}.passo-corpo p{margin:2px 0 0;font-size:18px}
+figure{float:right;margin:2px 0 10px 22px;width:205px}figure img{width:100%;height:auto;display:block;border-radius:18px;filter:drop-shadow(0 6px 14px rgba(20,48,29,.18))}figcaption{font-size:14px;color:var(--suave);text-align:center;margin-top:6px}
+.caixa{border-radius:14px;padding:12px 16px;margin:12px 0;font-size:16.5px}.destaque{background:linear-gradient(135deg,#e3f6ea,#d6f1f2);border:2px solid var(--verde);padding:14px 18px}.destaque-tit{font-weight:800;color:var(--verde-esc);font-size:18px}.destaque p{margin:6px 0 0}.tabela-wrap{overflow-x:auto;max-width:100%;margin:12px 0}.cap,.secao,main,.conteudo{min-width:0}.tabela{border-collapse:collapse;width:100%;min-width:560px;font-size:15.5px;background:#fff}.tabela th,.tabela td{border:1px solid var(--borda);padding:9px 11px;text-align:left;vertical-align:top}.tabela th{background:#eef3ee;color:var(--verde-esc)}.tabela .col-destaque{background:#e8f7ee}.tabela th.col-destaque{background:#bfe7cc}.dica{background:#e7f4ea;border:1px solid #bfe0c6}.atencao{background:#fff3e0;border:1px solid #f3cf9a}.saiba{background:#eef2ff;border:1px solid #cfd8ff}.problemas{background:#fff;border:1px solid var(--borda)}.problemas h4{margin:0 0 6px;font-size:16px;color:var(--verde-esc)}
+summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0}details.faq{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px 16px;margin:10px 0}.glossario dt{font-weight:800;color:var(--verde-esc);margin-top:12px}.glossario dd{margin:2px 0 0 0;color:var(--texto)}
+.rodape{max-width:980px;margin:0 auto;padding:10px 20px 40px;color:var(--suave);font-size:14px;text-align:center}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.toc{position:static;max-height:none}.secao{padding:16px}figure{float:none;display:block;margin:12px auto 4px;width:min(260px,100%)}}
+/* botão flutuante "↑ Índice": volta ao índice sem precisar rolar a página toda */
+.btn-indice{position:fixed;right:14px;bottom:18px;z-index:40;display:flex;align-items:center;gap:6px;background:var(--verde);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:700 16px/1 inherit;font-family:inherit;box-shadow:0 6px 18px rgba(20,48,29,.35);cursor:pointer}.btn-indice[hidden]{display:none}.btn-indice:active{transform:translateY(1px)}@media (min-width:901px){.btn-indice{display:none!important}}
+@media print{.btn-indice{display:none!important}.barra,.toc,.btn-video{display:none!important}body{background:#fff;font-size:12.5pt}.layout{display:block;padding:0}.secao{box-shadow:none;break-inside:avoid-page;border-color:#ccc}figure{max-width:130px}.capitulo>h2{break-after:avoid}details>*{display:block}details:not([open])>p{display:block}}
+
+/* Desktop: telas largas, em largura total do passo; clique para ampliar */
+figure{float:none;display:block;width:100%;margin:12px 0 6px}figure img{width:100%;height:auto;border-radius:10px;border:1px solid #cfd8d2;filter:none;box-shadow:0 6px 18px rgba(20,48,29,.14);cursor:zoom-in;background:#fff}figcaption{text-align:left}
+.zoom{position:fixed;inset:0;z-index:50;background:rgba(10,20,14,.88);display:flex;align-items:center;justify-content:center;padding:18px;cursor:zoom-out}.zoom img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+.passo-corpo{display:block}
+</style></head><body>
+<div class="barra"><span class="marca">LOTTO<span>ANALYTICS</span></span><span class="titulo" id="titulo-barra">Manual do Desktop — Participante</span>
+  <label style="font-size:14px;color:#5b6b60" for="sel-idioma" id="rot-idioma">Idioma</label>
+  <select id="sel-idioma"><option value="pt-BR">Português</option><option value="en-US">English</option><option value="es-ES">Español</option><option value="it-IT">Italiano</option></select>
+  <button id="btn-imprimir" type="button">Imprimir / Salvar PDF</button></div>
+<button type="button" class="btn-indice" id="btn-indice" hidden>↑ Índice</button>
+
+  <div class="idioma" data-lang="pt-BR" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Manual do Desktop — Participante</h1><p class="sub">Acompanhe o seu bolão pelo computador, passo a passo</p><p class="nivel">Para quem participa de bolões e usa o programa no Windows · Versão do app 5.7.8</p>
+      <p class="intro">Quando você <strong>participa</strong> de um bolão, o <strong>LottoAnalytics para computador</strong> mostra tudo sobre ele numa área só sua: as suas <strong>cotas</strong>, o <strong>pagamento</strong>, os <strong>jogos</strong>, os <strong>avisos</strong>, os <strong>relatórios</strong> e o <strong>histórico</strong>. Você não precisa fazer contas: o programa mostra o que é seu.</p><p class="intro">Cada passo é curto e mostra a tela do programa. <strong>Clique em qualquer imagem para ampliar.</strong> Os quadros <strong>"Quer saber mais?"</strong> trazem o detalhe para quem gosta de entender a fundo. <strong>Aviso importante:</strong> o programa não garante prêmios. A loteria é sorteio: nenhuma estatística do passado aumenta a chance do próximo concurso.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Índice"><h2>Índice</h2><ul><li><a href="#pt-BR-cap-comecar">1. Começando</a><ul><li><a href="#pt-BR-instalar">Instalar e atualizar o programa</a></li><li><a href="#pt-BR-entrar">Entrar na sua conta</a></li><li><a href="#pt-BR-aparencia">Tema (claro, escuro, colorido) e idioma</a></li></ul></li><li><a href="#pt-BR-cap-boloes">2. Seus bolões</a><ul><li><a href="#pt-BR-menu">O menu da sua área</a></li><li><a href="#pt-BR-premios">Os prêmios das loterias</a></li><li><a href="#pt-BR-lista">A lista dos seus bolões</a></li><li><a href="#pt-BR-resumo">O resumo do seu bolão</a></li><li><a href="#pt-BR-comprovante">Comprovante de pagamento e bilhetes</a></li><li><a href="#pt-BR-documentos">Documentos do bolão</a></li><li><a href="#pt-BR-jogos">Os jogos do bolão e quanto você ganharia</a></li></ul></li><li><a href="#pt-BR-cap-acompanhar">3. Avisos, relatórios e histórico</a><ul><li><a href="#pt-BR-avisos">Avisos</a></li><li><a href="#pt-BR-relatorios">Relatórios</a></li><li><a href="#pt-BR-historico">Histórico</a></li></ul></li><li><a href="#pt-BR-cap-perfil">4. Seu perfil</a><ul><li><a href="#pt-BR-perfil-dados">Foto, CPF e PIX</a></li><li><a href="#pt-BR-enviar-comprovante">Enviar um comprovante de PIX</a></li><li><a href="#pt-BR-sair">Sair do programa</a></li></ul></li><li><a href="#pt-BR-faq">Perguntas frequentes</a></li><li><a href="#pt-BR-glossario">Glossário — as palavras do app</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="pt-BR-cap-comecar"><h2>1. Começando</h2><p class="intro-cap">Instalar, entrar na sua conta e escolher a aparência.</p>
+      
+    <section class="secao" id="pt-BR-instalar" data-sec="instalar">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Instalar e atualizar o programa</h3><a class="btn-video" data-video="instalar" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">O programa é instalado no Windows uma vez. Depois ele <strong>se atualiza sozinho</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Abra o arquivo <strong>LottoAnalytics-Setup</strong> que você recebeu e siga a instalação. Ao terminar, abra o programa pelo ícone.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Quando existe versão nova, o programa baixa <strong>em segundo plano</strong> e mostra o aviso <strong>"Atualização vX.Y.Z pronta para instalar"</strong>. Clique em <strong>Instalar e Reiniciar</strong>.</p>
+        <figure style="max-width:523px"><img loading="lazy" src="img/pt-BR/a13_atualizacao_pronta.webp" alt="Aviso de atualização pronta." width="523" height="137"/><figcaption>Aviso de atualização pronta.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>O programa fecha, instala e abre de novo. Na primeira abertura aparece <strong>Novidades da versão</strong>; clique em <strong>Continuar</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/pt-BR/a14_novidades.webp" alt="Novidades da versão." width="480" height="299"/><figcaption>Novidades da versão.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>O programa procura versão nova <strong>ao abrir</strong> e depois <strong>a cada 30 minutos</strong>. Você não precisa baixar nada à mão.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-entrar" data-sec="entrar">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Entrar na sua conta</h3><a class="btn-video" data-video="entrar" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Para ver o seu bolão, entre com o <strong>mesmo e-mail e a mesma senha</strong> que você usa no aplicativo do celular.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Ao abrir, o programa mostra o <strong>Painel Inicial</strong>, aberto a todos. Para entrar, clique em <strong>Já tenho conta</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p01_deslogado.webp" alt="Painel Inicial sem login." width="1440" height="900"/><figcaption>Painel Inicial sem login.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Escreva o <strong>e-mail</strong> e a <strong>senha</strong> e clique em <strong>Entrar</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/pt-BR/p02_login.webp" alt="Janela de login." width="480" height="516"/><figcaption>Janela de login.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Esqueceu a senha? Clique em <strong>Esqueci minha senha</strong>.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Como a sua conta é de <strong>participante</strong>, o programa abre direto a <strong>sua área</strong>: os seus bolões.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p03_area.webp" alt="A sua área de participante." width="1440" height="900"/><figcaption>A sua área de participante.</figcaption></figure></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> O <strong>cadastro</strong> de participante novo é feito no <strong>aplicativo do celular</strong>, pelo convite que o organizador manda. Veja o Manual do Participante (celular).</div>
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Quem organiza bolões <strong>e</strong> participa de outros vê também um botão <strong>Organizador</strong> no alto da área, para trocar de lado.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-aparencia" data-sec="aparencia">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Tema (claro, escuro, colorido) e idioma</h3><a class="btn-video" data-video="aparencia" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Troque a aparência quando quiser. Isso não muda nenhum dado.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>No Painel Inicial, ao lado das loterias, ficam três botões: <strong>lua</strong> (tema escuro), <strong>sol</strong> (tema claro) e <strong>paleta</strong> (tema colorido).</p>
+        <figure style="max-width:114px"><img loading="lazy" src="img/pt-BR/a05_botoes_tema.webp" alt="Botões de tema." width="114" height="50"/><figcaption>Botões de tema.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Ao lado dos temas fica a <strong>bandeira</strong>. Clique nela e escolha o <strong>idioma</strong>: Português, English, Español ou Italiano.</p>
+        <figure style="max-width:71px"><img loading="lazy" src="img/pt-BR/a06_idioma.webp" alt="Seletor de idioma." width="71" height="50"/><figcaption>Seletor de idioma.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>O programa lembra a sua escolha na próxima vez que abrir.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-boloes"><h2>2. Seus bolões</h2><p class="intro-cap">A tela principal: tudo sobre cada bolão em que você participa.</p>
+      
+    <section class="secao" id="pt-BR-menu" data-sec="menu">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> O menu da sua área</h3><a class="btn-video" data-video="menu" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">No alto da tela ficam as quatro partes da sua área e dois botões.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>As abas são: <strong>Bolões</strong>, <strong>Avisos</strong>, <strong>Relatórios</strong> e <strong>Histórico</strong>. A aba em verde é a que você está vendo. Um <strong>pontinho vermelho</strong> em <strong>Avisos</strong> quer dizer que há aviso novo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p04_menu.webp" alt="Menu da área do participante." width="1440" height="72"/><figcaption>Menu da área do participante.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>À direita: <strong>Perfil</strong> (a sua foto, CPF e PIX) e <strong>Sair</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-premios" data-sec="premios">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Os prêmios das loterias</h3><a class="btn-video" data-video="premios" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Logo abaixo do menu, uma faixa mostra o <strong>prêmio estimado</strong> do próximo sorteio de cada loteria.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Cada cartãozinho mostra o nome da loteria e o prêmio estimado. A cor é a da loteria.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p05_premios.webp" alt="Faixa de prêmios estimados." width="1440" height="203"/><figcaption>Faixa de prêmios estimados.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Clique num cartãozinho para ver o <strong>último resultado</strong> daquela loteria.</p>
+        <figure style="max-width:440px"><img loading="lazy" src="img/pt-BR/p05b_resultado.webp" alt="Último resultado da loteria." width="440" height="392"/><figcaption>Último resultado da loteria.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para fechar, clique no <strong>✕</strong> no canto da janela.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-lista" data-sec="lista">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> A lista dos seus bolões</h3><a class="btn-video" data-video="lista" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">À esquerda ficam todos os bolões em que você participa.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Os botões <strong>Ativos</strong> e <strong>Inativos</strong> separam os bolões. <strong>Ativos</strong> são os que estão valendo agora.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/pt-BR/p06_lista.webp" alt="Lista de bolões ativos." width="300" height="290"/><figcaption>Lista de bolões ativos.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Cada bolão mostra o <strong>nome</strong>, a <strong>loteria</strong>, o <strong>número das suas cotas</strong> e a situação. <strong>"Aguardando ativação"</strong> quer dizer que o organizador ainda não ativou o bolão.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Clique em <strong>Inativos</strong> para ver os bolões que já terminaram.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/pt-BR/p07_inativos.webp" alt="Lista de bolões inativos." width="300" height="190"/><figcaption>Lista de bolões inativos.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Clique num bolão para ver os detalhes dele ao lado.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>A palavra <strong>aceito</strong> significa que você aceitou o convite e já faz parte do bolão.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-resumo" data-sec="resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> O resumo do seu bolão</h3><a class="btn-video" data-video="resumo" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">O primeiro cartão do bolão escolhido tem os seus números.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Leia, linha por linha: <strong>Sua cota</strong> (o número da sua cota), <strong>Cotas</strong> (quantas você tem), <strong>Valor da cota</strong>, <strong>% do bolão</strong> (a sua parte) e <strong>Pagamento</strong> (Pago ou Pendente).</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p08_resumo.webp" alt="Resumo do bolão." width="1096" height="382"/><figcaption>Resumo do bolão.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Meu saldo</strong> é o dinheiro seu que ficou no bolão. <strong>Valor ganho</strong> é o total de prêmios que já são seus.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Por fim, o <strong>PIX</strong> do organizador (para onde você paga) e o nome do <strong>Organizador</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Sua <strong>parte</strong> no bolão é proporcional às <strong>cotas</strong>: quem tem mais cotas paga mais e recebe mais.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-comprovante" data-sec="comprovante">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> Comprovante de pagamento e bilhetes</h3><a class="btn-video" data-video="comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Abaixo do resumo ficam os seus comprovantes e as fotos dos bilhetes do bolão.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Em <strong>Comprovante de pagamento</strong> aparece o PIX que você enviou, com o valor, para quem foi, a data e <strong>Concluído</strong> quando o organizador confirmou. O link <strong>Enviar comprovante do PIX</strong> serve para mandar outro.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p09_comprovante_bilhetes.webp" alt="Comprovante de pagamento e bilhetes." width="1096" height="208"/><figcaption>Comprovante de pagamento e bilhetes.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Em <strong>Bilhetes</strong> ficam as fotos dos bilhetes que o organizador registrou na lotérica.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-documentos" data-sec="documentos">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Documentos do bolão</h3><a class="btn-video" data-video="documentos" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Os documentos do bolão ficam sempre à mão.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>No cartão <strong>Documentos</strong>, clique no que quiser ler ou imprimir: <strong>Termos e Condições</strong>, <strong>Termo de Constituição do Bolão</strong>, <strong>Dossiê do Prêmio</strong> e <strong>Regras de Funcionamento e Isenção de ITCMD</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p10_documentos.webp" alt="Documentos do bolão." width="1096" height="208"/><figcaption>Documentos do bolão.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>O <strong>Termo de Constituição</strong> mostra as cotas de cada participante. Se você já assinou pelo celular, a assinatura aparece nele.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-jogos" data-sec="jogos">
+      <div class="secao-topo"><h3><span class="nsec">2.7</span> Os jogos do bolão e quanto você ganharia</h3><a class="btn-video" data-video="jogos" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Para cada loteria do bolão há um cartão com uma estimativa e os jogos.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>No alto do cartão, <strong>"Se ganhar na Mega-Sena hoje"</strong> mostra a <strong>sua parte estimada</strong>, se o bolão fosse o único ganhador do prêmio. É só uma estimativa: só se sabe o valor real depois do sorteio.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p11_jogos.webp" alt="Jogos do bolão e a sua parte estimada." width="1096" height="467"/><figcaption>Jogos do bolão e a sua parte estimada.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Embaixo, os <strong>jogos</strong>: cada linha é um jogo, com as bolinhas das dezenas. Os botões <strong>Todos</strong> e <strong>Premiados</strong> filtram a lista.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Clique em <strong>Concursos finalizados</strong> para ver os jogos de sorteios que já aconteceram.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Os jogos que ganharam aparecem destacados, com o valor do prêmio.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-acompanhar"><h2>3. Avisos, relatórios e histórico</h2><p class="intro-cap">Acompanhe o que aconteceu no seu bolão.</p>
+      
+    <section class="secao" id="pt-BR-avisos" data-sec="avisos">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Avisos</h3><a class="btn-video" data-video="avisos" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">A aba <strong>Avisos</strong> lista tudo que o programa quis lhe dizer.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clique em <strong>Avisos</strong>. Cada linha é um aviso, com a data e a hora: pagamento confirmado, bolão premiado, resultado disponível, crédito no seu saldo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p12_avisos.webp" alt="Aba Avisos." width="1440" height="900"/><figcaption>Aba Avisos.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-relatorios" data-sec="relatorios">
+      <div class="secao-topo"><h3><span class="nsec">3.2</span> Relatórios</h3><a class="btn-video" data-video="relatorios" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">A aba <strong>Relatórios</strong> mostra o resultado de cada sorteio para o seu bolão.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clique em <strong>Relatórios</strong>. No alto, os bolões <strong>premiados</strong>, com a <strong>sua cota</strong>, o <strong>seu valor líquido</strong>, a <strong>% da sua cota</strong> e o <strong>valor da cota</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p13_relatorios.webp" alt="Aba Relatórios." width="1440" height="900"/><figcaption>Aba Relatórios.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>O <strong>Histórico de rodadas</strong> lista cada sorteio do prêmio e quanto foi.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Abaixo, os sorteios <strong>sem prêmio</strong> e as confirmações de pagamento, em ordem de data.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-historico" data-sec="historico">
+      <div class="secao-topo"><h3><span class="nsec">3.3</span> Histórico</h3><a class="btn-video" data-video="historico" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">A aba <strong>Histórico</strong> guarda tudo sobre as suas participações, inclusive de bolões antigos.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clique em <strong>Histórico</strong>. Cada <strong>participação</strong> mostra o bolão, se está <strong>Pago</strong>, as <strong>cotas</strong> e o <strong>valor ganho</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p14_historico.webp" alt="Aba Histórico." width="1440" height="900"/><figcaption>Aba Histórico.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Abaixo vêm todos os <strong>jogos</strong>, por loteria e concurso. Use <strong>Todos</strong> e <strong>Premiados</strong> para filtrar.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Um jogo repetido em vários sorteios aparece como <strong>Teimosinha</strong>, com um número para cada concurso. A bolinha verde quer dizer que o concurso ainda vai acontecer; o <strong>visto vermelho</strong>, que já terminou.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-perfil"><h2>4. Seu perfil</h2><p class="intro-cap">Foto, CPF, PIX e comprovantes.</p>
+      
+    <section class="secao" id="pt-BR-perfil-dados" data-sec="perfil-dados">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Foto, CPF e PIX</h3><a class="btn-video" data-video="perfil-dados" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Clique em <strong>Perfil</strong>, no alto à direita.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Para pôr uma <strong>foto</strong>, clique em <strong>Adicionar foto</strong> (depois, <strong>Trocar foto</strong>) e escolha uma imagem.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/pt-BR/p15_perfil.webp" alt="Perfil." width="1440" height="900"/><figcaption>Perfil.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Em <strong>CPF e PIX</strong>, escreva o seu <strong>CPF</strong> e escolha o <strong>tipo da chave PIX</strong> (CPF, CNPJ, telefone, e-mail ou aleatória). Escreva a chave e clique em <strong>Salvar</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para voltar à lista de bolões, clique em <strong>← Meus bolões</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>O CPF e o PIX servem para identificar os seus recebimentos e facilitar o pagamento das cotas. Ficam salvos na sua conta e valem para qualquer bolão.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-enviar-comprovante" data-sec="enviar-comprovante">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Enviar um comprovante de PIX</h3><a class="btn-video" data-video="enviar-comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Pagou uma cota? Envie o comprovante por aqui.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Em <strong>Perfil</strong>, na parte <strong>Comprovantes de PIX</strong>, escolha o <strong>bolão</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Clique em <strong>Enviar comprovante</strong> e escolha o arquivo (foto ou PDF).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>O comprovante aparece na lista, com a data. O organizador o confere.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Dá para enviar o comprovante de <strong>qualquer</strong> dos seus bolões, a qualquer hora, mesmo depois de o bolão ter sido ativado.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-sair" data-sec="sair">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Sair do programa</h3><a class="btn-video" data-video="sair" href="#" target="_blank" rel="noopener" hidden>▶ Assistir ao vídeo</a></div>
+      <p class="resumo">Terminou? Saia da conta.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clique em <strong>Sair</strong>, no alto à direita. Você volta ao Painel Inicial.</p></div></li></ol>
+      
+      
+      <div class="caixa dica"><strong>Dica:</strong> Em um computador que não é só seu, sempre clique em <strong>Sair</strong> ao terminar.</div>
+      
+      
+      
+    </section></div><div class="capitulo" id="pt-BR-faq"><h2>Perguntas frequentes</h2><details class="faq"><summary>O programa atualiza sozinho?</summary><p>Sim. Ele procura versão nova <strong>ao abrir</strong> e <strong>a cada 30 minutos</strong>, baixa em segundo plano e mostra <strong>Instalar e Reiniciar</strong>.</p></details><details class="faq"><summary>Preciso de uma conta diferente no computador?</summary><p>Não. É a <strong>mesma conta</strong> do aplicativo do celular: o mesmo e-mail e a mesma senha.</p></details><details class="faq"><summary>Onde me cadastro?</summary><p>No <strong>aplicativo do celular</strong>, pelo convite que o organizador manda. Veja o Manual do Participante (celular).</p></details><details class="faq"><summary>Não vejo o meu bolão na lista.</summary><p>Confira em <strong>Inativos</strong>: ele pode já ter terminado. Se o bolão é novo, o organizador precisa ter te convidado e você precisa ter aceitado o convite.</p></details><details class="faq"><summary>O que quer dizer "Aguardando ativação"?</summary><p>O organizador ainda não <strong>ativou</strong> o bolão. Quando ativar, ele passa a valer e você recebe um aviso.</p></details><details class="faq"><summary>O valor de "Se ganhar hoje" é garantido?</summary><p>Não. É só uma <strong>estimativa</strong> da sua parte, se o bolão fosse o único ganhador. O valor real só se sabe depois do sorteio.</p></details><details class="faq"><summary>Como envio o comprovante do PIX?</summary><p>Em <strong>Perfil → Comprovantes de PIX</strong>: escolha o bolão e clique em <strong>Enviar comprovante</strong>. Também há o link <strong>Enviar comprovante do PIX</strong> dentro do bolão.</p></details><details class="faq"><summary>Posso mudar as minhas cotas por aqui?</summary><p>Neste programa você <strong>acompanha</strong> as cotas. Para pedir mais cotas ou menos, fale com o organizador.</p></details></div><div class="capitulo" id="pt-BR-glossario"><h2>Glossário — as palavras do app</h2><dl class="glossario"><dt>Bolão</dt><dd>Um grupo de pessoas que divide o custo das apostas e o prêmio.</dd><dt>Cota</dt><dd>A sua parte no bolão. Quem tem mais cotas paga mais e recebe mais.</dd><dt>Organizador</dt><dd>A pessoa que cuida do bolão: reúne o grupo, recebe os pagamentos, faz as apostas e divide o prêmio.</dd><dt>Concurso</dt><dd>Cada sorteio da loteria tem um número. É esse número que identifica o sorteio.</dd><dt>Dezena</dt><dd>Cada número de um jogo.</dd><dt>Teimosinha</dt><dd>O mesmo jogo repetido por vários concursos seguidos.</dd><dt>Meu saldo</dt><dd>O dinheiro seu que ficou guardado no bolão.</dd><dt>Valor ganho</dt><dd>O total de prêmios que já são seus.</dd><dt>PIX</dt><dd>A forma de pagamento usada para pagar a cota e receber prêmios.</dd><dt>Ativar o bolão</dt><dd>Quando o organizador fecha o bolão para novos participantes e ele passa a valer.</dd><dt>ITCMD</dt><dd>Imposto estadual sobre doações e heranças. O documento "Regras de Funcionamento e Isenção de ITCMD" explica por que a divisão do prêmio entre os participantes não é doação.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — manual do Desktop (participante) · Você organiza bolões? Veja o Manual do Desktop — Gestor.</footer>
+  </div>
+
+  <div class="idioma" data-lang="en-US" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Desktop Manual — Participant</h1><p class="sub">Follow your pool on the computer, step by step</p><p class="nivel">For people who join pools and use the program on Windows · App version 5.7.8</p>
+      <p class="intro">When you <strong>take part</strong> in a pool, <strong>LottoAnalytics for computer</strong> shows everything about it in an area of your own: your <strong>shares</strong>, the <strong>payment</strong>, the <strong>tickets</strong>, the <strong>alerts</strong>, the <strong>reports</strong> and the <strong>history</strong>. You do not need to do any math: the program shows what is yours.</p><p class="intro">Each step is short and shows the program screen. <strong>Click any image to enlarge it.</strong> The <strong>"Want to know more?"</strong> boxes give the detail for those who like to understand things in depth. <strong>Important notice:</strong> the program does not guarantee prizes. A lottery is a random draw: no past statistic raises your chance in the next drawing.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Contents"><h2>Contents</h2><ul><li><a href="#en-US-cap-comecar">1. Getting started</a><ul><li><a href="#en-US-instalar">Install and update the program</a></li><li><a href="#en-US-entrar">Sign in to your account</a></li><li><a href="#en-US-aparencia">Theme (light, dark, colorful) and language</a></li></ul></li><li><a href="#en-US-cap-boloes">2. Your pools</a><ul><li><a href="#en-US-menu">The menu of your area</a></li><li><a href="#en-US-premios">The lottery prizes</a></li><li><a href="#en-US-lista">The list of your pools</a></li><li><a href="#en-US-resumo">Your pool summary</a></li><li><a href="#en-US-comprovante">Payment receipt and playslips</a></li><li><a href="#en-US-documentos">Pool documents</a></li><li><a href="#en-US-jogos">The pool's tickets and how much you would win</a></li></ul></li><li><a href="#en-US-cap-acompanhar">3. Alerts, reports and history</a><ul><li><a href="#en-US-avisos">Alerts</a></li><li><a href="#en-US-relatorios">Reports</a></li><li><a href="#en-US-historico">History</a></li></ul></li><li><a href="#en-US-cap-perfil">4. Your profile</a><ul><li><a href="#en-US-perfil-dados">Photo, CPF and PIX</a></li><li><a href="#en-US-enviar-comprovante">Send a PIX receipt</a></li><li><a href="#en-US-sair">Sign out of the program</a></li></ul></li><li><a href="#en-US-faq">Frequently asked questions</a></li><li><a href="#en-US-glossario">Glossary — the words in the app</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="en-US-cap-comecar"><h2>1. Getting started</h2><p class="intro-cap">Install, sign in to your account and choose the look.</p>
+      
+    <section class="secao" id="en-US-instalar" data-sec="instalar">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Install and update the program</h3><a class="btn-video" data-video="instalar" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The program is installed on Windows once. After that it <strong>updates itself</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Open the <strong>LottoAnalytics-Setup</strong> file you received and follow the installation. When it finishes, open the program from its icon.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>When there is a new version, the program downloads it <strong>in the background</strong> and shows the notice <strong>"Update vX.Y.Z ready to install"</strong>. Click <strong>Instalar e Reiniciar</strong> (Install and Restart).</p>
+        <figure style="max-width:464px"><img loading="lazy" src="img/en-US/a13_atualizacao_pronta.webp" alt="Update-ready notice." width="464" height="137"/><figcaption>Update-ready notice.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>The program closes, installs and opens again. On the first start the <strong>What's new in version</strong> window appears; click <strong>Continue</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/en-US/a14_novidades.webp" alt="What's new in the version." width="480" height="299"/><figcaption>What's new in the version.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>The program looks for a new version <strong>when it opens</strong> and then <strong>every 30 minutes</strong>. You do not have to download anything by hand.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-entrar" data-sec="entrar">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Sign in to your account</h3><a class="btn-video" data-video="entrar" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">To see your pool, sign in with the <strong>same e-mail and password</strong> you use in the phone app.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>When it opens, the program shows the <strong>Home panel</strong>, open to everyone. To sign in, click <strong>I already have an account</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p01_deslogado.webp" alt="Home panel without login." width="1440" height="900"/><figcaption>Home panel without login.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Type your <strong>e-mail</strong> and <strong>password</strong> and click <strong>Sign In</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/en-US/p02_login.webp" alt="Login window." width="480" height="516"/><figcaption>Login window.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Forgot the password? Click <strong>Forgot my password</strong>.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Because your account is a <strong>participant</strong> account, the program opens <strong>your area</strong> straight away: your pools.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p03_area.webp" alt="Your participant area." width="1440" height="900"/><figcaption>Your participant area.</figcaption></figure></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Warning:</strong> A new participant <strong>signs up</strong> in the <strong>phone app</strong>, through the invitation the organizer sends. See the Participant Manual (phone).</div>
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>Those who run pools <strong>and</strong> take part in others also see an <strong>Organizer</strong> button at the top of the area, to switch sides.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-aparencia" data-sec="aparencia">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Theme (light, dark, colorful) and language</h3><a class="btn-video" data-video="aparencia" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Change the look whenever you want. It does not change any data.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>On the Home panel, next to the lotteries, there are three buttons: <strong>moon</strong> (dark theme), <strong>sun</strong> (light theme) and <strong>palette</strong> (colorful theme).</p>
+        <figure style="max-width:114px"><img loading="lazy" src="img/en-US/a05_botoes_tema.webp" alt="Theme buttons." width="114" height="50"/><figcaption>Theme buttons.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Next to the themes is the <strong>flag</strong>. Click it and choose the <strong>language</strong>: Português, English, Español or Italiano.</p>
+        <figure style="max-width:71px"><img loading="lazy" src="img/en-US/a06_idioma.webp" alt="Language selector." width="71" height="50"/><figcaption>Language selector.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>The program remembers your choice the next time it opens.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-boloes"><h2>2. Your pools</h2><p class="intro-cap">The main screen: everything about each pool you take part in.</p>
+      
+    <section class="secao" id="en-US-menu" data-sec="menu">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> The menu of your area</h3><a class="btn-video" data-video="menu" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">At the top of the screen are the four parts of your area and two buttons.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>The tabs are: <strong>Pools</strong>, <strong>Alerts</strong>, <strong>Reports</strong> and <strong>History</strong>. The green tab is the one you are viewing. A <strong>red dot</strong> on <strong>Alerts</strong> means there is a new alert.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p04_menu.webp" alt="Participant area menu." width="1440" height="72"/><figcaption>Participant area menu.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>On the right: <strong>Profile</strong> (your photo, CPF and PIX) and <strong>Sign Out</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-premios" data-sec="premios">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> The lottery prizes</h3><a class="btn-video" data-video="premios" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Right below the menu, a strip shows the <strong>estimated prize</strong> of the next drawing of each lottery.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Each little card shows the lottery name and the estimated prize. The color is the lottery's.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p05_premios.webp" alt="Strip of estimated prizes." width="1440" height="203"/><figcaption>Strip of estimated prizes.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Click a little card to see that lottery's <strong>latest result</strong>.</p>
+        <figure style="max-width:440px"><img loading="lazy" src="img/en-US/p05b_resultado.webp" alt="Latest result of the lottery." width="440" height="379"/><figcaption>Latest result of the lottery.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>To close, click the <strong>✕</strong> in the corner of the window.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-lista" data-sec="lista">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> The list of your pools</h3><a class="btn-video" data-video="lista" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">On the left are all the pools you take part in.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>The <strong>Active</strong> and <strong>Inactive</strong> buttons separate the pools. <strong>Active</strong> ones are those in play now.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/en-US/p06_lista.webp" alt="List of active pools." width="300" height="290"/><figcaption>List of active pools.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Each pool shows its <strong>name</strong>, the <strong>lottery</strong>, your <strong>share number</strong> and its status. <strong>"Awaiting activation"</strong> means the organizer has not activated the pool yet.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Click <strong>Inactive</strong> to see the pools that have already ended.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/en-US/p07_inativos.webp" alt="List of inactive pools." width="300" height="190"/><figcaption>List of inactive pools.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Click a pool to see its details beside it.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>The word <strong>aceito</strong> ("accepted") means you accepted the invitation and are already part of the pool.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-resumo" data-sec="resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> Your pool summary</h3><a class="btn-video" data-video="resumo" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The first card of the chosen pool has your numbers.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Read, line by line: <strong>Your share</strong> (your share number), <strong>Shares</strong> (how many you have), <strong>Share value</strong>, <strong>% of pool</strong> (your part) and <strong>Payment</strong> (Paid or Pending).</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p08_resumo.webp" alt="Pool summary." width="1096" height="382"/><figcaption>Pool summary.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>My Balance</strong> is your money that stayed in the pool. <strong>Amount Won</strong> is the total of prizes that are already yours.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Last, the organizer's <strong>PIX</strong> (where you pay) and the <strong>Organizer</strong>'s name.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>Your <strong>part</strong> of the pool is proportional to the <strong>shares</strong>: whoever has more shares pays more and receives more.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-comprovante" data-sec="comprovante">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> Payment receipt and playslips</h3><a class="btn-video" data-video="comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Below the summary are your receipts and the photos of the pool's playslips.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Comprovante de pagamento</strong> (payment receipt) appears the PIX you sent, with the amount, who it went to, the date and <strong>Concluído</strong> (completed) once the organizer confirmed it. The <strong>Enviar comprovante do PIX</strong> (send PIX receipt) link is for sending another.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p09_comprovante_bilhetes.webp" alt="Payment receipt and playslips." width="1096" height="208"/><figcaption>Payment receipt and playslips.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>In <strong>Bilhetes</strong> (playslips) are the photos of the tickets the organizer registered at the lottery shop.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-documentos" data-sec="documentos">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Pool documents</h3><a class="btn-video" data-video="documentos" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The pool documents are always at hand.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In the <strong>Documents</strong> card, click the one you want to read or print: <strong>Terms and Conditions</strong>, <strong>Pool Formation Agreement</strong>, <strong>Prize Dossier</strong> and <strong>Operating Rules and ITCMD Exemption</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p10_documentos.webp" alt="Pool documents." width="1096" height="208"/><figcaption>Pool documents.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>The <strong>Formation Agreement</strong> shows each participant's shares. If you already signed on the phone, your signature appears in it. The text of these documents is in <strong>Portuguese</strong>: they are legal documents for Brazilian pools.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-jogos" data-sec="jogos">
+      <div class="secao-topo"><h3><span class="nsec">2.7</span> The pool's tickets and how much you would win</h3><a class="btn-video" data-video="jogos" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">For each lottery in the pool there is a card with an estimate and the tickets.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>At the top of the card, <strong>"If it wins Mega-Sena today"</strong> shows <strong>your estimated share</strong>, if the pool were the only winner of the prize. It is only an estimate: the real amount is known only after the drawing.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p11_jogos.webp" alt="Pool tickets and your estimated share." width="1096" height="467"/><figcaption>Pool tickets and your estimated share.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Below, the <strong>tickets</strong>: each line is a ticket, with the number balls. The <strong>All</strong> and <strong>Winners</strong> buttons filter the list.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Click <strong>Finished drawings</strong> to see the tickets of drawings that have already happened.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>Winning tickets appear highlighted, with the prize amount.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-acompanhar"><h2>3. Alerts, reports and history</h2><p class="intro-cap">Follow what happened in your pool.</p>
+      
+    <section class="secao" id="en-US-avisos" data-sec="avisos">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Alerts</h3><a class="btn-video" data-video="avisos" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The <strong>Alerts</strong> tab lists everything the program wanted to tell you.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Click <strong>Alerts</strong>. Each line is an alert, with the date and time: payment confirmed, pool won a prize, result available, credit to your balance.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p12_avisos.webp" alt="Alerts tab." width="1440" height="900"/><figcaption>Alerts tab.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-relatorios" data-sec="relatorios">
+      <div class="secao-topo"><h3><span class="nsec">3.2</span> Reports</h3><a class="btn-video" data-video="relatorios" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The <strong>Reports</strong> tab shows the result of each drawing for your pool.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Click <strong>Reports</strong>. At the top, the <strong>winning</strong> pools, with <strong>your share</strong>, <strong>your net amount</strong>, the <strong>% of your share</strong> and the <strong>share value</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p13_relatorios.webp" alt="Reports tab." width="1440" height="900"/><figcaption>Reports tab.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>The <strong>Round history</strong> lists each drawing of the prize and how much it was.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Below, the drawings <strong>with no prize</strong> and the payment confirmations, in date order.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-historico" data-sec="historico">
+      <div class="secao-topo"><h3><span class="nsec">3.3</span> History</h3><a class="btn-video" data-video="historico" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">The <strong>History</strong> tab keeps everything about your participations, including old pools.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Click <strong>History</strong>. Each <strong>participation</strong> shows the pool, whether it is <strong>Paid</strong>, the <strong>shares</strong> and the <strong>amount won</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p14_historico.webp" alt="History tab." width="1440" height="900"/><figcaption>History tab.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Below come all the <strong>tickets</strong>, by lottery and drawing. Use <strong>All</strong> and <strong>Winners</strong> to filter.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>A ticket repeated over several drawings appears as <strong>Repeat Play</strong>, with one line per drawing. The green dot means the drawing has not happened yet; the <strong>red check</strong> means it has ended.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-perfil"><h2>4. Your profile</h2><p class="intro-cap">Photo, CPF, PIX and receipts.</p>
+      
+    <section class="secao" id="en-US-perfil-dados" data-sec="perfil-dados">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Photo, CPF and PIX</h3><a class="btn-video" data-video="perfil-dados" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Click <strong>Profile</strong>, at the top right.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>To add a <strong>photo</strong>, click <strong>Add photo</strong> (later, <strong>Change photo</strong>) and choose an image.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/en-US/p15_perfil.webp" alt="Profile." width="1440" height="900"/><figcaption>Profile.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>In <strong>CPF and PIX</strong>, type your <strong>CPF</strong> and choose the <strong>PIX key type</strong> (CPF, CNPJ, phone, e-mail or random). Type the key and click <strong>Save</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>To go back to the list of pools, click <strong>← My Pools</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>The CPF and PIX identify your payouts and make paying shares easier. They are saved to your account and valid for any pool.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-enviar-comprovante" data-sec="enviar-comprovante">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Send a PIX receipt</h3><a class="btn-video" data-video="enviar-comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Paid a share? Send the receipt from here.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Profile</strong>, in the <strong>PIX Receipts</strong> part, choose the <strong>pool</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Click <strong>Send receipt</strong> and choose the file (photo or PDF).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>The receipt appears in the list, with the date. The organizer checks it.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>You can send the receipt of <strong>any</strong> of your pools, at any time, even after the pool has been activated.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-sair" data-sec="sair">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Sign out of the program</h3><a class="btn-video" data-video="sair" href="#" target="_blank" rel="noopener" hidden>▶ Watch the video</a></div>
+      <p class="resumo">Finished? Sign out of the account.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Click <strong>Sign Out</strong>, at the top right. You go back to the Home panel.</p></div></li></ol>
+      
+      
+      <div class="caixa dica"><strong>Tip:</strong> On a computer that is not only yours, always click <strong>Sign Out</strong> when you finish.</div>
+      
+      
+      
+    </section></div><div class="capitulo" id="en-US-faq"><h2>Frequently asked questions</h2><details class="faq"><summary>Does the program update itself?</summary><p>Yes. It looks for a new version <strong>when it opens</strong> and <strong>every 30 minutes</strong>, downloads in the background and shows <strong>Instalar e Reiniciar</strong> (Install and Restart).</p></details><details class="faq"><summary>Do I need a different account on the computer?</summary><p>No. It is the <strong>same account</strong> as in the phone app: the same e-mail and password.</p></details><details class="faq"><summary>Where do I sign up?</summary><p>In the <strong>phone app</strong>, through the invitation the organizer sends. See the Participant Manual (phone).</p></details><details class="faq"><summary>I do not see my pool in the list.</summary><p>Check <strong>Inactive</strong>: it may have already ended. If the pool is new, the organizer must have invited you and you must have accepted the invitation.</p></details><details class="faq"><summary>What does "Awaiting activation" mean?</summary><p>The organizer has not <strong>activated</strong> the pool yet. When they do, it starts and you receive an alert.</p></details><details class="faq"><summary>Is the "If it wins today" amount guaranteed?</summary><p>No. It is only an <strong>estimate</strong> of your part, if the pool were the only winner. The real amount is known only after the drawing.</p></details><details class="faq"><summary>How do I send the PIX receipt?</summary><p>In <strong>Profile → PIX Receipts</strong>: choose the pool and click <strong>Send receipt</strong>. There is also the <strong>Enviar comprovante do PIX</strong> link inside the pool.</p></details><details class="faq"><summary>Can I change my shares here?</summary><p>In this program you <strong>follow</strong> your shares. To ask for more or fewer shares, talk to the organizer.</p></details></div><div class="capitulo" id="en-US-glossario"><h2>Glossary — the words in the app</h2><dl class="glossario"><dt>Pool (bolão)</dt><dd>A group of people who split the cost of bets and the prize.</dd><dt>Share (cota)</dt><dd>Your part in the pool. Whoever has more shares pays more and receives more.</dd><dt>Organizer</dt><dd>The person who runs the pool: gathers the group, receives the payments, places the bets and divides the prize.</dd><dt>Drawing (concurso)</dt><dd>Each lottery draw has a number. That number identifies the draw.</dd><dt>Number</dt><dd>Each number of a ticket.</dd><dt>Repeat Play (Teimosinha)</dt><dd>The same ticket repeated over several drawings in a row.</dd><dt>My Balance</dt><dd>Your money that stayed saved in the pool.</dd><dt>Amount Won</dt><dd>The total of prizes that are already yours.</dd><dt>PIX</dt><dd>The payment method used to pay the share and receive prizes.</dd><dt>Activating the pool</dt><dd>When the organizer closes the pool to new participants and it starts.</dd><dt>ITCMD</dt><dd>A Brazilian state tax on donations and inheritance. The document "Operating Rules and ITCMD Exemption" explains why dividing the prize among participants is not a donation.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — Desktop manual (participant) · Do you run pools? See the Desktop Manual — Manager.</footer>
+  </div>
+
+  <div class="idioma" data-lang="es-ES" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Manual del Desktop — Participante</h1><p class="sub">Sigue tu grupo desde el ordenador, paso a paso</p><p class="nivel">Para quien participa en grupos y usa el programa en Windows · Versión de la app 5.7.8</p>
+      <p class="intro">Cuando <strong>participas</strong> en un grupo, <strong>LottoAnalytics para ordenador</strong> te muestra todo sobre él en un área solo tuya: tus <strong>cuotas</strong>, el <strong>pago</strong>, los <strong>juegos</strong>, los <strong>avisos</strong>, los <strong>informes</strong> y el <strong>historial</strong>. No necesitas hacer cuentas: el programa muestra lo que es tuyo.</p><p class="intro">Cada paso es corto y muestra la pantalla del programa. <strong>Haz clic en cualquier imagen para ampliarla.</strong> Los cuadros <strong>"¿Quieres saber más?"</strong> traen el detalle para quien le gusta entender a fondo. <strong>Aviso importante:</strong> el programa no garantiza premios. La lotería es un sorteo: ninguna estadística del pasado aumenta la probabilidad del próximo sorteo.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Índice"><h2>Índice</h2><ul><li><a href="#es-ES-cap-comecar">1. Primeros pasos</a><ul><li><a href="#es-ES-instalar">Instalar y actualizar el programa</a></li><li><a href="#es-ES-entrar">Entrar en tu cuenta</a></li><li><a href="#es-ES-aparencia">Tema (claro, oscuro, colorido) e idioma</a></li></ul></li><li><a href="#es-ES-cap-boloes">2. Tus grupos</a><ul><li><a href="#es-ES-menu">El menú de tu área</a></li><li><a href="#es-ES-premios">Los premios de las loterías</a></li><li><a href="#es-ES-lista">La lista de tus grupos</a></li><li><a href="#es-ES-resumo">El resumen de tu grupo</a></li><li><a href="#es-ES-comprovante">Comprobante de pago y boletos</a></li><li><a href="#es-ES-documentos">Documentos del grupo</a></li><li><a href="#es-ES-jogos">Los juegos del grupo y cuánto ganarías</a></li></ul></li><li><a href="#es-ES-cap-acompanhar">3. Avisos, informes e historial</a><ul><li><a href="#es-ES-avisos">Avisos</a></li><li><a href="#es-ES-relatorios">Informes</a></li><li><a href="#es-ES-historico">Historial</a></li></ul></li><li><a href="#es-ES-cap-perfil">4. Tu perfil</a><ul><li><a href="#es-ES-perfil-dados">Foto, CPF y PIX</a></li><li><a href="#es-ES-enviar-comprovante">Enviar un comprobante de PIX</a></li><li><a href="#es-ES-sair">Salir del programa</a></li></ul></li><li><a href="#es-ES-faq">Preguntas frecuentes</a></li><li><a href="#es-ES-glossario">Glosario — las palabras de la app</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="es-ES-cap-comecar"><h2>1. Primeros pasos</h2><p class="intro-cap">Instalar, entrar en tu cuenta y elegir el aspecto.</p>
+      
+    <section class="secao" id="es-ES-instalar" data-sec="instalar">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Instalar y actualizar el programa</h3><a class="btn-video" data-video="instalar" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">El programa se instala una vez en Windows. Después <strong>se actualiza solo</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Abre el archivo <strong>LottoAnalytics-Setup</strong> que recibiste y sigue la instalación. Al terminar, abre el programa por el icono.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Cuando hay una versión nueva, el programa la descarga <strong>en segundo plano</strong> y muestra el aviso <strong>"Actualización vX.Y.Z lista para instalar"</strong>. Haz clic en <strong>Instalar e Reiniciar</strong> (Instalar y reiniciar).</p>
+        <figure style="max-width:520px"><img loading="lazy" src="img/es-ES/a13_atualizacao_pronta.webp" alt="Aviso de actualización lista." width="520" height="137"/><figcaption>Aviso de actualización lista.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>El programa se cierra, instala y se abre de nuevo. La primera vez aparece <strong>Novedades de la versión</strong>; haz clic en <strong>Continuar</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/es-ES/a14_novidades.webp" alt="Novedades de la versión." width="480" height="299"/><figcaption>Novedades de la versión.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>El programa busca versión nueva <strong>al abrir</strong> y después <strong>cada 30 minutos</strong>. No necesitas descargar nada a mano.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-entrar" data-sec="entrar">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Entrar en tu cuenta</h3><a class="btn-video" data-video="entrar" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Para ver tu grupo, entra con el <strong>mismo correo y la misma contraseña</strong> que usas en la aplicación del móvil.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Al abrir, el programa muestra el <strong>Panel de inicio</strong>, abierto a todos. Para entrar, haz clic en <strong>Ya tengo cuenta</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p01_deslogado.webp" alt="Panel de inicio sin sesión." width="1440" height="900"/><figcaption>Panel de inicio sin sesión.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Escribe el <strong>correo</strong> y la <strong>contraseña</strong> y haz clic en <strong>Ingresar</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/es-ES/p02_login.webp" alt="Ventana de inicio de sesión." width="480" height="516"/><figcaption>Ventana de inicio de sesión.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>¿Olvidaste la contraseña? Haz clic en <strong>Olvidé mi contraseña</strong>.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Como tu cuenta es de <strong>participante</strong>, el programa abre directamente <strong>tu área</strong>: tus grupos.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p03_area.webp" alt="Tu área de participante." width="1440" height="900"/><figcaption>Tu área de participante.</figcaption></figure></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atención:</strong> El <strong>registro</strong> de un participante nuevo se hace en la <strong>aplicación del móvil</strong>, por la invitación que manda el organizador. Mira el Manual del Participante (móvil).</div>
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Quien organiza grupos <strong>y</strong> participa en otros ve también un botón <strong>Organizador</strong> arriba del área, para cambiar de lado.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-aparencia" data-sec="aparencia">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Tema (claro, oscuro, colorido) e idioma</h3><a class="btn-video" data-video="aparencia" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Cambia el aspecto cuando quieras. No cambia ningún dato.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>En el Panel de inicio, junto a las loterías, hay tres botones: <strong>luna</strong> (tema oscuro), <strong>sol</strong> (tema claro) y <strong>paleta</strong> (tema colorido).</p>
+        <figure style="max-width:114px"><img loading="lazy" src="img/es-ES/a05_botoes_tema.webp" alt="Botones de tema." width="114" height="50"/><figcaption>Botones de tema.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Junto a los temas está la <strong>bandera</strong>. Haz clic en ella y elige el <strong>idioma</strong>: Português, English, Español o Italiano.</p>
+        <figure style="max-width:71px"><img loading="lazy" src="img/es-ES/a06_idioma.webp" alt="Selector de idioma." width="71" height="50"/><figcaption>Selector de idioma.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>El programa recuerda tu elección la próxima vez que abras.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-boloes"><h2>2. Tus grupos</h2><p class="intro-cap">La pantalla principal: todo sobre cada grupo en el que participas.</p>
+      
+    <section class="secao" id="es-ES-menu" data-sec="menu">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> El menú de tu área</h3><a class="btn-video" data-video="menu" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Arriba están las cuatro partes de tu área y dos botones.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Las pestañas son: <strong>Grupos</strong>, <strong>Avisos</strong>, <strong>Informes</strong> e <strong>Historial</strong>. La pestaña en verde es la que estás viendo. Un <strong>punto rojo</strong> en <strong>Avisos</strong> significa que hay un aviso nuevo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p04_menu.webp" alt="Menú del área del participante." width="1440" height="72"/><figcaption>Menú del área del participante.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>A la derecha: <strong>Perfil</strong> (tu foto, CPF y PIX) y <strong>Salir</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-premios" data-sec="premios">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Los premios de las loterías</h3><a class="btn-video" data-video="premios" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Justo debajo del menú, una franja muestra el <strong>premio estimado</strong> del próximo sorteo de cada lotería.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Cada tarjetita muestra el nombre de la lotería y el premio estimado. El color es el de la lotería.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p05_premios.webp" alt="Franja de premios estimados." width="1440" height="203"/><figcaption>Franja de premios estimados.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Haz clic en una tarjetita para ver el <strong>último resultado</strong> de esa lotería.</p>
+        <figure style="max-width:440px"><img loading="lazy" src="img/es-ES/p05b_resultado.webp" alt="Último resultado de la lotería." width="440" height="379"/><figcaption>Último resultado de la lotería.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para cerrar, haz clic en la <strong>✕</strong> de la esquina de la ventana.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-lista" data-sec="lista">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> La lista de tus grupos</h3><a class="btn-video" data-video="lista" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">A la izquierda están todos los grupos en los que participas.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Los botones <strong>Activos</strong> e <strong>Inactivos</strong> separan los grupos. <strong>Activos</strong> son los que están en juego ahora.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/es-ES/p06_lista.webp" alt="Lista de grupos activos." width="300" height="290"/><figcaption>Lista de grupos activos.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Cada grupo muestra el <strong>nombre</strong>, la <strong>lotería</strong>, el <strong>número de tus cuotas</strong> y la situación. <strong>"Esperando activación"</strong> significa que el organizador aún no activó el grupo.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Haz clic en <strong>Inactivos</strong> para ver los grupos que ya terminaron.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/es-ES/p07_inativos.webp" alt="Lista de grupos inactivos." width="300" height="190"/><figcaption>Lista de grupos inactivos.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Haz clic en un grupo para ver sus detalles al lado.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>La palabra <strong>aceito</strong> ("aceptado", en portugués) significa que aceptaste la invitación y ya formas parte del grupo.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-resumo" data-sec="resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> El resumen de tu grupo</h3><a class="btn-video" data-video="resumo" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">La primera tarjeta del grupo elegido tiene tus números.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Lee, línea por línea: <strong>Tu cuota</strong> (el número de tu cuota), <strong>Cuotas</strong> (cuántas tienes), <strong>Valor de la cuota</strong>, <strong>% del grupo</strong> (tu parte) y <strong>Pago</strong> (Pagado o Pendiente).</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p08_resumo.webp" alt="Resumen del grupo." width="1096" height="382"/><figcaption>Resumen del grupo.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Mi saldo</strong> es dinero tuyo que quedó en el grupo. <strong>Valor ganado</strong> es el total de premios que ya son tuyos.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Por último, el <strong>PIX</strong> del organizador (adonde pagas) y el nombre del <strong>Organizador</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Tu <strong>parte</strong> en el grupo es proporcional a las <strong>cuotas</strong>: quien tiene más cuotas paga más y recibe más.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-comprovante" data-sec="comprovante">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> Comprobante de pago y boletos</h3><a class="btn-video" data-video="comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Debajo del resumen están tus comprobantes y las fotos de los boletos del grupo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>En <strong>Comprobante de pago</strong> aparece el PIX que enviaste, con el valor, a quién fue, la fecha y <strong>Concluído</strong> (concluido) cuando el organizador lo confirmó. El enlace <strong>Enviar comprobante del PIX</strong> sirve para mandar otro.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p09_comprovante_bilhetes.webp" alt="Comprobante de pago y boletos." width="1096" height="208"/><figcaption>Comprobante de pago y boletos.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>En <strong>Boletos</strong> están las fotos de los boletos que el organizador registró en la administración de lotería.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-documentos" data-sec="documentos">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Documentos del grupo</h3><a class="btn-video" data-video="documentos" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Los documentos del grupo están siempre a mano.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>En la tarjeta <strong>Documentos</strong>, haz clic en el que quieras leer o imprimir: <strong>Términos y condiciones</strong>, <strong>Acta de constitución del grupo</strong>, <strong>Expediente del premio</strong> y <strong>Reglas de funcionamiento y exención de ITCMD</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p10_documentos.webp" alt="Documentos del grupo." width="1096" height="208"/><figcaption>Documentos del grupo.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>El <strong>Acta de constitución</strong> muestra las cuotas de cada participante. Si ya firmaste en el móvil, tu firma aparece en ella. El texto de estos documentos está en <strong>portugués</strong>: son documentos legales para grupos en Brasil.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-jogos" data-sec="jogos">
+      <div class="secao-topo"><h3><span class="nsec">2.7</span> Los juegos del grupo y cuánto ganarías</h3><a class="btn-video" data-video="jogos" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Para cada lotería del grupo hay una tarjeta con una estimación y los juegos.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Arriba de la tarjeta, <strong>"Si ganas en Mega-Sena hoy"</strong> muestra <strong>tu parte estimada</strong>, si el grupo fuera el único ganador del premio. Es solo una estimación: el valor real solo se sabe después del sorteo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p11_jogos.webp" alt="Juegos del grupo y tu parte estimada." width="1096" height="467"/><figcaption>Juegos del grupo y tu parte estimada.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Abajo, los <strong>juegos</strong>: cada línea es un juego, con las bolitas de los números. Los botones <strong>Todos</strong> y <strong>Premiados</strong> filtran la lista.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Haz clic en <strong>Sorteos finalizados</strong> para ver los juegos de sorteos que ya ocurrieron.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Los juegos que ganaron aparecen resaltados, con el valor del premio.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-acompanhar"><h2>3. Avisos, informes e historial</h2><p class="intro-cap">Sigue lo que pasó en tu grupo.</p>
+      
+    <section class="secao" id="es-ES-avisos" data-sec="avisos">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Avisos</h3><a class="btn-video" data-video="avisos" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">La pestaña <strong>Avisos</strong> lista todo lo que el programa quiso decirte.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Haz clic en <strong>Avisos</strong>. Cada línea es un aviso, con la fecha y la hora: pago confirmado, grupo premiado, resultado disponible, crédito en tu saldo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p12_avisos.webp" alt="Pestaña Avisos." width="1440" height="900"/><figcaption>Pestaña Avisos.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-relatorios" data-sec="relatorios">
+      <div class="secao-topo"><h3><span class="nsec">3.2</span> Informes</h3><a class="btn-video" data-video="relatorios" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">La pestaña <strong>Informes</strong> muestra el resultado de cada sorteo para tu grupo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Haz clic en <strong>Informes</strong>. Arriba, los grupos <strong>premiados</strong>, con <strong>tu cuota</strong>, <strong>tu valor neto</strong>, el <strong>% de tu cuota</strong> y el <strong>valor de la cuota</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p13_relatorios.webp" alt="Pestaña Informes." width="1440" height="900"/><figcaption>Pestaña Informes.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>El <strong>Historial de rondas</strong> lista cada sorteo del premio y cuánto fue.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Abajo, los sorteos <strong>sin premio</strong> y las confirmaciones de pago, por orden de fecha.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-historico" data-sec="historico">
+      <div class="secao-topo"><h3><span class="nsec">3.3</span> Historial</h3><a class="btn-video" data-video="historico" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">La pestaña <strong>Historial</strong> guarda todo sobre tus participaciones, incluso de grupos antiguos.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Haz clic en <strong>Historial</strong>. Cada <strong>participación</strong> muestra el grupo, si está <strong>Pagado</strong>, las <strong>cuotas</strong> y el <strong>valor ganado</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p14_historico.webp" alt="Pestaña Historial." width="1440" height="900"/><figcaption>Pestaña Historial.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Abajo vienen todos los <strong>juegos</strong>, por lotería y sorteo. Usa <strong>Todos</strong> y <strong>Premiados</strong> para filtrar.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Un juego repetido en varios sorteos aparece como <strong>Teimosinha</strong>, con una línea por sorteo. El punto verde significa que el sorteo aún no ocurrió; la <strong>marca roja</strong>, que ya terminó.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-perfil"><h2>4. Tu perfil</h2><p class="intro-cap">Foto, CPF, PIX y comprobantes.</p>
+      
+    <section class="secao" id="es-ES-perfil-dados" data-sec="perfil-dados">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Foto, CPF y PIX</h3><a class="btn-video" data-video="perfil-dados" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">Haz clic en <strong>Perfil</strong>, arriba a la derecha.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Para poner una <strong>foto</strong>, haz clic en <strong>Agregar foto</strong> (después, <strong>Cambiar foto</strong>) y elige una imagen.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/es-ES/p15_perfil.webp" alt="Perfil." width="1440" height="900"/><figcaption>Perfil.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>En <strong>CPF y PIX</strong>, escribe tu <strong>CPF</strong> y elige el <strong>tipo de clave PIX</strong> (CPF, CNPJ, teléfono, correo electrónico o aleatoria). Escribe la clave y haz clic en <strong>Guardar</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para volver a la lista de grupos, haz clic en <strong>← Mis grupos</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>El CPF y el PIX sirven para identificar tus cobros y facilitar el pago de las cuotas. Quedan guardados en tu cuenta y sirven para cualquier grupo.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-enviar-comprovante" data-sec="enviar-comprovante">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Enviar un comprobante de PIX</h3><a class="btn-video" data-video="enviar-comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">¿Pagaste una cuota? Envía el comprobante desde aquí.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>En <strong>Perfil</strong>, en la parte <strong>Comprobantes de PIX</strong>, elige el <strong>grupo</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Haz clic en <strong>Enviar comprobante</strong> y elige el archivo (foto o PDF).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>El comprobante aparece en la lista, con la fecha. El organizador lo revisa.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Puedes enviar el comprobante de <strong>cualquiera</strong> de tus grupos, en cualquier momento, incluso después de que el grupo se haya activado.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-sair" data-sec="sair">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Salir del programa</h3><a class="btn-video" data-video="sair" href="#" target="_blank" rel="noopener" hidden>▶ Ver el vídeo</a></div>
+      <p class="resumo">¿Terminaste? Sal de la cuenta.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Haz clic en <strong>Salir</strong>, arriba a la derecha. Vuelves al Panel de inicio.</p></div></li></ol>
+      
+      
+      <div class="caixa dica"><strong>Consejo:</strong> En un ordenador que no es solo tuyo, haz siempre clic en <strong>Salir</strong> al terminar.</div>
+      
+      
+      
+    </section></div><div class="capitulo" id="es-ES-faq"><h2>Preguntas frecuentes</h2><details class="faq"><summary>¿El programa se actualiza solo?</summary><p>Sí. Busca versión nueva <strong>al abrir</strong> y <strong>cada 30 minutos</strong>, descarga en segundo plano y muestra <strong>Instalar e Reiniciar</strong> (Instalar y reiniciar).</p></details><details class="faq"><summary>¿Necesito una cuenta distinta en el ordenador?</summary><p>No. Es la <strong>misma cuenta</strong> de la aplicación del móvil: el mismo correo y la misma contraseña.</p></details><details class="faq"><summary>¿Dónde me registro?</summary><p>En la <strong>aplicación del móvil</strong>, por la invitación que manda el organizador. Mira el Manual del Participante (móvil).</p></details><details class="faq"><summary>No veo mi grupo en la lista.</summary><p>Revisa <strong>Inactivos</strong>: puede que ya haya terminado. Si el grupo es nuevo, el organizador debe haberte invitado y tú debes haber aceptado la invitación.</p></details><details class="faq"><summary>¿Qué significa "Esperando activación"?</summary><p>El organizador aún no <strong>activó</strong> el grupo. Cuando lo active, pasa a valer y recibes un aviso.</p></details><details class="faq"><summary>¿El valor de "Si ganas hoy" está garantizado?</summary><p>No. Es solo una <strong>estimación</strong> de tu parte, si el grupo fuera el único ganador. El valor real solo se sabe después del sorteo.</p></details><details class="faq"><summary>¿Cómo envío el comprobante del PIX?</summary><p>En <strong>Perfil → Comprobantes de PIX</strong>: elige el grupo y haz clic en <strong>Enviar comprobante</strong>. También está el enlace <strong>Enviar comprobante del PIX</strong> dentro del grupo.</p></details><details class="faq"><summary>¿Puedo cambiar mis cuotas desde aquí?</summary><p>En este programa <strong>sigues</strong> tus cuotas. Para pedir más o menos cuotas, habla con el organizador.</p></details></div><div class="capitulo" id="es-ES-glossario"><h2>Glosario — las palabras de la app</h2><dl class="glossario"><dt>Grupo (bolão)</dt><dd>Un conjunto de personas que divide el costo de las apuestas y el premio.</dd><dt>Cuota</dt><dd>Tu parte en el grupo. Quien tiene más cuotas paga más y recibe más.</dd><dt>Organizador</dt><dd>La persona que cuida del grupo: reúne a la gente, recibe los pagos, hace las apuestas y reparte el premio.</dd><dt>Sorteo (concurso)</dt><dd>Cada sorteo de la lotería tiene un número. Ese número identifica el sorteo.</dd><dt>Número</dt><dd>Cada número de un juego.</dd><dt>Teimosinha</dt><dd>El mismo juego repetido durante varios sorteos seguidos.</dd><dt>Mi saldo</dt><dd>El dinero tuyo que quedó guardado en el grupo.</dd><dt>Valor ganado</dt><dd>El total de premios que ya son tuyos.</dd><dt>PIX</dt><dd>La forma de pago usada para pagar la cuota y recibir premios.</dd><dt>Activar el grupo</dt><dd>Cuando el organizador cierra el grupo a nuevos participantes y pasa a valer.</dd><dt>ITCMD</dt><dd>Impuesto estatal brasileño sobre donaciones y herencias. El documento "Reglas de funcionamiento y exención de ITCMD" explica por qué repartir el premio entre los participantes no es una donación.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — manual del Desktop (participante) · ¿Organizas grupos? Mira el Manual del Desktop — Gestor.</footer>
+  </div>
+
+  <div class="idioma" data-lang="it-IT" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Manuale del Desktop — Partecipante</h1><p class="sub">Segui il tuo gruppo dal computer, passo dopo passo</p><p class="nivel">Per chi partecipa ai gruppi e usa il programma su Windows · Versione dell'app 5.7.8</p>
+      <p class="intro">Quando <strong>partecipi</strong> a un gruppo, <strong>LottoAnalytics per computer</strong> mostra tutto su di esso in un'area solo tua: le tue <strong>quote</strong>, il <strong>pagamento</strong>, le <strong>giocate</strong>, gli <strong>avvisi</strong>, i <strong>resoconti</strong> e lo <strong>storico</strong>. Non devi fare calcoli: il programma mostra ciò che è tuo.</p><p class="intro">Ogni passo è breve e mostra la schermata del programma. <strong>Clicca su qualsiasi immagine per ingrandirla.</strong> I riquadri <strong>"Vuoi saperne di più?"</strong> contengono il dettaglio per chi vuole capire a fondo. <strong>Avviso importante:</strong> il programma non garantisce vincite. La lotteria è un'estrazione: nessuna statistica del passato aumenta la probabilità della prossima.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Indice"><h2>Indice</h2><ul><li><a href="#it-IT-cap-comecar">1. Per cominciare</a><ul><li><a href="#it-IT-instalar">Installare e aggiornare il programma</a></li><li><a href="#it-IT-entrar">Accedere al tuo account</a></li><li><a href="#it-IT-aparencia">Tema (chiaro, scuro, colorato) e lingua</a></li></ul></li><li><a href="#it-IT-cap-boloes">2. I tuoi gruppi</a><ul><li><a href="#it-IT-menu">Il menu della tua area</a></li><li><a href="#it-IT-premios">I premi delle lotterie</a></li><li><a href="#it-IT-lista">L'elenco dei tuoi gruppi</a></li><li><a href="#it-IT-resumo">Il riepilogo del tuo gruppo</a></li><li><a href="#it-IT-comprovante">Ricevuta di pagamento e biglietti</a></li><li><a href="#it-IT-documentos">Documenti del gruppo</a></li><li><a href="#it-IT-jogos">Le giocate del gruppo e quanto vinceresti</a></li></ul></li><li><a href="#it-IT-cap-acompanhar">3. Avvisi, resoconti e storico</a><ul><li><a href="#it-IT-avisos">Avvisi</a></li><li><a href="#it-IT-relatorios">Resoconti</a></li><li><a href="#it-IT-historico">Storico</a></li></ul></li><li><a href="#it-IT-cap-perfil">4. Il tuo profilo</a><ul><li><a href="#it-IT-perfil-dados">Foto, CPF e PIX</a></li><li><a href="#it-IT-enviar-comprovante">Inviare una ricevuta PIX</a></li><li><a href="#it-IT-sair">Uscire dal programma</a></li></ul></li><li><a href="#it-IT-faq">Domande frequenti</a></li><li><a href="#it-IT-glossario">Glossario — le parole dell'app</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="it-IT-cap-comecar"><h2>1. Per cominciare</h2><p class="intro-cap">Installare, accedere al tuo account e scegliere l'aspetto.</p>
+      
+    <section class="secao" id="it-IT-instalar" data-sec="instalar">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Installare e aggiornare il programma</h3><a class="btn-video" data-video="instalar" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Il programma si installa una volta su Windows. Poi <strong>si aggiorna da solo</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Apri il file <strong>LottoAnalytics-Setup</strong> che hai ricevuto e segui l'installazione. Alla fine, apri il programma dall'icona.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Quando c'è una versione nuova, il programma la scarica <strong>in background</strong> e mostra l'avviso <strong>"Aggiornamento vX.Y.Z pronto per l'installazione"</strong>. Clicca su <strong>Instalar e Reiniciar</strong> (Installa e riavvia).</p>
+        <figure style="max-width:580px"><img loading="lazy" src="img/it-IT/a13_atualizacao_pronta.webp" alt="Avviso di aggiornamento pronto." width="580" height="137"/><figcaption>Avviso di aggiornamento pronto.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Il programma si chiude, installa e si riapre. Alla prima apertura compare <strong>Novità della versione</strong>; clicca su <strong>Continua</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/it-IT/a14_novidades.webp" alt="Novità della versione." width="480" height="299"/><figcaption>Novità della versione.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Il programma cerca una versione nuova <strong>all'apertura</strong> e poi <strong>ogni 30 minuti</strong>. Non devi scaricare nulla a mano.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-entrar" data-sec="entrar">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Accedere al tuo account</h3><a class="btn-video" data-video="entrar" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Per vedere il tuo gruppo, accedi con la <strong>stessa e-mail e la stessa password</strong> che usi nell'app per cellulare.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>All'apertura, il programma mostra il <strong>Pannello iniziale</strong>, aperto a tutti. Per accedere, clicca su <strong>Ho già un account</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p01_deslogado.webp" alt="Pannello iniziale senza accesso." width="1440" height="900"/><figcaption>Pannello iniziale senza accesso.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Scrivi l'<strong>e-mail</strong> e la <strong>password</strong> e clicca su <strong>Accedi</strong>.</p>
+        <figure style="max-width:480px"><img loading="lazy" src="img/it-IT/p02_login.webp" alt="Finestra di accesso." width="480" height="516"/><figcaption>Finestra di accesso.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Hai dimenticato la password? Clicca su <strong>Ho dimenticato la password</strong>.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Poiché il tuo account è da <strong>partecipante</strong>, il programma apre subito <strong>la tua area</strong>: i tuoi gruppi.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p03_area.webp" alt="La tua area di partecipante." width="1440" height="900"/><figcaption>La tua area di partecipante.</figcaption></figure></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> La <strong>registrazione</strong> di un nuovo partecipante si fa nell'<strong>app per cellulare</strong>, tramite l'invito che manda l'organizzatore. Vedi il Manuale del Partecipante (cellulare).</div>
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Chi organizza gruppi <strong>e</strong> partecipa ad altri vede anche un pulsante <strong>Organizzatore</strong> in alto nell'area, per cambiare lato.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-aparencia" data-sec="aparencia">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Tema (chiaro, scuro, colorato) e lingua</h3><a class="btn-video" data-video="aparencia" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Cambia l'aspetto quando vuoi. Non cambia nessun dato.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Nel Pannello iniziale, accanto alle lotterie, ci sono tre pulsanti: <strong>luna</strong> (tema scuro), <strong>sole</strong> (tema chiaro) e <strong>tavolozza</strong> (tema colorato).</p>
+        <figure style="max-width:114px"><img loading="lazy" src="img/it-IT/a05_botoes_tema.webp" alt="Pulsanti del tema." width="114" height="50"/><figcaption>Pulsanti del tema.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Accanto ai temi c'è la <strong>bandiera</strong>. Cliccaci e scegli la <strong>lingua</strong>: Português, English, Español o Italiano.</p>
+        <figure style="max-width:71px"><img loading="lazy" src="img/it-IT/a06_idioma.webp" alt="Selettore della lingua." width="71" height="50"/><figcaption>Selettore della lingua.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Il programma ricorda la tua scelta alla prossima apertura.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-boloes"><h2>2. I tuoi gruppi</h2><p class="intro-cap">La schermata principale: tutto su ogni gruppo a cui partecipi.</p>
+      
+    <section class="secao" id="it-IT-menu" data-sec="menu">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> Il menu della tua area</h3><a class="btn-video" data-video="menu" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">In alto ci sono le quattro parti della tua area e due pulsanti.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Le schede sono: <strong>Gruppi</strong>, <strong>Avvisi</strong>, <strong>Resoconti</strong> e <strong>Storico</strong>. La scheda in verde è quella che stai guardando. Un <strong>pallino rosso</strong> su <strong>Avvisi</strong> significa che c'è un avviso nuovo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p04_menu.webp" alt="Menu dell'area del partecipante." width="1440" height="72"/><figcaption>Menu dell'area del partecipante.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>A destra: <strong>Profilo</strong> (la tua foto, CPF e PIX) ed <strong>Esci</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-premios" data-sec="premios">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> I premi delle lotterie</h3><a class="btn-video" data-video="premios" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Subito sotto il menu, una fascia mostra il <strong>premio stimato</strong> della prossima estrazione di ogni lotteria.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Ogni cartellina mostra il nome della lotteria e il premio stimato. Il colore è quello della lotteria.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p05_premios.webp" alt="Fascia dei premi stimati." width="1440" height="203"/><figcaption>Fascia dei premi stimati.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Clicca su una cartellina per vedere l'<strong>ultimo risultato</strong> di quella lotteria.</p>
+        <figure style="max-width:440px"><img loading="lazy" src="img/it-IT/p05b_resultado.webp" alt="Ultimo risultato della lotteria." width="440" height="379"/><figcaption>Ultimo risultato della lotteria.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Per chiudere, clicca sulla <strong>✕</strong> nell'angolo della finestra.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-lista" data-sec="lista">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> L'elenco dei tuoi gruppi</h3><a class="btn-video" data-video="lista" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">A sinistra ci sono tutti i gruppi a cui partecipi.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>I pulsanti <strong>Attivi</strong> e <strong>Inattivi</strong> separano i gruppi. <strong>Attivi</strong> sono quelli in gioco adesso.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/it-IT/p06_lista.webp" alt="Elenco dei gruppi attivi." width="300" height="290"/><figcaption>Elenco dei gruppi attivi.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Ogni gruppo mostra il <strong>nome</strong>, la <strong>lotteria</strong>, il <strong>numero delle tue quote</strong> e la situazione. <strong>"In attesa di attivazione"</strong> significa che l'organizzatore non ha ancora attivato il gruppo.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Clicca su <strong>Inattivi</strong> per vedere i gruppi già terminati.</p>
+        <figure style="max-width:300px"><img loading="lazy" src="img/it-IT/p07_inativos.webp" alt="Elenco dei gruppi inattivi." width="300" height="190"/><figcaption>Elenco dei gruppi inattivi.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Clicca su un gruppo per vederne i dettagli accanto.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>La parola <strong>aceito</strong> ("accettato", in portoghese) significa che hai accettato l'invito e fai già parte del gruppo.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-resumo" data-sec="resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> Il riepilogo del tuo gruppo</h3><a class="btn-video" data-video="resumo" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">La prima scheda del gruppo scelto contiene i tuoi numeri.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Leggi, riga per riga: <strong>La tua quota</strong> (il numero della tua quota), <strong>Quote</strong> (quante ne hai), <strong>Valore della quota</strong>, <strong>% del gruppo</strong> (la tua parte) e <strong>Pagamento</strong> (Pagato o In sospeso).</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p08_resumo.webp" alt="Riepilogo del gruppo." width="1096" height="382"/><figcaption>Riepilogo del gruppo.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Il mio saldo</strong> è denaro tuo rimasto nel gruppo. <strong>Importo vinto</strong> è il totale dei premi che sono già tuoi.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Infine, il <strong>PIX</strong> dell'organizzatore (dove paghi) e il nome dell'<strong>Organizzatore</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>La tua <strong>parte</strong> nel gruppo è proporzionale alle <strong>quote</strong>: chi ha più quote paga di più e riceve di più.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-comprovante" data-sec="comprovante">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> Ricevuta di pagamento e biglietti</h3><a class="btn-video" data-video="comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Sotto il riepilogo ci sono le tue ricevute e le foto dei biglietti del gruppo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Comprovante de pagamento</strong> (ricevuta di pagamento) compare il PIX che hai inviato, con l'importo, a chi è andato, la data e <strong>Concluído</strong> (concluso) quando l'organizzatore l'ha confermato. Il link <strong>Enviar comprovante do PIX</strong> (invia ricevuta PIX) serve per inviarne un'altra.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p09_comprovante_bilhetes.webp" alt="Ricevuta di pagamento e biglietti." width="1096" height="208"/><figcaption>Ricevuta di pagamento e biglietti.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>In <strong>Biglietti</strong> ci sono le foto dei biglietti che l'organizzatore ha registrato in ricevitoria.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-documentos" data-sec="documentos">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Documenti del gruppo</h3><a class="btn-video" data-video="documentos" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">I documenti del gruppo sono sempre a portata di mano.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Nella scheda <strong>Documenti</strong>, clicca su quello che vuoi leggere o stampare: <strong>Termini e condizioni</strong>, <strong>Atto costitutivo del gruppo</strong>, <strong>Fascicolo del premio</strong> e <strong>Regole di funzionamento ed esenzione ITCMD</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p10_documentos.webp" alt="Documenti del gruppo." width="1096" height="208"/><figcaption>Documenti del gruppo.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>L'<strong>Atto costitutivo</strong> mostra le quote di ogni partecipante. Se hai già firmato dal cellulare, la tua firma compare in esso. Il testo di questi documenti è in <strong>portoghese</strong>: sono documenti legali per gruppi in Brasile.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-jogos" data-sec="jogos">
+      <div class="secao-topo"><h3><span class="nsec">2.7</span> Le giocate del gruppo e quanto vinceresti</h3><a class="btn-video" data-video="jogos" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Per ogni lotteria del gruppo c'è una scheda con una stima e le giocate.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In alto nella scheda, <strong>"Se vinci a Mega-Sena oggi"</strong> mostra <strong>la tua parte stimata</strong>, se il gruppo fosse l'unico vincitore del premio. È solo una stima: il valore reale si sa solo dopo l'estrazione.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p11_jogos.webp" alt="Giocate del gruppo e la tua parte stimata." width="1096" height="467"/><figcaption>Giocate del gruppo e la tua parte stimata.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Sotto, le <strong>giocate</strong>: ogni riga è una giocata, con le palline dei numeri. I pulsanti <strong>Tutti</strong> e <strong>Vincenti</strong> filtrano l'elenco.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Clicca su <strong>Estrazioni concluse</strong> per vedere le giocate delle estrazioni già avvenute.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Le giocate vincenti compaiono evidenziate, con l'importo del premio.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-acompanhar"><h2>3. Avvisi, resoconti e storico</h2><p class="intro-cap">Segui ciò che è successo nel tuo gruppo.</p>
+      
+    <section class="secao" id="it-IT-avisos" data-sec="avisos">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Avvisi</h3><a class="btn-video" data-video="avisos" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">La scheda <strong>Avvisi</strong> elenca tutto ciò che il programma voleva dirti.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clicca su <strong>Avvisi</strong>. Ogni riga è un avviso, con data e ora: pagamento confermato, gruppo vincente, risultato disponibile, credito sul tuo saldo.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p12_avisos.webp" alt="Scheda Avvisi." width="1440" height="900"/><figcaption>Scheda Avvisi.</figcaption></figure></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-relatorios" data-sec="relatorios">
+      <div class="secao-topo"><h3><span class="nsec">3.2</span> Resoconti</h3><a class="btn-video" data-video="relatorios" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">La scheda <strong>Resoconti</strong> mostra il risultato di ogni estrazione per il tuo gruppo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clicca su <strong>Resoconti</strong>. In alto, i gruppi <strong>vincenti</strong>, con <strong>la tua quota</strong>, <strong>il tuo importo netto</strong>, la <strong>% della tua quota</strong> e il <strong>valore della quota</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p13_relatorios.webp" alt="Scheda Resoconti." width="1440" height="900"/><figcaption>Scheda Resoconti.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Lo <strong>Storico dei turni</strong> elenca ogni estrazione del premio e quanto era.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Sotto, le estrazioni <strong>senza premio</strong> e le conferme di pagamento, in ordine di data.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-historico" data-sec="historico">
+      <div class="secao-topo"><h3><span class="nsec">3.3</span> Storico</h3><a class="btn-video" data-video="historico" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">La scheda <strong>Storico</strong> conserva tutto sulle tue partecipazioni, anche dei gruppi vecchi.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clicca su <strong>Storico</strong>. Ogni <strong>partecipazione</strong> mostra il gruppo, se è <strong>Pagato</strong>, le <strong>quote</strong> e l'<strong>importo vinto</strong>.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p14_historico.webp" alt="Scheda Storico." width="1440" height="900"/><figcaption>Scheda Storico.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Sotto ci sono tutte le <strong>giocate</strong>, per lotteria ed estrazione. Usa <strong>Tutti</strong> e <strong>Vincenti</strong> per filtrare.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Una giocata ripetuta su più estrazioni compare come <strong>Teimosinha</strong>, con una riga per estrazione. Il pallino verde significa che l'estrazione non c'è ancora stata; la <strong>spunta rossa</strong>, che è terminata.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-perfil"><h2>4. Il tuo profilo</h2><p class="intro-cap">Foto, CPF, PIX e ricevute.</p>
+      
+    <section class="secao" id="it-IT-perfil-dados" data-sec="perfil-dados">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Foto, CPF e PIX</h3><a class="btn-video" data-video="perfil-dados" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Clicca su <strong>Profilo</strong>, in alto a destra.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Per mettere una <strong>foto</strong>, clicca su <strong>Aggiungi foto</strong> (poi <strong>Cambia foto</strong>) e scegli un'immagine.</p>
+        <figure style="max-width:880px"><img loading="lazy" src="img/it-IT/p15_perfil.webp" alt="Profilo." width="1440" height="900"/><figcaption>Profilo.</figcaption></figure></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>In <strong>CPF e PIX</strong>, scrivi il tuo <strong>CPF</strong> e scegli il <strong>tipo di chiave PIX</strong> (CPF, CNPJ, telefono, e-mail o casuale). Scrivi la chiave e clicca su <strong>Salva</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Per tornare all'elenco dei gruppi, clicca su <strong>← I miei gruppi</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Il CPF e il PIX servono per identificare i tuoi incassi e agevolare il pagamento delle quote. Restano salvati nel tuo account e valgono per qualsiasi gruppo.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-enviar-comprovante" data-sec="enviar-comprovante">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Inviare una ricevuta PIX</h3><a class="btn-video" data-video="enviar-comprovante" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Hai pagato una quota? Invia la ricevuta da qui.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Profilo</strong>, nella parte <strong>Ricevute PIX</strong>, scegli il <strong>gruppo</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Clicca su <strong>Invia ricevuta</strong> e scegli il file (foto o PDF).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>La ricevuta compare nell'elenco, con la data. L'organizzatore la controlla.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Puoi inviare la ricevuta di <strong>qualsiasi</strong> dei tuoi gruppi, in qualsiasi momento, anche dopo l'attivazione del gruppo.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-sair" data-sec="sair">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Uscire dal programma</h3><a class="btn-video" data-video="sair" href="#" target="_blank" rel="noopener" hidden>▶ Guarda il video</a></div>
+      <p class="resumo">Hai finito? Esci dall'account.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Clicca su <strong>Esci</strong>, in alto a destra. Torni al Pannello iniziale.</p></div></li></ol>
+      
+      
+      <div class="caixa dica"><strong>Consiglio:</strong> Su un computer che non è solo tuo, clicca sempre su <strong>Esci</strong> quando hai finito.</div>
+      
+      
+      
+    </section></div><div class="capitulo" id="it-IT-faq"><h2>Domande frequenti</h2><details class="faq"><summary>Il programma si aggiorna da solo?</summary><p>Sì. Cerca una versione nuova <strong>all'apertura</strong> e <strong>ogni 30 minuti</strong>, scarica in background e mostra <strong>Instalar e Reiniciar</strong> (Installa e riavvia).</p></details><details class="faq"><summary>Mi serve un account diverso sul computer?</summary><p>No. È lo <strong>stesso account</strong> dell'app per cellulare: la stessa e-mail e la stessa password.</p></details><details class="faq"><summary>Dove mi registro?</summary><p>Nell'<strong>app per cellulare</strong>, tramite l'invito che manda l'organizzatore. Vedi il Manuale del Partecipante (cellulare).</p></details><details class="faq"><summary>Non vedo il mio gruppo nell'elenco.</summary><p>Controlla in <strong>Inattivi</strong>: potrebbe essere già terminato. Se il gruppo è nuovo, l'organizzatore deve averti invitato e tu devi aver accettato l'invito.</p></details><details class="faq"><summary>Cosa significa "In attesa di attivazione"?</summary><p>L'organizzatore non ha ancora <strong>attivato</strong> il gruppo. Quando lo attiva, il gruppo entra in vigore e ricevi un avviso.</p></details><details class="faq"><summary>L'importo di "Se vinci oggi" è garantito?</summary><p>No. È solo una <strong>stima</strong> della tua parte, se il gruppo fosse l'unico vincitore. Il valore reale si sa solo dopo l'estrazione.</p></details><details class="faq"><summary>Come invio la ricevuta del PIX?</summary><p>In <strong>Profilo → Ricevute PIX</strong>: scegli il gruppo e clicca su <strong>Invia ricevuta</strong>. C'è anche il link <strong>Enviar comprovante do PIX</strong> dentro il gruppo.</p></details><details class="faq"><summary>Posso cambiare le mie quote da qui?</summary><p>In questo programma <strong>segui</strong> le tue quote. Per chiederne di più o di meno, parla con l'organizzatore.</p></details></div><div class="capitulo" id="it-IT-glossario"><h2>Glossario — le parole dell'app</h2><dl class="glossario"><dt>Gruppo (bolão)</dt><dd>Un insieme di persone che divide il costo delle scommesse e il premio.</dd><dt>Quota</dt><dd>La tua parte nel gruppo. Chi ha più quote paga di più e riceve di più.</dd><dt>Organizzatore</dt><dd>La persona che cura il gruppo: riunisce la gente, riceve i pagamenti, fa le scommesse e divide il premio.</dd><dt>Estrazione (concurso)</dt><dd>Ogni estrazione della lotteria ha un numero. È quel numero a identificarla.</dd><dt>Numero</dt><dd>Ogni numero di una giocata.</dd><dt>Teimosinha</dt><dd>La stessa giocata ripetuta per più estrazioni di fila.</dd><dt>Il mio saldo</dt><dd>Il denaro tuo rimasto conservato nel gruppo.</dd><dt>Importo vinto</dt><dd>Il totale dei premi che sono già tuoi.</dd><dt>PIX</dt><dd>Il metodo di pagamento usato per pagare la quota e ricevere i premi.</dd><dt>Attivare il gruppo</dt><dd>Quando l'organizzatore chiude il gruppo ai nuovi partecipanti e questo entra in vigore.</dd><dt>ITCMD</dt><dd>Imposta statale brasiliana su donazioni ed eredità. Il documento "Regole di funzionamento ed esenzione ITCMD" spiega perché dividere il premio tra i partecipanti non è una donazione.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — manuale del Desktop (partecipante) · Organizzi gruppi? Vedi il Manuale del Desktop — Gestore.</footer>
+  </div>
+<script>
+(function(){
+  var NIVEL="desktop-participante", UIS={"pt-BR":{"titulo":"Manual do Desktop — Participante","imprimir":"Imprimir / Salvar PDF","idioma":"Idioma","indice":"Índice"},"en-US":{"titulo":"Desktop Manual — Participant","imprimir":"Print / Save as PDF","idioma":"Language","indice":"Contents"},"es-ES":{"titulo":"Manual del Desktop — Participante","imprimir":"Imprimir / Guardar como PDF","idioma":"Idioma","indice":"Índice"},"it-IT":{"titulo":"Manuale del Desktop — Partecipante","imprimir":"Stampa / Salva in PDF","idioma":"Lingua","indice":"Indice"}};
+  var DISP=Object.keys(UIS), VIDEOS={"desktop-participante":{"instalar":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=25","en-US":"https://youtu.be/D5vqlTjCSEE?t=20","es-ES":"https://youtu.be/IktOgFvkV-Y?t=25","it-IT":"https://youtu.be/fWe9xfCesuw?t=27"},"entrar":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=74","en-US":"https://youtu.be/D5vqlTjCSEE?t=65","es-ES":"https://youtu.be/IktOgFvkV-Y?t=75","it-IT":"https://youtu.be/fWe9xfCesuw?t=81"},"aparencia":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=134","en-US":"https://youtu.be/D5vqlTjCSEE?t=112","es-ES":"https://youtu.be/IktOgFvkV-Y?t=135","it-IT":"https://youtu.be/fWe9xfCesuw?t=147"},"menu":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=180","en-US":"https://youtu.be/D5vqlTjCSEE?t=151","es-ES":"https://youtu.be/IktOgFvkV-Y?t=181","it-IT":"https://youtu.be/fWe9xfCesuw?t=196"},"premios":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=213","en-US":"https://youtu.be/D5vqlTjCSEE?t=177","es-ES":"https://youtu.be/IktOgFvkV-Y?t=212","it-IT":"https://youtu.be/fWe9xfCesuw?t=232"},"lista":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=248","en-US":"https://youtu.be/D5vqlTjCSEE?t=205","es-ES":"https://youtu.be/IktOgFvkV-Y?t=248","it-IT":"https://youtu.be/fWe9xfCesuw?t=269"},"resumo":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=295","en-US":"https://youtu.be/D5vqlTjCSEE?t=242","es-ES":"https://youtu.be/IktOgFvkV-Y?t=295","it-IT":"https://youtu.be/fWe9xfCesuw?t=318"},"comprovante":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=340","en-US":"https://youtu.be/D5vqlTjCSEE?t=277","es-ES":"https://youtu.be/IktOgFvkV-Y?t=338","it-IT":"https://youtu.be/fWe9xfCesuw?t=366"},"documentos":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=375","en-US":"https://youtu.be/D5vqlTjCSEE?t=314","es-ES":"https://youtu.be/IktOgFvkV-Y?t=374","it-IT":"https://youtu.be/fWe9xfCesuw?t=410"},"jogos":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=397","en-US":"https://youtu.be/D5vqlTjCSEE?t=333","es-ES":"https://youtu.be/IktOgFvkV-Y?t=397","it-IT":"https://youtu.be/fWe9xfCesuw?t=434"},"avisos":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=453","en-US":"https://youtu.be/D5vqlTjCSEE?t=379","es-ES":"https://youtu.be/IktOgFvkV-Y?t=451","it-IT":"https://youtu.be/fWe9xfCesuw?t=493"},"relatorios":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=475","en-US":"https://youtu.be/D5vqlTjCSEE?t=397","es-ES":"https://youtu.be/IktOgFvkV-Y?t=473","it-IT":"https://youtu.be/fWe9xfCesuw?t=517"},"historico":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=514","en-US":"https://youtu.be/D5vqlTjCSEE?t=428","es-ES":"https://youtu.be/IktOgFvkV-Y?t=511","it-IT":"https://youtu.be/fWe9xfCesuw?t=559"},"perfil-dados":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=569","en-US":"https://youtu.be/D5vqlTjCSEE?t=473","es-ES":"https://youtu.be/IktOgFvkV-Y?t=565","it-IT":"https://youtu.be/fWe9xfCesuw?t=616"},"enviar-comprovante":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=611","en-US":"https://youtu.be/D5vqlTjCSEE?t=506","es-ES":"https://youtu.be/IktOgFvkV-Y?t=607","it-IT":"https://youtu.be/fWe9xfCesuw?t=660"},"sair":{"pt-BR":"https://youtu.be/rNczAUU6I7E?t=646","en-US":"https://youtu.be/D5vqlTjCSEE?t=531","es-ES":"https://youtu.be/IktOgFvkV-Y?t=641","it-IT":"https://youtu.be/fWe9xfCesuw?t=695"}}};
+  function pegaIdioma(){ var q=(location.search.match(/[?&]lang=([\w-]+)/)||[])[1]; var s=null; try{ s=localStorage.getItem('la_idioma'); }catch(e){}
+    var c=q||s||'pt-BR'; return DISP.indexOf(c)>=0 ? c : DISP[0]; }
+  function aplica(c){
+    document.documentElement.lang=c; document.querySelectorAll('.idioma').forEach(function(d){ d.hidden = d.dataset.lang!==c; });
+    document.getElementById('sel-idioma').value=c; document.getElementById('titulo-barra').textContent=UIS[c].titulo; document.getElementById('btn-imprimir').textContent=UIS[c].imprimir; document.getElementById('rot-idioma').textContent=UIS[c].idioma; document.getElementById('btn-indice').textContent='↑ '+UIS[c].indice;
+    document.title=UIS[c].titulo+' — LottoAnalytics'; videos(c);
+    try{ localStorage.setItem('la_idioma', c); }catch(e){}
+  }
+  function videos(c){ document.querySelectorAll('.idioma[data-lang="'+c+'"] .btn-video').forEach(function(a){
+    var m=VIDEOS[NIVEL]&&VIDEOS[NIVEL][a.dataset.video]; var url=m&&(m[c]||m['pt-BR']); if(url){ a.href=url; a.hidden=false; } else { a.hidden=true; } }); }
+  fetch('videos.json').then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; }).then(function(j){ if(j && Object.keys(j).length) VIDEOS=j; videos(document.getElementById('sel-idioma').value); });
+  document.getElementById('sel-idioma').addEventListener('change', function(){ aplica(this.value); });
+  var bi=document.getElementById('btn-indice');
+  function atualizaBi(){ bi.hidden = (window.pageYOffset||document.documentElement.scrollTop) < 500; }
+  window.addEventListener('scroll',atualizaBi,{passive:true}); atualizaBi();
+  bi.addEventListener('click',function(){ var toc=document.querySelector('.idioma:not([hidden]) .toc'); if(toc) toc.scrollIntoView({behavior:'smooth',block:'start'}); else window.scrollTo({top:0,behavior:'smooth'}); });
+  document.getElementById('btn-imprimir').addEventListener('click', function(){ window.print(); });
+  document.addEventListener('click',function(e){ var im=e.target; if(im.tagName==='IMG' && im.closest && im.closest('figure')){ var z=document.createElement('div'); z.className='zoom'; z.innerHTML='<img src="'+im.src+'" alt=""/>'; z.onclick=function(){ z.remove(); }; document.body.appendChild(z); } });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var z=document.querySelector('.zoom'); if(z) z.remove(); } });
+  aplica(pegaIdioma());
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  if('IntersectionObserver' in window){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ links.forEach(function(l){ l.classList.toggle('ativo', l.getAttribute('href')==='#'+e.target.id); }); } }); },{rootMargin:'-20% 0px -70% 0px'}); document.querySelectorAll('.secao,.capitulo').forEach(function(s){ io.observe(s); }); }
+})();
+</script></body></html>
