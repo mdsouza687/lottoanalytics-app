@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Isenção do ITCMD — LottoAnalytics</title>
+<style>
+:root{--verde:#2f7d45;--verde-esc:#14301d;--turq:#2fd1b4;--laranja:#e8590c;--fundo:#f4f6f3;--card:#fff;--borda:#dfe6df;--texto:#1c2b21;--suave:#5b6b60;--grafite:#3a3f4b}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--fundo);color:var(--texto);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.barra{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.barra .marca{background:var(--grafite);color:#fff;border-radius:10px;padding:5px 12px;font-weight:800;letter-spacing:.04em;font-size:15px}.marca span{color:var(--turq)}
+.barra .titulo{font-weight:700;color:var(--verde-esc);flex:1;min-width:140px}
+.barra select,.barra button{font:inherit;font-size:15px;border:1px solid var(--borda);background:#fff;border-radius:10px;padding:7px 12px;cursor:pointer;color:var(--texto)}
+.barra button{background:var(--verde);color:#fff;border-color:var(--verde);font-weight:700}
+.capa{max-width:980px;margin:0 auto;padding:34px 20px 8px}.capa .marca{display:inline-block;background:var(--grafite);color:#fff;border-radius:14px;padding:8px 20px;font-weight:800;letter-spacing:.05em;font-size:22px;margin-bottom:14px}
+.capa h1{font-size:clamp(28px,5vw,42px);line-height:1.15;margin:6px 0;color:var(--verde-esc)}.capa .sub{font-size:20px;color:var(--suave);margin:0 0 4px}.capa .nivel{color:var(--verde);font-weight:700;margin:0 0 14px}
+.capa .intro{font-size:18px;max-width:760px}
+.layout{max-width:1180px;margin:0 auto;padding:10px 16px 60px;display:grid;grid-template-columns:270px 1fr;gap:28px}
+.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 92px);overflow:auto;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:14px 16px;font-size:14.5px}
+.toc h2{margin:0 0 6px;font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--suave)}.toc ul{list-style:none;margin:0;padding:0}.toc>ul>li{margin:8px 0}.toc>ul>li>a{font-weight:700;color:var(--verde-esc)}.toc ul ul{margin:2px 0 0 10px;border-left:2px solid var(--borda)}.toc ul ul li{padding:1px 0 1px 10px}.toc a{text-decoration:none;color:var(--suave)}.toc a:hover,.toc a.ativo{color:var(--verde);font-weight:700}
+.toc-parte{margin:14px 0 4px!important;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--suave);font-weight:800}.capitulo{margin-bottom:38px}.capitulo>h2{font-size:clamp(24px,3.4vw,31px);color:var(--verde-esc);border-bottom:3px solid var(--verde);padding-bottom:6px;margin:6px 0 10px}.intro-cap{color:var(--suave);font-size:18px;margin:0 0 16px}
+.secao{background:var(--card);border:1px solid var(--borda);border-radius:18px;padding:20px 22px;margin:0 0 20px;box-shadow:0 2px 10px rgba(20,48,29,.05)}
+.secao-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.secao h3{font-size:23px;margin:0 0 4px;color:var(--verde-esc)}.nsec{color:var(--verde);font-weight:800;margin-right:4px}
+.btn-video{background:var(--laranja);color:#fff;text-decoration:none;font-weight:700;border-radius:12px;padding:8px 14px;font-size:15px;white-space:nowrap}.btn-video:hover{filter:brightness(1.08)}
+.resumo{font-size:18px;color:var(--texto);margin:6px 0 14px}
+.passos{list-style:none;padding:0;margin:0;counter-reset:p}.passo{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--borda)}.passo:first-child{border-top:0}
+.num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--verde);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.passo-corpo{flex:1;min-width:0;display:flow-root}.passo-corpo p{margin:2px 0 0;font-size:18px}
+figure{float:right;margin:2px 0 10px 22px;width:205px}figure img{width:100%;height:auto;display:block;border-radius:18px;filter:drop-shadow(0 6px 14px rgba(20,48,29,.18))}figcaption{font-size:14px;color:var(--suave);text-align:center;margin-top:6px}
+.caixa{border-radius:14px;padding:12px 16px;margin:12px 0;font-size:16.5px}.destaque{background:linear-gradient(135deg,#e3f6ea,#d6f1f2);border:2px solid var(--verde);padding:14px 18px}.destaque-tit{font-weight:800;color:var(--verde-esc);font-size:18px}.destaque p{margin:6px 0 0}.tabela-wrap{overflow-x:auto;max-width:100%;margin:12px 0}.cap,.secao,main,.conteudo{min-width:0}.tabela{border-collapse:collapse;width:100%;min-width:560px;font-size:15.5px;background:#fff}.tabela th,.tabela td{border:1px solid var(--borda);padding:9px 11px;text-align:left;vertical-align:top}.tabela th{background:#eef3ee;color:var(--verde-esc)}.tabela .col-destaque{background:#e8f7ee}.tabela th.col-destaque{background:#bfe7cc}.dica{background:#e7f4ea;border:1px solid #bfe0c6}.atencao{background:#fff3e0;border:1px solid #f3cf9a}.saiba{background:#eef2ff;border:1px solid #cfd8ff}.problemas{background:#fff;border:1px solid var(--borda)}.problemas h4{margin:0 0 6px;font-size:16px;color:var(--verde-esc)}
+summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0}details.faq{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px 16px;margin:10px 0}.glossario dt{font-weight:800;color:var(--verde-esc);margin-top:12px}.glossario dd{margin:2px 0 0 0;color:var(--texto)}
+.rodape{max-width:980px;margin:0 auto;padding:10px 20px 40px;color:var(--suave);font-size:14px;text-align:center}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.toc{position:static;max-height:none}.secao{padding:16px}figure{float:none;display:block;margin:12px auto 4px;width:min(260px,100%)}}
+/* botão flutuante "↑ Índice": volta ao índice sem precisar rolar a página toda */
+.btn-indice{position:fixed;right:14px;bottom:18px;z-index:40;display:flex;align-items:center;gap:6px;background:var(--verde);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:700 16px/1 inherit;font-family:inherit;box-shadow:0 6px 18px rgba(20,48,29,.35);cursor:pointer}.btn-indice[hidden]{display:none}.btn-indice:active{transform:translateY(1px)}@media (min-width:901px){.btn-indice{display:none!important}}
+@media print{.btn-indice{display:none!important}.barra,.toc,.btn-video{display:none!important}body{background:#fff;font-size:12.5pt}.layout{display:block;padding:0}.secao{box-shadow:none;break-inside:avoid-page;border-color:#ccc}figure{max-width:130px}.capitulo>h2{break-after:avoid}details>*{display:block}details:not([open])>p{display:block}}
+
+
+.larga{float:none;display:block;width:100%;margin:12px 0 6px}.larga img{border-radius:10px;border:1px solid #cfd8d2;filter:none;box-shadow:0 6px 18px rgba(20,48,29,.14);cursor:zoom-in;background:#fff}.larga figcaption{text-align:left}
+.zoom{position:fixed;inset:0;z-index:50;background:rgba(10,20,14,.88);display:flex;align-items:center;justify-content:center;padding:18px;cursor:zoom-out}.zoom img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+.parte{background:linear-gradient(135deg,#14301d,#2f7d45);color:#fff;border-radius:18px;padding:18px 22px;margin:34px 0 18px}.parte h2{color:#fff;border:0;margin:0;font-size:clamp(22px,3vw,28px)}.parte p{margin:6px 0 0;color:#e3f6ea;font-size:17px}
+</style></head><body>
+<div class="barra"><span class="marca">LOTTO<span>ANALYTICS</span></span><span class="titulo" id="titulo-barra">Isenção do ITCMD</span>
+  <label style="font-size:14px;color:#5b6b60" for="sel-idioma" id="rot-idioma">Idioma</label>
+  <select id="sel-idioma"><option value="pt-BR">Português</option><option value="en-US">English</option><option value="es-ES">Español</option><option value="it-IT">Italiano</option></select>
+  <button id="btn-imprimir" type="button">Imprimir / Salvar PDF</button></div>
+<button type="button" class="btn-indice" id="btn-indice" hidden>↑ Índice</button>
+
+  <div class="idioma" data-lang="pt-BR" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Isenção do ITCMD</h1><p class="sub">Por que o bolão precisa de provas, como declarar no Imposto de Renda e o que muda com a reforma tributária</p><p class="nivel">Para todos os participantes e organizadores — o mesmo documento para todos os bolões · Versão do app 5.8.1</p>
+      <p class="intro">Este documento explica o <strong>ITCMD</strong> — o imposto estadual sobre doação — e por que ele importa para quem participa de um bolão. Mostra como as regras do bolão ajudam a provar que a divisão do prêmio <strong>não é doação</strong>, como <strong>declarar no Imposto de Renda</strong> (participante e organizador), a <strong>tabela por estado</strong> e o que a <strong>reforma tributária</strong> muda.</p><p class="intro">O funcionamento do dia a dia (pagamento, prazos, ativação, jogos e a divisão do prêmio) está no documento <strong>Regras de Funcionamento</strong>.</p><p class="intro">Participantes, por favor leiam com atenção. A partir do próximo bolão, seguimos um conjunto de regras necessárias para que a divisão dos prêmios não seja interpretada, para fins fiscais, como uma "doação" — o que geraria cobrança de imposto estadual sobre o valor recebido.</p><p class="intro"><strong>Aviso:</strong> este documento é <strong>informativo</strong>. Ele não substitui a orientação de um contador ou advogado tributarista, principalmente quando houver prêmio de valor mais alto. O app não garante prêmios: a loteria é sorteio.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Índice"><h2>Índice</h2><ul><li><a href="#pt-BR-cap-itcmd">1. ITCMD: o que é e por que importa</a><ul><li><a href="#pt-BR-o-que-e">O que é o ITCMD</a></li><li><a href="#pt-BR-por-que-doacao">Por que um bolão pode ser visto como doação</a></li><li><a href="#pt-BR-como-app-ajuda">O que o LottoAnalytics registra para provar isso</a></li><li><a href="#pt-BR-escolha">Assinar é uma escolha sua</a></li><li><a href="#pt-BR-se-cobrarem">E se o fisco cobrar?</a></li></ul></li><li><a href="#pt-BR-cap-ir">2. Imposto de Renda: como declarar</a><ul><li><a href="#pt-BR-ir-basico">O prêmio já vem com o Imposto de Renda descontado</a></li><li><a href="#pt-BR-ir-resumo">Quem declara o quê: resumo</a></li><li><a href="#pt-BR-ir-participante">A declaração do participante</a></li><li><a href="#pt-BR-ir-organizador-parte">A declaração do organizador: a própria parte</a></li><li><a href="#pt-BR-ir-organizador-repasse">A declaração do organizador: o repasse aos outros</a></li><li><a href="#pt-BR-ir-bens">Se o dinheiro ficar aplicado no mesmo ano</a></li></ul></li><li><a href="#pt-BR-cap-estados">3. ITCMD por estado</a><ul><li><a href="#pt-BR-tabela-estados">Alíquotas de ITCMD sobre doação</a></li></ul></li><li><a href="#pt-BR-cap-reforma">4. Reforma tributária: muda alguma coisa?</a><ul><li><a href="#pt-BR-o-que-mudou">O que a reforma mudou no ITCMD</a></li><li><a href="#pt-BR-nao-muda">O que a reforma NÃO muda neste assunto</a></li><li><a href="#pt-BR-efeitos">O que pode mudar na prática para o bolão</a></li><li><a href="#pt-BR-acompanhar">Como acompanhar as mudanças</a></li></ul></li><li><a href="#pt-BR-cap-avisos-fontes">5. Avisos e fontes</a><ul><li><a href="#pt-BR-aviso-legal">Aviso importante</a></li><li><a href="#pt-BR-fontes">Fontes consultadas</a></li></ul></li><li><a href="#pt-BR-faq">Perguntas frequentes</a></li><li><a href="#pt-BR-glossario">Glossário — as palavras deste documento</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="pt-BR-cap-itcmd"><h2>1. ITCMD: o que é e por que importa</h2><p class="intro-cap">O imposto sobre doação — e por que o rateio do prêmio precisa ser bem documentado.</p>
+      
+    <section class="secao" id="pt-BR-o-que-e" data-sec="o-que-e">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> O que é o ITCMD</h3></div>
+      <p class="resumo">Um imposto estadual sobre o que se recebe de graça.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>ITCMD é o <strong>Imposto sobre Transmissão Causa Mortis e Doação</strong>. É <strong>estadual</strong>: cada estado e o Distrito Federal define a sua alíquota e as suas regras.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Ele incide quando alguém recebe <strong>bens ou dinheiro de graça</strong>: por <strong>herança</strong> (causa mortis) ou por <strong>doação</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>A <strong>alíquota máxima</strong> é de <strong>8%</strong> (Resolução do Senado Federal nº 9/1992). Dentro desse teto, cada estado escolhe uma alíquota <strong>fixa</strong> ou <strong>progressiva</strong> (que sobe conforme o valor).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Em regra, quem <strong>paga</strong> é quem <strong>recebe</strong> a doação (o donatário), mas a lei estadual pode atribuir a responsabilidade a quem doa, e as pessoas podem combinar quem arca com o valor.</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Para dinheiro, em regra, o estado competente é o de <strong>domicílio de quem doa</strong> (Constituição Federal, art. 155, § 1º).</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Muitos estados têm <strong>isenção para doações de pequeno valor</strong> (por ano civil ou por operação). O limite varia de estado para estado e muda com o tempo: confirme o do seu estado.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-por-que-doacao" data-sec="por-que-doacao">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Por que um bolão pode ser visto como doação</h3></div>
+      <p class="resumo">É uma questão de <strong>prova</strong>: quem era dono da parte, e desde quando.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Quando um prêmio é dividido entre várias pessoas, o <strong>bilhete premiado costuma estar em nome de uma só pessoa</strong> (o organizador), e a Caixa paga o prêmio <strong>a ela</strong> (já com o Imposto de Renda retido).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Se essa pessoa depois <strong>repassa</strong> partes aos outros, o fisco pode entender que ela está <strong>"doando"</strong>. E doação é fato gerador de ITCMD.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para afastar isso, é preciso comprovar que cada participante era <strong>coapostador desde o início</strong>: pagou a cota e tinha direito à sua parte <strong>antes</strong> de o resultado sair, e não recebeu um valor "de presente" depois do sorteio.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Nesse caso, o rateio é apenas a <strong>entrega de uma parte que já era do participante</strong> (um prêmio de loteria dividido entre apostadores), e não uma liberalidade.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ A ideia central</div><p>Quem consegue provar que <strong>já era dono da sua parte antes do sorteio</strong> não recebeu doação. As regras do documento <strong>Regras de Funcionamento</strong> existem para produzir essa prova.</p></div>
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Esta é a tese de defesa usada na prática e <strong>depende de provas</strong>. A decisão final é do fisco do estado (e, havendo discordância, da Justiça). <strong>Não há garantia de resultado</strong>, por isso a documentação importa tanto.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-como-app-ajuda" data-sec="como-app-ajuda">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> O que o LottoAnalytics registra para provar isso</h3></div>
+      <p class="resumo">Cada item que você faz no app é uma peça da prova.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">O que fica registrado</th><th>O que isso prova</th></tr></thead><tbody><tr><td class="col-destaque">Termo assinado no app, com data e hora, <strong>antes</strong> do prêmio</td><td>Que você aderiu ao bolão e às regras de divisão antes do resultado.</td></tr><tr><td class="col-destaque">Comprovante de PIX <strong>no seu nome</strong></td><td>Que <strong>você</strong> pagou a sua cota (e não outra pessoa por você).</td></tr><tr><td class="col-destaque">CPF de cada participante</td><td>Quem são os coapostadores.</td></tr><tr><td class="col-destaque">Termo de Constituição (gerado na ativação)</td><td>Participantes, cotas e percentuais, e que os valores pertencem ao grupo desde a aposta.</td></tr><tr><td class="col-destaque">Jogos, bilhetes e comprovante da aposta</td><td>Que as apostas foram feitas para o grupo.</td></tr><tr><td class="col-destaque">Relatórios e histórico de rodadas, com data e hora</td><td>O rateio oficial e a evolução do bolão.</td></tr><tr><td class="col-destaque">Créditos, reservas e PIX do prêmio, com notificações</td><td>Que a divisão seguiu as cotas de cada um.</td></tr></tbody></table></div>
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-escolha" data-sec="escolha">
+      <div class="secao-topo"><h3><span class="nsec">1.4</span> Assinar é uma escolha sua</h3></div>
+      <p class="resumo">Ninguém é obrigado a assinar, mas é importante entender a consequência.</p>
+      
+      
+      
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> Ninguém é obrigado a assinar. Quem não se sentir confortável, não precisa fazê-lo. Mas, se você optar por <strong>não assinar</strong> e um prêmio vier a ser tributado como doação, a <strong>responsabilidade por esse imposto recai sobre essa escolha pessoal</strong> de não seguir o processo de comprovação.</div>
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-se-cobrarem" data-sec="se-cobrarem">
+      <div class="secao-topo"><h3><span class="nsec">1.5</span> E se o fisco cobrar?</h3></div>
+      <p class="resumo">O que costuma acontecer e o que fazer.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Se o estado entender que houve doação, em geral o <strong>donatário</strong> (quem recebeu) é o contribuinte, e o imposto é calculado sobre o <strong>valor recebido</strong>, pela alíquota do estado.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Se o imposto não for declarado e pago no prazo, podem incidir <strong>multa e juros</strong>; e a omissão intencional pode ser tratada como <strong>sonegação</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Quem percebe o problema <strong>antes</strong> de ser notificado pode <strong>declarar e pagar espontaneamente</strong> pelo sistema do estado, o que pode reduzir penalidades. Procure um contador ou a <strong>Secretaria da Fazenda (SEFAZ)</strong> do estado.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> Cada caso depende do estado, do valor e dos documentos. Em caso de dúvida ou de prêmio alto, <strong>procure um contador ou advogado tributarista antes de repassar o dinheiro</strong>.</div>
+      
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-ir"><h2>2. Imposto de Renda: como declarar</h2><p class="intro-cap">O prêmio já vem com o imposto descontado. Aqui está como cada participante e o organizador devem colocar tudo na declaração.</p>
+      
+    <section class="secao" id="pt-BR-ir-basico" data-sec="ir-basico">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> O prêmio já vem com o Imposto de Renda descontado</h3></div>
+      <p class="resumo">Não há imposto de renda a pagar a mais: o que falta é <strong>declarar do jeito certo</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Os prêmios das Loterias Caixa já são pagos com o <strong>Imposto de Renda descontado na fonte</strong> pela Caixa. É <strong>tributação exclusiva/definitiva</strong>: não há restituição nem imposto a pagar na declaração.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>O imposto que <strong>pode</strong> ser cobrado é só o <strong>ITCMD</strong>, que é <strong>estadual</strong> (Capítulo 1). Por isso a forma de declarar importa: ela mostra à Receita <strong>quem recebeu o quê</strong>, e reforça a prova de que o rateio <strong>não é doação</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Como o prêmio cai na conta do organizador, a Receita Federal o vê como o <strong>recebedor inicial do valor total</strong>. Cada um precisa declarar a <strong>sua parte</strong>, e o organizador precisa declarar também o <strong>repasse</strong>.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> Os <strong>números dos códigos</strong> das fichas do IR podem mudar de um ano para o outro. Vale o <strong>nome da ficha</strong> e a opção <strong>"Outros"</strong>: confira o código no programa do IR do ano.</div>
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-ir-resumo" data-sec="ir-resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Quem declara o quê: resumo</h3></div>
+      <p class="resumo">O mapa de todas as declarações deste capítulo.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Quem</th><th>Ficha do IRPF</th><th>O que informar</th></tr></thead><tbody><tr><td class="col-destaque"><strong>Participante</strong></td><td>Rendimentos Sujeitos à Tributação Exclusiva/Definitiva (Outros)</td><td>O valor líquido da <strong>sua</strong> cota-parte, com a Caixa como fonte pagadora (2.3).</td></tr><tr><td class="col-destaque"><strong>Organizador</strong></td><td>Rendimentos Sujeitos à Tributação Exclusiva/Definitiva (Outros)</td><td>Só o valor líquido da <strong>própria</strong> cota (2.4).</td></tr><tr><td class="col-destaque"><strong>Organizador</strong></td><td>Dívidas e Ônus Reais (Outras)</td><td>O <strong>repasse</strong> aos participantes, para zerar o saldo (2.5).</td></tr><tr><td class="col-destaque"><strong>Quem manteve o dinheiro até 31/12</strong></td><td>Bens e Direitos</td><td>O saldo em 31/12, acrescido do prêmio (2.6).</td></tr></tbody></table></div>
+      
+      <div class="caixa dica"><strong>Dica:</strong> Guarde o <strong>kit de provas</strong> do item 6.2 do documento <strong>Regras de Funcionamento</strong>: ele sustenta todas estas declarações.</div>
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-ir-participante" data-sec="ir-participante">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> A declaração do participante</h3></div>
+      <p class="resumo">Cada participante declara a <strong>sua</strong> parte.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Preencha a ficha <strong>Rendimentos Sujeitos à Tributação Exclusiva/Definitiva</strong> (opção <strong>Outros</strong>, citada como Código 12 na tabela usada quando este texto foi escrito).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Informe como <strong>Fonte Pagadora</strong> o CNPJ da Caixa Econômica Federal: <strong>00.360.305/0001-04</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>No campo <strong>Descrição</strong>, use o texto padrão ao lado.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrição — participante</div><p>"Valor líquido correspondente à cota-parte de [Inserir a porcentagem, ex: 10%] em aposta conjunta (bolão) do concurso nº [Inserir número] da [Inserir a loteria, ex: Mega-Sena], realizado em [Data do Sorteio]. O bilhete premiado foi registrado e resgatado pelo organizador do bolão, [Seu Nome Completo], CPF [Seu CPF], que realizou o repasse do valor proporcional a esta cota via PIX em [Data do PIX], conforme Termo de Constituição de Bolão firmado entre as partes."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-ir-organizador-parte" data-sec="ir-organizador-parte">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> A declaração do organizador: a própria parte</h3></div>
+      <p class="resumo">O organizador declara só o valor líquido da <strong>sua</strong> cota.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Em <strong>Rendimentos Sujeitos à Tributação Exclusiva/Definitiva</strong> (opção <strong>Outros</strong>), informe o CNPJ da Caixa e declare <strong>apenas o valor líquido da própria cota</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Use o texto padrão ao lado na <strong>Descrição</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrição — organizador, cota própria</div><p>"Valor líquido da cota-parte própria de [sua %, ex: 20%] no concurso nº [X] da [Loteria], recebido em aposta conjunta (bolão) com mais [X] participantes. O valor total do prêmio foi creditado em minha conta e repassado aos demais membros conforme suas cotas."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-ir-organizador-repasse" data-sec="ir-organizador-repasse">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> A declaração do organizador: o repasse aos outros</h3></div>
+      <p class="resumo">Para justificar a saída do dinheiro sem que pareça doação ou empréstimo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Use a ficha de <strong>Dívidas e Ônus Reais</strong> e crie um item na opção <strong>Outras Dívidas e Ônus Reais</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>No campo <strong>Discriminação</strong>, informe o texto ao lado.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Informe o <strong>valor total repassado</strong> aos outros no campo de movimentação do ano, para <strong>zerar o saldo</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Discriminação — Dívidas e Ônus Reais (organizador)</div><p>"Obrigação de repasse de cotas-partes de prêmio de loteria referente ao concurso [X]. O valor total de [Valor Total do Prêmio] foi creditado em minha conta corrente e os valores dos participantes foram transferidos nas datas correspondentes, restando líquido apenas o meu percentual de direito."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-ir-bens" data-sec="ir-bens">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Se o dinheiro ficar aplicado no mesmo ano</h3></div>
+      <p class="resumo">Bens e Direitos, quando o saldo passa de 31 de dezembro.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Se o participante receber o prêmio e mantiver o dinheiro na conta, na poupança ou em investimentos <strong>até 31 de dezembro</strong> do ano do sorteio, precisa abrir a ficha de <strong>Bens e Direitos</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Escolha o <strong>código</strong> correspondente (por exemplo, conta corrente, poupança, fundos ou ações) e, em <strong>Situação em 31/12</strong>, informe o saldo atual <strong>acrescido do prêmio</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Discriminação — Bens e Direitos</div><p>"Saldo em conta originado do recebimento de cota-partes de prêmio de loteria do concurso nº [X], conforme declarado na ficha de Rendimentos Sujeitos à Tributação Exclusiva."</p></div>
+      <div class="caixa dica"><strong>Dica:</strong> O <strong>kit de provas</strong> do item 6.2 do documento <strong>Regras de Funcionamento</strong> é o que sustenta tudo isto. Guarde por 5 anos.</div>
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-estados"><h2>3. ITCMD por estado</h2><p class="intro-cap">Cada estado tem a sua regra. Esta tabela é só uma referência.</p>
+      
+    <section class="secao" id="pt-BR-tabela-estados" data-sec="tabela-estados">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Alíquotas de ITCMD sobre doação</h3></div>
+      <p class="resumo">Referência geral. Pode estar desatualizada: confirme sempre na Secretaria da Fazenda do seu estado.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Estado (UF)</th><th>Alíquota de ITCMD sobre doação</th></tr></thead><tbody><tr><td class="col-destaque">Acre</td><td>2% a 4% (progressivo)</td></tr><tr><td class="col-destaque">Alagoas</td><td>2%</td></tr><tr><td class="col-destaque">Amapá</td><td>3%</td></tr><tr><td class="col-destaque">Amazonas</td><td>2%</td></tr><tr><td class="col-destaque">Bahia</td><td>3,50%</td></tr><tr><td class="col-destaque">Ceará</td><td>2% a 8% (progressivo)</td></tr><tr><td class="col-destaque">Distrito Federal</td><td>4% a 8% (progressivo)</td></tr><tr><td class="col-destaque">Espírito Santo</td><td>4% (fixa) — ver destaque abaixo</td></tr><tr><td class="col-destaque">Goiás</td><td>2% a 4% (até 8% conforme faixa)</td></tr><tr><td class="col-destaque">Maranhão</td><td>2%</td></tr><tr><td class="col-destaque">Mato Grosso</td><td>2% a 4%</td></tr><tr><td class="col-destaque">Mato Grosso do Sul</td><td>3%</td></tr><tr><td class="col-destaque">Minas Gerais</td><td>5% (fixa) — ver aviso abaixo</td></tr><tr><td class="col-destaque">Pará</td><td>4%</td></tr><tr><td class="col-destaque">Paraíba</td><td>2% a 8% (progressivo)</td></tr><tr><td class="col-destaque">Paraná</td><td>4%</td></tr><tr><td class="col-destaque">Pernambuco</td><td>2% a 8% (progressivo)</td></tr><tr><td class="col-destaque">Piauí</td><td>4%</td></tr><tr><td class="col-destaque">Rio de Janeiro</td><td>4% a 8% (progressivo)</td></tr><tr><td class="col-destaque">Rio Grande do Norte</td><td>4%</td></tr><tr><td class="col-destaque">Rio Grande do Sul</td><td>4% a 6% (progressivo)</td></tr><tr><td class="col-destaque">Rondônia</td><td>2% a 4% (progressivo)</td></tr><tr><td class="col-destaque">Roraima</td><td>4%</td></tr><tr><td class="col-destaque">Santa Catarina</td><td>1% a 8% (progressivo)</td></tr><tr><td class="col-destaque">São Paulo</td><td>4%</td></tr><tr><td class="col-destaque">Sergipe</td><td>4%</td></tr><tr><td class="col-destaque">Tocantins</td><td>2% a 8% (progressivo)</td></tr></tbody></table></div>
+      <div class="caixa destaque"><div class="destaque-tit">★ Espírito Santo (ES)</div><p>Alíquota atual: <strong>4%</strong>, fixa sobre o valor total doado. Isenção: doações de até <strong>R$ 10.000,00 por ano civil</strong> (para o mesmo donatário) não pagam imposto; acima disso, incide sobre o valor total. Atenção: a Assembleia Legislativa do ES estuda mudar para um modelo progressivo, que pode elevar a alíquota máxima para até 8%.</p></div>
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> <strong>Minas Gerais (MG):</strong> alíquota atual de <strong>5%</strong>, fixa, calculada com base na UFEMG (Unidade Fiscal do Estado). Isenção: doações de até <strong>10.000 UFEMG</strong> por ano civil (cerca de R$ 57.899,00 quando este texto foi escrito) não pagam imposto. Há projeto de lei (PL 2.881/24) em tramitação para criar faixas progressivas de até 8%.</div>
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Esta tabela é uma <strong>referência geral</strong>, reunida de fontes públicas que <strong>nem sempre coincidem entre si</strong>. Com a reforma tributária, vários estados estão <strong>adaptando a lei para a alíquota progressiva</strong>; por isso os números podem mudar. Não substitui a orientação de um contador ou advogado tributarista, principalmente se houver prêmio de valor mais alto.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-reforma"><h2>4. Reforma tributária: muda alguma coisa?</h2><p class="intro-cap">O que a reforma mudou no ITCMD, o que ela não muda e o que isso significa para o bolão.</p>
+      
+    <section class="secao" id="pt-BR-o-que-mudou" data-sec="o-que-mudou">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> O que a reforma mudou no ITCMD</h3></div>
+      <p class="resumo">A principal mudança: a alíquota progressiva deixou de ser opcional.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>A <strong>Emenda Constitucional nº 132/2023</strong> (a reforma tributária) tornou <strong>obrigatória</strong> a <strong>alíquota progressiva</strong> do ITCMD: o percentual passa a variar conforme o <strong>valor</strong> da doação (ou da herança). Antes, a progressividade era uma opção de cada estado.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>A <strong>Lei Complementar nº 227/2026</strong> (janeiro de 2026) regulamentou o assunto: valor de mercado como base de cálculo, regras de competência entre os estados, tributação de bens no exterior e a <strong>soma de doações sucessivas</strong>, para impedir que um valor grande seja "fatiado" em várias doações pequenas.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>A <strong>alíquota máxima continua em 8%</strong> (Resolução do Senado nº 9/1992). Há propostas em debate para alterar esse teto, mas hoje vale 8%.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Cada <strong>estado precisa adaptar a própria lei</strong>. Leis estaduais novas só passam a valer a partir do <strong>ano seguinte</strong> ao da publicação (princípio da anterioridade). Por isso, em 2026 muitos estados ainda usavam alíquota fixa, e as regras devem continuar mudando ao longo de 2026 e 2027.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Quer saber mais?</summary><p>Para dinheiro, o estado que cobra continua sendo, em regra, o de <strong>domicílio de quem doa</strong>.</p></details>
+      
+    </section>
+    <section class="secao" id="pt-BR-nao-muda" data-sec="nao-muda">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> O que a reforma NÃO muda neste assunto</h3></div>
+      <p class="resumo">Não existe imposto novo sobre a divisão do prêmio.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>O <strong>Imposto de Renda</strong> sobre o prêmio continua sendo <strong>retido pela Caixa</strong>, na fonte, de forma exclusiva/definitiva. A reforma do consumo não mexe nisso.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>O <strong>IBS</strong> e a <strong>CBS</strong> (novos impostos sobre o consumo) têm, na <strong>Lei Complementar nº 214/2025</strong>, um <strong>regime específico para os concursos de prognósticos</strong> (loterias e apostas): o imposto incide sobre a <strong>receita de quem explora a loteria</strong> (arrecadação menos os prêmios pagos e as destinações previstas em lei), e os <strong>prêmios pagos não entram na base</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Ou seja: pelo que está nessas regras, <strong>quem ganha o prêmio não paga IBS/CBS sobre ele</strong>, e o participante que recebe a sua parte do rateio não é, por isso, contribuinte desses impostos.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>A <strong>taxa de organização</strong> (quando o organizador é remunerado) é um ponto à parte: dependendo do valor e da forma de cobrança, pode ter enquadramento próprio. Se isso for relevante para o seu caso, <strong>consulte um contador</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-efeitos" data-sec="efeitos">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> O que pode mudar na prática para o bolão</h3></div>
+      <p class="resumo">O caminho do bolão não muda; o cuidado só aumenta.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Com a <strong>progressividade</strong>, doações de <strong>valor pequeno tendem a cair em faixas baixas ou isentas</strong>; valores altos pagam percentual maior (até 8%).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Com a <strong>soma de doações sucessivas</strong>, ficou ainda mais importante provar que o repasse <strong>não é doação</strong>: sem prova, vários repasses ao mesmo participante podem ser <strong>somados</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Estados que hoje têm alíquota fixa baixa podem <strong>aumentar</strong> o percentual para valores altos.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Para o bolão, o caminho <strong>continua o mesmo</strong>: documentar que cada participante é coapostador desde o início, que é exatamente o que as regras deste documento fazem.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Resumo da reforma</div><p>A reforma <strong>não cria imposto novo</strong> sobre a divisão do prêmio e <strong>não muda o IR</strong> do prêmio. O que muda é o <strong>ITCMD</strong> (progressivo e regulamentado), e isso só reforça a importância de provar que o rateio <strong>não é doação</strong>.</p></div>
+      
+      <div class="caixa atencao"><strong>Atenção:</strong> A adaptação das leis estaduais ainda está em andamento. Acompanhe a lei do <strong>seu estado</strong>.</div>
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-acompanhar" data-sec="acompanhar">
+      <div class="secao-topo"><h3><span class="nsec">4.4</span> Como acompanhar as mudanças</h3></div>
+      <p class="resumo">Onde confirmar a regra que vale para você.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Consulte o site da <strong>Secretaria da Fazenda (SEFAZ)</strong> do estado onde mora quem organiza o bolão (em regra, o estado de quem doa).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Confira a <strong>versão</strong> deste documento no alto da página: ele é atualizado quando há mudança relevante.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Em dúvida, ou se houver prêmio de valor mais alto, <strong>converse com um contador</strong> antes de repassar o dinheiro.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="pt-BR-cap-avisos-fontes"><h2>5. Avisos e fontes</h2><p class="intro-cap">O que este documento é — e o que ele não é.</p>
+      
+    <section class="secao" id="pt-BR-aviso-legal" data-sec="aviso-legal">
+      <div class="secao-topo"><h3><span class="nsec">5.1</span> Aviso importante</h3></div>
+      <p class="resumo">Informação geral, não aconselhamento.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Este documento tem caráter <strong>informativo e geral</strong>. Ele <strong>não substitui</strong> a orientação de um contador ou advogado tributarista.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>As fichas e os códigos do Imposto de Renda, as alíquotas e as isenções do ITCMD <strong>podem mudar de um ano para o outro</strong>, e cada caso (valor do prêmio, número de participantes, estado de cada um) pode exigir um ajuste específico.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Os <strong>modelos de texto</strong> são sugestões: adapte-os à sua situação.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>O LottoAnalytics é uma ferramenta de organização e registro. <strong>Não garante prêmios</strong> nem resultado tributário.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="pt-BR-fontes" data-sec="fontes">
+      <div class="secao-topo"><h3><span class="nsec">5.2</span> Fontes consultadas</h3></div>
+      <p class="resumo">Onde estão as regras citadas aqui.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Constituição Federal</strong>, art. 155, § 1º, com a redação da <strong>Emenda Constitucional nº 132/2023</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Lei Complementar nº 214/2025</strong> (IBS e CBS; regime específico dos concursos de prognósticos) e <strong>Lei Complementar nº 227/2026</strong> (ITCMD, comitê gestor e ajustes).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p><strong>Resolução do Senado Federal nº 9/1992</strong> (alíquota máxima do ITCMD).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p><strong>Lei nº 13.756/2018</strong> (loterias), <strong>Código Civil</strong> (arts. 421, 422 e 876) e <strong>LGPD</strong> (Lei nº 13.709/2018).</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Legislação e orientações da <strong>Receita Federal</strong> (Imposto de Renda) e das <strong>Secretarias da Fazenda estaduais</strong> (ITCMD).</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div><div class="capitulo" id="pt-BR-faq"><h2>Perguntas frequentes</h2><details class="faq"><summary>Sou obrigado a assinar o termo do bolão?</summary><p>Não. Mas, se você não assinar e o prêmio vier a ser tributado como doação, a responsabilidade por esse imposto recai sobre essa escolha. Veja o item 1.4.</p></details><details class="faq"><summary>O prêmio cai na conta do organizador. Isso é um problema?</summary><p>Não, desde que o bolão esteja documentado: o Termo de Constituição diz que os valores <strong>pertencem ao grupo desde a aposta</strong>, e o organizador declara o repasse no Imposto de Renda (Capítulo 2).</p></details><details class="faq"><summary>Preciso declarar o prêmio no Imposto de Renda?</summary><p>Sim, na ficha de rendimentos de <strong>tributação exclusiva/definitiva</strong>, mesmo com o imposto já retido pela Caixa. Veja o Capítulo 2 e, se tiver dúvida, consulte um contador.</p></details><details class="faq"><summary>Vou ter que pagar ITCMD?</summary><p>A tese de defesa é que <strong>não</strong>: quem era coapostador desde o início não recebeu doação. Mas isso depende das provas e da análise do fisco do estado; não há garantia. Por isso as regras do documento <strong>Regras de Funcionamento</strong> existem.</p></details><details class="faq"><summary>A reforma tributária vai mudar o que eu pago?</summary><p>Ela não cria imposto novo sobre a divisão do prêmio e não muda o IR do prêmio. Muda o ITCMD (progressivo), o que reforça a importância de documentar o bolão. Veja o Capítulo 4.</p></details></div><div class="capitulo" id="pt-BR-glossario"><h2>Glossário — as palavras deste documento</h2><dl class="glossario"><dt>Bolão</dt><dd>Um grupo de pessoas que divide o custo das apostas e o prêmio.</dd><dt>Cota</dt><dd>A sua parte no bolão. Quem tem mais cotas paga mais e recebe mais.</dd><dt>Coapostador</dt><dd>Quem aposta junto, com a sua própria parte, desde o início. É a base para o rateio não ser visto como doação.</dd><dt>Termo de Constituição</dt><dd>Documento gerado na ativação, com os participantes, as cotas, os percentuais e a regra de divisão dos prêmios.</dd><dt>ITCMD</dt><dd>Imposto estadual sobre transmissão causa mortis e doação. A alíquota máxima é de 8%.</dd><dt>Doador e donatário</dt><dd>Doador é quem dá; donatário é quem recebe. Em regra, o donatário é o contribuinte do ITCMD.</dd><dt>Progressividade</dt><dd>Alíquota que sobe conforme o valor: quanto maior a doação, maior o percentual.</dd><dt>Tributação exclusiva/definitiva</dt><dd>Imposto de Renda cobrado na fonte (como nos prêmios de loteria), sem acerto na declaração anual.</dd><dt>IBS e CBS</dt><dd>Os novos impostos sobre o consumo da reforma tributária. Nos concursos de prognósticos, incidem sobre a receita de quem explora a loteria, não sobre o prêmio pago.</dd><dt>SEFAZ</dt><dd>Secretaria da Fazenda do estado: onde se confirma a alíquota e se declara o ITCMD.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — Isenção do ITCMD, documento institucional, o mesmo para todos os bolões · Quer saber como o bolão funciona no dia a dia? Veja o documento Regras de Funcionamento e os manuais do Participante e do Gestor.</footer>
+  </div>
+
+  <div class="idioma" data-lang="en-US" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>ITCMD Exemption</h1><p class="sub">Why the pool needs proof, how to report it on your income tax return and what the tax reform changes</p><p class="nivel">For all participants and organizers — the same document for every pool · App version 5.8.1</p>
+      <p class="intro">This document explains the <strong>ITCMD</strong> — the state tax on gifts — and why it matters to anyone taking part in a pool. It shows how the pool rules help prove that splitting the prize is <strong>not a gift</strong>, how to <strong>report it on your income tax return</strong> (participant and organizer), the <strong>table by state</strong> and what the <strong>tax reform</strong> changes.</p><p class="intro">Day-to-day operation (payment, deadlines, activation, games and the prize split) is in the <strong>Operating Rules</strong> document.</p><p class="intro">Participants, please read carefully. From the next pool on, we follow a set of rules needed so that the division of prizes is not interpreted, for tax purposes, as a "gift" — which would trigger a state tax on the amount received.</p><p class="intro"><strong>Notice:</strong> this document is <strong>informational</strong>. It does not replace the advice of an accountant or tax lawyer, especially when a higher prize is involved. The app does not guarantee prizes: a lottery is a draw.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Contents"><h2>Contents</h2><ul><li><a href="#en-US-cap-itcmd">1. ITCMD: what it is and why it matters</a><ul><li><a href="#en-US-o-que-e">What the ITCMD is</a></li><li><a href="#en-US-por-que-doacao">Why a pool can be seen as a gift</a></li><li><a href="#en-US-como-app-ajuda">What LottoAnalytics records to prove this</a></li><li><a href="#en-US-escolha">Signing is your choice</a></li><li><a href="#en-US-se-cobrarem">What if the tax authority charges?</a></li></ul></li><li><a href="#en-US-cap-ir">2. Income tax: how to report</a><ul><li><a href="#en-US-ir-basico">The prize already comes with income tax withheld</a></li><li><a href="#en-US-ir-resumo">Who reports what: summary</a></li><li><a href="#en-US-ir-participante">The participant's return</a></li><li><a href="#en-US-ir-organizador-parte">The organizer's return: their own part</a></li><li><a href="#en-US-ir-organizador-repasse">The organizer's return: the pass-on to the others</a></li><li><a href="#en-US-ir-bens">If the money stays invested in the same year</a></li></ul></li><li><a href="#en-US-cap-estados">3. ITCMD by state</a><ul><li><a href="#en-US-tabela-estados">ITCMD rates on gifts</a></li></ul></li><li><a href="#en-US-cap-reforma">4. Tax reform: does anything change?</a><ul><li><a href="#en-US-o-que-mudou">What the reform changed in the ITCMD</a></li><li><a href="#en-US-nao-muda">What the reform does NOT change on this subject</a></li><li><a href="#en-US-efeitos">What may change in practice for the pool</a></li><li><a href="#en-US-acompanhar">How to follow the changes</a></li></ul></li><li><a href="#en-US-cap-avisos-fontes">5. Notices and sources</a><ul><li><a href="#en-US-aviso-legal">Important notice</a></li><li><a href="#en-US-fontes">Sources consulted</a></li></ul></li><li><a href="#en-US-faq">Frequently asked questions</a></li><li><a href="#en-US-glossario">Glossary — the words used in this document</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="en-US-cap-itcmd"><h2>1. ITCMD: what it is and why it matters</h2><p class="intro-cap">The gift tax — and why the prize split needs to be well documented.</p>
+      
+    <section class="secao" id="en-US-o-que-e" data-sec="o-que-e">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> What the ITCMD is</h3></div>
+      <p class="resumo">A state tax on what is received for free.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>ITCMD is the <strong>Tax on Transfers Upon Death and Gifts</strong> (Imposto sobre Transmissão Causa Mortis e Doação). It is a <strong>state</strong> tax: each state and the Federal District sets its own rate and rules.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>It applies when someone receives <strong>assets or money for free</strong>: by <strong>inheritance</strong> (upon death) or by <strong>gift</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>The <strong>maximum rate</strong> is <strong>8%</strong> (Federal Senate Resolution No. 9/1992). Within that ceiling, each state chooses a <strong>flat</strong> or <strong>progressive</strong> rate (one that rises with the amount).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>As a rule, whoever <strong>pays</strong> is whoever <strong>receives</strong> the gift (the donee), but state law may place the responsibility on the giver, and people can agree on who bears the amount.</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>For money, the competent state is, as a rule, the one where <strong>the giver is domiciled</strong> (Federal Constitution, art. 155, § 1).</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>Many states have an <strong>exemption for small gifts</strong> (per calendar year or per transaction). The limit varies from state to state and changes over time: check your state's.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-por-que-doacao" data-sec="por-que-doacao">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Why a pool can be seen as a gift</h3></div>
+      <p class="resumo">It is a matter of <strong>proof</strong>: who owned the share, and since when.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>When a prize is divided among several people, the <strong>winning ticket is usually in the name of one person</strong> (the organizer), and Caixa pays the prize <strong>to that person</strong> (with income tax already withheld).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>If that person then <strong>passes on</strong> parts to the others, the tax authority may understand that he or she is <strong>"giving"</strong> them. And a gift is a taxable event for ITCMD.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>To rule that out, it must be shown that each participant was a <strong>co-bettor from the start</strong>: paid the share and was entitled to their part <strong>before</strong> the result came out, and did not receive an amount "as a present" after the draw.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>In that case, the split is only the <strong>handing over of a part that already belonged to the participant</strong> (a lottery prize divided among bettors), not a gratuitous transfer.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ The central idea</div><p>Whoever can prove they <strong>already owned their share before the draw</strong> did not receive a gift. The rules in the <strong>Operating Rules</strong> document exist to produce that proof.</p></div>
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>This is the defense argument used in practice and <strong>depends on proof</strong>. The final decision belongs to the state tax authority (and, in case of disagreement, to the courts). <strong>There is no guarantee of outcome</strong>, which is why documentation matters so much.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-como-app-ajuda" data-sec="como-app-ajuda">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> What LottoAnalytics records to prove this</h3></div>
+      <p class="resumo">Each thing you do in the app is a piece of proof.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">What is recorded</th><th>What it proves</th></tr></thead><tbody><tr><td class="col-destaque">Agreement signed in the app, with date and time, <strong>before</strong> the prize</td><td>That you joined the pool and its division rules before the result.</td></tr><tr><td class="col-destaque">PIX receipt <strong>in your name</strong></td><td>That <strong>you</strong> paid your share (and not someone else for you).</td></tr><tr><td class="col-destaque">Each participant's CPF</td><td>Who the co-bettors are.</td></tr><tr><td class="col-destaque">Formation Agreement (generated at activation)</td><td>Participants, shares and percentages, and that the amounts belong to the group since the bet.</td></tr><tr><td class="col-destaque">Games, tickets and bet receipt</td><td>That the bets were made for the group.</td></tr><tr><td class="col-destaque">Reports and round history, with date and time</td><td>The official split and the evolution of the pool.</td></tr><tr><td class="col-destaque">Prize credits, reserves and PIX, with notifications</td><td>That the division followed each person's shares.</td></tr></tbody></table></div>
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-escolha" data-sec="escolha">
+      <div class="secao-topo"><h3><span class="nsec">1.4</span> Signing is your choice</h3></div>
+      <p class="resumo">Nobody is obliged to sign, but it is important to understand the consequence.</p>
+      
+      
+      
+      
+      <div class="caixa atencao"><strong>Heads up:</strong> Nobody is obliged to sign. Whoever does not feel comfortable does not have to. But if you choose <strong>not to sign</strong> and a prize ends up being taxed as a gift, <strong>responsibility for that tax rests on that personal choice</strong> of not following the proof process.</div>
+      
+      
+    </section>
+    <section class="secao" id="en-US-se-cobrarem" data-sec="se-cobrarem">
+      <div class="secao-topo"><h3><span class="nsec">1.5</span> What if the tax authority charges?</h3></div>
+      <p class="resumo">What usually happens and what to do.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>If the state understands there was a gift, as a rule the <strong>donee</strong> (whoever received) is the taxpayer, and the tax is calculated on the <strong>amount received</strong>, at the state's rate.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>If the tax is not declared and paid on time, <strong>fines and interest</strong> may apply; and intentional omission may be treated as <strong>tax evasion</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Whoever notices the problem <strong>before</strong> being notified can <strong>declare and pay voluntarily</strong> through the state system, which may reduce penalties. Look for an accountant or the state <strong>Treasury Department (SEFAZ)</strong>.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Heads up:</strong> Each case depends on the state, the amount and the documents. If in doubt or if the prize is high, <strong>talk to an accountant or tax lawyer before passing the money on</strong>.</div>
+      
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-ir"><h2>2. Income tax: how to report</h2><p class="intro-cap">The prize already comes with the tax withheld. Here is how each participant and the organizer should put everything on the return.</p>
+      
+    <section class="secao" id="en-US-ir-basico" data-sec="ir-basico">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> The prize already comes with income tax withheld</h3></div>
+      <p class="resumo">There is no extra income tax to pay: what is left is <strong>reporting it the right way</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Loterias Caixa prizes are already paid with <strong>income tax withheld at source</strong> by Caixa. It is <strong>exclusive/final taxation</strong>: there is no refund and no tax to pay on the annual return.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>The tax that <strong>can</strong> be charged is only the <strong>ITCMD</strong>, which is <strong>state-level</strong> (Chapter 1). That is why the way you report matters: it shows the Federal Revenue <strong>who received what</strong>, and reinforces the proof that the split <strong>is not a gift</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Because the prize lands in the organizer's account, the Federal Revenue sees him or her as the <strong>initial recipient of the whole amount</strong>. Each person must report <strong>their part</strong>, and the organizer must also report the <strong>pass-on</strong>.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Heads up:</strong> The <strong>code numbers</strong> on the income tax forms may change from one year to the next. What counts is the <strong>name of the form</strong> and the <strong>"Others"</strong> option: check the code in that year's tax program.</div>
+      
+      
+    </section>
+    <section class="secao" id="en-US-ir-resumo" data-sec="ir-resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Who reports what: summary</h3></div>
+      <p class="resumo">The map of all the returns in this chapter.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Who</th><th>IRPF form</th><th>What to enter</th></tr></thead><tbody><tr><td class="col-destaque"><strong>Participant</strong></td><td>Income Subject to Exclusive/Final Taxation (Others)</td><td>The net amount of <strong>your</strong> share, with Caixa as the paying source (2.3).</td></tr><tr><td class="col-destaque"><strong>Organizer</strong></td><td>Income Subject to Exclusive/Final Taxation (Others)</td><td>Only the net amount of <strong>their own</strong> share (2.4).</td></tr><tr><td class="col-destaque"><strong>Organizer</strong></td><td>Debts and Real Liens (Others)</td><td>The <strong>pass-on</strong> to participants, to zero out the balance (2.5).</td></tr><tr><td class="col-destaque"><strong>Anyone who kept the money until 12/31</strong></td><td>Assets and Rights</td><td>The balance on 12/31, plus the prize (2.6).</td></tr></tbody></table></div>
+      
+      <div class="caixa dica"><strong>Tip:</strong> Keep the <strong>proof kit</strong> from item 6.2 of the <strong>Operating Rules</strong> document: it supports all these returns.</div>
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-ir-participante" data-sec="ir-participante">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> The participant's return</h3></div>
+      <p class="resumo">Each participant reports <strong>their own</strong> part.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Fill in the form <strong>Income Subject to Exclusive/Final Taxation</strong> (option <strong>Others</strong>, listed as Code 12 in the table in use when this text was written).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Enter as <strong>Paying Source</strong> the CNPJ of Caixa Econômica Federal: <strong>00.360.305/0001-04</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>In the <strong>Description</strong> field, use the standard text beside.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Description — participant</div><p>"Net amount corresponding to the share of [Enter the percentage, e.g. 10%] in a joint bet (pool) of draw No. [Enter number] of [Enter the lottery, e.g. Mega-Sena], held on [Draw Date]. The winning ticket was registered and redeemed by the pool organizer, [Full Name], CPF [CPF], who passed on the proportional amount of this share via PIX on [PIX Date], under the Pool Formation Agreement signed between the parties."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-ir-organizador-parte" data-sec="ir-organizador-parte">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> The organizer's return: their own part</h3></div>
+      <p class="resumo">The organizer reports only the net amount of <strong>their own</strong> share.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Income Subject to Exclusive/Final Taxation</strong> (option <strong>Others</strong>), enter Caixa's CNPJ and report <strong>only the net amount of your own share</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Use the standard text beside in the <strong>Description</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Description — organizer, own share</div><p>"Net amount of my own share of [your %, e.g. 20%] in draw No. [X] of [Lottery], received in a joint bet (pool) with [X] other participants. The total prize amount was credited to my account and passed on to the other members according to their shares."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-ir-organizador-repasse" data-sec="ir-organizador-repasse">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> The organizer's return: the pass-on to the others</h3></div>
+      <p class="resumo">To justify the money leaving without it looking like a gift or a loan.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Use the <strong>Debts and Real Liens</strong> form and create an item under the <strong>Other Debts and Real Liens</strong> option.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>In the <strong>Description</strong> field, enter the text beside.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Enter the <strong>total amount passed on</strong> to the others in the year's movement field, to <strong>zero out the balance</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Description — Debts and Real Liens (organizer)</div><p>"Obligation to pass on shares of lottery prize relating to draw [X]. The total amount of [Total Prize Amount] was credited to my checking account and the participants' amounts were transferred on the corresponding dates, leaving only my own entitled percentage."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-ir-bens" data-sec="ir-bens">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> If the money stays invested in the same year</h3></div>
+      <p class="resumo">Assets and Rights, when the balance goes past December 31.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>If the participant receives the prize and keeps the money in the account, savings or investments <strong>until December 31</strong> of the draw year, the <strong>Assets and Rights</strong> form must be filled in.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Choose the matching <strong>code</strong> (for example, checking account, savings, funds or shares) and, under <strong>Situation on 12/31</strong>, enter the current balance <strong>plus the prize</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Description — Assets and Rights</div><p>"Account balance originating from receiving shares of lottery prize from draw No. [X], as declared in the Income Subject to Exclusive/Final Taxation form."</p></div>
+      <div class="caixa dica"><strong>Tip:</strong> The <strong>proof kit</strong> in item 6.2 of the <strong>Operating Rules</strong> document is what backs all of this. Keep it for 5 years.</div>
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-estados"><h2>3. ITCMD by state</h2><p class="intro-cap">Each state has its own rule. This table is only a reference.</p>
+      
+    <section class="secao" id="en-US-tabela-estados" data-sec="tabela-estados">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> ITCMD rates on gifts</h3></div>
+      <p class="resumo">General reference. It may be out of date: always confirm with your state's Treasury Department.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">State (UF)</th><th>ITCMD rate on gifts</th></tr></thead><tbody><tr><td class="col-destaque">Acre</td><td>2% to 4% (progressive)</td></tr><tr><td class="col-destaque">Alagoas</td><td>2%</td></tr><tr><td class="col-destaque">Amapá</td><td>3%</td></tr><tr><td class="col-destaque">Amazonas</td><td>2%</td></tr><tr><td class="col-destaque">Bahia</td><td>3.50%</td></tr><tr><td class="col-destaque">Ceará</td><td>2% to 8% (progressive)</td></tr><tr><td class="col-destaque">Federal District</td><td>4% to 8% (progressive)</td></tr><tr><td class="col-destaque">Espírito Santo</td><td>4% (flat) — see highlight below</td></tr><tr><td class="col-destaque">Goiás</td><td>2% to 4% (up to 8% depending on bracket)</td></tr><tr><td class="col-destaque">Maranhão</td><td>2%</td></tr><tr><td class="col-destaque">Mato Grosso</td><td>2% to 4%</td></tr><tr><td class="col-destaque">Mato Grosso do Sul</td><td>3%</td></tr><tr><td class="col-destaque">Minas Gerais</td><td>5% (flat) — see notice below</td></tr><tr><td class="col-destaque">Pará</td><td>4%</td></tr><tr><td class="col-destaque">Paraíba</td><td>2% to 8% (progressive)</td></tr><tr><td class="col-destaque">Paraná</td><td>4%</td></tr><tr><td class="col-destaque">Pernambuco</td><td>2% to 8% (progressive)</td></tr><tr><td class="col-destaque">Piauí</td><td>4%</td></tr><tr><td class="col-destaque">Rio de Janeiro</td><td>4% to 8% (progressive)</td></tr><tr><td class="col-destaque">Rio Grande do Norte</td><td>4%</td></tr><tr><td class="col-destaque">Rio Grande do Sul</td><td>4% to 6% (progressive)</td></tr><tr><td class="col-destaque">Rondônia</td><td>2% to 4% (progressive)</td></tr><tr><td class="col-destaque">Roraima</td><td>4%</td></tr><tr><td class="col-destaque">Santa Catarina</td><td>1% to 8% (progressive)</td></tr><tr><td class="col-destaque">São Paulo</td><td>4%</td></tr><tr><td class="col-destaque">Sergipe</td><td>4%</td></tr><tr><td class="col-destaque">Tocantins</td><td>2% to 8% (progressive)</td></tr></tbody></table></div>
+      <div class="caixa destaque"><div class="destaque-tit">★ Espírito Santo (ES)</div><p>Current rate: <strong>4%</strong>, flat on the total amount given. Exemption: gifts of up to <strong>R$ 10,000.00 per calendar year</strong> (to the same donee) pay no tax; above that, it applies to the total amount. Note: the ES Legislative Assembly is studying a switch to a progressive model, which could raise the top rate to up to 8%.</p></div>
+      
+      <div class="caixa atencao"><strong>Heads up:</strong> <strong>Minas Gerais (MG):</strong> current rate of <strong>5%</strong>, flat, calculated on the UFEMG (the state fiscal unit). Exemption: gifts of up to <strong>10,000 UFEMG</strong> per calendar year (about R$ 57,899.00 when this text was written) pay no tax. A bill (PL 2,881/24) is going through the legislature to create progressive brackets of up to 8%.</div>
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>This table is a <strong>general reference</strong>, gathered from public sources that <strong>do not always agree with each other</strong>. With the tax reform, several states are <strong>adapting their laws to progressive rates</strong>, so the numbers may change. It does not replace the advice of an accountant or tax lawyer, especially if a higher prize is involved.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-reforma"><h2>4. Tax reform: does anything change?</h2><p class="intro-cap">What the reform changed in the ITCMD, what it does not change and what that means for the pool.</p>
+      
+    <section class="secao" id="en-US-o-que-mudou" data-sec="o-que-mudou">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> What the reform changed in the ITCMD</h3></div>
+      <p class="resumo">The main change: the progressive rate is no longer optional.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Constitutional Amendment No. 132/2023</strong> (the tax reform) made the <strong>progressive rate</strong> of the ITCMD <strong>mandatory</strong>: the percentage now varies with the <strong>amount</strong> of the gift (or inheritance). Before, progressiveness was an option for each state.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Complementary Law No. 227/2026</strong> (January 2026) regulated the subject: market value as the tax base, rules on which state is competent, taxation of assets abroad and the <strong>sum of successive gifts</strong>, to stop a large amount from being "sliced" into several small gifts.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>The <strong>maximum rate stays at 8%</strong> (Senate Resolution No. 9/1992). There are proposals under discussion to change that ceiling, but today 8% applies.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Each <strong>state must adapt its own law</strong>. New state laws only take effect from the <strong>year after</strong> their publication (the annual-anteriority principle). That is why, in 2026, many states still used a flat rate, and the rules should keep changing through 2026 and 2027.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Want to know more?</summary><p>For money, the state that charges is still, as a rule, the one where <strong>the giver is domiciled</strong>.</p></details>
+      
+    </section>
+    <section class="secao" id="en-US-nao-muda" data-sec="nao-muda">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> What the reform does NOT change on this subject</h3></div>
+      <p class="resumo">There is no new tax on dividing the prize.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Income tax</strong> on the prize is still <strong>withheld by Caixa</strong>, at source, on an exclusive/final basis. The consumption reform does not touch this.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>IBS</strong> and <strong>CBS</strong> (the new consumption taxes) have, in <strong>Complementary Law No. 214/2025</strong>, a <strong>specific regime for betting contests</strong> (lotteries and bets): the tax falls on the <strong>revenue of whoever runs the lottery</strong> (collections minus prizes paid and the allocations set by law), and <strong>prizes paid are not part of the base</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>In other words: under those rules, <strong>whoever wins the prize does not pay IBS/CBS on it</strong>, and a participant who receives their part of the split is not, for that reason, a taxpayer of those taxes.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>The <strong>organization fee</strong> (when the organizer is paid) is a separate point: depending on the amount and how it is charged, it may have its own tax treatment. If that matters in your case, <strong>talk to an accountant</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-efeitos" data-sec="efeitos">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> What may change in practice for the pool</h3></div>
+      <p class="resumo">The pool's path does not change; the care only grows.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>With <strong>progressiveness</strong>, <strong>small gifts tend to fall into low or exempt brackets</strong>; large amounts pay a higher percentage (up to 8%).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>With the <strong>sum of successive gifts</strong>, it became even more important to prove that the pass-on <strong>is not a gift</strong>: without proof, several pass-ons to the same participant may be <strong>added together</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>States that today have a low flat rate may <strong>raise</strong> the percentage for large amounts.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>For the pool, the path <strong>stays the same</strong>: document that each participant is a co-bettor from the start, which is exactly what the rules in this document do.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Summary of the reform</div><p>The reform <strong>does not create a new tax</strong> on dividing the prize and <strong>does not change the income tax</strong> on the prize. What changes is the <strong>ITCMD</strong> (progressive and regulated), and that only reinforces the importance of proving that the split <strong>is not a gift</strong>.</p></div>
+      
+      <div class="caixa atencao"><strong>Heads up:</strong> The adaptation of state laws is still under way. Follow the law of <strong>your state</strong>.</div>
+      
+      
+    </section>
+    <section class="secao" id="en-US-acompanhar" data-sec="acompanhar">
+      <div class="secao-topo"><h3><span class="nsec">4.4</span> How to follow the changes</h3></div>
+      <p class="resumo">Where to confirm the rule that applies to you.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Check the website of the <strong>Treasury Department (SEFAZ)</strong> of the state where the pool organizer lives (as a rule, the giver's state).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Check the <strong>version</strong> of this document at the top of the page: it is updated when there is a relevant change.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>If in doubt, or if a higher prize is involved, <strong>talk to an accountant</strong> before passing the money on.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="en-US-cap-avisos-fontes"><h2>5. Notices and sources</h2><p class="intro-cap">What this document is — and what it is not.</p>
+      
+    <section class="secao" id="en-US-aviso-legal" data-sec="aviso-legal">
+      <div class="secao-topo"><h3><span class="nsec">5.1</span> Important notice</h3></div>
+      <p class="resumo">General information, not advice.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>This document is <strong>informational and general</strong>. It <strong>does not replace</strong> the advice of an accountant or tax lawyer.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>The income tax forms and codes, the ITCMD rates and the exemptions <strong>may change from one year to the next</strong>, and each case (prize amount, number of participants, each one's state) may need a specific adjustment.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>The <strong>text templates</strong> are suggestions: adapt them to your situation.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>LottoAnalytics is an organization and record-keeping tool. It <strong>does not guarantee prizes</strong> or any tax outcome.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="en-US-fontes" data-sec="fontes">
+      <div class="secao-topo"><h3><span class="nsec">5.2</span> Sources consulted</h3></div>
+      <p class="resumo">Where the rules mentioned here can be found.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Federal Constitution</strong>, art. 155, § 1, as worded by <strong>Constitutional Amendment No. 132/2023</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Complementary Law No. 214/2025</strong> (IBS and CBS; specific regime for betting contests) and <strong>Complementary Law No. 227/2026</strong> (ITCMD, managing committee and adjustments).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p><strong>Federal Senate Resolution No. 9/1992</strong> (maximum ITCMD rate).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p><strong>Law No. 13,756/2018</strong> (lotteries), the <strong>Civil Code</strong> (arts. 421, 422 and 876) and the <strong>LGPD</strong> (Law No. 13,709/2018).</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Legislation and guidance from the <strong>Federal Revenue Service</strong> (income tax) and the <strong>state Treasury Departments</strong> (ITCMD).</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div><div class="capitulo" id="en-US-faq"><h2>Frequently asked questions</h2><details class="faq"><summary>Do I have to sign the pool agreement?</summary><p>No. But if you do not sign and the prize ends up being taxed as a gift, responsibility for that tax rests on that choice. See item 1.4.</p></details><details class="faq"><summary>The prize lands in the organizer's account. Is that a problem?</summary><p>No, as long as the pool is documented: the Formation Agreement says the amounts <strong>belong to the group since the bet</strong>, and the organizer reports the pass-on on the income tax return (Chapter 2).</p></details><details class="faq"><summary>Do I need to report the prize on my income tax return?</summary><p>Yes, on the <strong>exclusive/final taxation</strong> income form, even with the tax already withheld by Caixa. See Chapter 2 and, if in doubt, talk to an accountant.</p></details><details class="faq"><summary>Will I have to pay ITCMD?</summary><p>The defense argument is that <strong>no</strong>: a co-bettor from the start did not receive a gift. But that depends on the proof and on the state tax authority's analysis; there is no guarantee. That is why the rules in the <strong>Operating Rules</strong> document exist.</p></details><details class="faq"><summary>Will the tax reform change what I pay?</summary><p>It does not create a new tax on dividing the prize and does not change the income tax on the prize. It changes the ITCMD (progressive), which reinforces the importance of documenting the pool. See Chapter 4.</p></details></div><div class="capitulo" id="en-US-glossario"><h2>Glossary — the words used in this document</h2><dl class="glossario"><dt>Pool (bolão)</dt><dd>A group of people who share the cost of the bets and the prize.</dd><dt>Share (cota)</dt><dd>Your part of the pool. Whoever has more shares pays more and receives more.</dd><dt>Co-bettor</dt><dd>Someone who bets together, with their own part, from the start. It is the basis for the split not being seen as a gift.</dd><dt>Formation Agreement</dt><dd>A document generated at activation, with the participants, shares, percentages and the rule for dividing prizes.</dd><dt>ITCMD</dt><dd>State tax on transfers upon death and gifts. The maximum rate is 8%.</dd><dt>Giver and donee</dt><dd>The giver is who gives; the donee is who receives. As a rule, the donee is the ITCMD taxpayer.</dd><dt>Progressiveness</dt><dd>A rate that rises with the amount: the larger the gift, the higher the percentage.</dd><dt>Exclusive/final taxation</dt><dd>Income tax charged at source (as on lottery prizes), with no adjustment on the annual return.</dd><dt>IBS and CBS</dt><dd>The new consumption taxes of the tax reform. On betting contests, they fall on the revenue of whoever runs the lottery, not on the prize paid.</dd><dt>SEFAZ</dt><dd>The state Treasury Department: where the rate is confirmed and the ITCMD is declared.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — ITCMD Exemption, institutional document, the same for every pool · Want to know how the pool works day to day? See the Operating Rules document and the Participant and Manager manuals.</footer>
+  </div>
+
+  <div class="idioma" data-lang="es-ES" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Exención del ITCMD</h1><p class="sub">Por qué el grupo necesita pruebas, cómo declarar en el impuesto sobre la renta y qué cambia con la reforma tributaria</p><p class="nivel">Para todos los participantes y organizadores — el mismo documento para todos los grupos · Versión de la app 5.8.1</p>
+      <p class="intro">Este documento explica el <strong>ITCMD</strong> — el impuesto estatal sobre donaciones — y por qué importa a quien participa en un grupo. Muestra cómo las reglas del grupo ayudan a probar que el reparto del premio <strong>no es una donación</strong>, cómo <strong>declarar en el impuesto sobre la renta</strong> (participante y organizador), la <strong>tabla por estado</strong> y qué cambia con la <strong>reforma tributaria</strong>.</p><p class="intro">El funcionamiento del día a día (pago, plazos, activación, juegos y reparto del premio) está en el documento <strong>Reglas de funcionamiento</strong>.</p><p class="intro">Participantes, por favor lean con atención. Desde el próximo grupo seguimos un conjunto de reglas necesarias para que el reparto de los premios no se interprete, a efectos fiscales, como una "donación" — lo que generaría el cobro de un impuesto estatal sobre el valor recibido.</p><p class="intro"><strong>Aviso:</strong> este documento es <strong>informativo</strong>. No sustituye la orientación de un contador o abogado tributarista, sobre todo cuando haya un premio de mayor valor. La app no garantiza premios: la lotería es un sorteo.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Índice"><h2>Índice</h2><ul><li><a href="#es-ES-cap-itcmd">1. ITCMD: qué es y por qué importa</a><ul><li><a href="#es-ES-o-que-e">Qué es el ITCMD</a></li><li><a href="#es-ES-por-que-doacao">Por qué un grupo puede verse como donación</a></li><li><a href="#es-ES-como-app-ajuda">Qué registra LottoAnalytics para probarlo</a></li><li><a href="#es-ES-escolha">Firmar es una elección tuya</a></li><li><a href="#es-ES-se-cobrarem">¿Y si el fisco cobra?</a></li></ul></li><li><a href="#es-ES-cap-ir">2. Impuesto sobre la Renta: cómo declarar</a><ul><li><a href="#es-ES-ir-basico">El premio ya viene con el Impuesto sobre la Renta descontado</a></li><li><a href="#es-ES-ir-resumo">Quién declara qué: resumen</a></li><li><a href="#es-ES-ir-participante">La declaración del participante</a></li><li><a href="#es-ES-ir-organizador-parte">La declaración del organizador: su propia parte</a></li><li><a href="#es-ES-ir-organizador-repasse">La declaración del organizador: el traspaso a los demás</a></li><li><a href="#es-ES-ir-bens">Si el dinero queda invertido en el mismo año</a></li></ul></li><li><a href="#es-ES-cap-estados">3. ITCMD por estado</a><ul><li><a href="#es-ES-tabela-estados">Alícuotas de ITCMD sobre donación</a></li></ul></li><li><a href="#es-ES-cap-reforma">4. Reforma tributaria: ¿cambia algo?</a><ul><li><a href="#es-ES-o-que-mudou">Qué cambió la reforma en el ITCMD</a></li><li><a href="#es-ES-nao-muda">Qué NO cambia la reforma en este tema</a></li><li><a href="#es-ES-efeitos">Qué puede cambiar en la práctica para el grupo</a></li><li><a href="#es-ES-acompanhar">Cómo seguir los cambios</a></li></ul></li><li><a href="#es-ES-cap-avisos-fontes">5. Avisos y fuentes</a><ul><li><a href="#es-ES-aviso-legal">Aviso importante</a></li><li><a href="#es-ES-fontes">Fuentes consultadas</a></li></ul></li><li><a href="#es-ES-faq">Preguntas frecuentes</a></li><li><a href="#es-ES-glossario">Glosario — las palabras de este documento</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="es-ES-cap-itcmd"><h2>1. ITCMD: qué es y por qué importa</h2><p class="intro-cap">El impuesto sobre donaciones — y por qué el reparto del premio debe estar bien documentado.</p>
+      
+    <section class="secao" id="es-ES-o-que-e" data-sec="o-que-e">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Qué es el ITCMD</h3></div>
+      <p class="resumo">Un impuesto estatal sobre lo que se recibe gratis.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>ITCMD es el <strong>Impuesto sobre Transmisión Causa Mortis y Donación</strong> (Imposto sobre Transmissão Causa Mortis e Doação). Es <strong>estatal</strong>: cada estado y el Distrito Federal define su alícuota y sus reglas.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Se aplica cuando alguien recibe <strong>bienes o dinero gratis</strong>: por <strong>herencia</strong> (causa mortis) o por <strong>donación</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>La <strong>alícuota máxima</strong> es del <strong>8%</strong> (Resolución del Senado Federal n.º 9/1992). Dentro de ese tope, cada estado elige una alícuota <strong>fija</strong> o <strong>progresiva</strong> (que sube según el valor).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>En general, quien <strong>paga</strong> es quien <strong>recibe</strong> la donación (el donatario), pero la ley estatal puede atribuir la responsabilidad a quien dona, y las personas pueden acordar quién asume el valor.</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Para el dinero, en general, el estado competente es el del <strong>domicilio de quien dona</strong> (Constitución Federal, art. 155, § 1.º).</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Muchos estados tienen <strong>exención para donaciones de poco valor</strong> (por año civil o por operación). El límite varía de un estado a otro y cambia con el tiempo: confirma el de tu estado.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-por-que-doacao" data-sec="por-que-doacao">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Por qué un grupo puede verse como donación</h3></div>
+      <p class="resumo">Es una cuestión de <strong>prueba</strong>: de quién era la parte y desde cuándo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Cuando un premio se reparte entre varias personas, el <strong>boleto premiado suele estar a nombre de una sola persona</strong> (el organizador), y Caixa paga el premio <strong>a ella</strong> (ya con el Impuesto sobre la Renta retenido).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Si esa persona luego <strong>transfiere</strong> partes a los demás, el fisco puede entender que está <strong>"donando"</strong>. Y la donación es hecho imponible del ITCMD.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Para evitarlo, hay que probar que cada participante era <strong>coapostador desde el principio</strong>: pagó la cuota y tenía derecho a su parte <strong>antes</strong> de salir el resultado, y no recibió un valor "de regalo" después del sorteo.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>En ese caso, el reparto es solo la <strong>entrega de una parte que ya era del participante</strong> (un premio de lotería dividido entre apostadores), y no una liberalidad.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ La idea central</div><p>Quien logra probar que <strong>ya era dueño de su parte antes del sorteo</strong> no recibió una donación. Las reglas del documento <strong>Reglas de funcionamiento</strong> existen para producir esa prueba.</p></div>
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Esta es la tesis de defensa usada en la práctica y <strong>depende de pruebas</strong>. La decisión final es del fisco del estado (y, si hay desacuerdo, de la Justicia). <strong>No hay garantía de resultado</strong>, por eso la documentación importa tanto.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-como-app-ajuda" data-sec="como-app-ajuda">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Qué registra LottoAnalytics para probarlo</h3></div>
+      <p class="resumo">Cada cosa que haces en la app es una pieza de la prueba.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Qué queda registrado</th><th>Qué prueba</th></tr></thead><tbody><tr><td class="col-destaque">Acta firmada en la app, con fecha y hora, <strong>antes</strong> del premio</td><td>Que te adheriste al grupo y a las reglas de reparto antes del resultado.</td></tr><tr><td class="col-destaque">Comprobante de PIX <strong>a tu nombre</strong></td><td>Que <strong>tú</strong> pagaste tu cuota (y no otra persona por ti).</td></tr><tr><td class="col-destaque">CPF de cada participante</td><td>Quiénes son los coapostadores.</td></tr><tr><td class="col-destaque">Acta de constitución (generada en la activación)</td><td>Participantes, cuotas y porcentajes, y que los valores pertenecen al grupo desde la apuesta.</td></tr><tr><td class="col-destaque">Juegos, boletos y comprobante de la apuesta</td><td>Que las apuestas se hicieron para el grupo.</td></tr><tr><td class="col-destaque">Informes e historial de rondas, con fecha y hora</td><td>El reparto oficial y la evolución del grupo.</td></tr><tr><td class="col-destaque">Créditos, reservas y PIX del premio, con notificaciones</td><td>Que el reparto siguió las cuotas de cada uno.</td></tr></tbody></table></div>
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-escolha" data-sec="escolha">
+      <div class="secao-topo"><h3><span class="nsec">1.4</span> Firmar es una elección tuya</h3></div>
+      <p class="resumo">Nadie está obligado a firmar, pero es importante entender la consecuencia.</p>
+      
+      
+      
+      
+      <div class="caixa atencao"><strong>Atención:</strong> Nadie está obligado a firmar. Quien no se sienta cómodo, no tiene que hacerlo. Pero si decides <strong>no firmar</strong> y un premio llega a gravarse como donación, la <strong>responsabilidad por ese impuesto recae en esa elección personal</strong> de no seguir el proceso de comprobación.</div>
+      
+      
+    </section>
+    <section class="secao" id="es-ES-se-cobrarem" data-sec="se-cobrarem">
+      <div class="secao-topo"><h3><span class="nsec">1.5</span> ¿Y si el fisco cobra?</h3></div>
+      <p class="resumo">Qué suele pasar y qué hacer.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Si el estado entiende que hubo donación, en general el <strong>donatario</strong> (quien recibió) es el contribuyente, y el impuesto se calcula sobre el <strong>valor recibido</strong>, con la alícuota del estado.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Si el impuesto no se declara y paga a tiempo, pueden aplicarse <strong>multa e intereses</strong>; y la omisión intencional puede tratarse como <strong>evasión fiscal</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Quien detecta el problema <strong>antes</strong> de ser notificado puede <strong>declarar y pagar espontáneamente</strong> por el sistema del estado, lo que puede reducir las sanciones. Busca a un contador o a la <strong>Secretaría de Hacienda (SEFAZ)</strong> del estado.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atención:</strong> Cada caso depende del estado, del valor y de los documentos. En caso de duda o de premio alto, <strong>busca a un contador o abogado tributarista antes de transferir el dinero</strong>.</div>
+      
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-ir"><h2>2. Impuesto sobre la Renta: cómo declarar</h2><p class="intro-cap">El premio ya viene con el impuesto descontado. Aquí está cómo cada participante y el organizador deben ponerlo todo en la declaración.</p>
+      
+    <section class="secao" id="es-ES-ir-basico" data-sec="ir-basico">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> El premio ya viene con el Impuesto sobre la Renta descontado</h3></div>
+      <p class="resumo">No hay impuesto sobre la renta de más que pagar: lo que falta es <strong>declarar de la forma correcta</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Los premios de Loterias Caixa ya se pagan con el <strong>Impuesto sobre la Renta descontado en la fuente</strong> por Caixa. Es <strong>tributación exclusiva/definitiva</strong>: no hay devolución ni impuesto a pagar en la declaración.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>El impuesto que <strong>puede</strong> cobrarse es solo el <strong>ITCMD</strong>, que es <strong>estatal</strong> (Capítulo 1). Por eso importa la forma de declarar: muestra a la Hacienda federal <strong>quién recibió qué</strong>, y refuerza la prueba de que el reparto <strong>no es una donación</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Como el premio cae en la cuenta del organizador, la Hacienda federal lo ve como el <strong>receptor inicial del valor total</strong>. Cada uno debe declarar <strong>su parte</strong>, y el organizador debe declarar también el <strong>traspaso</strong>.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Atención:</strong> Los <strong>números de los códigos</strong> de las fichas del impuesto sobre la renta pueden cambiar de un año a otro. Vale el <strong>nombre de la ficha</strong> y la opción <strong>"Otros"</strong>: confirma el código en el programa del impuesto del año.</div>
+      
+      
+    </section>
+    <section class="secao" id="es-ES-ir-resumo" data-sec="ir-resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Quién declara qué: resumen</h3></div>
+      <p class="resumo">El mapa de todas las declaraciones de este capítulo.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Quién</th><th>Ficha del IRPF</th><th>Qué informar</th></tr></thead><tbody><tr><td class="col-destaque"><strong>Participante</strong></td><td>Rendimientos sujetos a tributación exclusiva/definitiva (Otros)</td><td>El valor líquido de <strong>tu</strong> parte, con Caixa como fuente pagadora (2.3).</td></tr><tr><td class="col-destaque"><strong>Organizador</strong></td><td>Rendimientos sujetos a tributación exclusiva/definitiva (Otros)</td><td>Solo el valor líquido de <strong>su propia</strong> cuota (2.4).</td></tr><tr><td class="col-destaque"><strong>Organizador</strong></td><td>Deudas y cargas reales (Otras)</td><td>El <strong>traspaso</strong> a los participantes, para dejar el saldo en cero (2.5).</td></tr><tr><td class="col-destaque"><strong>Quien mantuvo el dinero hasta el 31/12</strong></td><td>Bienes y derechos</td><td>El saldo al 31/12, más el premio (2.6).</td></tr></tbody></table></div>
+      
+      <div class="caixa dica"><strong>Consejo:</strong> Guarda el <strong>kit de pruebas</strong> del ítem 6.2 del documento <strong>Reglas de funcionamiento</strong>: respalda todas estas declaraciones.</div>
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-ir-participante" data-sec="ir-participante">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> La declaración del participante</h3></div>
+      <p class="resumo">Cada participante declara <strong>su</strong> parte.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Completa la ficha <strong>Rendimientos sujetos a tributación exclusiva/definitiva</strong> (opción <strong>Otros</strong>, citada como Código 12 en la tabla usada cuando se escribió este texto).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Informa como <strong>Fuente pagadora</strong> el CNPJ de Caixa Econômica Federal: <strong>00.360.305/0001-04</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>En el campo <strong>Descripción</strong>, usa el texto estándar de al lado.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descripción — participante</div><p>"Valor líquido correspondiente a la cuota-parte de [Insertar el porcentaje, ej.: 10%] en apuesta conjunta (grupo) del sorteo n.º [Insertar número] de [Insertar la lotería, ej.: Mega-Sena], realizado el [Fecha del sorteo]. El boleto premiado fue registrado y cobrado por el organizador del grupo, [Nombre completo], CPF [CPF], quien realizó el traspaso del valor proporcional a esta cuota vía PIX el [Fecha del PIX], conforme al Acta de constitución de grupo firmada entre las partes."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-ir-organizador-parte" data-sec="ir-organizador-parte">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> La declaración del organizador: su propia parte</h3></div>
+      <p class="resumo">El organizador declara solo el valor líquido de <strong>su</strong> cuota.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>En <strong>Rendimientos sujetos a tributación exclusiva/definitiva</strong> (opción <strong>Otros</strong>), informa el CNPJ de Caixa y declara <strong>solo el valor líquido de tu propia cuota</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Usa el texto estándar de al lado en la <strong>Descripción</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descripción — organizador, cuota propia</div><p>"Valor líquido de la cuota-parte propia de [su %, ej.: 20%] en el sorteo n.º [X] de [Lotería], recibido en apuesta conjunta (grupo) con [X] participantes más. El valor total del premio se acreditó en mi cuenta y se traspasó a los demás miembros conforme a sus cuotas."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-ir-organizador-repasse" data-sec="ir-organizador-repasse">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> La declaración del organizador: el traspaso a los demás</h3></div>
+      <p class="resumo">Para justificar la salida del dinero sin que parezca donación o préstamo.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Usa la ficha de <strong>Deudas y cargas reales</strong> y crea un ítem en la opción <strong>Otras deudas y cargas reales</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>En el campo <strong>Descripción</strong>, informa el texto de al lado.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Informa el <strong>valor total traspasado</strong> a los demás en el campo de movimiento del año, para <strong>dejar el saldo en cero</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descripción — Deudas y cargas reales (organizador)</div><p>"Obligación de traspaso de cuotas-parte de premio de lotería relativo al sorteo [X]. El valor total de [Valor total del premio] se acreditó en mi cuenta corriente y los valores de los participantes se transfirieron en las fechas correspondientes, quedando líquido solo mi porcentaje de derecho."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-ir-bens" data-sec="ir-bens">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Si el dinero queda invertido en el mismo año</h3></div>
+      <p class="resumo">Bienes y derechos, cuando el saldo pasa del 31 de diciembre.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Si el participante recibe el premio y mantiene el dinero en la cuenta, en el ahorro o en inversiones <strong>hasta el 31 de diciembre</strong> del año del sorteo, debe abrir la ficha de <strong>Bienes y derechos</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Elige el <strong>código</strong> correspondiente (por ejemplo, cuenta corriente, ahorro, fondos o acciones) y, en <strong>Situación al 31/12</strong>, informa el saldo actual <strong>más el premio</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descripción — Bienes y derechos</div><p>"Saldo en cuenta originado por la recepción de cuotas-parte de premio de lotería del sorteo n.º [X], conforme a lo declarado en la ficha de Rendimientos sujetos a tributación exclusiva."</p></div>
+      <div class="caixa dica"><strong>Consejo:</strong> El <strong>kit de pruebas</strong> del ítem 6.2 del documento <strong>Reglas de funcionamiento</strong> es lo que sostiene todo esto. Guárdalo por 5 años.</div>
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-estados"><h2>3. ITCMD por estado</h2><p class="intro-cap">Cada estado tiene su regla. Esta tabla es solo una referencia.</p>
+      
+    <section class="secao" id="es-ES-tabela-estados" data-sec="tabela-estados">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Alícuotas de ITCMD sobre donación</h3></div>
+      <p class="resumo">Referencia general. Puede estar desactualizada: confirma siempre en la Secretaría de Hacienda de tu estado.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Estado (UF)</th><th>Alícuota de ITCMD sobre donación</th></tr></thead><tbody><tr><td class="col-destaque">Acre</td><td>2% a 4% (progresivo)</td></tr><tr><td class="col-destaque">Alagoas</td><td>2%</td></tr><tr><td class="col-destaque">Amapá</td><td>3%</td></tr><tr><td class="col-destaque">Amazonas</td><td>2%</td></tr><tr><td class="col-destaque">Bahía</td><td>3,50%</td></tr><tr><td class="col-destaque">Ceará</td><td>2% a 8% (progresivo)</td></tr><tr><td class="col-destaque">Distrito Federal</td><td>4% a 8% (progresivo)</td></tr><tr><td class="col-destaque">Espírito Santo</td><td>4% (fija) — ver destacado abajo</td></tr><tr><td class="col-destaque">Goiás</td><td>2% a 4% (hasta 8% según el tramo)</td></tr><tr><td class="col-destaque">Maranhão</td><td>2%</td></tr><tr><td class="col-destaque">Mato Grosso</td><td>2% a 4%</td></tr><tr><td class="col-destaque">Mato Grosso do Sul</td><td>3%</td></tr><tr><td class="col-destaque">Minas Gerais</td><td>5% (fija) — ver aviso abajo</td></tr><tr><td class="col-destaque">Pará</td><td>4%</td></tr><tr><td class="col-destaque">Paraíba</td><td>2% a 8% (progresivo)</td></tr><tr><td class="col-destaque">Paraná</td><td>4%</td></tr><tr><td class="col-destaque">Pernambuco</td><td>2% a 8% (progresivo)</td></tr><tr><td class="col-destaque">Piauí</td><td>4%</td></tr><tr><td class="col-destaque">Río de Janeiro</td><td>4% a 8% (progresivo)</td></tr><tr><td class="col-destaque">Rio Grande do Norte</td><td>4%</td></tr><tr><td class="col-destaque">Rio Grande do Sul</td><td>4% a 6% (progresivo)</td></tr><tr><td class="col-destaque">Rondônia</td><td>2% a 4% (progresivo)</td></tr><tr><td class="col-destaque">Roraima</td><td>4%</td></tr><tr><td class="col-destaque">Santa Catarina</td><td>1% a 8% (progresivo)</td></tr><tr><td class="col-destaque">São Paulo</td><td>4%</td></tr><tr><td class="col-destaque">Sergipe</td><td>4%</td></tr><tr><td class="col-destaque">Tocantins</td><td>2% a 8% (progresivo)</td></tr></tbody></table></div>
+      <div class="caixa destaque"><div class="destaque-tit">★ Espírito Santo (ES)</div><p>Alícuota actual: <strong>4%</strong>, fija sobre el valor total donado. Exención: las donaciones de hasta <strong>R$ 10.000,00 por año civil</strong> (al mismo donatario) no pagan impuesto; por encima de eso, se aplica sobre el valor total. Atención: la Asamblea Legislativa de ES estudia pasar a un modelo progresivo, que podría elevar la alícuota máxima hasta el 8%.</p></div>
+      
+      <div class="caixa atencao"><strong>Atención:</strong> <strong>Minas Gerais (MG):</strong> alícuota actual del <strong>5%</strong>, fija, calculada con base en la UFEMG (Unidad Fiscal del Estado). Exención: las donaciones de hasta <strong>10.000 UFEMG</strong> por año civil (cerca de R$ 57.899,00 cuando se escribió este texto) no pagan impuesto. Hay un proyecto de ley (PL 2.881/24) en trámite para crear tramos progresivos de hasta el 8%.</div>
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Esta tabla es una <strong>referencia general</strong>, reunida de fuentes públicas que <strong>no siempre coinciden entre sí</strong>. Con la reforma tributaria, varios estados están <strong>adaptando la ley a la alícuota progresiva</strong>, por lo que los números pueden cambiar. No sustituye la orientación de un contador o abogado tributarista, sobre todo si hay un premio de mayor valor.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-reforma"><h2>4. Reforma tributaria: ¿cambia algo?</h2><p class="intro-cap">Qué cambió la reforma en el ITCMD, qué no cambia y qué significa para el grupo.</p>
+      
+    <section class="secao" id="es-ES-o-que-mudou" data-sec="o-que-mudou">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Qué cambió la reforma en el ITCMD</h3></div>
+      <p class="resumo">El cambio principal: la alícuota progresiva dejó de ser opcional.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>La <strong>Enmienda Constitucional n.º 132/2023</strong> (la reforma tributaria) hizo <strong>obligatoria</strong> la <strong>alícuota progresiva</strong> del ITCMD: el porcentaje pasa a variar según el <strong>valor</strong> de la donación (o de la herencia). Antes, la progresividad era una opción de cada estado.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>La <strong>Ley Complementaria n.º 227/2026</strong> (enero de 2026) reguló el tema: valor de mercado como base de cálculo, reglas de competencia entre los estados, tributación de bienes en el exterior y la <strong>suma de donaciones sucesivas</strong>, para impedir que un valor grande se "fraccione" en varias donaciones pequeñas.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>La <strong>alícuota máxima sigue en el 8%</strong> (Resolución del Senado n.º 9/1992). Hay propuestas en debate para cambiar ese tope, pero hoy vale el 8%.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Cada <strong>estado debe adaptar su propia ley</strong>. Las leyes estatales nuevas solo valen a partir del <strong>año siguiente</strong> al de su publicación (principio de anterioridad). Por eso, en 2026 muchos estados aún usaban alícuota fija, y las reglas deben seguir cambiando durante 2026 y 2027.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>¿Quieres saber más?</summary><p>Para el dinero, el estado que cobra sigue siendo, en general, el del <strong>domicilio de quien dona</strong>.</p></details>
+      
+    </section>
+    <section class="secao" id="es-ES-nao-muda" data-sec="nao-muda">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Qué NO cambia la reforma en este tema</h3></div>
+      <p class="resumo">No existe un impuesto nuevo sobre el reparto del premio.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>El <strong>Impuesto sobre la Renta</strong> del premio sigue siendo <strong>retenido por Caixa</strong>, en la fuente, de forma exclusiva/definitiva. La reforma del consumo no toca eso.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>El <strong>IBS</strong> y la <strong>CBS</strong> (nuevos impuestos sobre el consumo) tienen, en la <strong>Ley Complementaria n.º 214/2025</strong>, un <strong>régimen específico para los concursos de pronósticos</strong> (loterías y apuestas): el impuesto recae sobre los <strong>ingresos de quien explota la lotería</strong> (recaudación menos los premios pagados y las destinaciones previstas por ley), y los <strong>premios pagados no entran en la base</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Es decir: según esas reglas, <strong>quien gana el premio no paga IBS/CBS sobre él</strong>, y el participante que recibe su parte del reparto no es, por eso, contribuyente de esos impuestos.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>La <strong>tarifa de organización</strong> (cuando el organizador es remunerado) es un punto aparte: según el valor y la forma de cobro, puede tener un encuadre propio. Si eso es relevante en tu caso, <strong>consulta a un contador</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-efeitos" data-sec="efeitos">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Qué puede cambiar en la práctica para el grupo</h3></div>
+      <p class="resumo">El camino del grupo no cambia; el cuidado solo aumenta.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Con la <strong>progresividad</strong>, las donaciones de <strong>poco valor tienden a caer en tramos bajos o exentos</strong>; los valores altos pagan un porcentaje mayor (hasta el 8%).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Con la <strong>suma de donaciones sucesivas</strong>, se volvió aún más importante probar que el traspaso <strong>no es una donación</strong>: sin prueba, varios traspasos al mismo participante pueden <strong>sumarse</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Los estados que hoy tienen una alícuota fija baja pueden <strong>aumentar</strong> el porcentaje para valores altos.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Para el grupo, el camino <strong>sigue siendo el mismo</strong>: documentar que cada participante es coapostador desde el principio, que es exactamente lo que hacen las reglas de este documento.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Resumen de la reforma</div><p>La reforma <strong>no crea un impuesto nuevo</strong> sobre el reparto del premio y <strong>no cambia el impuesto sobre la renta</strong> del premio. Lo que cambia es el <strong>ITCMD</strong> (progresivo y reglamentado), y eso solo refuerza la importancia de probar que el reparto <strong>no es una donación</strong>.</p></div>
+      
+      <div class="caixa atencao"><strong>Atención:</strong> La adaptación de las leyes estatales aún está en curso. Sigue la ley de <strong>tu estado</strong>.</div>
+      
+      
+    </section>
+    <section class="secao" id="es-ES-acompanhar" data-sec="acompanhar">
+      <div class="secao-topo"><h3><span class="nsec">4.4</span> Cómo seguir los cambios</h3></div>
+      <p class="resumo">Dónde confirmar la regla que vale para ti.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Consulta el sitio de la <strong>Secretaría de Hacienda (SEFAZ)</strong> del estado donde vive quien organiza el grupo (en general, el estado de quien dona).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Revisa la <strong>versión</strong> de este documento en la parte de arriba de la página: se actualiza cuando hay un cambio relevante.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>En caso de duda, o si hay un premio de mayor valor, <strong>habla con un contador</strong> antes de transferir el dinero.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="es-ES-cap-avisos-fontes"><h2>5. Avisos y fuentes</h2><p class="intro-cap">Qué es este documento — y qué no es.</p>
+      
+    <section class="secao" id="es-ES-aviso-legal" data-sec="aviso-legal">
+      <div class="secao-topo"><h3><span class="nsec">5.1</span> Aviso importante</h3></div>
+      <p class="resumo">Información general, no asesoramiento.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Este documento tiene carácter <strong>informativo y general</strong>. <strong>No sustituye</strong> la orientación de un contador o abogado tributarista.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Las fichas y los códigos del impuesto sobre la renta, las alícuotas y las exenciones del ITCMD <strong>pueden cambiar de un año a otro</strong>, y cada caso (valor del premio, número de participantes, estado de cada uno) puede requerir un ajuste específico.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Los <strong>modelos de texto</strong> son sugerencias: adáptalos a tu situación.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>LottoAnalytics es una herramienta de organización y registro. <strong>No garantiza premios</strong> ni resultado tributario.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="es-ES-fontes" data-sec="fontes">
+      <div class="secao-topo"><h3><span class="nsec">5.2</span> Fuentes consultadas</h3></div>
+      <p class="resumo">Dónde están las reglas citadas aquí.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Constitución Federal</strong>, art. 155, § 1.º, con la redacción de la <strong>Enmienda Constitucional n.º 132/2023</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Ley Complementaria n.º 214/2025</strong> (IBS y CBS; régimen específico de los concursos de pronósticos) y <strong>Ley Complementaria n.º 227/2026</strong> (ITCMD, comité gestor y ajustes).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p><strong>Resolución del Senado Federal n.º 9/1992</strong> (alícuota máxima del ITCMD).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p><strong>Ley n.º 13.756/2018</strong> (loterías), <strong>Código Civil</strong> (arts. 421, 422 y 876) y <strong>LGPD</strong> (Ley n.º 13.709/2018).</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Legislación y orientaciones de la <strong>Hacienda Federal</strong> (impuesto sobre la renta) y de las <strong>Secretarías de Hacienda estatales</strong> (ITCMD).</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div><div class="capitulo" id="es-ES-faq"><h2>Preguntas frecuentes</h2><details class="faq"><summary>¿Estoy obligado a firmar el acta del grupo?</summary><p>No. Pero si no firmas y el premio llega a gravarse como donación, la responsabilidad por ese impuesto recae en esa elección. Ver el ítem 1.4.</p></details><details class="faq"><summary>El premio cae en la cuenta del organizador. ¿Es un problema?</summary><p>No, siempre que el grupo esté documentado: el Acta de constitución dice que los valores <strong>pertenecen al grupo desde la apuesta</strong>, y el organizador declara el traspaso en el impuesto sobre la renta (Capítulo 2).</p></details><details class="faq"><summary>¿Tengo que declarar el premio en el impuesto sobre la renta?</summary><p>Sí, en la ficha de rendimientos de <strong>tributación exclusiva/definitiva</strong>, aunque Caixa ya haya retenido el impuesto. Ver el Capítulo 2 y, si tienes dudas, consulta a un contador.</p></details><details class="faq"><summary>¿Tendré que pagar ITCMD?</summary><p>La tesis de defensa es que <strong>no</strong>: quien era coapostador desde el principio no recibió una donación. Pero eso depende de las pruebas y del análisis del fisco del estado; no hay garantía. Por eso existen las reglas del documento <strong>Reglas de funcionamiento</strong>.</p></details><details class="faq"><summary>¿La reforma tributaria va a cambiar lo que pago?</summary><p>No crea un impuesto nuevo sobre el reparto del premio ni cambia el impuesto sobre la renta del premio. Cambia el ITCMD (progresivo), lo que refuerza la importancia de documentar el grupo. Ver el Capítulo 4.</p></details></div><div class="capitulo" id="es-ES-glossario"><h2>Glosario — las palabras de este documento</h2><dl class="glossario"><dt>Grupo (bolão)</dt><dd>Un conjunto de personas que comparte el costo de las apuestas y el premio.</dd><dt>Cuota</dt><dd>Tu parte en el grupo. Quien tiene más cuotas paga más y recibe más.</dd><dt>Coapostador</dt><dd>Quien apuesta junto, con su propia parte, desde el principio. Es la base para que el reparto no se vea como donación.</dd><dt>Acta de constitución</dt><dd>Documento generado en la activación, con los participantes, las cuotas, los porcentajes y la regla de reparto de los premios.</dd><dt>ITCMD</dt><dd>Impuesto estatal sobre transmisión causa mortis y donación. La alícuota máxima es del 8%.</dd><dt>Donante y donatario</dt><dd>Donante es quien da; donatario es quien recibe. En general, el donatario es el contribuyente del ITCMD.</dd><dt>Progresividad</dt><dd>Alícuota que sube según el valor: cuanto mayor la donación, mayor el porcentaje.</dd><dt>Tributación exclusiva/definitiva</dt><dd>Impuesto sobre la renta cobrado en la fuente (como en los premios de lotería), sin ajuste en la declaración anual.</dd><dt>IBS y CBS</dt><dd>Los nuevos impuestos sobre el consumo de la reforma tributaria. En los concursos de pronósticos, recaen sobre los ingresos de quien explota la lotería, no sobre el premio pagado.</dd><dt>SEFAZ</dt><dd>Secretaría de Hacienda del estado: donde se confirma la alícuota y se declara el ITCMD.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — Exención del ITCMD, documento institucional, el mismo para todos los grupos · ¿Quieres saber cómo funciona el grupo día a día? Mira el documento Reglas de funcionamiento y los manuales del Participante y del Gestor.</footer>
+  </div>
+
+  <div class="idioma" data-lang="it-IT" hidden>
+    <div class="capa"><div class="marca">LOTTO<span>ANALYTICS</span></div><h1>Esenzione ITCMD</h1><p class="sub">Perché il gruppo ha bisogno di prove, come dichiarare nell'imposta sul reddito e cosa cambia con la riforma fiscale</p><p class="nivel">Per tutti i partecipanti e gli organizzatori — lo stesso documento per tutti i gruppi · Versione dell'app 5.8.1</p>
+      <p class="intro">Questo documento spiega l'<strong>ITCMD</strong> — l'imposta statale sulle donazioni — e perché conta per chi partecipa a un gruppo. Mostra come le regole del gruppo aiutano a provare che la divisione del premio <strong>non è una donazione</strong>, come <strong>dichiarare nell'imposta sul reddito</strong> (partecipante e organizzatore), la <strong>tabella per stato</strong> e cosa cambia con la <strong>riforma fiscale</strong>.</p><p class="intro">Il funzionamento di ogni giorno (pagamento, scadenze, attivazione, giocate e divisione del premio) è nel documento <strong>Regole di funzionamento</strong>.</p><p class="intro">Partecipanti, leggete con attenzione. Dal prossimo gruppo seguiamo un insieme di regole necessarie perché la divisione dei premi non sia interpretata, a fini fiscali, come una "donazione" — cosa che comporterebbe il pagamento di un'imposta statale sull'importo ricevuto.</p><p class="intro"><strong>Avviso:</strong> questo documento è <strong>informativo</strong>. Non sostituisce la consulenza di un commercialista o di un avvocato tributarista, soprattutto quando c'è un premio di valore più alto. L'app non garantisce premi: la lotteria è un'estrazione.</p></div>
+    <div class="layout"><nav class="toc" aria-label="Indice"><h2>Indice</h2><ul><li><a href="#it-IT-cap-itcmd">1. ITCMD: cos'è e perché conta</a><ul><li><a href="#it-IT-o-que-e">Cos'è l'ITCMD</a></li><li><a href="#it-IT-por-que-doacao">Perché un gruppo può essere visto come donazione</a></li><li><a href="#it-IT-como-app-ajuda">Cosa registra LottoAnalytics per dimostrarlo</a></li><li><a href="#it-IT-escolha">Firmare è una tua scelta</a></li><li><a href="#it-IT-se-cobrarem">E se il fisco chiede il pagamento?</a></li></ul></li><li><a href="#it-IT-cap-ir">2. Imposta sul reddito: come dichiarare</a><ul><li><a href="#it-IT-ir-basico">Il premio arriva già con l'imposta sul reddito trattenuta</a></li><li><a href="#it-IT-ir-resumo">Chi dichiara cosa: riepilogo</a></li><li><a href="#it-IT-ir-participante">La dichiarazione del partecipante</a></li><li><a href="#it-IT-ir-organizador-parte">La dichiarazione dell'organizzatore: la propria parte</a></li><li><a href="#it-IT-ir-organizador-repasse">La dichiarazione dell'organizzatore: il trasferimento agli altri</a></li><li><a href="#it-IT-ir-bens">Se il denaro resta investito nello stesso anno</a></li></ul></li><li><a href="#it-IT-cap-estados">3. ITCMD per stato</a><ul><li><a href="#it-IT-tabela-estados">Aliquote ITCMD sulle donazioni</a></li></ul></li><li><a href="#it-IT-cap-reforma">4. Riforma fiscale: cambia qualcosa?</a><ul><li><a href="#it-IT-o-que-mudou">Cosa ha cambiato la riforma nell'ITCMD</a></li><li><a href="#it-IT-nao-muda">Cosa la riforma NON cambia su questo tema</a></li><li><a href="#it-IT-efeitos">Cosa può cambiare in pratica per il gruppo</a></li><li><a href="#it-IT-acompanhar">Come seguire i cambiamenti</a></li></ul></li><li><a href="#it-IT-cap-avisos-fontes">5. Avvisi e fonti</a><ul><li><a href="#it-IT-aviso-legal">Avviso importante</a></li><li><a href="#it-IT-fontes">Fonti consultate</a></li></ul></li><li><a href="#it-IT-faq">Domande frequenti</a></li><li><a href="#it-IT-glossario">Glossario — le parole di questo documento</a></li></ul></nav><main class="conteudo">
+    <div class="capitulo" id="it-IT-cap-itcmd"><h2>1. ITCMD: cos'è e perché conta</h2><p class="intro-cap">L'imposta sulle donazioni — e perché la divisione del premio va ben documentata.</p>
+      
+    <section class="secao" id="it-IT-o-que-e" data-sec="o-que-e">
+      <div class="secao-topo"><h3><span class="nsec">1.1</span> Cos'è l'ITCMD</h3></div>
+      <p class="resumo">Un'imposta statale su ciò che si riceve gratuitamente.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>ITCMD è l'<strong>Imposta sui trasferimenti mortis causa e donazioni</strong> (Imposto sobre Transmissão Causa Mortis e Doação). È <strong>statale</strong>: ogni stato e il Distretto Federale stabiliscono la propria aliquota e le proprie regole.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Si applica quando qualcuno riceve <strong>beni o denaro gratuitamente</strong>: per <strong>eredità</strong> (mortis causa) o per <strong>donazione</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>L'<strong>aliquota massima</strong> è dell'<strong>8%</strong> (Risoluzione del Senato Federale n. 9/1992). Entro questo tetto, ogni stato sceglie un'aliquota <strong>fissa</strong> o <strong>progressiva</strong> (che sale con l'importo).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>In genere <strong>paga</strong> chi <strong>riceve</strong> la donazione (il donatario), ma la legge statale può attribuire la responsabilità a chi dona, e le persone possono accordarsi su chi sostiene l'importo.</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Per il denaro, in genere, lo stato competente è quello del <strong>domicilio di chi dona</strong> (Costituzione Federale, art. 155, § 1).</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Molti stati hanno <strong>l'esenzione per donazioni di piccolo valore</strong> (per anno civile o per operazione). Il limite varia da stato a stato e cambia nel tempo: verifica quello del tuo stato.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-por-que-doacao" data-sec="por-que-doacao">
+      <div class="secao-topo"><h3><span class="nsec">1.2</span> Perché un gruppo può essere visto come donazione</h3></div>
+      <p class="resumo">È una questione di <strong>prova</strong>: di chi era la parte, e da quando.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Quando un premio viene diviso tra più persone, il <strong>biglietto vincente di solito è intestato a una sola persona</strong> (l'organizzatore), e Caixa paga il premio <strong>a lei</strong> (con l'imposta sul reddito già trattenuta).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Se quella persona poi <strong>trasferisce</strong> delle parti agli altri, il fisco può ritenere che stia <strong>"donando"</strong>. E la donazione è presupposto dell'ITCMD.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Per escluderlo, bisogna dimostrare che ogni partecipante era <strong>coscommettitore fin dall'inizio</strong>: ha pagato la quota e aveva diritto alla sua parte <strong>prima</strong> dell'uscita del risultato, e non ha ricevuto un importo "in regalo" dopo l'estrazione.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>In tal caso, la ripartizione è solo la <strong>consegna di una parte che era già del partecipante</strong> (un premio di lotteria diviso tra scommettitori), e non una liberalità.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ L'idea centrale</div><p>Chi riesce a dimostrare di <strong>essere già proprietario della propria parte prima dell'estrazione</strong> non ha ricevuto una donazione. Le regole del documento <strong>Regole di funzionamento</strong> esistono per produrre questa prova.</p></div>
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Questa è la tesi difensiva usata nella pratica e <strong>dipende dalle prove</strong>. La decisione finale spetta al fisco dello stato (e, in caso di disaccordo, alla Giustizia). <strong>Non c'è garanzia di esito</strong>, ed è per questo che la documentazione conta tanto.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-como-app-ajuda" data-sec="como-app-ajuda">
+      <div class="secao-topo"><h3><span class="nsec">1.3</span> Cosa registra LottoAnalytics per dimostrarlo</h3></div>
+      <p class="resumo">Ogni cosa che fai nell'app è un tassello della prova.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Cosa viene registrato</th><th>Cosa dimostra</th></tr></thead><tbody><tr><td class="col-destaque">Atto firmato nell'app, con data e ora, <strong>prima</strong> del premio</td><td>Che hai aderito al gruppo e alle regole di divisione prima del risultato.</td></tr><tr><td class="col-destaque">Ricevuta PIX <strong>a tuo nome</strong></td><td>Che <strong>tu</strong> hai pagato la tua quota (e non un'altra persona per te).</td></tr><tr><td class="col-destaque">CPF di ogni partecipante</td><td>Chi sono i coscommettitori.</td></tr><tr><td class="col-destaque">Atto costitutivo (generato all'attivazione)</td><td>Partecipanti, quote e percentuali, e che gli importi appartengono al gruppo fin dalla scommessa.</td></tr><tr><td class="col-destaque">Giocate, biglietti e ricevuta della scommessa</td><td>Che le scommesse sono state fatte per il gruppo.</td></tr><tr><td class="col-destaque">Resoconti e storico dei turni, con data e ora</td><td>La ripartizione ufficiale e l'evoluzione del gruppo.</td></tr><tr><td class="col-destaque">Accrediti, riserve e PIX del premio, con notifiche</td><td>Che la divisione ha seguito le quote di ciascuno.</td></tr></tbody></table></div>
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-escolha" data-sec="escolha">
+      <div class="secao-topo"><h3><span class="nsec">1.4</span> Firmare è una tua scelta</h3></div>
+      <p class="resumo">Nessuno è obbligato a firmare, ma è importante capire la conseguenza.</p>
+      
+      
+      
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> Nessuno è obbligato a firmare. Chi non si sente a proprio agio non deve farlo. Ma se scegli di <strong>non firmare</strong> e un premio viene tassato come donazione, la <strong>responsabilità di quell'imposta ricade su quella scelta personale</strong> di non seguire il processo di comprova.</div>
+      
+      
+    </section>
+    <section class="secao" id="it-IT-se-cobrarem" data-sec="se-cobrarem">
+      <div class="secao-topo"><h3><span class="nsec">1.5</span> E se il fisco chiede il pagamento?</h3></div>
+      <p class="resumo">Cosa succede di solito e cosa fare.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Se lo stato ritiene che ci sia stata una donazione, in genere il <strong>donatario</strong> (chi ha ricevuto) è il contribuente, e l'imposta è calcolata sull'<strong>importo ricevuto</strong>, con l'aliquota dello stato.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Se l'imposta non viene dichiarata e pagata in tempo, possono applicarsi <strong>sanzioni e interessi</strong>; e l'omissione intenzionale può essere trattata come <strong>evasione</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Chi si accorge del problema <strong>prima</strong> di essere notificato può <strong>dichiarare e pagare spontaneamente</strong> tramite il sistema dello stato, cosa che può ridurre le sanzioni. Rivolgiti a un commercialista o alla <strong>Segreteria delle Finanze (SEFAZ)</strong> dello stato.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> Ogni caso dipende dallo stato, dall'importo e dai documenti. In caso di dubbio o di premio alto, <strong>rivolgiti a un commercialista o avvocato tributarista prima di trasferire il denaro</strong>.</div>
+      
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-ir"><h2>2. Imposta sul reddito: come dichiarare</h2><p class="intro-cap">Il premio arriva già con l'imposta trattenuta. Ecco come ogni partecipante e l'organizzatore devono inserire tutto nella dichiarazione.</p>
+      
+    <section class="secao" id="it-IT-ir-basico" data-sec="ir-basico">
+      <div class="secao-topo"><h3><span class="nsec">2.1</span> Il premio arriva già con l'imposta sul reddito trattenuta</h3></div>
+      <p class="resumo">Non c'è altra imposta sul reddito da pagare: ciò che manca è <strong>dichiarare nel modo giusto</strong>.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>I premi di Loterias Caixa vengono già pagati con l'<strong>imposta sul reddito trattenuta alla fonte</strong> da Caixa. È <strong>tassazione esclusiva/definitiva</strong>: non c'è rimborso né imposta da pagare nella dichiarazione.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>L'imposta che <strong>può</strong> essere richiesta è solo l'<strong>ITCMD</strong>, che è <strong>statale</strong> (Capitolo 1). Per questo il modo di dichiarare conta: mostra al Fisco federale <strong>chi ha ricevuto cosa</strong>, e rafforza la prova che la ripartizione <strong>non è una donazione</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Poiché il premio arriva sul conto dell'organizzatore, il Fisco federale lo vede come <strong>primo destinatario dell'importo totale</strong>. Ognuno deve dichiarare la <strong>propria parte</strong>, e l'organizzatore deve dichiarare anche il <strong>trasferimento</strong>.</p></div></li></ol>
+      
+      
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> I <strong>numeri dei codici</strong> dei quadri della dichiarazione possono cambiare da un anno all'altro. Conta il <strong>nome del quadro</strong> e l'opzione <strong>"Altri"</strong>: verifica il codice nel programma della dichiarazione dell'anno.</div>
+      
+      
+    </section>
+    <section class="secao" id="it-IT-ir-resumo" data-sec="ir-resumo">
+      <div class="secao-topo"><h3><span class="nsec">2.2</span> Chi dichiara cosa: riepilogo</h3></div>
+      <p class="resumo">La mappa di tutte le dichiarazioni di questo capitolo.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Chi</th><th>Quadro dell'IRPF</th><th>Cosa indicare</th></tr></thead><tbody><tr><td class="col-destaque"><strong>Partecipante</strong></td><td>Redditi soggetti a tassazione esclusiva/definitiva (Altri)</td><td>L'importo netto della <strong>tua</strong> quota, con Caixa come fonte pagante (2.3).</td></tr><tr><td class="col-destaque"><strong>Organizzatore</strong></td><td>Redditi soggetti a tassazione esclusiva/definitiva (Altri)</td><td>Solo l'importo netto della <strong>propria</strong> quota (2.4).</td></tr><tr><td class="col-destaque"><strong>Organizzatore</strong></td><td>Debiti e oneri reali (Altri)</td><td>Il <strong>trasferimento</strong> ai partecipanti, per azzerare il saldo (2.5).</td></tr><tr><td class="col-destaque"><strong>Chi ha tenuto il denaro fino al 31/12</strong></td><td>Beni e diritti</td><td>Il saldo al 31/12, più il premio (2.6).</td></tr></tbody></table></div>
+      
+      <div class="caixa dica"><strong>Consiglio:</strong> Conserva il <strong>kit di prove</strong> del punto 6.2 del documento <strong>Regole di funzionamento</strong>: sostiene tutte queste dichiarazioni.</div>
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-ir-participante" data-sec="ir-participante">
+      <div class="secao-topo"><h3><span class="nsec">2.3</span> La dichiarazione del partecipante</h3></div>
+      <p class="resumo">Ogni partecipante dichiara la <strong>propria</strong> parte.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Compila il quadro <strong>Redditi soggetti a tassazione esclusiva/definitiva</strong> (opzione <strong>Altri</strong>, indicata come Codice 12 nella tabella in uso quando è stato scritto questo testo).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Indica come <strong>Fonte pagante</strong> il CNPJ di Caixa Econômica Federal: <strong>00.360.305/0001-04</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Nel campo <strong>Descrizione</strong>, usa il testo standard qui accanto.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrizione — partecipante</div><p>"Importo netto corrispondente alla quota-parte di [Inserire la percentuale, es.: 10%] in scommessa congiunta (gruppo) dell'estrazione n. [Inserire numero] della [Inserire la lotteria, es.: Mega-Sena], svoltasi il [Data dell'estrazione]. Il biglietto vincente è stato registrato e riscosso dall'organizzatore del gruppo, [Nome completo], CPF [CPF], che ha effettuato il trasferimento dell'importo proporzionale a questa quota tramite PIX il [Data del PIX], come da Atto costitutivo di gruppo sottoscritto tra le parti."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-ir-organizador-parte" data-sec="ir-organizador-parte">
+      <div class="secao-topo"><h3><span class="nsec">2.4</span> La dichiarazione dell'organizzatore: la propria parte</h3></div>
+      <p class="resumo">L'organizzatore dichiara solo l'importo netto della <strong>propria</strong> quota.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>In <strong>Redditi soggetti a tassazione esclusiva/definitiva</strong> (opzione <strong>Altri</strong>), indica il CNPJ di Caixa e dichiara <strong>solo l'importo netto della tua quota</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Usa il testo standard qui accanto nella <strong>Descrizione</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrizione — organizzatore, quota propria</div><p>"Importo netto della quota-parte propria di [la tua %, es.: 20%] nell'estrazione n. [X] della [Lotteria], ricevuta in scommessa congiunta (gruppo) con altri [X] partecipanti. L'importo totale del premio è stato accreditato sul mio conto e trasferito agli altri membri in base alle loro quote."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-ir-organizador-repasse" data-sec="ir-organizador-repasse">
+      <div class="secao-topo"><h3><span class="nsec">2.5</span> La dichiarazione dell'organizzatore: il trasferimento agli altri</h3></div>
+      <p class="resumo">Per giustificare l'uscita del denaro senza che sembri una donazione o un prestito.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Usa il quadro <strong>Debiti e oneri reali</strong> e crea una voce nell'opzione <strong>Altri debiti e oneri reali</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Nel campo <strong>Descrizione</strong>, inserisci il testo qui accanto.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Indica l'<strong>importo totale trasferito</strong> agli altri nel campo di movimento dell'anno, per <strong>azzerare il saldo</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrizione — Debiti e oneri reali (organizzatore)</div><p>"Obbligo di trasferimento di quote-parte di premio di lotteria relativo all'estrazione [X]. L'importo totale di [Importo totale del premio] è stato accreditato sul mio conto corrente e gli importi dei partecipanti sono stati trasferiti nelle date corrispondenti, restando netta solo la mia percentuale di spettanza."</p></div>
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-ir-bens" data-sec="ir-bens">
+      <div class="secao-topo"><h3><span class="nsec">2.6</span> Se il denaro resta investito nello stesso anno</h3></div>
+      <p class="resumo">Beni e diritti, quando il saldo supera il 31 dicembre.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Se il partecipante riceve il premio e tiene il denaro sul conto, sul libretto o in investimenti <strong>fino al 31 dicembre</strong> dell'anno dell'estrazione, deve compilare il quadro <strong>Beni e diritti</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Scegli il <strong>codice</strong> corrispondente (per esempio, conto corrente, libretto di risparmio, fondi o azioni) e, in <strong>Situazione al 31/12</strong>, indica il saldo attuale <strong>più il premio</strong>.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Descrizione — Beni e diritti</div><p>"Saldo sul conto originato dalla ricezione di quote-parte di premio di lotteria dell'estrazione n. [X], come dichiarato nel quadro Redditi soggetti a tassazione esclusiva."</p></div>
+      <div class="caixa dica"><strong>Consiglio:</strong> Il <strong>kit di prove</strong> del punto 6.2 del documento <strong>Regole di funzionamento</strong> è ciò che sostiene tutto questo. Conservalo per 5 anni.</div>
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-estados"><h2>3. ITCMD per stato</h2><p class="intro-cap">Ogni stato ha la sua regola. Questa tabella è solo un riferimento.</p>
+      
+    <section class="secao" id="it-IT-tabela-estados" data-sec="tabela-estados">
+      <div class="secao-topo"><h3><span class="nsec">3.1</span> Aliquote ITCMD sulle donazioni</h3></div>
+      <p class="resumo">Riferimento generale. Può essere non aggiornata: verifica sempre presso la Segreteria delle Finanze del tuo stato.</p>
+      
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th class="col-destaque">Stato (UF)</th><th>Aliquota ITCMD sulle donazioni</th></tr></thead><tbody><tr><td class="col-destaque">Acre</td><td>2% a 4% (progressiva)</td></tr><tr><td class="col-destaque">Alagoas</td><td>2%</td></tr><tr><td class="col-destaque">Amapá</td><td>3%</td></tr><tr><td class="col-destaque">Amazonas</td><td>2%</td></tr><tr><td class="col-destaque">Bahia</td><td>3,50%</td></tr><tr><td class="col-destaque">Ceará</td><td>2% a 8% (progressiva)</td></tr><tr><td class="col-destaque">Distretto Federale</td><td>4% a 8% (progressiva)</td></tr><tr><td class="col-destaque">Espírito Santo</td><td>4% (fissa) — vedi riquadro sotto</td></tr><tr><td class="col-destaque">Goiás</td><td>2% a 4% (fino all'8% in base alla fascia)</td></tr><tr><td class="col-destaque">Maranhão</td><td>2%</td></tr><tr><td class="col-destaque">Mato Grosso</td><td>2% a 4%</td></tr><tr><td class="col-destaque">Mato Grosso do Sul</td><td>3%</td></tr><tr><td class="col-destaque">Minas Gerais</td><td>5% (fissa) — vedi avviso sotto</td></tr><tr><td class="col-destaque">Pará</td><td>4%</td></tr><tr><td class="col-destaque">Paraíba</td><td>2% a 8% (progressiva)</td></tr><tr><td class="col-destaque">Paraná</td><td>4%</td></tr><tr><td class="col-destaque">Pernambuco</td><td>2% a 8% (progressiva)</td></tr><tr><td class="col-destaque">Piauí</td><td>4%</td></tr><tr><td class="col-destaque">Rio de Janeiro</td><td>4% a 8% (progressiva)</td></tr><tr><td class="col-destaque">Rio Grande do Norte</td><td>4%</td></tr><tr><td class="col-destaque">Rio Grande do Sul</td><td>4% a 6% (progressiva)</td></tr><tr><td class="col-destaque">Rondônia</td><td>2% a 4% (progressiva)</td></tr><tr><td class="col-destaque">Roraima</td><td>4%</td></tr><tr><td class="col-destaque">Santa Catarina</td><td>1% a 8% (progressiva)</td></tr><tr><td class="col-destaque">São Paulo</td><td>4%</td></tr><tr><td class="col-destaque">Sergipe</td><td>4%</td></tr><tr><td class="col-destaque">Tocantins</td><td>2% a 8% (progressiva)</td></tr></tbody></table></div>
+      <div class="caixa destaque"><div class="destaque-tit">★ Espírito Santo (ES)</div><p>Aliquota attuale: <strong>4%</strong>, fissa sul valore totale donato. Esenzione: le donazioni fino a <strong>R$ 10.000,00 per anno civile</strong> (allo stesso donatario) non pagano imposta; oltre, si applica sul valore totale. Attenzione: l'Assemblea Legislativa dell'ES sta studiando il passaggio a un modello progressivo, che potrebbe portare l'aliquota massima fino all'8%.</p></div>
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> <strong>Minas Gerais (MG):</strong> aliquota attuale del <strong>5%</strong>, fissa, calcolata sulla base dell'UFEMG (Unità Fiscale dello Stato). Esenzione: le donazioni fino a <strong>10.000 UFEMG</strong> per anno civile (circa R$ 57.899,00 quando è stato scritto questo testo) non pagano imposta. È in corso un disegno di legge (PL 2.881/24) per creare fasce progressive fino all'8%.</div>
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Questa tabella è un <strong>riferimento generale</strong>, raccolto da fonti pubbliche che <strong>non sempre coincidono tra loro</strong>. Con la riforma fiscale, diversi stati stanno <strong>adeguando la legge all'aliquota progressiva</strong>, quindi i numeri possono cambiare. Non sostituisce la consulenza di un commercialista o di un avvocato tributarista, soprattutto se c'è un premio di valore più alto.</p></details>
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-reforma"><h2>4. Riforma fiscale: cambia qualcosa?</h2><p class="intro-cap">Cosa ha cambiato la riforma nell'ITCMD, cosa non cambia e cosa significa per il gruppo.</p>
+      
+    <section class="secao" id="it-IT-o-que-mudou" data-sec="o-que-mudou">
+      <div class="secao-topo"><h3><span class="nsec">4.1</span> Cosa ha cambiato la riforma nell'ITCMD</h3></div>
+      <p class="resumo">Il cambiamento principale: l'aliquota progressiva non è più facoltativa.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>L'<strong>Emendamento Costituzionale n. 132/2023</strong> (la riforma fiscale) ha reso <strong>obbligatoria</strong> l'<strong>aliquota progressiva</strong> dell'ITCMD: la percentuale varia ora in base al <strong>valore</strong> della donazione (o dell'eredità). Prima, la progressività era una scelta di ogni stato.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>La <strong>Legge Complementare n. 227/2026</strong> (gennaio 2026) ha regolamentato la materia: valore di mercato come base di calcolo, regole di competenza tra gli stati, tassazione dei beni all'estero e la <strong>somma delle donazioni successive</strong>, per impedire che un importo grande venga "frazionato" in tante piccole donazioni.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>L'<strong>aliquota massima resta l'8%</strong> (Risoluzione del Senato n. 9/1992). Ci sono proposte in discussione per cambiare questo tetto, ma oggi vale l'8%.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Ogni <strong>stato deve adeguare la propria legge</strong>. Le nuove leggi statali valgono solo a partire dall'<strong>anno successivo</strong> alla pubblicazione (principio di anteriorità). Per questo, nel 2026 molti stati usavano ancora un'aliquota fissa, e le regole dovrebbero continuare a cambiare durante il 2026 e il 2027.</p></div></li></ol>
+      
+      
+      
+      
+      <details class="caixa saiba"><summary>Vuoi saperne di più?</summary><p>Per il denaro, lo stato che riscuote resta, in genere, quello del <strong>domicilio di chi dona</strong>.</p></details>
+      
+    </section>
+    <section class="secao" id="it-IT-nao-muda" data-sec="nao-muda">
+      <div class="secao-topo"><h3><span class="nsec">4.2</span> Cosa la riforma NON cambia su questo tema</h3></div>
+      <p class="resumo">Non esiste una nuova imposta sulla divisione del premio.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>L'<strong>imposta sul reddito</strong> sul premio continua a essere <strong>trattenuta da Caixa</strong>, alla fonte, in modo esclusivo/definitivo. La riforma del consumo non la tocca.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>L'<strong>IBS</strong> e la <strong>CBS</strong> (le nuove imposte sul consumo) hanno, nella <strong>Legge Complementare n. 214/2025</strong>, un <strong>regime specifico per i concorsi pronostici</strong> (lotterie e scommesse): l'imposta grava sui <strong>ricavi di chi gestisce la lotteria</strong> (raccolta meno i premi pagati e le destinazioni previste per legge), e i <strong>premi pagati non entrano nella base</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>In altre parole: secondo queste regole, <strong>chi vince il premio non paga IBS/CBS su di esso</strong>, e il partecipante che riceve la sua parte della ripartizione non è, per questo, contribuente di tali imposte.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Il <strong>compenso di organizzazione</strong> (quando l'organizzatore è remunerato) è un punto a parte: a seconda dell'importo e del modo in cui viene richiesto, può avere un inquadramento proprio. Se è rilevante per il tuo caso, <strong>rivolgiti a un commercialista</strong>.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-efeitos" data-sec="efeitos">
+      <div class="secao-topo"><h3><span class="nsec">4.3</span> Cosa può cambiare in pratica per il gruppo</h3></div>
+      <p class="resumo">Il percorso del gruppo non cambia; l'attenzione aumenta soltanto.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Con la <strong>progressività</strong>, le donazioni di <strong>piccolo valore tendono a rientrare in fasce basse o esenti</strong>; i valori alti pagano una percentuale maggiore (fino all'8%).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Con la <strong>somma delle donazioni successive</strong>, è diventato ancora più importante dimostrare che il trasferimento <strong>non è una donazione</strong>: senza prove, più trasferimenti allo stesso partecipante possono essere <strong>sommati</strong>.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>Gli stati che oggi hanno un'aliquota fissa bassa possono <strong>aumentare</strong> la percentuale per i valori alti.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>Per il gruppo, il percorso <strong>resta lo stesso</strong>: documentare che ogni partecipante è coscommettitore fin dall'inizio, che è esattamente ciò che fanno le regole di questo documento.</p></div></li></ol>
+      
+      <div class="caixa destaque"><div class="destaque-tit">★ Riepilogo della riforma</div><p>La riforma <strong>non crea una nuova imposta</strong> sulla divisione del premio e <strong>non cambia l'imposta sul reddito</strong> sul premio. Ciò che cambia è l'<strong>ITCMD</strong> (progressivo e regolamentato), e questo rafforza soltanto l'importanza di dimostrare che la ripartizione <strong>non è una donazione</strong>.</p></div>
+      
+      <div class="caixa atencao"><strong>Attenzione:</strong> L'adeguamento delle leggi statali è ancora in corso. Segui la legge del <strong>tuo stato</strong>.</div>
+      
+      
+    </section>
+    <section class="secao" id="it-IT-acompanhar" data-sec="acompanhar">
+      <div class="secao-topo"><h3><span class="nsec">4.4</span> Come seguire i cambiamenti</h3></div>
+      <p class="resumo">Dove verificare la regola che vale per te.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Consulta il sito della <strong>Segreteria delle Finanze (SEFAZ)</strong> dello stato in cui vive chi organizza il gruppo (in genere, lo stato di chi dona).</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>Controlla la <strong>versione</strong> di questo documento in alto nella pagina: viene aggiornato quando c'è un cambiamento rilevante.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>In caso di dubbio, o se c'è un premio di valore più alto, <strong>parla con un commercialista</strong> prima di trasferire il denaro.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div>
+    <div class="capitulo" id="it-IT-cap-avisos-fontes"><h2>5. Avvisi e fonti</h2><p class="intro-cap">Cos'è questo documento — e cosa non è.</p>
+      
+    <section class="secao" id="it-IT-aviso-legal" data-sec="aviso-legal">
+      <div class="secao-topo"><h3><span class="nsec">5.1</span> Avviso importante</h3></div>
+      <p class="resumo">Informazione generale, non consulenza.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p>Questo documento ha carattere <strong>informativo e generale</strong>. <strong>Non sostituisce</strong> la consulenza di un commercialista o di un avvocato tributarista.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p>I quadri e i codici della dichiarazione dei redditi, le aliquote e le esenzioni dell'ITCMD <strong>possono cambiare da un anno all'altro</strong>, e ogni caso (valore del premio, numero di partecipanti, stato di ciascuno) può richiedere un aggiustamento specifico.</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p>I <strong>modelli di testo</strong> sono suggerimenti: adattali alla tua situazione.</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p>LottoAnalytics è uno strumento di organizzazione e registrazione. <strong>Non garantisce premi</strong> né esiti fiscali.</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section>
+    <section class="secao" id="it-IT-fontes" data-sec="fontes">
+      <div class="secao-topo"><h3><span class="nsec">5.2</span> Fonti consultate</h3></div>
+      <p class="resumo">Dove si trovano le regole citate qui.</p>
+      <ol class="passos">
+      <li class="passo"><span class="num">1</span><div class="passo-corpo"><p><strong>Costituzione Federale</strong>, art. 155, § 1, nella formulazione dell'<strong>Emendamento Costituzionale n. 132/2023</strong>.</p></div></li>
+      <li class="passo"><span class="num">2</span><div class="passo-corpo"><p><strong>Legge Complementare n. 214/2025</strong> (IBS e CBS; regime specifico dei concorsi pronostici) e <strong>Legge Complementare n. 227/2026</strong> (ITCMD, comitato di gestione e adeguamenti).</p></div></li>
+      <li class="passo"><span class="num">3</span><div class="passo-corpo"><p><strong>Risoluzione del Senato Federale n. 9/1992</strong> (aliquota massima dell'ITCMD).</p></div></li>
+      <li class="passo"><span class="num">4</span><div class="passo-corpo"><p><strong>Legge n. 13.756/2018</strong> (lotterie), <strong>Codice Civile</strong> (artt. 421, 422 e 876) e <strong>LGPD</strong> (Legge n. 13.709/2018).</p></div></li>
+      <li class="passo"><span class="num">5</span><div class="passo-corpo"><p>Normativa e indicazioni del <strong>Fisco federale</strong> (imposta sul reddito) e delle <strong>Segreterie delle Finanze statali</strong> (ITCMD).</p></div></li></ol>
+      
+      
+      
+      
+      
+      
+    </section></div><div class="capitulo" id="it-IT-faq"><h2>Domande frequenti</h2><details class="faq"><summary>Sono obbligato a firmare l'atto del gruppo?</summary><p>No. Ma se non firmi e il premio viene tassato come donazione, la responsabilità di quell'imposta ricade su quella scelta. Vedi il punto 1.4.</p></details><details class="faq"><summary>Il premio arriva sul conto dell'organizzatore. È un problema?</summary><p>No, purché il gruppo sia documentato: l'Atto costitutivo afferma che gli importi <strong>appartengono al gruppo fin dalla scommessa</strong>, e l'organizzatore dichiara il trasferimento nella dichiarazione dei redditi (Capitolo 2).</p></details><details class="faq"><summary>Devo dichiarare il premio nella dichiarazione dei redditi?</summary><p>Sì, nel quadro dei redditi a <strong>tassazione esclusiva/definitiva</strong>, anche se l'imposta è già trattenuta da Caixa. Vedi il Capitolo 2 e, se hai dubbi, parla con un commercialista.</p></details><details class="faq"><summary>Dovrò pagare l'ITCMD?</summary><p>La tesi difensiva è che <strong>no</strong>: chi era coscommettitore fin dall'inizio non ha ricevuto una donazione. Ma dipende dalle prove e dall'analisi del fisco dello stato; non c'è garanzia. Per questo esistono le regole del documento <strong>Regole di funzionamento</strong>.</p></details><details class="faq"><summary>La riforma fiscale cambierà ciò che pago?</summary><p>Non crea una nuova imposta sulla divisione del premio e non cambia l'imposta sul reddito sul premio. Cambia l'ITCMD (progressivo), il che rafforza l'importanza di documentare il gruppo. Vedi il Capitolo 4.</p></details></div><div class="capitulo" id="it-IT-glossario"><h2>Glossario — le parole di questo documento</h2><dl class="glossario"><dt>Gruppo (bolão)</dt><dd>Un insieme di persone che divide il costo delle scommesse e il premio.</dd><dt>Quota</dt><dd>La tua parte nel gruppo. Chi ha più quote paga di più e riceve di più.</dd><dt>Coscommettitore</dt><dd>Chi scommette insieme, con la propria parte, fin dall'inizio. È la base perché la ripartizione non sia vista come donazione.</dd><dt>Atto costitutivo</dt><dd>Documento generato all'attivazione, con i partecipanti, le quote, le percentuali e la regola di divisione dei premi.</dd><dt>ITCMD</dt><dd>Imposta statale sui trasferimenti mortis causa e sulle donazioni. L'aliquota massima è dell'8%.</dd><dt>Donante e donatario</dt><dd>Donante è chi dona; donatario è chi riceve. In genere il donatario è il contribuente dell'ITCMD.</dd><dt>Progressività</dt><dd>Aliquota che sale con l'importo: più grande è la donazione, più alta è la percentuale.</dd><dt>Tassazione esclusiva/definitiva</dt><dd>Imposta sul reddito riscossa alla fonte (come nei premi di lotteria), senza conguaglio nella dichiarazione annuale.</dd><dt>IBS e CBS</dt><dd>Le nuove imposte sul consumo della riforma fiscale. Nei concorsi pronostici gravano sui ricavi di chi gestisce la lotteria, non sul premio pagato.</dd><dt>SEFAZ</dt><dd>Segreteria delle Finanze dello stato: dove si verifica l'aliquota e si dichiara l'ITCMD.</dd></dl></div></main></div>
+    <footer class="rodape">LottoAnalytics — Esenzione ITCMD, documento istituzionale, lo stesso per tutti i gruppi · Vuoi sapere come funziona il gruppo giorno per giorno? Guarda il documento Regole di funzionamento e i manuali del Partecipante e del Gestore.</footer>
+  </div>
+<script>
+(function(){
+  var NIVEL="itcmd", UIS={"pt-BR":{"titulo":"Isenção do ITCMD","imprimir":"Imprimir / Salvar PDF","idioma":"Idioma","indice":"Índice"},"en-US":{"titulo":"ITCMD Exemption","imprimir":"Print / Save PDF","idioma":"Language","indice":"Contents"},"es-ES":{"titulo":"Exención del ITCMD","imprimir":"Imprimir / Guardar PDF","idioma":"Idioma","indice":"Índice"},"it-IT":{"titulo":"Esenzione ITCMD","imprimir":"Stampa / Salva PDF","idioma":"Lingua","indice":"Indice"}};
+  var DISP=Object.keys(UIS), VIDEOS={"itcmd":{}};
+  function pegaIdioma(){ var q=(location.search.match(/[?&]lang=([\w-]+)/)||[])[1]; var s=null; try{ s=localStorage.getItem('la_idioma'); }catch(e){}
+    var c=q||s||'pt-BR'; return DISP.indexOf(c)>=0 ? c : DISP[0]; }
+  function aplica(c){
+    document.documentElement.lang=c; document.querySelectorAll('.idioma').forEach(function(d){ d.hidden = d.dataset.lang!==c; });
+    document.getElementById('sel-idioma').value=c; document.getElementById('titulo-barra').textContent=UIS[c].titulo; document.getElementById('btn-imprimir').textContent=UIS[c].imprimir; document.getElementById('rot-idioma').textContent=UIS[c].idioma; document.getElementById('btn-indice').textContent='↑ '+UIS[c].indice;
+    document.title=UIS[c].titulo+' — LottoAnalytics'; videos(c);
+    try{ localStorage.setItem('la_idioma', c); }catch(e){}
+  }
+  function videos(c){ document.querySelectorAll('.idioma[data-lang="'+c+'"] .btn-video').forEach(function(a){
+    var m=VIDEOS[NIVEL]&&VIDEOS[NIVEL][a.dataset.video]; var url=m&&(m[c]||m['pt-BR']); if(url){ a.href=url; a.hidden=false; } else { a.hidden=true; } }); }
+  fetch('videos.json').then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; }).then(function(j){ if(j && Object.keys(j).length) VIDEOS=j; videos(document.getElementById('sel-idioma').value); });
+  document.getElementById('sel-idioma').addEventListener('change', function(){ aplica(this.value); });
+  var bi=document.getElementById('btn-indice');
+  function atualizaBi(){ bi.hidden = (window.pageYOffset||document.documentElement.scrollTop) < 500; }
+  window.addEventListener('scroll',atualizaBi,{passive:true}); atualizaBi();
+  bi.addEventListener('click',function(){ var toc=document.querySelector('.idioma:not([hidden]) .toc'); if(toc) toc.scrollIntoView({behavior:'smooth',block:'start'}); else window.scrollTo({top:0,behavior:'smooth'}); });
+  document.getElementById('btn-imprimir').addEventListener('click', function(){ window.print(); });
+  document.addEventListener('click',function(e){ var im=e.target; if(im.tagName==='IMG' && im.closest && im.closest('figure')){ var z=document.createElement('div'); z.className='zoom'; z.innerHTML='<img src="'+im.src+'" alt=""/>'; z.onclick=function(){ z.remove(); }; document.body.appendChild(z); } });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var z=document.querySelector('.zoom'); if(z) z.remove(); } });
+  aplica(pegaIdioma());
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  if('IntersectionObserver' in window){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ links.forEach(function(l){ l.classList.toggle('ativo', l.getAttribute('href')==='#'+e.target.id); }); } }); },{rootMargin:'-20% 0px -70% 0px'}); document.querySelectorAll('.secao,.capitulo').forEach(function(s){ io.observe(s); }); }
+})();
+</script></body></html>
