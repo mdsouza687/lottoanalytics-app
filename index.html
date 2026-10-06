@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.8.3':{
+    'en-US':["Version aligned with the mobile app (5.8.3): in Analysis > Forecast, the phone now has \"Send as guess\", which takes the combination to the manager's \"Guesses received\". The manuals were updated."],
+    'es-ES':["Versión alineada con la app móvil (5.8.3): en Análisis > Previsión, el móvil ahora tiene \"Enviar como jugada\", que lleva la combinación a \"Jugadas recibidas\" del gestor. Se actualizaron los manuales."],
+    'it-IT':["Versione allineata con l'app mobile (5.8.3): in Analisi > Previsione, il cellulare ora ha \"Invia come proposta\", che porta la combinazione in \"Proposte ricevute\" del gestore. I manuali sono stati aggiornati."]
+  },
   '5.8.2':{
     'en-US':["Desktop manual (participant): updated picture of the pool documents, with both links — Operating Rules and ITCMD Exemption. Version aligned with the mobile app (5.8.2)."],
     'es-ES':["Manual del Desktop (participante): imagen actualizada de los documentos del grupo, con los dos enlaces — Reglas de funcionamiento y Exención del ITCMD. Versión alineada con la app móvil (5.8.2)."],
@@ -1717,6 +1722,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.8.3':[
+    "Versão alinhada com o app mobile (5.8.3): em Análises > Previsão, o celular passou a ter \"Enviar p/ palpite\", que leva a combinação para \"Palpites recebidos\" do gestor. Os manuais foram atualizados."
+  ],
   '5.8.2':[
     "Manual do Desktop (participante): imagem dos documentos do bolão atualizada, com os dois links — Regras de Funcionamento e Isenção do ITCMD. Versão alinhada com o app mobile (5.8.2)."
   ],
@@ -2060,7 +2068,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.2</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.3</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2436,7 +2444,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.2</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.3</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
