@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.7.10':{
+    'en-US':["Fixed Save Pool, which turned off the automatic prize credit and the automatic reserve, reset the prize bands to default, and did not save the guess limit per section. Version aligned with the mobile app (5.7.10)."],
+    'es-ES':["Corregido Guardar Grupo, que apagaba el crédito automático de premio y la reserva automática, devolvía las franjas de premio al valor estándar y no guardaba el límite de apuestas por sección. Versión alineada con la app móvil (5.7.10)."],
+    'it-IT':["Corretto Salva gruppo, che disattivava il credito automatico del premio e la riserva automatica, riportava le fasce di premio ai valori standard e non salvava il limite di proposte per sezione. Versione allineata con l'app mobile (5.7.10)."]
+  },
   '5.7.9':{
     'en-US':["Received guesses now also on the Desktop: \"Guesses received\" button in the pool (with the number pending), overall and per-person totals, \"Link all\", choosing the team of the heart / lucky month, and the \"Guess limit per section\" field. Fixed the current draw in the week of 04/10. Manuals updated. Version aligned with the mobile app (5.7.9)."],
     'es-ES':["Jugadas recibidas ahora también en el Desktop: botón \"Jugadas recibidas\" en el grupo (con el número de pendientes), totales general y por persona, \"Vincular todas\", elección del equipo del corazón / mes de la suerte y el campo \"Límite de apuestas por sección\". Corregido el sorteo vigente en la semana del 04/10. Manuales actualizados. Versión alineada con la app móvil (5.7.9)."],
@@ -1692,6 +1697,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.7.10':[
+    "Corrigido o Salvar Bolão, que desligava o crédito automático de prêmio e a reserva automática, voltava as faixas de prêmio ao padrão e não gravava o limite de palpites por seção. Versão alinhada com o app mobile (5.7.10)."
+  ],
   '5.7.9':[
     "Palpites recebidos agora também no Desktop: botão \"Palpites recebidos\" no bolão (com o número de pendentes), totais geral e por pessoa, \"Vincular todos\", escolha do time do coração / mês de sorte e o campo \"Limite de palpites por seção\". Corrigido o concurso vigente na semana de 04/10. Manuais atualizados. Versão alinhada com o app mobile (5.7.9)."
   ],
@@ -2020,7 +2028,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.9</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.10</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2396,7 +2404,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.9</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.10</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -22566,6 +22574,11 @@ async function _salvarBolaoImpl(){
     // null, não importa o que o organizador preenchesse no formulário
     // (achado ao vivo: nenhum bolão em produção tinha essa data salva).
     pushLimitePremioCota: s.pushLimitePremioCota,
+    // Também faltavam (achado ao vivo em 2026-10-06): sem copiar estes campos, todo Salvar Bolão gravava os padrões por cima — desligava o crédito
+    // automático de prêmio e a reserva automática, voltava as faixas de prêmio ao padrão e apagava o limite de palpites por seção.
+    limitePalpites: s.limitePalpites||null,
+    faixa1Teto: s.faixa1Teto, faixa2Teto: s.faixa2Teto, faixa1Inicio: s.faixa1Inicio, faixa3Fim: s.faixa3Fim,
+    reservaTransferenciaAuto: s.reservaTransferenciaAuto, premioCreditoAuto: s.premioCreditoAuto,
     dataEncerramento: s.dataEncerramento||'', horaEncerramento: s.horaEncerramento||'',
     dataHoraEncerramentoOriginal: s.dataHoraEncerramentoOriginal||null,
     pushEncerramentoTitulo: s.pushEncerramentoTitulo||'', pushEncerramentoCorpo: s.pushEncerramentoCorpo||''
