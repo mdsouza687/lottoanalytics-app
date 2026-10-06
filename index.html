@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.8.0':{
+    'en-US':["Version aligned with the mobile app (5.8.0): the phone got the \"Analysis\" button with the 8 analysis screens for every lottery. On the Desktop, the value of games linked on Sunday now counts on Monday, and anything entered before the pool starts counts on the Monday of week 1 (Daily Spending, weekly spending and reports). Fixed: the backtest \"expected\" rate and the Global Score for Lotomania and Timemania used the bet size (50 and 10) instead of how many numbers are drawn (20 and 7); the probability calculation for large bets was also fixed."],
+    'es-ES':["Versión alineada con la app móvil (5.8.0): el móvil tiene el botón \"Análisis\" con las 8 pantallas de análisis para todas las loterías. En el Desktop, el valor de los juegos vinculados el domingo ahora cuenta el lunes, y lo que se registre antes del inicio del grupo cuenta el lunes de la 1.ª semana (Gastos Diarios, gastos por semana e informes). Corregido: el \"esperado\" del backtest y el Score Global de Lotomania y Timemania usaban el tamaño de la apuesta (50 y 10) en lugar de cuántos números se sortean (20 y 7); también se corrigió el cálculo de probabilidades de apuestas grandes."],
+    'it-IT':["Versione allineata con l'app mobile (5.8.0): il cellulare ha il pulsante \"Analisi\" con le 8 schermate di analisi per tutte le lotterie. Sul Desktop, il valore delle giocate collegate di domenica ora conta il lunedì, e ciò che viene inserito prima dell'inizio del gruppo conta il lunedì della 1ª settimana (Spese giornaliere, spese settimanali e resoconti). Corretto: l'\"atteso\" del backtest e il Punteggio Globale di Lotomania e Timemania usavano la dimensione della giocata (50 e 10) invece di quanti numeri vengono estratti (20 e 7); corretto anche il calcolo delle probabilità per le giocate grandi."]
+  },
   '5.7.11':{
     'en-US':["Version aligned with the mobile app (5.7.11): on mobile, the guess sending screen now always shows the status of the limit per section."],
     'es-ES':["Versión alineada con la app móvil (5.7.11): en el móvil, la pantalla de envío de apuestas ahora muestra siempre el estado del límite por sección."],
@@ -1702,6 +1707,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.8.0':[
+    "Versão alinhada com o app mobile (5.8.0): o celular ganhou o botão \"Análises\" com as 8 telas de análise para todas as loterias. No Desktop, o valor dos jogos vinculados no domingo agora conta na segunda-feira, e o que for lançado antes do início do bolão conta na segunda da 1ª semana (Gastos Diários, gastos por semana e relatórios). Corrigido: o \"esperado\" do backtest e o Score Global da Lotomania e da Timemania usavam o tamanho da aposta (50 e 10) em vez de quantas dezenas são sorteadas (20 e 7); também foi corrigido o cálculo de probabilidades de apostas grandes."
+  ],
   '5.7.11':[
     "Versão alinhada com o app mobile (5.7.11): no mobile, a tela de envio de palpites agora mostra sempre o estado do limite por seção."
   ],
@@ -2036,7 +2044,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.11</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2412,7 +2420,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.7.11</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -11219,7 +11227,16 @@ function exibirSeloChi2(historico, d){
 // (sem vazamento de informação futura), confere contra o resultado real, e agrega
 // a taxa de acerto por faixa de pontos — comparando com a taxa esperada por puro acaso.
 function _combSimplesBT(n,k){ if(k>n||k<0)return 0; if(k===0||k===n)return 1; let r=1; for(let i=0;i<k;i++){r=r*(n-i)/(i+1); if(r>1e8)return 1e8;} return Math.round(r); }
-function _probHipergeometrica(N,K,n,k){ const c=_combSimplesBT(K,k)*_combSimplesBT(N-K,n-k)/_combSimplesBT(N,n); return isFinite(c)?c:0; }
+// Em log: C(100,50) passa de 1e29 e o teto de 1e8 de _combSimplesBT distorcia o resultado (Lotomania, apostas grandes).
+function _lnComb(n,k){ if(k<0||k>n) return -Infinity; k=Math.min(k,n-k); let r=0; for(let i=0;i<k;i++) r+=Math.log(n-i)-Math.log(i+1); return r; }
+function _probHipergeometrica(N,K,n,k){ const l=_lnComb(K,k)+_lnComb(N-K,n-k)-_lnComb(N,n); const c=Math.exp(l); return isFinite(c)?c:0; }
+// Quantas dezenas a loteria SORTEIA por concurso (Lotomania 20, Timemania 7...). Não é o tamanho da aposta
+// (Lotomania aposta 50, Timemania 10): confundir os dois deixava o "esperado" do backtest e do Score Global errado nessas duas.
+function _dezenasSorteadas(historico,fallback){
+  const cont={}; let melhor=0,vezes=0;
+  (historico||[]).slice(0,200).forEach(h=>{ const L=(h&&h.dezenas||[]).length; if(!L) return; cont[L]=(cont[L]||0)+1; if(cont[L]>vezes){vezes=cont[L];melhor=L;} });
+  return melhor||fallback||0;
+}
 
 async function backtestMotor(historicoCompleto, d, numDez, opts){
   opts=opts||{};
@@ -11266,11 +11283,12 @@ async function backtestMotor(historicoCompleto, d, numDez, opts){
 
   // Compara taxa observada vs esperada teórica (hipergeométrica) para cada faixa de pontos
   const comparativo=[];
-  const K=numDez; // dezenas sorteadas
-  for(let pontos=Math.max(0,numDez-4); pontos<=numDez; pontos++){
+  const K=_dezenasSorteadas(histAsc.slice(-nConcursosTestar),numDez); // dezenas SORTEADAS por concurso (≠ tamanho da aposta em Lotomania/Timemania)
+  const topoPontos=Math.min(numDez,K); // não dá pra acertar mais do que o sorteio tem
+  for(let pontos=Math.max(0,topoPontos-4); pontos<=topoPontos; pontos++){
     const observado=resultadosPorFaixa[pontos]||0;
     const taxaObs=totalJogosTestados>0?observado/totalJogosTestados:0;
-    const taxaTeo=_probHipergeometrica(d.universe,K,K,pontos);
+    const taxaTeo=_probHipergeometrica(d.universe,K,numDez,pontos);
     comparativo.push({pontos,observado,taxaObs:Math.round(taxaObs*10000)/100,taxaTeo:Math.round(taxaTeo*10000)/100});
   }
 
@@ -11455,7 +11473,7 @@ function _calcFiltrosEstatCore(historico, d, numDez){
     const f=freq[x]||0; const fN=f/Math.max(mediaFreq,0.01);
     const at=atraso[x]||0; const atN=at/Math.max(maxAtraso,1);
     const tend=tendencia[x]==='hot'?1.5:tendencia[x]==='cold'?0.3:1.0;
-    const fj20=(janelaMovel[20]&&janelaMovel[20][x])||0; const fjN=fj20/Math.max(Math.min(20,n)*numDez/(_uniArr.length||1),0.1);
+    const fj20=(janelaMovel[20]&&janelaMovel[20][x])||0; const fjN=fj20/Math.max(Math.min(20,n)*_dezenasSorteadas(historico,numDez)/(_uniArr.length||1),0.1);
     const corScore=topCooc[x]?(topCooc[x][0].v+topCooc[x][1].v)/2:0.5;
     const s=
       fN*0.20 +
@@ -19348,6 +19366,18 @@ function _calcSemanasDoMes(mesRef){
 // próxima semana válida (seg a dom seguinte) — domingo à tarde/noite é,
 // na prática, véspera da nova rodada, então antecipa o rollover em vez
 // de esperar a virada de dia.
+// Data CONTÁBIL de uma vinculação (pedido do usuário, 2026-10-06): o bolão abre antes da 1ª semana (ex.: quarta) e só começa na segunda; tudo
+// lançado de quarta a domingo conta na segunda da 1ª semana. Jogo vinculado no DOMINGO (dia inteiro: as apostas simples encerram sábado 22h, então
+// os jogos valem para concursos a partir de segunda) conta na segunda seguinte — menos no último domingo, quando o bolão encerra (não existe 5ª semana).
+// A DATA real do vínculo continua intacta no Histórico de Rodadas; só Gastos Diários e os baldes semanais usam esta data.
+function _dataContabilVinculo(ts, inicioStr, fimStr){
+  var d=new Date(ts); if(isNaN(d.getTime())) return d;
+  var dia=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var ini=_parseDataBR(inicioStr), fim=_parseDataBR(fimStr);
+  if(ini && dia<ini) return ini;
+  if(dia.getDay()===0 && !(fim && dia>=fim)) return new Date(dia.getFullYear(),dia.getMonth(),dia.getDate()+1);
+  return dia;
+}
 function _calcSemanaAtual(){
   var agora=new Date();
   if(agora.getDay()===0 && agora.getHours()>=12){
@@ -20311,7 +20341,7 @@ function renderFormBolao(){
     // dentro dela; tentativa anterior de tratar as duas pontas do mesmo
     // jeito foi revertida por pedido explícito do usuário.
     var _semanaIdxDeData=function(ts){
-      var dia=_calcSemanaDeData(new Date(ts));
+      var dia=_calcSemanaDeData(_dataContabilVinculo(ts,_sems[0]&&_sems[0].inicio,_sems[_sems.length-1]&&_sems[_sems.length-1].fim));
       for(var wi=0;wi<_sems.length;wi++){ if(_sems[wi].inicio===dia.inicio) return wi; }
       var diaInicio=_parseDataBR(dia.inicio);
       var primeiraSemanaInicio=_sems[0]&&_parseDataBR(_sems[0].inicio);
@@ -20492,7 +20522,7 @@ function renderFormBolao(){
     var _gastosPorDiaMensal={};
     var _ordemDiasMensal=[];
     concComSemana.forEach(function(cc){
-      var dia=new Date(cc.savedAt).toLocaleDateString('pt-BR');
+      var dia=_dataContabilVinculo(cc.savedAt,_sems[0]&&_sems[0].inicio,_sems[_sems.length-1]&&_sems[_sems.length-1].fim).toLocaleDateString('pt-BR');
       if(!(dia in _gastosPorDiaMensal)){ _gastosPorDiaMensal[dia]={total:0,semanaIdx:cc._semanaIdx}; _ordemDiasMensal.push(dia); }
       _gastosPorDiaMensal[dia].total+=cc.custo;
     });
@@ -20668,7 +20698,7 @@ function renderFormBolao(){
     var gastosPorDia={},ordemDias=[];
     (s.concursos||[]).forEach(function(cc){
       if(!cc.custo||!cc.savedAt) return;
-      var dia=new Date(cc.savedAt).toLocaleDateString('pt-BR');
+      var dia=_dataContabilVinculo(cc.savedAt,s.semanaInicio,s.semanaFim).toLocaleDateString('pt-BR');
       if(!(dia in gastosPorDia)){ gastosPorDia[dia]=0; ordemDias.push(dia); }
       gastosPorDia[dia]+=cc.custo;
     });
@@ -24487,7 +24517,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   var ordemDiasImp=[];
   concImp.forEach(function(cc){
     if(!cc.custo||!cc.savedAt) return;
-    var dia=new Date(cc.savedAt).toLocaleDateString('pt-BR');
+    var dia=_dataContabilVinculo(cc.savedAt,s.semanaInicio,s.semanaFim).toLocaleDateString('pt-BR');
     if(!(dia in gastosPorDiaImp)){ gastosPorDiaImp[dia]=0; ordemDiasImp.push(dia); }
     gastosPorDiaImp[dia]+=cc.custo;
   });
@@ -28756,7 +28786,7 @@ async function _ptBuildHtmlJogosPremiados(bolaoId){
     var gastosPorDia={};
     rodadas.forEach(function(r){
       if(!r.vinculadoEm) return;
-      var dia=new Date(r.vinculadoEm).toLocaleDateString('pt-BR');
+      var dia=_dataContabilVinculo(r.vinculadoEm,info&&info.semana_inicio,info&&info.semana_fim).toLocaleDateString('pt-BR');
       gastosPorDia[dia]=(gastosPorDia[dia]||0)+(r.custo||0);
     });
     var diasOrdenados=Object.keys(gastosPorDia).sort(function(a,b){
