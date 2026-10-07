@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex"/><meta name="referrer" content="strict-origin-when-cross-origin"/>
+<title>LottoAnalytics — vídeo</title>
+<style>html,body{margin:0;height:100%;background:#000}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head>
+<body>
+<script>
+// Player compacto dos manuais: recebe ?v=<id do YouTube>&t=<segundos> e mostra o vídeo (youtube-nocookie) em tela cheia da janela.
+// Fica numa página https própria porque os manuais do Desktop abrem como arquivo local (file://), onde o YouTube recusa incorporar.
+(function(){
+  var q=new URLSearchParams(location.search), v=q.get('v')||'', t=parseInt(q.get('t'),10)||0;
+  if(!/^[\w-]{11}$/.test(v)) return;
+  var f=document.createElement('iframe');
+  f.src='https://www.youtube-nocookie.com/embed/'+v+'?start='+t+'&autoplay=1&rel=0&playsinline=1';
+  f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen=true; f.referrerPolicy='strict-origin-when-cross-origin';
+  document.body.appendChild(f);
+})();
+</script>
+</body></html>
