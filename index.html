@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.8.9':{
+    'en-US':["Version aligned with the mobile app (5.8.9). Fixed in the Prize Dossier: (1) winning games with \"teimosinha\" have their ticket identified in every draw; (2) in Super Sete a ticket only shows next to the game whose digits match column by column (before, a duplicate ticket of another game appeared); (3) the \"Winning Games (N)\" title now shows how many winning games there are, not the pool's total games; (4) a very long PDF receipt fits on one page instead of filling several (and leaving blank pages); (5) PDF images keep the A4 sheet size on screen."],
+    'es-ES':["Versión alineada con la app móvil (5.8.9). Corregido en el Expediente del premio: (1) los juegos premiados con \"teimosinha\" tienen su boleto identificado en todos los sorteos; (2) en Super Sete un boleto solo aparece junto al juego cuyos dígitos coinciden columna por columna (antes salía un boleto repetido de otro juego); (3) el título \"Juegos premiados (N)\" ahora muestra cuántos juegos premiados hay, no el total de juegos del grupo; (4) un comprobante en PDF muy largo cabe en una página en vez de ocupar varias (y dejar páginas en blanco); (5) las imágenes de los PDF mantienen el tamaño de la hoja A4 en pantalla."],
+    'it-IT':["Versione allineata con l'app mobile (5.8.9). Corretto nel Fascicolo del premio: (1) le giocate vincenti con \"teimosinha\" hanno il biglietto identificato in ogni estrazione; (2) nel Super Sete un biglietto compare accanto alla giocata solo se le cifre coincidono colonna per colonna (prima usciva un biglietto duplicato di un'altra giocata); (3) il titolo \"Giocate vincenti (N)\" ora mostra quante sono le giocate vincenti, non il totale delle giocate del gruppo; (4) una ricevuta PDF molto lunga sta in una pagina invece di occuparne diverse (e lasciare pagine bianche); (5) le immagini dei PDF mantengono la dimensione del foglio A4 a schermo."]
+  },
   '5.8.8':{
     'en-US':["Version aligned with the mobile app (5.8.8). Fixed: the Prize Dossier did not finish generating in some cases. Now the tickets of the winning games are fetched the right way, receipts have a second safety source and PDF reading has a time limit — the dossier is always generated, with legible PDFs, even if a file or the internet fails."],
     'es-ES':["Versión alineada con la app móvil (5.8.8). Corregido: el Expediente del premio no terminaba de generarse en algunos casos. Ahora los boletos de los juegos premiados se obtienen de la forma correcta, los comprobantes tienen una segunda fuente de seguridad y la lectura de PDF tiene un tiempo límite — el expediente siempre se genera, con los PDF legibles, aunque falle un archivo o internet."],
@@ -1747,6 +1752,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.8.9':[
+    "Versão alinhada com o app mobile (5.8.9). Corrigido no Dossiê do Prêmio: (1) jogos premiados com teimosinha têm o bilhete identificado em todos os concursos; (2) na Super Sete o bilhete só aparece junto do jogo cujos dígitos batem coluna por coluna (antes saía um bilhete repetido de outro jogo); (3) o título \"Jogos Premiados (N)\" passa a mostrar quantos jogos premiados há, e não o total de jogos do bolão; (4) comprovante em PDF muito comprido cabe em uma página, em vez de ocupar várias (e deixar páginas em branco); (5) as imagens dos PDFs ficam no tamanho da folha A4 na tela."
+  ],
   '5.8.8':[
     "Versão alinhada com o app mobile (5.8.8). Corrigido: o Dossiê do Prêmio não terminava de gerar em alguns casos. Agora os bilhetes dos jogos premiados são buscados do jeito certo, os comprovantes têm uma segunda fonte de segurança e a leitura dos PDFs tem tempo limite — o dossiê sempre é gerado, com os PDFs legíveis, mesmo que um arquivo ou a internet falhe."
   ],
@@ -2108,7 +2116,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.8</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.9</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2484,7 +2492,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.8</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.9</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -24299,8 +24307,8 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     // Agrupa os jogos por loteria de origem, na mesma ordem de loteriasImp,
     // para mostrar "Nome da loteria — Concurso #X" antes dos jogos dela
     // (item solicitado: nome + número de concurso de cada loteria).
-    jogosHtml='<h2 style="color:'+MULTI_LOTERIA_COR+';margin:18px 0 8px;font-size:15px">'+(soPremiados?t('gerador.trofeu_jogos_premiados_print'):t('termos.jogos_do_bolao_h2'))+' ('+jogosVinc.length+')</h2>';
-    var jogosHtmlAntesDoLoop=jogosHtml;
+    jogosHtml='<h2 style="color:'+MULTI_LOTERIA_COR+';margin:18px 0 8px;font-size:15px">'+(soPremiados?t('gerador.trofeu_jogos_premiados_print'):t('termos.jogos_do_bolao_h2'))+' (@@NJOGOS@@)</h2>';
+    var jogosHtmlAntesDoLoop=jogosHtml, nJogosRend=0;
     // Gera o relatório COMPLETO, sem cortar jogos — bolões de grande volume
     // (dezenas de milhares de jogos) processam tudo, mas em pequenos lotes
     // que cedem o controle ao navegador periodicamente (mesmo padrão já
@@ -24400,7 +24408,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
           // não bateu a faixa mínima premiável — válido para qualquer
           // tipo de bolão, já que o filtro é aplicado por jogo individual,
           // não por concurso/loteria inteiro.
-          if(soPremiados&&!(infoPremioJ&&infoPremioJ.premiado)) return '';
+          if(soPremiados&&!(infoPremioJ&&infoPremioJ.premiado)) return ''; nJogosRend++;
           var corPremiado='#b8860b'; // dourado escuro, bom contraste em fundo claro de impressão
           var nums;
           if(jogo._ssCols||L.loteria==='supersete'){
@@ -24535,6 +24543,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     // bateu prêmio em nenhuma loteria do bolão), jogosHtml ficaria só com
     // o título solto, sem nenhum jogo embaixo — substitui por uma mensagem
     // clara em vez de deixar a seção parecendo quebrada/vazia.
+    jogosHtml=jogosHtml.replace('@@NJOGOS@@', soPremiados?nJogosRend:jogosVinc.length); jogosHtmlAntesDoLoop=jogosHtmlAntesDoLoop.replace('@@NJOGOS@@', soPremiados?nJogosRend:jogosVinc.length);
     if(soPremiados&&jogosHtml===jogosHtmlAntesDoLoop){
       jogosHtml=jogosHtmlAntesDoLoop+'<div style="margin-top:8px;padding:10px;border:1px dashed #ccc;border-radius:10px;color:#999;font-size:11px;text-align:center">'+t('termos.nenhum_jogo_premiado_bolao_ate_momento')+'</div>';
     }
@@ -24898,10 +24907,10 @@ async function _dossPdfTexto(url) {
 function _dossEhPdf(url) { return /\.pdf(\?|$)/i.test(url || ''); }
 // Mídia de um anexo: PDF → uma imagem por página (largura total); imagem → <img> grande. Estilos inline (valem sobre o CSS de cada impressão).
 async function _dossMidiaHtml(url, escFn) {
-  if (!_dossEhPdf(url)) return '<img src="' + escFn(url) + '" style="width:100%;height:auto;max-height:235mm;object-fit:contain;display:block"/>';
+  if (!_dossEhPdf(url)) return '<img src="' + escFn(url) + '" style="width:100%;max-width:186mm;height:auto;max-height:235mm;object-fit:contain;display:block;margin:0 auto"/>';
   try {
     var r = await _dossPdfImagens(url, 4, 1.8), h = '';
-    r.imagens.forEach(function (src, i) { h += '<img src="' + src + '" style="width:100%;height:auto;display:block;margin:0 0 2mm;border:1px solid #ddd"/>' + (r.total > 1 ? '<div style="font-size:8px;color:#777;text-align:center;margin-bottom:3mm">' + t('dossie.pagina', { i: i + 1, n: r.total }) + '</div>' : ''); });
+    r.imagens.forEach(function (src, i) { h += '<img src="' + src + '" style="width:auto;height:auto;max-width:min(100%,186mm);max-height:228mm;display:block;margin:0 auto 2mm;border:1px solid #ddd;break-inside:avoid"/>' + (r.total > 1 ? '<div style="font-size:8px;color:#777;text-align:center;margin-bottom:3mm">' + t('dossie.pagina', { i: i + 1, n: r.total }) + '</div>' : ''); });
     if (r.total > r.imagens.length) h += '<div style="font-size:9px;color:#555;text-align:center">' + t('dossie.maisPag', { n: r.total - r.imagens.length }) + '</div>';
     return h;
   } catch (e) { console.warn('[dossiê] PDF não renderizado', e && e.message); return '<div style="padding:10px;font-size:11px;color:#a00;text-align:center">' + escFn(t('dossie.falha')) + '</div>'; }
@@ -24918,16 +24927,27 @@ async function _dossComprovantesGrade(lista, escFn) {
 }
 function _dossNums(j) { return (j.numeros || []).map(function (x) { return parseInt(x, 10); }).filter(function (x) { return !isNaN(x); }); }
 function _dossRotuloJogo(j) { return (typeof loterianome === 'function' ? loterianome(j.loteria) : ((typeof CFG !== 'undefined' && CFG[j.loteria] && CFG[j.loteria].nome) || j.loteria)) + ' ' + j.concurso + ': ' + _dossNums(j).map(function (n) { return String(n).padStart(2, '0'); }).join(' '); }
+// Super Sete: os dígitos repetem e valem POR COLUNA — não dá pra conferir só "o número aparece". O bilhete traz a linha de colunas "1 2 3 4 5 6 7" e, logo abaixo, o dígito de cada uma.
+function _dossCasaSuperSete(texto, nums) {
+  var re = /1\s+2\s+3\s+4\s+5\s+6\s+7\s+(\d)\s+(\d)\s+(\d)\s+(\d)\s+(\d)\s+(\d)\s+(\d)(?!\d)/g, m;
+  while ((m = re.exec(texto))) { var seq = m.slice(1).map(Number); if (seq.length === nums.length && seq.every(function (d, i) { return d === nums[i]; })) return true; }
+  return false;
+}
 // Quais jogos premiados aparecem no texto de um bilhete (todos os números do jogo + o nº do concurso, quando numérico)
 function _dossCasa(texto, premiados) {
   var toks = {}; (texto.match(/\b\d{1,2}\b/g) || []).forEach(function (x) { toks[parseInt(x, 10)] = 1; });
   return premiados.filter(function (p) {
     var nums = _dossNums(p); if (!nums.length) return false;
-    if (!nums.every(function (n) { return toks[n]; })) return false;
-    var c = String(p.concurso || ''); if (/^\d{3,}$/.test(c) && !new RegExp('(^|\\D)' + c + '(\\D|$)').test(texto)) return false;
+    if (p.loteria === 'supersete') { if (!_dossCasaSuperSete(texto, nums)) return false; }
+    else if (!nums.every(function (n) { return toks[n]; })) return false;
+    // Teimosinha: o bilhete cita só o 1º concurso (ex.: "Concurso: 3061", "Teimosinha: Sim (3)"), mas o app guarda um jogo por concurso (3061, 3062, 3063).
+    var c = String(p.concurso || ''), cands = [c].concat(((p.extras && p.extras.teimosinhaConcursos) || []).map(String)).filter(function (x) { return /^\d{3,}$/.test(x); });
+    if (cands.length && !cands.some(function (x) { return new RegExp('(^|\\D)' + x + '(\\D|$)').test(texto); })) return false;
     return true;
   });
 }
+// Cada bilhete em página nova (menos o 1º, que fica logo abaixo do título da seção).
+function _dossQuebra(i) { return i > 0 ? 'page-break-before:always;break-before:page;' : ''; }
 // Seção "Bilhetes dos jogos premiados". perguntar(msg) → Promise<boolean> (incluir os bilhetes não identificados?).
 async function _dossBilhetesSecao(bilhetes, jogos, escFn, perguntar) {
   var premiados = (jogos || []).filter(function (j) { return j && j.premiado; }), corpo = '<h1 style="font-size:18px;margin:0 0 4px">' + escFn(t('dossie.h1')) + '</h1>';
@@ -24946,11 +24966,11 @@ async function _dossBilhetesSecao(bilhetes, jogos, escFn, perguntar) {
   if (!ident.length && !(nao.length && incluirNao)) corpo += '<p style="color:#999">' + escFn(t('dossie.nenhumIdent')) + '</p>';
   for (i = 0; i < ident.length; i++) {
     var it = ident[i], m = await _dossMidiaHtml(it.url, escFn);
-    corpo += '<div style="border:1px solid #ccc;border-radius:5px;padding:5px;margin-bottom:6mm;break-inside:avoid-page">' + m + '<div style="font-size:10px;color:#222;margin-top:4px"><b>' + escFn(t('dossie.contem', { l: it.hits.map(_dossRotuloJogo).join(' · ') })) + '</b><br><span style="color:#666">' + escFn(t('dossie.enviado', { q: q(it.quando) })) + '</span></div></div>';
+    corpo += '<div style="' + _dossQuebra(i) + 'border:1px solid #ccc;border-radius:5px;padding:5px;page-break-inside:avoid;break-inside:avoid">' + m + '<div style="font-size:10px;color:#222;margin-top:4px"><b>' + escFn(t('dossie.contem', { l: it.hits.map(_dossRotuloJogo).join(' · ') })) + '</b><br><span style="color:#666">' + escFn(t('dossie.enviado', { q: q(it.quando) })) + '</span></div></div>';
   }
   if (incluirNao) for (i = 0; i < nao.length; i++) {
     var nb = nao[i], m2 = await _dossMidiaHtml(nb.url, escFn);
-    corpo += '<div style="border:1px dashed #aaa;border-radius:5px;padding:5px;margin-bottom:6mm;break-inside:avoid-page">' + m2 + '<div style="font-size:10px;color:#666;margin-top:4px">' + escFn(t('dossie.naoConf')) + '<br>' + escFn(t('dossie.enviado', { q: q(nb.quando) })) + '</div></div>';
+    corpo += '<div style="' + _dossQuebra(ident.length + i) + 'border:1px dashed #aaa;border-radius:5px;padding:5px;page-break-inside:avoid;break-inside:avoid">' + m2 + '<div style="font-size:10px;color:#666;margin-top:4px">' + escFn(t('dossie.naoConf')) + '<br>' + escFn(t('dossie.enviado', { q: q(nb.quando) })) + '</div></div>';
   }
   return { corpo: corpo };
 }
