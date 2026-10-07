@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.9.4':{
+    'en-US':["Registry: shows everyone who has ever taken part in any pool, including deleted pools, in alphabetical order. New pool: when you type or pick a name, the e-mail, WhatsApp and other details come along from the registry and are replaced when you switch person. Import participants: accepts the spreadsheet template with banner and Shares column. Version aligned with the mobile app (5.9.4)."],
+    'es-ES':["Registro: muestra a todas las personas que han participado en algún grupo, incluso en grupos eliminados, en orden alfabético. Nuevo grupo: al escribir o elegir el nombre, el correo, el WhatsApp y los demás datos vienen juntos del registro y se cambian al cambiar de persona. Importar participantes: acepta la plantilla de hoja de cálculo con banner y columna de Cuotas. Versión alineada con la app móvil (5.9.4)."],
+    'it-IT':["Anagrafica: mostra tutte le persone che hanno partecipato a un gruppo, anche eliminato, in ordine alfabetico. Nuovo gruppo: scrivendo o scegliendo il nome, e-mail, WhatsApp e gli altri dati arrivano insieme dall’anagrafica e cambiano quando si cambia persona. Importa partecipanti: accetta il modello di foglio di calcolo con banner e colonna Quote. Versione allineata con l’app mobile (5.9.4)."]
+  },
   '5.9.3':{
     'en-US':["Version aligned with the mobile app (5.9.3). Manuals: videos now open in a compact window inside the manual, with an Open on YouTube button for those who want it."],
     'es-ES':["Versión alineada con la app móvil (5.9.3). Manuales: los vídeos ahora se abren en una ventana compacta dentro del manual, con el botón Abrir en YouTube para quien lo quiera."],
@@ -1772,6 +1777,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.9.4':[
+    "Cadastro: mostra todas as pessoas que já participaram de qualquer bolão, inclusive de bolões apagados, em ordem alfabética. Novo bolão: ao digitar ou escolher o nome, o e-mail, o WhatsApp e os demais dados vêm juntos do cadastro e são trocados ao mudar de pessoa. Importar participantes: aceita o modelo de planilha com banner e coluna de Cotas. Versão alinhada com o app mobile (5.9.4)."
+  ],
   '5.9.3':[
     "Versão alinhada com o app mobile (5.9.3). Manuais: os vídeos agora abrem numa janela compacta dentro do manual, com o botão Abrir no YouTube para quem quiser."
   ],
@@ -2148,7 +2156,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.3</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.4</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2524,7 +2532,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.3</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.4</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5648,6 +5656,10 @@ var LA_ICONES = {
   pausa:'<path d="M8 5v14M16 5v14"/>',
   computador:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/>',
 };
+Object.assign(LA_I18N['pt-BR'], {"boloes.cadastro_geral_sub":"Todas as pessoas já cadastradas ({n})","boloes.cadastro_buscar":"Buscar por nome, e-mail ou WhatsApp","boloes.cadastro_participou":"Bolões","boloes.cadastro_neste_bolao":"Neste bolão"});
+Object.assign(LA_I18N['en-US'], {"boloes.cadastro_geral_sub":"Everyone already registered ({n})","boloes.cadastro_buscar":"Search by name, email or WhatsApp","boloes.cadastro_participou":"Pools","boloes.cadastro_neste_bolao":"In this pool"});
+Object.assign(LA_I18N['es-ES'], {"boloes.cadastro_geral_sub":"Todas las personas ya registradas ({n})","boloes.cadastro_buscar":"Buscar por nombre, e-mail o WhatsApp","boloes.cadastro_participou":"Grupos","boloes.cadastro_neste_bolao":"En este grupo"});
+Object.assign(LA_I18N['it-IT'], {"boloes.cadastro_geral_sub":"Tutte le persone già registrate ({n})","boloes.cadastro_buscar":"Cerca per nome, e-mail o WhatsApp","boloes.cadastro_participou":"Gruppi","boloes.cadastro_neste_bolao":"In questo gruppo"});
 /* Faixa 1 por percentual da arrecadação (2026-10-07): sobrepõe os textos antigos das faixas */
 Object.assign(LA_I18N['pt-BR'], {"termos.p_8":"As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada participante, após a dedução da taxa administrativa (quando aplicável), observadas as seguintes faixas de destinação: (i) Faixa 1 — creditado automaticamente ao saldo do participante neste bolão, de forma acumulada, até {pct}% da arrecadação total do bolão (valor pago pelos participantes); atingido esse limite, a diferença de cada prêmio seguinte é reservada para o próximo bolão; (ii) Faixa 2 — logo após a Faixa 1 e até R$ {faixa2} por cota: a parcela equivalente ao valor da cota vigente é reservada para o próximo bolão do mesmo participante (transferida automaticamente ou pelo organizador, conforme definido para este bolão), sendo o excedente pago via PIX; (iii) Faixa 3 — acima de R$ {faixa2} por cota: pago integralmente via PIX. Em todos os casos é respeitado o número de cotas e o percentual a que cada participante tem direito. O administrador poderá ajustar essas faixas a qualquer momento.","organizador.faixas_ajuda":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante — transferido automaticamente ou pelo organizador, conforme a opção escolhida para este bolão.","organizador.faixas_exemplo_titulo_dinamico":"Exemplos — com as faixas deste bolão (Faixa 1 até {pct}% da arrecadação, cerca de R$ {faixa1} por cota quando ainda não houve crédito; Faixa 2 até R$ {faixa2}) e uma cota custando R$ {cota}:","organizador.faixas_exemplo_titulo":"Exemplos — com as faixas padrão (Faixa 1 até 25% da arrecadação, Faixa 2 até R$2.428,80) e uma cota deste bolão custando R$50,00:","organizador.faixa1_pct_label":"Até (% da arrecadação)","organizador.faixa1_pct_dica":"Limite acumulado: a Faixa 1 já creditou {creditado} de até {teto} ({pct}% da arrecadação). Atingido o limite, a diferença vai para a reserva do próximo bolão.","organizador.faixa2_de_apos_f1":"após a Faixa 1","organizador.faixa_pct_invalida":"O percentual da Faixa 1 precisa estar entre 0 e 100.","organizador.notif_faixas_alteradas_corpo":"O organizador de \"{nome}\" atualizou as faixas de distribuição de prêmio: Faixa 1 de R$ {f1de} até {f1pct}% da arrecadação, acumulado (crédito automático), Faixa 2 depois da Faixa 1 até R$ {f2ate}/cota (reserva + PIX), Faixa 3 R$ {f3de} a R$ {f3ate}/cota (100% PIX).","boloes.ps_faixas_explicacao":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante. A Faixa 3 é 100% PIX."});
 Object.assign(LA_I18N['en-US'], {"termos.p_8":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), according to the following destination tiers: (i) Tier 1 — credited automatically to the participant's balance in this pool, cumulatively, up to {pct}% of the pool's total collection (the amount paid by the participants); once this limit is reached, the difference of each following prize is set aside for the next pool; (ii) Tier 2 — right after Tier 1 and up to R$ {faixa2} per share: the portion equal to the current share price is set aside for the same participant's next pool (transferred automatically or by the organizer, as defined for this pool), with the excess paid via PIX; (iii) Tier 3 — above R$ {faixa2} per share: paid entirely via PIX. In all cases the number of shares and the percentage each participant is entitled to are respected. The administrator may adjust these tiers at any time.","organizador.faixas_ajuda":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool — transferred automatically or by the organizer, depending on the option chosen for this pool.","organizador.faixas_exemplo_titulo_dinamico":"Examples — with this pool's tiers (Tier 1 up to {pct}% of the total collection, about R$ {faixa1} per share when nothing has been credited yet; Tier 2 up to R$ {faixa2}) and a share costing R$ {cota}:","organizador.faixas_exemplo_titulo":"Examples — with the default tiers (Tier 1 up to 25% of the total collection, Tier 2 up to R$2,428.80) and a share of this pool costing R$50.00:","organizador.faixa1_pct_label":"Up to (% of collection)","organizador.faixa1_pct_dica":"Cumulative limit: Tier 1 has already credited {creditado} out of up to {teto} ({pct}% of the collection). Once the limit is reached, the difference goes to the next pool's reserve.","organizador.faixa2_de_apos_f1":"after Tier 1","organizador.faixa_pct_invalida":"Tier 1's percentage must be between 0 and 100.","organizador.notif_faixas_alteradas_corpo":"The organizer of \"{nome}\" updated the prize distribution tiers: Tier 1 from R$ {f1de} up to {f1pct}% of the collection, cumulative (automatic credit), Tier 2 after Tier 1 up to R$ {f2ate}/share (reserve + PIX), Tier 3 R$ {f3de} to R$ {f3ate}/share (100% PIX).","boloes.ps_faixas_explicacao":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool. Tier 3 is 100% PIX."});
@@ -21203,6 +21215,7 @@ function renderFormBolao(){
 // preenchidos automaticamente a partir dele — sem sobrescrever o que o
 // organizador já tiver digitado.
 var _avulsosAutocompleteCarregado=false;
+var _avulsosAutocompleteEm=0;
 // Achado ao vivo (2026-08-22, pedido do usuário): "Tássio Araújo de Souza"
 // já tinha sido cadastrado num bolão anterior (com whatsapp/cpf), mas não
 // autocompletava — porque a fonte do datalist era só o cadastro de
@@ -21212,7 +21225,7 @@ var _avulsosAutocompleteCarregado=false;
 // usados em qualquer bolão do organizador (bolao_participantes, RLS
 // select_own já restringe a auth.uid()=user_id, sem precisar de join).
 async function _carregarAvulsosParaAutocomplete(){
-  if(_avulsosAutocompleteCarregado) { _atualizarDatalistAvulsos(); return; }
+  if(_avulsosAutocompleteCarregado && Date.now()-_avulsosAutocompleteEm<15000) { _atualizarDatalistAvulsos(); return; }
   var sb=_getSbClient();
   var [avulsos, historico]=await Promise.all([
     BolaoJogosRepo.listarParticipantesAvulsos(),
@@ -21227,20 +21240,26 @@ async function _carregarAvulsosParaAutocomplete(){
   ]);
   var porNome={};
   historico.forEach(function(p){ // já vem ordenado desc — 1ª ocorrência de cada nome é a mais recente
-    var chave=(p.nome||'').trim().toLowerCase(); if(!chave) return;
-    if(!porNome[chave]) porNome[chave]=p;
+    var chave=_npNorm(p.nome); if(!chave) return;
+    if(!porNome[chave]) porNome[chave]=Object.assign({},p);
+    else { var h=porNome[chave]; ['email','whatsapp','cpf'].forEach(function(f){ if(!h[f]&&p[f]) h[f]=p[f]; }); } // contato que faltou no registro mais recente vem de um mais antigo
   });
   avulsos.forEach(function(p){ // avulso é cadastro explícito — prioridade sobre o histórico em caso de mesmo nome
-    var chave=(p.nome||'').trim().toLowerCase(); if(!chave) return;
-    porNome[chave]=p;
+    var chave=_npNorm(p.nome); if(!chave) return;
+    var h=porNome[chave], q=Object.assign({},p);
+    if(h) ['email','whatsapp','cpf'].forEach(function(f){ if(!q[f]&&h[f]) q[f]=h[f]; });
+    porNome[chave]=q;
   });
   _avulsosState=Object.keys(porNome).map(function(k){ return porNome[k]; });
-  _avulsosAutocompleteCarregado=true;
+  _avulsosAutocompleteCarregado=true; _avulsosAutocompleteEm=Date.now();
   _atualizarDatalistAvulsos();
 }
 function _atualizarDatalistAvulsos(){
   var dl=document.getElementById('np-nome-list'); if(!dl) return;
-  dl.innerHTML=(_avulsosState||[]).map(function(p){ return '<option value="'+_esc(p.nome)+'"></option>'; }).join('');
+  var jaNoBolao={}; ((typeof _boloesState!=='undefined' && _boloesState && _boloesState.participantes)||[]).forEach(function(x){ jaNoBolao[_npNorm(x.nome)]=1; });
+  dl.innerHTML=(_avulsosState||[]).filter(function(p){ return p.nome && !jaNoBolao[_npNorm(p.nome)]; })
+    .sort(function(a,b){ return a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'}); })
+    .map(function(p){ return '<option value="'+_esc(p.nome)+'"></option>'; }).join('');
 }
 // Deriva país + número "de exibição" a partir do formato salvo (ver
 // _normalizarWhatsappPais): sem "+" é Brasil (formato de sempre); com "+1"
@@ -21268,40 +21287,48 @@ function _paisEWhatsappParaExibir(whatsappSalvo){
   if(d.length===11&&d.charAt(0)==='1') return {pais:'US',numero:d.slice(1)};
   return {pais:'outro',numero:d};
 }
+function _npNorm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+// Reconhecimento da pessoa pelo Cadastro geral (2026-10-07, pedido do usuário: "quando criar um novo bolão ele usa o auto completar e
+// traz todas as informações"). Nome comparado sem acento/caixa. Os campos vindos do reconhecimento ficam registrados em
+// _npMatchAnterior: ao trocar de pessoa são substituídos pelos da nova; o que o organizador digitou à mão nunca é sobrescrito.
+var _npMatchAnterior=null;
 function _npNomeAutocomplete(){
   var nomeEl=document.getElementById('np-nome'); if(!nomeEl) return;
-  var nome=(nomeEl.value||'').trim();
+  var nome=_npNorm(nomeEl.value);
   var emailEl=document.getElementById('np-email'), waEl=document.getElementById('np-whatsapp'),
-      cpfEl=document.getElementById('np-cpf'), paisEl=document.getElementById('np-pais');
-  var match=nome?(_avulsosState||[]).find(function(p){ return p.nome && p.nome.trim().toLowerCase()===nome.toLowerCase(); }):null;
+      cpfEl=document.getElementById('np-cpf'), paisEl=document.getElementById('np-pais'),
+      endEl=document.getElementById('np-endereco'), pixEl=document.getElementById('np-pix'), pixTipoEl=document.getElementById('np-pix-tipo');
+  var campos={email:emailEl, cpf:cpfEl, whatsapp:waEl, endereco:endEl, pix:pixEl};
+  var match=nome?(_avulsosState||[]).find(function(p){ return p.nome && _npNorm(p.nome)===nome; }):null;
+  var ant=_npMatchAnterior;
   if(!match){
+    // deixou de reconhecer: tira só o que tinha sido preenchido pelo reconhecimento anterior (o que o organizador digitou fica)
+    if(ant){ Object.keys(campos).forEach(function(c){ if(campos[c] && ant.v[c]!==undefined && campos[c].value===ant.v[c]) campos[c].value=''; }); }
+    _npMatchAnterior=null;
     if(emailEl) emailEl.placeholder=t('boloes.email_asterisco');
     return;
   }
-  // Achado ao vivo (2026-08-22, pedido do usuário): participante já
-  // reconhecido pelo histórico (mesmo padrão de WhatsApp/CPF) pode nunca
-  // ter tido e-mail cadastrado antes. Antes o campo ficava em branco sem
-  // diferenciar "não achou nada" de "achou, mas está sem e-mail" — o
-  // placeholder agora deixa esse estado claro. O e-mail continua
-  // obrigatório pra Adicionar mesmo assim (pedido explícito do usuário: é
-  // assim que ele confere se o cadastro da pessoa está completo).
-  var preenchido=false;
-  if(emailEl&&!emailEl.value){
-    if(match.email){ emailEl.value=match.email; preenchido=true; }
-    else { emailEl.placeholder=t('boloes.sem_email_cadastrado'); }
+  var novo={ chave:nome, v:{} };
+  function pode(c){ var el=campos[c]; return el && (!el.value || (ant && ant.v[c]!==undefined && el.value===ant.v[c])); }
+  // E-mail: participante pode nunca ter tido e-mail cadastrado — o placeholder diferencia "achou, mas está sem e-mail" de "não achou".
+  // O e-mail continua obrigatório pra Adicionar (pedido explícito do usuário: é assim que ele confere se o cadastro está completo).
+  if(pode('email')){
+    if(match.email){ emailEl.value=match.email; novo.v.email=match.email; }
+    else { emailEl.value=''; emailEl.placeholder=t('boloes.sem_email_cadastrado'); }
   }
-  if(cpfEl&&!cpfEl.value&&match.cpf){ cpfEl.value=match.cpf; preenchido=true; }
-  if(waEl&&!waEl.value&&match.whatsapp){
-    var pw=_paisEWhatsappParaExibir(match.whatsapp);
-    waEl.value=pw.numero;
-    if(paisEl) paisEl.value=pw.pais;
-    preenchido=true;
+  // troca de pessoa: campo herdado é substituído mesmo quando a pessoa nova não tem o dado (fica vazio) — nunca sobra dado de outra pessoa
+  if(pode('cpf')){ cpfEl.value=match.cpf||''; if(match.cpf) novo.v.cpf=match.cpf; }
+  if(pode('whatsapp')){
+    if(match.whatsapp){ var pw=_paisEWhatsappParaExibir(match.whatsapp); waEl.value=pw.numero; novo.v.whatsapp=pw.numero; if(paisEl) paisEl.value=pw.pais; }
+    else waEl.value='';
   }
-  var endEl=document.getElementById('np-endereco');
-  if(endEl&&!endEl.value&&match.endereco){ endEl.value=match.endereco; preenchido=true; }
-  var pixEl=document.getElementById('np-pix'), pixTipoEl=document.getElementById('np-pix-tipo');
-  if(pixEl&&!pixEl.value&&match.pix){ pixEl.value=match.pix; if(pixTipoEl&&match.pix_tipo) pixTipoEl.value=match.pix_tipo; preenchido=true; }
-  if(preenchido || !match.email) toast(t('boloes.avulso_reconhecido',{nome:match.nome}));
+  if(pode('endereco')){ endEl.value=match.endereco||''; if(match.endereco) novo.v.endereco=match.endereco; }
+  if(pode('pix')){
+    pixEl.value=match.pix||''; if(match.pix){ novo.v.pix=match.pix; if(pixTipoEl && match.pix_tipo) pixTipoEl.value=match.pix_tipo; }
+  }
+  var mesmaPessoa=ant && ant.chave===nome;
+  _npMatchAnterior=novo;
+  if(!mesmaPessoa) toast(t('boloes.avulso_reconhecido',{nome:match.nome}));
 }
 
 function _modNome(m){ return m==='semanal'?t('boloes.modnome_semanal'):m==='mensal'?t('boloes.modnome_mensal'):t('boloes.modnome_unico'); }
@@ -21385,6 +21412,7 @@ function addParticipanteBol(){
   document.getElementById('np-pix').value='';
   document.getElementById('np-cotas').value='1';
   if(valorCotaInput) valorCotaInput.value='';
+  _npMatchAnterior=null; _atualizarDatalistAvulsos();
   _ordenarParticipantes();
   renderParticipantesBoloes();
 }
@@ -22575,7 +22603,7 @@ async function importarParticipantes(file){
       if(!emailOk||!whatsappOk){ rejeitados.push(n.nome); return; }
       importados++;
       var whatsappFinal=n._whatsappJaNormalizado?n.whatsapp:n.whatsapp.replace(/\D/g,'');
-      _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:whatsappFinal, cpf:n.cpf||'', admin:_boloesState.admin.nome||'', cotas:1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
+      _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:whatsappFinal, cpf:n.cpf||'', admin:_boloesState.admin.nome||'', cotas:n.cotas||1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
     });
     _ordenarParticipantes();
     renderParticipantesBoloes();
@@ -22587,20 +22615,39 @@ async function importarParticipantes(file){
   document.getElementById('bol-file').value='';
 }
 
+// Procura, nas primeiras linhas, o cabeçalho da planilha: uma linha com "Nome" e "E-mail". Tudo acima dele (banner, título, instruções) é ignorado.
+function _acharCabecalhoImport(linhas){
+  for(var i=0;i<Math.min(linhas.length,20);i++){
+    var cells=linhas[i]; var arr=Array.isArray(cells)?cells:String(cells).split(/[;,\t]/);
+    var n=arr.map(function(c){ return (c==null?'':String(c)).trim().toLowerCase(); });
+    var iNome=-1, iEmail=-1, iZap=-1, iCotas=-1;
+    n.forEach(function(c,k){
+      if(iNome<0 && /^nome/.test(c)) iNome=k;
+      else if(iEmail<0 && /^e-?mail/.test(c)) iEmail=k;
+      else if(iZap<0 && /(whats|celular|telefone|fone)/.test(c)) iZap=k;
+      else if(iCotas<0 && /^cotas?$/.test(c)) iCotas=k;
+    });
+    if(iNome>=0 && iEmail>=0) return {linha:i, nome:iNome, email:iEmail, whatsapp:iZap>=0?iZap:iEmail+1, cotas:iCotas};
+  }
+  return null;
+}
 function _parseLinhas(linhas){
-  // Lê Nome (coluna 1), E-mail (coluna 2) e WhatsApp (coluna 3) de cada
-  // linha — mesmo contato exigido no cadastro manual (addParticipanteBol).
-  // Outras colunas (cotas, valores, observações) continuam ignoradas —
-  // preenchidas manualmente depois na própria tabela.
-  var out=[];
-  linhas.forEach(function(cells){
+  // Lê Nome, E-mail e WhatsApp (mesmo contato exigido no cadastro manual, addParticipanteBol) e, se houver, Cotas.
+  // Com cabeçalho reconhecido, as colunas vêm pelo NOME e tudo acima do cabeçalho é ignorado (modelo com banner);
+  // sem cabeçalho, vale a posição antiga (Nome, E-mail, WhatsApp = colunas 1, 2 e 3). CPF não é lido: o participante preenche no convite.
+  var out=[], cab=_acharCabecalhoImport(linhas);
+  linhas.forEach(function(cells,idx){
+    if(cab && idx<=cab.linha) return;
     var arr=Array.isArray(cells)?cells:String(cells).split(/[;,\t]/);
-    var nome=(arr[0]||'').toString().trim();
+    var iN=cab?cab.nome:0, iE=cab?cab.email:1, iW=cab?cab.whatsapp:2;
+    var nome=(arr[iN]||'').toString().trim();
     if(!nome) return;
     var low=nome.toLowerCase();
-    // Ignora cabeçalhos e linhas de totais
+    // Ignora cabeçalhos repetidos e linhas de totais
     if(/^(nome|participante|valor|total|participantes|pgto|pagto|cota|situa)/.test(low)) return;
-    out.push({ nome:nome, email:(arr[1]||'').toString().trim(), whatsapp:(arr[2]||'').toString().trim() });
+    var item={ nome:nome, email:(arr[iE]||'').toString().trim(), whatsapp:(arr[iW]||'').toString().trim() };
+    if(cab && cab.cotas>=0){ var q=parseInt(arr[cab.cotas],10); if(q>=1) item.cotas=q; }
+    out.push(item);
   });
   return out;
 }
@@ -27396,45 +27443,102 @@ async function _palpiteCompletar(id, bolaoId, qual){
     _palpRender(bolaoId);
   }catch(e){ toast(t('palpite.erro_analisar',{msg:e.message})); }
 }
-function verCadastroParticipantes(){
-  var bolaoId=_boloesState.editId;
-  if(!bolaoId){ toast(t('boloes.salve_antes_cadastro')); return; }
-  var cor=MULTI_LOTERIA_COR;
-  var lista=_boloesState.participantes||[];
-  var itensHtml=lista.length
-    ? lista.map(function(p,i){
-        var waExibir=p.whatsapp?_paisEWhatsappParaExibir(p.whatsapp).numero:'';
-        return '<div style="padding:12px 0;border-bottom:1px solid var(--glass-border)">'+
-          '<input value="'+_esc(p.nome)+'" oninput="_boloesState.participantes['+i+'].nome=this.value" onblur="_ordenarParticipantes()" style="border:none;background:transparent;color:var(--text);font-size:14px;font-weight:800;width:100%;padding:0 0 8px;margin-bottom:6px;border-bottom:1px solid var(--glass-border)"/>'+
-          '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
-            '<div style="flex:1;min-width:170px"><label style="display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+t('boloes.email_asterisco')+'</label>'+
-              '<input value="'+_esc(p.email||'')+'" '+(p.id?'onblur="_alterarEmailParticipante(\''+p.id+'\',this.value)"':'disabled')+' placeholder="—" style="border:1px solid var(--glass-border);border-radius:7px;background:var(--bg2,#fff);color:var(--text);font-size:12px;width:100%;padding:6px 8px;box-sizing:border-box"/></div>'+
-            '<div style="flex:1;min-width:150px"><label style="display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+t('boloes.whatsapp_ddd_asterisco')+'</label>'+
-              '<input value="'+_esc(waExibir)+'" '+(p.id?'onblur="_alterarWhatsappParticipante(\''+p.id+'\',this.value)"':'disabled')+' placeholder="—" style="border:1px solid var(--glass-border);border-radius:7px;background:var(--bg2,#fff);color:var(--text);font-size:12px;width:100%;padding:6px 8px;box-sizing:border-box"/></div>'+
-            '<div style="flex:1;min-width:150px"><label style="display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+t('boloes.cpf_opcional')+'</label>'+
-              '<input value="'+_esc(p.cpf||'')+'" '+(p.id?'onblur="_alterarCpfParticipante(\''+p.id+'\',this.value)"':'disabled')+' placeholder="—" style="border:1px solid var(--glass-border);border-radius:7px;background:var(--bg2,#fff);color:var(--text);font-size:12px;width:100%;padding:6px 8px;box-sizing:border-box"/></div>'+
-          '</div>'+
-          (p.id?'':'<div style="font-size:10px;color:var(--text-muted);margin-top:6px">'+t('boloes.salve_antes_cadastro')+'</div>')+
-        '</div>';
-      }).join('')
-    : '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">'+t('boloes.nenhum_participante')+'</div>';
+// Cadastro GERAL (pedido do usuário, 2026-10-07): todas as pessoas que já participaram de qualquer bolão deste organizador (inclusive removidas e de bolões antigos)
+// + o cadastro avulso, juntando quem é a mesma pessoa (mesma conta, mesmo WhatsApp, mesmo CPF ou mesmo nome). Cada linha mostra os melhores dados que existem.
+var _cadGrupos=[], _cadFiltro='';
+function _cadNorm(n){ return (n||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+async function _cadCarregarGeral(){
+  var sb=_getSbClient(); if(!sb) return [];
+  var [rp,rb,ra]=await Promise.all([
+    sb.from('bolao_participantes').select('id,bolao_id,nome,email,whatsapp,cpf,participante_user_id,deleted_at,updated_at').order('updated_at',{ascending:false}).limit(5000),
+    sb.from('boloes').select('id,nome').limit(1000),
+    sb.from('participantes_avulsos').select('id,nome,email,whatsapp,cpf,participante_user_id,deleted_at,created_at').is('deleted_at',null).limit(2000)
+  ]);
+  var nomeBolao={}; ((rb&&rb.data)||[]).forEach(function(b){ if(!/teste/i.test(b.nome||'')) nomeBolao[b.id]=b.nome; }); // bolões encerrados (removidos da lista) também contam; só os de teste ficam de fora
+  var linhas=[];
+  ((rp&&rp.data)||[]).forEach(function(p){ if(nomeBolao[p.bolao_id]===undefined) return; linhas.push({tipo:'p',id:p.id,bolao:p.bolao_id,nome:p.nome,email:p.email,whatsapp:p.whatsapp,cpf:p.cpf,puid:p.participante_user_id,ativo:!p.deleted_at,t:p.updated_at}); });
+  ((ra&&ra.data)||[]).forEach(function(p){ if(/^teste/i.test(p.nome||'')) return; linhas.push({tipo:'a',id:p.id,nome:p.nome,email:p.email,whatsapp:p.whatsapp,cpf:p.cpf,puid:p.participante_user_id,ativo:true,t:p.created_at}); });
+  // une linhas da mesma pessoa (union-find por chaves)
+  var pai=linhas.map(function(_,i){ return i; });
+  var achar=function(i){ while(pai[i]!==i){ pai[i]=pai[pai[i]]; i=pai[i]; } return i; };
+  var donoChave={};
+  linhas.forEach(function(l,i){
+    var zap=(l.whatsapp||'').replace(/\D/g,''), cpf=(l.cpf||'').replace(/\D/g,'');
+    var chaves=[]; if(l.puid) chaves.push('u'+l.puid); if(zap.length>=10) chaves.push('z'+zap); if(cpf.length===11) chaves.push('c'+cpf); if(_cadNorm(l.nome)) chaves.push('n'+_cadNorm(l.nome));
+    chaves.forEach(function(k){ if(donoChave[k]===undefined) donoChave[k]=i; else pai[achar(i)]=achar(donoChave[k]); });
+  });
+  var porRaiz={};
+  linhas.forEach(function(l,i){ var r=achar(i); (porRaiz[r]=porRaiz[r]||[]).push(l); });
+  var atual=_boloesState.editId, grupos=Object.keys(porRaiz).map(function(r){
+    var ls=porRaiz[r].slice().sort(function(a,b){ return (b.t||'')>(a.t||'')?1:-1; });
+    var melhor=function(c){ for(var i=0;i<ls.length;i++){ var v=ls[i][c]; if(v&&String(v).trim()) return String(v).trim(); } return ''; };
+    var bol={}; ls.forEach(function(l){ if(l.tipo==='p') bol[l.bolao]=nomeBolao[l.bolao]; });
+    return { nome:melhor('nome'), email:melhor('email'), whatsapp:melhor('whatsapp'), cpf:melhor('cpf'),
+      idsP:ls.filter(function(l){return l.tipo==='p';}).map(function(l){return l.id;}), idsA:ls.filter(function(l){return l.tipo==='a';}).map(function(l){return l.id;}),
+      boloes:Object.keys(bol).map(function(k){ return bol[k]; }).slice(0,6), noAtual:ls.some(function(l){ return l.tipo==='p' && l.ativo && l.bolao===atual; }) };
+  });
+  grupos.sort(function(a,b){ return _cadNorm(a.nome)<_cadNorm(b.nome)?-1:1; });
+  return grupos;
+}
+function _cadItemHtml(g,i){
+  var waExibir=g.whatsapp?_paisEWhatsappParaExibir(g.whatsapp).numero:'';
+  var lbl='display:block;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
+  var inp='border:1px solid var(--glass-border);border-radius:7px;background:var(--bg2,#fff);color:var(--text);font-size:12px;width:100%;padding:6px 8px;box-sizing:border-box';
+  return '<div style="padding:12px 0;border-bottom:1px solid var(--glass-border)">'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:14px;font-weight:800;color:var(--text)">'+_esc(g.nome||'—')+'</span>'+
+      (g.noAtual?'<span style="font-size:9px;font-weight:800;color:#fff;background:#16a34a;border-radius:9px;padding:2px 8px">'+t('boloes.cadastro_neste_bolao')+'</span>':'')+'</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:170px"><label style="'+lbl+'">'+t('boloes.email_asterisco')+'</label><input value="'+_esc(g.email)+'" onblur="_cadGravar('+i+',\'email\',this.value)" placeholder="—" style="'+inp+'"/></div>'+
+      '<div style="flex:1;min-width:150px"><label style="'+lbl+'">'+t('boloes.whatsapp_ddd_asterisco')+'</label><input value="'+_esc(waExibir)+'" onblur="_cadGravar('+i+',\'whatsapp\',this.value)" placeholder="—" style="'+inp+'"/></div>'+
+      '<div style="flex:1;min-width:150px"><label style="'+lbl+'">'+t('boloes.cpf_opcional')+'</label><input value="'+_esc(g.cpf)+'" onblur="_cadGravar('+i+',\'cpf\',this.value)" placeholder="—" style="'+inp+'"/></div>'+
+    '</div>'+
+    (g.boloes.length?'<div style="font-size:10px;color:var(--text-muted);margin-top:6px">'+t('boloes.cadastro_participou')+': '+_esc(g.boloes.join(' · '))+'</div>':'')+
+  '</div>';
+}
+function _cadRenderLista(){
+  var el=document.getElementById('cad-lista'); if(!el) return;
+  var f=_cadNorm(_cadFiltro), fd=_cadFiltro.replace(/\D/g,'');
+  var vis=[]; _cadGrupos.forEach(function(g,i){
+    if(!f || _cadNorm(g.nome).indexOf(f)>=0 || (g.email||'').toLowerCase().indexOf(f)>=0 || (fd.length>=3 && (g.whatsapp||'').replace(/\D/g,'').indexOf(fd)>=0)) vis.push(_cadItemHtml(g,i));
+  });
+  el.innerHTML=vis.length?vis.join(''):'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">'+t('boloes.nenhum_participante')+'</div>';
+  var c=document.getElementById('cad-contagem'); if(c) c.textContent=t('boloes.cadastro_geral_sub',{n:_cadGrupos.length});
+}
+// Grava o campo em TODOS os cadastros da pessoa (bolões e avulso). Contato já gravado não se apaga (o banco também protege): em branco = não faz nada.
+async function _cadGravar(i,campo,valor){
+  var g=_cadGrupos[i]; if(!g) return; valor=(valor||'').trim();
+  if(!valor) return;
+  if(campo==='email' && !_emailValido(valor)){ toast(t('boloes.informe_email_valido_participante')); return; }
+  if(campo==='whatsapp'){ valor=_normalizarWhatsappPais(valor,'BR'); if(valor&&!_whatsappValido(valor)){ toast(t('boloes.informe_whatsapp_ddd')); return; } }
+  if(valor===g[campo]) return;
+  var sb=_getSbClient(); if(!sb) return;
+  var patch={}; patch[campo]=valor;
+  try{
+    if(g.idsP.length){ var r1=await sb.from('bolao_participantes').update(patch).in('id',g.idsP); if(r1&&r1.error) throw r1.error; }
+    if(g.idsA.length){ var r2=await sb.from('participantes_avulsos').update(patch).in('id',g.idsA); if(r2&&r2.error) throw r2.error; }
+    g[campo]=valor;
+    (_boloesState.participantes||[]).forEach(function(p){ if(p.id && g.idsP.indexOf(p.id)>=0) p[campo]=valor; });
+    toast(t(campo==='email'?'boloes.email_salvo_toast':(campo==='cpf'?'boloes.cpf_salvo_toast':'boloes.whatsapp_salvo_toast')));
+  }catch(e){ toast(t('boloes.erro_salvar_email_msg',{msg:e.message})); }
+}
+async function verCadastroParticipantes(){
+  var cor=MULTI_LOTERIA_COR; _cadFiltro='';
   var modalHtml=
     '<div id="modal-cadastro-participantes" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
-      '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:640px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
+      '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:680px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-border);background:'+cor+'14">'+
-          '<div>'+
-            '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">📝 '+t('boloes.cadastro')+'</div>'+
-            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+(_boloesState.nome||t('boloes.sem_nome'))+'</div>'+
-          '</div>'+
+          '<div><div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">📝 '+t('boloes.cadastro')+'</div>'+
+          '<div id="cad-contagem" style="font-size:11px;color:var(--text-muted);margin-top:2px">'+t('geral.carregando_pontos')+'</div></div>'+
           '<button onclick="document.getElementById(\'modal-cadastro-participantes\').remove();renderParticipantesBoloes()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
         '</div>'+
-        '<div style="padding:16px 20px;overflow-y:auto;flex:1">'+itensHtml+'</div>'+
+        '<div style="padding:12px 20px 0"><input id="cad-busca" oninput="_cadFiltro=this.value;_cadRenderLista()" placeholder="'+_esc(t('boloes.cadastro_buscar'))+'" style="border:1px solid var(--glass-border);border-radius:9px;background:var(--bg2,#fff);color:var(--text);font-size:13px;width:100%;padding:9px 12px;box-sizing:border-box"/></div>'+
+        '<div id="cad-lista" style="padding:4px 20px 16px;overflow-y:auto;flex:1"></div>'+
       '</div>'+
     '</div>';
-  var old=document.getElementById('modal-cadastro-participantes');
-  if(old) old.remove();
-  var div=document.createElement('div'); div.innerHTML=modalHtml;
-  document.body.appendChild(div.firstChild);
+  var old=document.getElementById('modal-cadastro-participantes'); if(old) old.remove();
+  var div=document.createElement('div'); div.innerHTML=modalHtml; document.body.appendChild(div.firstChild);
+  try{ _cadGrupos=await _cadCarregarGeral(); }catch(e){ console.warn('[cadastro geral]',e.message); _cadGrupos=[]; toast(t('boloes.erro_ler_participantes',{msg:e.message})); }
+  _cadRenderLista();
 }
 // Limpeza pós-migração (2026-07-12): removidas daqui _auditarParidadeBolao/
 // _carregarBolaoDoSchemaNovoParaEstado/_carregarRegistroBolaoDoSchemaNovo —
