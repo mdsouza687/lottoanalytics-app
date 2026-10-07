@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.8.6':{
+    'en-US':["Version aligned with the mobile app (5.8.6): in Analysis > Forecast, the phone now includes the extra ball (Powerball and Mega Millions), the lucky month (Dia de Sorte) and the favorite team (Timemania) in the suggested combinations, and fixes the guess screen for American lotteries. Manuals updated."],
+    'es-ES':["Versión alineada con la app móvil (5.8.6): en Análisis > Previsión, el móvil ahora incluye la bola extra (Powerball y Mega Millions), el mes de la suerte (Dia de Sorte) y el equipo del corazón (Timemania) en las combinaciones sugeridas, y corrige la pantalla de jugadas de las loterías estadounidenses. Manuales actualizados."],
+    'it-IT':["Versione allineata con l'app mobile (5.8.6): in Analisi > Previsione, il cellulare ora include la palla extra (Powerball e Mega Millions), il mese fortunato (Dia de Sorte) e la squadra del cuore (Timemania) nelle combinazioni suggerite, e corregge la schermata delle proposte per le lotterie americane. Manuali aggiornati."]
+  },
   '5.8.5':{
     'en-US':["Version aligned with the mobile app (5.8.5). Manuals: when printing or saving as PDF, each topic that has a video shows the \"Watch the video\" button as a clickable link, with the address written out — it also works on paper and for people who read the manual without the app installed. It applies to the Participant and Manager manuals, in all 4 languages."],
     'es-ES':["Versión alineada con la app móvil (5.8.5). Manuales: al imprimir o guardar en PDF, cada tema que tiene vídeo muestra el botón \"Ver el vídeo\" como enlace pulsable, con la dirección escrita — sirve también en papel y para quien lee el manual sin la app instalada. Vale para los manuales del Participante y del Gestor, en los 4 idiomas."],
@@ -1732,6 +1737,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.8.6':[
+    "Versão alinhada com o app mobile (5.8.6): em Análises > Previsão, o celular passou a incluir a bola extra (Powerball e Mega Millions), o mês de sorte (Dia de Sorte) e o time do coração (Timemania) nas combinações sugeridas, e a corrigir a tela de palpite das loterias americanas. Manuais atualizados."
+  ],
   '5.8.5':[
     "Versão alinhada com o app mobile (5.8.5). Manuais: ao imprimir ou salvar em PDF, cada tópico que tem vídeo traz o botão \"Assistir ao vídeo\" como link clicável, com o endereço escrito por extenso — serve também no papel e para quem lê o manual sem o aplicativo instalado. Vale para os manuais do Participante e do Gestor, nos 4 idiomas."
   ],
@@ -2084,7 +2092,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.5</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.6</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2460,7 +2468,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.5</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.6</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
