@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.9.1':{
+    'en-US':["Version aligned with the mobile app (5.9.1). Change in prize distribution: Tier 1 (automatic credit to the balance) now goes up to a percentage of the pool collection (default 25%, adjustable in Prize → Balance), cumulatively. Once the limit is reached, the difference goes to the next pool reserve; Tiers 2 and 3 adjust automatically. Terms, examples, notices and manuals updated."],
+    'es-ES':["Versión alineada con la app móvil (5.9.1). Cambio en la distribución del premio: el Tramo 1 (crédito automático en el saldo) ahora llega hasta un porcentaje de la recaudación del grupo (estándar 25%, ajustable en Premio → Saldo), de forma acumulada. Alcanzado el límite, la diferencia va a la reserva del próximo grupo; los Tramos 2 y 3 se ajustan solos. Términos, ejemplos, avisos y manuales actualizados."],
+    'it-IT':["Versione allineata con l app mobile (5.9.1). Cambio nella distribuzione del premio: la Fascia 1 (accredito automatico sul saldo) ora arriva fino a una percentuale degli incassi del gruppo (standard 25%, regolabile in Premio → Saldo), in modo cumulativo. Raggiunto il limite, la differenza va nella riserva del prossimo gruppo; le Fasce 2 e 3 si adeguano da sole. Termini, esempi, avvisi e manuali aggiornati."]
+  },
   '5.9.0':{
     'en-US':["Version aligned with the mobile app (5.9.0). New: on/off switch for \"Send guess\" in each pool's Administrator card — when off, the button disappears for participants in the mobile app and the server refuses new guesses. Prize Dossier: the window now opens immediately, showing progress (\"Generating dossier — n/total\"), and reading the PDF tickets is up to 4 times faster."],
     'es-ES':["Versión alineada con la app móvil (5.9.0). Nuevo: interruptor de activar/desactivar \"Enviar apuesta\" en la tarjeta Administrador de cada grupo — desactivado, el botón desaparece para los participantes en la app móvil y el servidor rechaza nuevas apuestas. Expediente del premio: la ventana ahora se abre al instante, mostrando el progreso (\"Generando expediente — n/total\"), y la lectura de los boletos en PDF es hasta 4 veces más rápida."],
@@ -1757,6 +1762,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.9.1':[
+    "Versão alinhada com o app mobile (5.9.1). Mudança na distribuição do prêmio: a Faixa 1 (crédito automático no saldo) agora vai até um percentual da arrecadação do bolão (padrão 25%, ajustável em Prêmio → Saldo), de forma acumulada. Atingido o limite, a diferença vai para a reserva do próximo bolão; as Faixas 2 e 3 se ajustam sozinhas. Termo, exemplos, avisos e manuais atualizados."
+  ],
   '5.9.0':[
     "Versão alinhada com o app mobile (5.9.0). Novo: chave liga/desliga do \"Enviar palpite\" no card Administrador de cada bolão — desligada, o botão some para os participantes no app mobile e o servidor recusa novos palpites. Dossiê do Prêmio: a janela agora abre na hora, com o andamento (\"Gerando dossiê — n/total\"), e a leitura dos bilhetes em PDF ficou até 4 vezes mais rápida."
   ],
@@ -2124,7 +2132,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.1</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2500,7 +2508,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.0</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.1</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5624,6 +5632,11 @@ var LA_ICONES = {
   pausa:'<path d="M8 5v14M16 5v14"/>',
   computador:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/>',
 };
+/* Faixa 1 por percentual da arrecadação (2026-10-07): sobrepõe os textos antigos das faixas */
+Object.assign(LA_I18N['pt-BR'], {"termos.p_8":"As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada participante, após a dedução da taxa administrativa (quando aplicável), observadas as seguintes faixas de destinação: (i) Faixa 1 — creditado automaticamente ao saldo do participante neste bolão, de forma acumulada, até {pct}% da arrecadação total do bolão (valor pago pelos participantes); atingido esse limite, a diferença de cada prêmio seguinte é reservada para o próximo bolão; (ii) Faixa 2 — logo após a Faixa 1 e até R$ {faixa2} por cota: a parcela equivalente ao valor da cota vigente é reservada para o próximo bolão do mesmo participante (transferida automaticamente ou pelo organizador, conforme definido para este bolão), sendo o excedente pago via PIX; (iii) Faixa 3 — acima de R$ {faixa2} por cota: pago integralmente via PIX. Em todos os casos é respeitado o número de cotas e o percentual a que cada participante tem direito. O administrador poderá ajustar essas faixas a qualquer momento.","organizador.faixas_ajuda":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante — transferido automaticamente ou pelo organizador, conforme a opção escolhida para este bolão.","organizador.faixas_exemplo_titulo_dinamico":"Exemplos — com as faixas deste bolão (Faixa 1 até {pct}% da arrecadação, cerca de R$ {faixa1} por cota quando ainda não houve crédito; Faixa 2 até R$ {faixa2}) e uma cota custando R$ {cota}:","organizador.faixas_exemplo_titulo":"Exemplos — com as faixas padrão (Faixa 1 até 25% da arrecadação, Faixa 2 até R$2.428,80) e uma cota deste bolão custando R$50,00:","organizador.faixa1_pct_label":"Até (% da arrecadação)","organizador.faixa1_pct_dica":"Limite acumulado: a Faixa 1 já creditou {creditado} de até {teto} ({pct}% da arrecadação). Atingido o limite, a diferença vai para a reserva do próximo bolão.","organizador.faixa2_de_apos_f1":"após a Faixa 1","organizador.faixa_pct_invalida":"O percentual da Faixa 1 precisa estar entre 0 e 100.","organizador.notif_faixas_alteradas_corpo":"O organizador de \"{nome}\" atualizou as faixas de distribuição de prêmio: Faixa 1 de R$ {f1de} até {f1pct}% da arrecadação, acumulado (crédito automático), Faixa 2 depois da Faixa 1 até R$ {f2ate}/cota (reserva + PIX), Faixa 3 R$ {f3de} a R$ {f3ate}/cota (100% PIX).","boloes.ps_faixas_explicacao":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante. A Faixa 3 é 100% PIX."});
+Object.assign(LA_I18N['en-US'], {"termos.p_8":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), according to the following destination tiers: (i) Tier 1 — credited automatically to the participant's balance in this pool, cumulatively, up to {pct}% of the pool's total collection (the amount paid by the participants); once this limit is reached, the difference of each following prize is set aside for the next pool; (ii) Tier 2 — right after Tier 1 and up to R$ {faixa2} per share: the portion equal to the current share price is set aside for the same participant's next pool (transferred automatically or by the organizer, as defined for this pool), with the excess paid via PIX; (iii) Tier 3 — above R$ {faixa2} per share: paid entirely via PIX. In all cases the number of shares and the percentage each participant is entitled to are respected. The administrator may adjust these tiers at any time.","organizador.faixas_ajuda":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool — transferred automatically or by the organizer, depending on the option chosen for this pool.","organizador.faixas_exemplo_titulo_dinamico":"Examples — with this pool's tiers (Tier 1 up to {pct}% of the total collection, about R$ {faixa1} per share when nothing has been credited yet; Tier 2 up to R$ {faixa2}) and a share costing R$ {cota}:","organizador.faixas_exemplo_titulo":"Examples — with the default tiers (Tier 1 up to 25% of the total collection, Tier 2 up to R$2,428.80) and a share of this pool costing R$50.00:","organizador.faixa1_pct_label":"Up to (% of collection)","organizador.faixa1_pct_dica":"Cumulative limit: Tier 1 has already credited {creditado} out of up to {teto} ({pct}% of the collection). Once the limit is reached, the difference goes to the next pool's reserve.","organizador.faixa2_de_apos_f1":"after Tier 1","organizador.faixa_pct_invalida":"Tier 1's percentage must be between 0 and 100.","organizador.notif_faixas_alteradas_corpo":"The organizer of \"{nome}\" updated the prize distribution tiers: Tier 1 from R$ {f1de} up to {f1pct}% of the collection, cumulative (automatic credit), Tier 2 after Tier 1 up to R$ {f2ate}/share (reserve + PIX), Tier 3 R$ {f3de} to R$ {f3ate}/share (100% PIX).","boloes.ps_faixas_explicacao":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool. Tier 3 is 100% PIX."});
+Object.assign(LA_I18N['es-ES'], {"termos.p_8":"Los premios obtenidos se distribuirán proporcionalmente al número de cuotas de cada participante, tras deducir la tarifa administrativa (cuando corresponda), conforme a los siguientes tramos de destino: (i) Tramo 1 — se acredita automáticamente al saldo del participante en este grupo, de forma acumulada, hasta el {pct}% de la recaudación total del grupo (lo pagado por los participantes); alcanzado ese límite, la diferencia de cada premio siguiente se reserva para el próximo grupo; (ii) Tramo 2 — justo después del Tramo 1 y hasta R$ {faixa2} por cuota: la parte equivalente al valor de la cuota vigente se reserva para el próximo grupo del mismo participante (transferida automáticamente o por el organizador, según lo definido para este grupo), y el excedente se paga por PIX; (iii) Tramo 3 — por encima de R$ {faixa2} por cuota: se paga íntegramente por PIX. En todos los casos se respeta el número de cuotas y el porcentaje que le corresponde a cada participante. El administrador podrá ajustar estos tramos en cualquier momento.","organizador.faixas_ajuda":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante — transferido automáticamente o por el organizador, según la opción elegida para este grupo.","organizador.faixas_exemplo_titulo_dinamico":"Ejemplos — con los tramos de este grupo (Tramo 1 hasta el {pct}% de la recaudación, unos R$ {faixa1} por cuota cuando aún no hubo crédito; Tramo 2 hasta R$ {faixa2}) y una cuota que cuesta R$ {cota}:","organizador.faixas_exemplo_titulo":"Ejemplos — con los tramos estándar (Tramo 1 hasta el 25% de la recaudación, Tramo 2 hasta R$2.428,80) y una cuota de este grupo que cuesta R$50,00:","organizador.faixa1_pct_label":"Hasta (% de la recaudación)","organizador.faixa1_pct_dica":"Límite acumulado: el Tramo 1 ya acreditó {creditado} de hasta {teto} ({pct}% de la recaudación). Alcanzado el límite, la diferencia va a la reserva del próximo grupo.","organizador.faixa2_de_apos_f1":"después del Tramo 1","organizador.faixa_pct_invalida":"El porcentaje del Tramo 1 debe estar entre 0 y 100.","organizador.notif_faixas_alteradas_corpo":"El organizador de \"{nome}\" actualizó los tramos de distribución de premios: Tramo 1 de R$ {f1de} hasta el {f1pct}% de la recaudación, acumulado (crédito automático), Tramo 2 después del Tramo 1 hasta R$ {f2ate}/cuota (reserva + PIX), Tramo 3 R$ {f3de} a R$ {f3ate}/cuota (100% PIX).","boloes.ps_faixas_explicacao":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante. El Tramo 3 es 100% PIX."});
+Object.assign(LA_I18N['it-IT'], {"termos.p_8":"I premi ottenuti saranno distribuiti proporzionalmente al numero di quote di ciascun partecipante, dopo la deduzione della commissione amministrativa (quando applicabile), secondo le seguenti fasce di destinazione: (i) Fascia 1 — accreditato automaticamente sul saldo del partecipante in questo gruppo, in modo cumulativo, fino al {pct}% dell'incasso totale del gruppo (quanto pagato dai partecipanti); raggiunto questo limite, la differenza di ogni premio successivo viene riservata per il prossimo gruppo; (ii) Fascia 2 — subito dopo la Fascia 1 e fino a R$ {faixa2} per quota: la parte pari al valore della quota vigente viene riservata per il prossimo gruppo dello stesso partecipante (trasferita automaticamente o dall'organizzatore, come definito per questo gruppo), mentre l'eccedenza è pagata tramite PIX; (iii) Fascia 3 — oltre R$ {faixa2} per quota: pagato interamente tramite PIX. In tutti i casi si rispettano il numero di quote e la percentuale spettante a ciascun partecipante. L'amministratore potrà modificare queste fasce in qualsiasi momento.","organizador.faixas_ajuda":"Il premio è diviso in fasce. La Fascia 1 è un limite CUMULATIVO: la somma di quanto è già stato accreditato sui saldi, in tutti i premi del gruppo, arriva fino alla percentuale dell'incasso che imposti. Raggiunto il limite, la differenza va nella riserva del prossimo gruppo. La Fascia 2 inizia dove finisce la Fascia 1; al suo interno, ciò che supera il valore della quota di questo gruppo viene pagato tramite PIX e il resto resta riservato per il prossimo gruppo del partecipante — trasferito automaticamente o dall'organizzatore, secondo l'opzione scelta per questo gruppo.","organizador.faixas_exemplo_titulo_dinamico":"Esempi — con le fasce di questo gruppo (Fascia 1 fino al {pct}% dell'incasso, circa R$ {faixa1} per quota quando non c'è ancora stato alcun accredito; Fascia 2 fino a R$ {faixa2}) e una quota che costa R$ {cota}:","organizador.faixas_exemplo_titulo":"Esempi — con le fasce standard (Fascia 1 fino al 25% dell'incasso, Fascia 2 fino a R$2.428,80) e una quota di questo gruppo che costa R$50,00:","organizador.faixa1_pct_label":"Fino a (% dell'incasso)","organizador.faixa1_pct_dica":"Limite cumulativo: la Fascia 1 ha già accreditato {creditado} su un massimo di {teto} ({pct}% dell'incasso). Raggiunto il limite, la differenza va nella riserva del prossimo gruppo.","organizador.faixa2_de_apos_f1":"dopo la Fascia 1","organizador.faixa_pct_invalida":"La percentuale della Fascia 1 deve essere compresa tra 0 e 100.","organizador.notif_faixas_alteradas_corpo":"L'organizzatore di \"{nome}\" ha aggiornato le fasce di distribuzione dei premi: Fascia 1 da R$ {f1de} fino al {f1pct}% dell'incasso, cumulativo (accredito automatico), Fascia 2 dopo la Fascia 1 fino a R$ {f2ate}/quota (riserva + PIX), Fascia 3 da R$ {f3de} a R$ {f3ate}/quota (100% PIX).","boloes.ps_faixas_explicacao":"Il premio è diviso in fasce. La Fascia 1 è un limite CUMULATIVO: la somma di quanto è già stato accreditato sui saldi, in tutti i premi del gruppo, arriva fino alla percentuale dell'incasso che imposti. Raggiunto il limite, la differenza va nella riserva del prossimo gruppo. La Fascia 2 inizia dove finisce la Fascia 1; al suo interno, ciò che supera il valore della quota di questo gruppo viene pagato tramite PIX e il resto resta riservato per il prossimo gruppo del partecipante. La Fascia 3 è 100% PIX."});
 function _ic(nome, tamanho, cor){
   tamanho = tamanho || 18;
   var svg = LA_ICONES[nome];
@@ -19158,6 +19171,7 @@ var _boloesState = {
   semanas: [],
   pushLimitePremioCota: 500,
   faixa1Teto: 15.00,
+  faixa1Percentual: 25,
   faixa2Teto: 2428.80,
   faixa1Inicio: 0.05,
   faixa3Fim: 2000000.00,
@@ -22713,7 +22727,7 @@ async function _salvarBolaoImpl(){
     // automático de prêmio e a reserva automática, voltava as faixas de prêmio ao padrão e apagava o limite de palpites por seção.
     limitePalpites: s.limitePalpites||null,
     palpitesAtivos: s.palpitesAtivos!==false,
-    faixa1Teto: s.faixa1Teto, faixa2Teto: s.faixa2Teto, faixa1Inicio: s.faixa1Inicio, faixa3Fim: s.faixa3Fim,
+    faixa1Teto: s.faixa1Teto, faixa1Percentual: s.faixa1Percentual==null?25:s.faixa1Percentual, faixa2Teto: s.faixa2Teto, faixa1Inicio: s.faixa1Inicio, faixa3Fim: s.faixa3Fim,
     reservaTransferenciaAuto: s.reservaTransferenciaAuto, premioCreditoAuto: s.premioCreditoAuto,
     dataEncerramento: s.dataEncerramento||'', horaEncerramento: s.horaEncerramento||'',
     dataHoraEncerramentoOriginal: s.dataHoraEncerramentoOriginal||null,
@@ -22983,6 +22997,7 @@ function abrirModalPremioSaldo(){
   elUsarTotal.disabled=true;
   _renderCreditoModoDesktop();
   _renderFaixasCamposDesktop();
+  _carregarResumoFaixa1Desktop(s.editId).then(function(){ _renderFaixasCamposDesktop(); _pcAtualizarRateioPreview(); });
   _renderReservaPixPendentes();
   document.getElementById('premio-saldo-rateio-preview').innerHTML='';
   document.getElementById('premio-saldo-faixas-msg').innerHTML='';
@@ -23019,6 +23034,28 @@ function abrirModalPremioSaldo(){
 // mesma matemática do mobile (_calcFaixasPremioPorCota) e da RPC
 // rpc_creditar_premio_saldo no backend (Desktop não usa a RPC, credita
 // direto, então essa cópia precisa ficar sempre igual às outras duas).
+// Faixa 1 por percentual (2026-10-07): "até X% da arrecadação (acumulado)".
+function _fmtPctFaixa(v){ var n=Number(v==null?25:v); return String(Math.round(n*100)/100).replace('.',','); }
+// Teto da Faixa 1 por cota, ESTIMADO (sem crédito anterior): X% do valor da cota. Só para exemplos e textos.
+function _faixa1PorCotaEstimada(pct, precoCota){
+  var p=Number(precoCota||0), v=Number(pct==null?25:pct)/100*p;
+  return v>0 ? v : (p>0 ? 0.01 : 15);
+}
+// Lê do servidor o quanto da Faixa 1 já foi creditado e o que resta (mesma conta do crédito automático).
+async function _carregarResumoFaixa1Desktop(bolaoId){
+  var s=_boloesState; s._faixa1Resumo=null;
+  try{
+    var sbR=_getSbClient(); if(!sbR||!bolaoId) return;
+    var r=await sbR.rpc('rpc_faixa1_resumo',{p_bolao_id:bolaoId});
+    if(r&&!r.error&&r.data) s._faixa1Resumo=r.data;
+  }catch(e){ console.warn('[faixa1 resumo]',e.message); }
+}
+// Teto da Faixa 1 POR COTA que ainda resta = (X% da arrecadação - o que a Faixa 1 já creditou) / cotas pagas.
+function _faixa1EfetivaPorCotaDesktop(totalCotas){
+  var s=_boloesState, r=s._faixa1Resumo;
+  if(r && totalCotas>0) return Number(r.restante||0)/totalCotas;
+  return _faixa1PorCotaEstimada(s.faixa1Percentual, s.admin.precoCota);
+}
 function _calcFaixasPremioPorCota(valorPorCota, faixa1Teto, faixa2Teto, precoCota){
   var f1=Math.min(valorPorCota, faixa1Teto);
   var f2Fatia=Math.max(Math.min(valorPorCota, faixa2Teto)-faixa1Teto, 0);
@@ -23036,32 +23073,44 @@ function _calcFaixasPremioPorCota(valorPorCota, faixa1Teto, faixa2Teto, precoCot
 function _renderFaixasCamposDesktop(){
   var el=document.getElementById('premio-saldo-faixas-campos'); if(!el) return;
   var s=_boloesState;
-  var f1de=s.faixa1Inicio==null?0.05:s.faixa1Inicio, f1ate=s.faixa1Teto==null?15:s.faixa1Teto;
+  var f1de=s.faixa1Inicio==null?0.05:s.faixa1Inicio, f1pct=s.faixa1Percentual==null?25:s.faixa1Percentual;
   var f2ate=s.faixa2Teto==null?2428.80:s.faixa2Teto, f3ate=s.faixa3Fim==null?2000000:s.faixa3Fim;
   var fmt=function(v){ return v.toFixed(2).replace('.',','); };
-  // Um campo só, com "R$" desenhado dentro dele: os temas claro/colorido
-  // forçam borda e fundo (!important) em todo <input>, então um input
-  // dentro de uma caixa com borda aparecia como campo dentro de campo.
+  var estiloInp='display:block;width:100%;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass-bg);color:var(--text);padding:8px 10px';
+  // Um campo só, com "R$" (ou "%") desenhado dentro dele: os temas claro/colorido forçam borda e fundo (!important) em todo <input>,
+  // então um input dentro de uma caixa com borda aparecia como campo dentro de campo.
   var campo=function(id,val,disabled){
     return '<div style="position:relative'+(disabled?';opacity:.55':'')+'">'+
       '<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:12px;pointer-events:none;z-index:1">R$</span>'+
-      '<input id="'+id+'" type="text" inputmode="decimal" '+(disabled?'disabled title="'+t('boloes.ps_de_automatico_title')+'"':'oninput="_pcAtualizarRateioPreview()"')+' value="'+fmt(val)+'" style="display:block;width:100%;border:1px solid var(--glass-border);border-radius:10px;background:var(--bg2);color:var(--text);font-size:12.5px;padding:8px 10px 8px 32px;box-sizing:border-box"/>'+
+      '<input id="'+id+'" type="text" inputmode="decimal" '+(disabled?'disabled title="'+t('boloes.ps_de_automatico_title')+'"':'oninput="_pcAtualizarRateioPreview()"')+' value="'+fmt(val)+'" style="'+estiloInp+';padding-left:32px"/>'+
     '</div>';
   };
-  var linha=function(cls,titulo,idDe,valDe,disabledDe,idAte,valAte){
+  var campoPct=function(id,val){
+    return '<div style="position:relative">'+
+      '<input id="'+id+'" type="text" inputmode="decimal" oninput="_pcAtualizarRateioPreview()" value="'+_fmtPctFaixa(val)+'" style="'+estiloInp+';padding-right:28px"/>'+
+      '<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:12px;pointer-events:none;z-index:1">%</span>'+
+    '</div>';
+  };
+  var campoTexto=function(txt){
+    return '<div style="position:relative;opacity:.55"><input type="text" disabled value="'+_esc(txt)+'" title="'+t('boloes.ps_de_automatico_title')+'" style="'+estiloInp+'"/></div>';
+  };
+  var linha=function(cls,titulo,deHtml,ateRotulo,ateHtml){
     return '<div class="ps-faixa '+cls+'">'+
       '<div class="ps-faixa-titulo">'+titulo+'</div>'+
       '<div style="display:flex;gap:8px;align-items:flex-end">'+
-        '<div style="flex:1;min-width:0"><label style="font-size:10px;color:var(--text-muted)">'+t('boloes.ps_de_por_cota')+'</label>'+campo(idDe,valDe,disabledDe)+'</div>'+
-        '<div style="flex:1;min-width:0"><label style="font-size:10px;color:var(--text-muted)">'+t('boloes.ps_ate_por_cota')+'</label>'+campo(idAte,valAte,false)+'</div>'+
+        '<div style="flex:1;min-width:0"><label style="font-size:10px;color:var(--text-muted)">'+t('boloes.ps_de_por_cota')+'</label>'+deHtml+'</div>'+
+        '<div style="flex:1;min-width:0"><label style="font-size:10px;color:var(--text-muted)">'+ateRotulo+'</label>'+ateHtml+'</div>'+
       '</div>'+
     '</div>';
   };
+  var r=s._faixa1Resumo;
+  var dicaF1=r ? '<div style="font-size:10.5px;color:var(--text-muted);margin:-4px 0 10px">'+t('organizador.faixa1_pct_dica',{creditado:_bMoney(r.creditado),teto:_bMoney(r.teto_total),pct:_fmtPctFaixa(f1pct)})+'</div>' : '';
   var blocoModo='<div class="ps-faixa-titulo" style="margin:14px 0 8px">'+t('organizador.reserva_modo_titulo')+'</div>'+
     _seg3dHtml('premio-saldo-reserva-modo', s.reservaTransferenciaAuto, t('geral.manual'), t('geral.automatica'), '_seg3dMarcar');
-  el.innerHTML=linha('f1',t('boloes.ps_faixa1_titulo'),'premio-saldo-f1-de',f1de,false,'premio-saldo-f1-ate',f1ate)+
-    linha('f2',t('boloes.ps_faixa2_titulo'),'premio-saldo-f2-de',f1ate+0.01,true,'premio-saldo-f2-ate',f2ate)+
-    linha('f3',t('boloes.ps_faixa3_titulo'),'premio-saldo-f3-de',f2ate+0.01,true,'premio-saldo-f3-ate',f3ate)+
+  el.innerHTML=linha('f1',t('boloes.ps_faixa1_titulo'),campo('premio-saldo-f1-de',f1de,false),t('organizador.faixa1_pct_label'),campoPct('premio-saldo-f1-ate',f1pct))+
+    dicaF1+
+    linha('f2',t('boloes.ps_faixa2_titulo'),campoTexto(t('organizador.faixa2_de_apos_f1')),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f2-ate',f2ate,false))+
+    linha('f3',t('boloes.ps_faixa3_titulo'),campo('premio-saldo-f3-de',f2ate+0.01,true),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f3-ate',f3ate,false))+
     blocoModo+
     _exemploFaixasHtmlDesktop();
 }
@@ -23145,7 +23194,7 @@ function _pcAtualizarRateioPreview(){
   var elegiveis=(s.participantes||[]).filter(function(p){return p.statusPart!=='inativo'&&p.statusPag==='pago';});
   var totalCotas=elegiveis.reduce(function(a,p){return a+(p.cotas||0);},0);
   if(!totalCotas){ box.innerHTML='<div style="color:#e0503c;font-size:11px">'+t('boloes.ps_nenhum_elegivel')+'</div>'; return; }
-  var f1Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL')||s.faixa1Teto||15;
+  var f1Teto=_faixa1EfetivaPorCotaDesktop(totalCotas);
   var f2Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL')||s.faixa2Teto||2428.80;
   var valorPorCota=valor/totalCotas;
   var fx=_calcFaixasPremioPorCota(valorPorCota, f1Teto, f2Teto, s.admin.precoCota||0);
@@ -23164,37 +23213,42 @@ function _pcAtualizarRateioPreview(){
 function _paramsPremioIndividual(valorCredito, valorReserva, valorPix, reservaAuto){
   var fmt=function(v){ return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); };
   var c=Number(valorCredito||0), r=Number(valorReserva||0), p=Number(valorPix||0);
-  return {credito:fmt(c),reserva:fmt(r),pix:fmt(p),soma:fmt(c+r+p),reserva_num:r,pix_num:p,reserva_auto:!!reservaAuto};
+  return {credito:fmt(c),reserva:fmt(r),pix:fmt(p),soma:fmt(c+r+p),credito_num:c,reserva_num:r,pix_num:p,reserva_auto:!!reservaAuto};
 }
-async function _notificarFaixasAlteradasDesktop(bolaoId, nome, f1de, f1ate, f2ate, f3ate, reservaAuto){
+async function _notificarFaixasAlteradasDesktop(bolaoId, nome, f1de, f1pct, f2ate, f3ate, reservaAuto){
   var fmt=function(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2}); };
+  var prm={nome:nome||'',f1de:fmt(f1de),f1pct:_fmtPctFaixa(f1pct),f2ate:fmt(f2ate),f3de:fmt(f2ate+0.01),f3ate:fmt(f3ate)};
   await _notificarBolao(bolaoId, t('organizador.notif_faixas_alteradas_titulo'),
-    t('organizador.notif_faixas_alteradas_corpo',{nome:nome||'',f1de:fmt(f1de),f1ate:fmt(f1ate),f2de:fmt(f1ate+0.01),f2ate:fmt(f2ate),f3de:fmt(f2ate+0.01),f3ate:fmt(f3ate)})+
+    t('organizador.notif_faixas_alteradas_corpo',prm)+
     '\n'+t('organizador.reserva_modo_linha',{modo:t(reservaAuto?'organizador.reserva_modo_auto':'organizador.reserva_modo_manual')}),
     'faixas_alteradas',
-    {nome:nome||'',f1de:fmt(f1de),f1ate:fmt(f1ate),f2de:fmt(f1ate+0.01),f2ate:fmt(f2ate),f3de:fmt(f2ate+0.01),f3ate:fmt(f3ate),reserva_auto:!!reservaAuto});
+    {nome:prm.nome,f1de:prm.f1de,f1pct:prm.f1pct,f2ate:prm.f2ate,f3de:prm.f3de,f3ate:prm.f3ate,reserva_auto:!!reservaAuto});
 }
 function _pcSalvarFaixas(){
   var s=_boloesState;
   var msgEl=document.getElementById('premio-saldo-faixas-msg'); if(msgEl) msgEl.innerHTML='';
   var f1de=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-de').value,'BRL');
-  var f1ate=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
+  var f1pct=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
   var f2ate=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL');
   var f3ate=_parseMoedaPorTipo(document.getElementById('premio-saldo-f3-ate').value,'BRL');
-  if(!(f1de>=0)||!(f1ate>f1de)||!(f2ate>f1ate)||!(f3ate>f2ate)){
+  if(!(f1pct>=0)||f1pct>100){
+    if(msgEl) msgEl.innerHTML='<span style="color:#e0503c">'+t('organizador.faixa_pct_invalida')+'</span>';
+    return;
+  }
+  var f1Est=_faixa1PorCotaEstimada(f1pct,s.admin.precoCota||0);
+  if(!(f1de>=0)||!(f2ate>f1Est)||!(f3ate>f2ate)){
     if(msgEl) msgEl.innerHTML='<span style="color:#e0503c">'+t('organizador.faixa_fim_menor')+'</span>';
     return;
   }
   var reservaAuto=_seg3dValor('premio-saldo-reserva-modo');
-  s.faixa1Inicio=f1de; s.faixa1Teto=f1ate; s.faixa2Teto=f2ate; s.faixa3Fim=f3ate; s.reservaTransferenciaAuto=reservaAuto;
+  s.faixa1Inicio=f1de; s.faixa1Percentual=f1pct; s.faixa2Teto=f2ate; s.faixa3Fim=f3ate; s.reservaTransferenciaAuto=reservaAuto;
   var sbF=_getSbClient();
   if(sbF && s.editId){
-    sbF.from('boloes').update({faixa1_inicio:f1de,faixa1_teto:f1ate,faixa2_teto:f2ate,faixa3_fim:f3ate,reserva_transferencia_auto:reservaAuto}).eq('id',s.editId).then(function(r){
+    sbF.from('boloes').update({faixa1_inicio:f1de,faixa1_percentual:f1pct,faixa2_teto:f2ate,faixa3_fim:f3ate,reserva_transferencia_auto:reservaAuto}).eq('id',s.editId).then(function(r){
       if(r&&r.error){ if(msgEl) msgEl.innerHTML='<span style="color:#e0503c">'+_esc(r.error.message)+'</span>'; return; }
       if(msgEl) msgEl.innerHTML='<span style="color:#16a34a">'+t('boloes.ps_faixas_atualizadas')+'</span>';
-      _renderFaixasCamposDesktop();
-      _pcAtualizarRateioPreview();
-      _notificarFaixasAlteradasDesktop(s.editId, s.nome, f1de, f1ate, f2ate, f3ate, reservaAuto);
+      _carregarResumoFaixa1Desktop(s.editId).then(function(){ _renderFaixasCamposDesktop(); _pcAtualizarRateioPreview(); });
+      _notificarFaixasAlteradasDesktop(s.editId, s.nome, f1de, f1pct, f2ate, f3ate, reservaAuto);
     });
   }
 }
@@ -23221,12 +23275,12 @@ function _calcExemplosFaixasDesktop(faixa1, faixa2, precoCota, reservaAuto){
 }
 function _exemploFaixasHtmlDesktop(){
   var s=_boloesState;
-  var faixa1=s.faixa1Teto==null?15:s.faixa1Teto, faixa2=s.faixa2Teto==null?2428.80:s.faixa2Teto, precoCota=s.admin.precoCota||0;
+  var precoCota=s.admin.precoCota||0, faixa1=_faixa1PorCotaEstimada(s.faixa1Percentual,precoCota), faixa2=s.faixa2Teto==null?2428.80:s.faixa2Teto;
   var cenarios=_calcExemplosFaixasDesktop(faixa1,faixa2,precoCota,!!s.reservaTransferenciaAuto);
   return '<div style="margin-top:8px">'+
     '<button type="button" id="premio-saldo-exemplo-btn" onclick="_toggleExemploFaixasDesktop()" style="border:none;background:none;color:var(--accent-2,#3a9b4e);font-size:11px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline">'+t('organizador.faixas_ver_exemplo')+'</button>'+
     '<div id="premio-saldo-exemplo-box" style="display:none;margin-top:8px;padding:10px 12px;background:var(--bg2,#fff);border:1px solid var(--glass-border);border-radius:10px;font-size:11px;line-height:1.5">'+
-      '<div style="color:var(--text-muted);margin-bottom:8px">'+t('organizador.faixas_exemplo_titulo_dinamico',{faixa1:faixa1.toLocaleString('pt-BR',{minimumFractionDigits:2}),faixa2:faixa2.toLocaleString('pt-BR',{minimumFractionDigits:2}),cota:precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2})})+'</div>'+
+      '<div style="color:var(--text-muted);margin-bottom:8px">'+t('organizador.faixas_exemplo_titulo_dinamico',{pct:_fmtPctFaixa(s.faixa1Percentual),faixa1:faixa1.toLocaleString('pt-BR',{minimumFractionDigits:2}),faixa2:faixa2.toLocaleString('pt-BR',{minimumFractionDigits:2}),cota:precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2})})+'</div>'+
       cenarios.map(function(c){
         return '<div style="font-weight:700;margin-bottom:3px">'+c.titulo+'</div>'+
           '<div style="white-space:pre-line;background:var(--glass-bg);border-radius:8px;padding:8px 10px;margin-bottom:8px">'+_esc(c.notif)+'</div>';
@@ -23248,7 +23302,7 @@ function _toggleExemploFaixasDesktop(){
 // do meu bolão". Reaproveita _calcFaixasPremioPorCota (mesmo cálculo da
 // prévia de rateio) e _montarCorpoNotifPremio (mesmo texto que o
 // participante recebe de verdade).
-function _exemploFaixasHtmlEstatico(faixa1, faixa2, precoCota, reservaAuto){
+function _exemploFaixasHtmlEstatico(faixa1, faixa2, precoCota, reservaAuto, pct){
   faixa1=Number(faixa1)||15; faixa2=Number(faixa2)||2428.80; precoCota=Number(precoCota)||0;
   var v1=Math.max(1,Math.round(faixa1*0.6));
   var v2=Math.round(faixa1+Math.max(1,precoCota*0.6));
@@ -23261,7 +23315,7 @@ function _exemploFaixasHtmlEstatico(faixa1, faixa2, precoCota, reservaAuto){
     return { titulo:t('organizador.faixas_exemplo_'+tituloKey+'_titulo'), notif:_montarCorpoNotifPremio(fx.credito,fx.reserva,fx.pix,reservaAuto) };
   });
   return '<div style="font-size:10.5px;color:#555;margin-bottom:6px">'+t('organizador.reserva_modo_linha',{modo:t(reservaAuto?'organizador.reserva_modo_auto':'organizador.reserva_modo_manual')})+'</div>'+
-    '<div style="font-size:10.5px;color:#555;margin-bottom:6px">'+t('organizador.faixas_exemplo_titulo_dinamico',{faixa1:faixa1.toLocaleString('pt-BR',{minimumFractionDigits:2}),faixa2:faixa2.toLocaleString('pt-BR',{minimumFractionDigits:2}),cota:precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2})})+'</div>'+
+    '<div style="font-size:10.5px;color:#555;margin-bottom:6px">'+t('organizador.faixas_exemplo_titulo_dinamico',{pct:_fmtPctFaixa(pct),faixa1:faixa1.toLocaleString('pt-BR',{minimumFractionDigits:2}),faixa2:faixa2.toLocaleString('pt-BR',{minimumFractionDigits:2}),cota:precoCota.toLocaleString('pt-BR',{minimumFractionDigits:2})})+'</div>'+
     cenarios.map(function(c){
       return '<div style="font-size:11px;font-weight:700;margin-bottom:3px">'+c.titulo+'</div>'+
         '<div class="box" style="white-space:pre-line;font-size:11px;margin-bottom:8px">'+_esc(c.notif)+'</div>';
@@ -23273,7 +23327,8 @@ function _montarCorpoNotifPremio(valorCredito, valorReserva, valorPix, reservaAu
     return t('boloes.notif_premio_corpo_simples',{valor:fmt(valorCredito)});
   }
   var linhas=[t('boloes.notif_premio_intro_dividido',{valor:fmt((valorCredito||0)+(valorReserva||0)+(valorPix||0))})];
-  linhas.push(t('boloes.notif_premio_linha_credito',{valor:fmt(valorCredito)}));
+  // Faixa 1 acumulada: com o teto já atingido, nada vai ao saldo — não mostra a linha de crédito zerada.
+  if(valorCredito>0) linhas.push(t('boloes.notif_premio_linha_credito',{valor:fmt(valorCredito)}));
   if(valorReserva>0) linhas.push(t(reservaAuto?'boloes.notif_premio_linha_reserva_auto':'boloes.notif_premio_linha_reserva',{valor:fmt(valorReserva)}));
   if(valorPix>0) linhas.push(t('boloes.notif_premio_linha_pix',{valor:fmt(valorPix)}));
   return linhas.join('\n');
@@ -23284,11 +23339,13 @@ async function confirmarCreditoPremio(){
   var valor=_parseMoedaPorTipo(raw,'BRL');
   if(!valor||isNaN(valor)||valor<=0){ toast(t('boloes.informe_valor_valido')); return; }
   var f1Inicio=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-de').value,'BRL');
-  var f1Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
+  var f1Pct=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
   var f2Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL');
   var f3Fim=_parseMoedaPorTipo(document.getElementById('premio-saldo-f3-ate').value,'BRL');
-  if(!(f1Inicio>=0)||!f1Teto||f1Teto<=f1Inicio||!f2Teto||f2Teto<=f1Teto||!f3Fim||f3Fim<=f2Teto){ toast(t('organizador.faixa_fim_menor')); return; }
-  s.faixa1Inicio=f1Inicio; s.faixa1Teto=f1Teto; s.faixa2Teto=f2Teto; s.faixa3Fim=f3Fim;
+  if(!(f1Pct>=0)||f1Pct>100){ toast(t('organizador.faixa_pct_invalida')); return; }
+  var f1Est=_faixa1PorCotaEstimada(f1Pct,s.admin.precoCota||0);
+  if(!(f1Inicio>=0)||!f2Teto||f2Teto<=f1Est||!f3Fim||f3Fim<=f2Teto){ toast(t('organizador.faixa_fim_menor')); return; }
+  s.faixa1Inicio=f1Inicio; s.faixa1Percentual=f1Pct; s.faixa2Teto=f2Teto; s.faixa3Fim=f3Fim;
   if(document.getElementById('premio-saldo-reserva-modo')) s.reservaTransferenciaAuto=_seg3dValor('premio-saldo-reserva-modo');
   var elSemana=document.getElementById('premio-saldo-semana');
   var idxSemana=elSemana&&elSemana.value!==''?parseInt(elSemana.value,10):null;
@@ -23297,6 +23354,13 @@ async function confirmarCreditoPremio(){
   var totalCotas=elegiveis.reduce(function(a,p){return a+(p.cotas||0);},0);
   if(!totalCotas){ toast(t('boloes.nenhum_ativo_pago')); return; }
   var valorPorCota=valor/totalCotas;
+  // Faixa 1 acumulada: grava o percentual agora (o servidor calcula o teto restante com ele) e lê o resumo atualizado.
+  var _sbPre=_getSbClient();
+  if(_sbPre && s.editId){
+    try{ await _sbPre.from('boloes').update({faixa1_inicio:f1Inicio,faixa1_percentual:f1Pct,faixa2_teto:f2Teto,faixa3_fim:f3Fim}).eq('id',s.editId); }catch(e){ console.warn('[confirmarCreditoPremio] faixas',e.message); }
+  }
+  await _carregarResumoFaixa1Desktop(s.editId);
+  var f1Teto=_faixa1EfetivaPorCotaDesktop(totalCotas);
   // Fatiamento progressivo (Faixa 1 = crédito automático; dentro da Faixa 2,
   // até o valor da cota deste bolão fica reservado pro próximo bolão do
   // participante, o resto vai de PIX; Faixa 3 = 100% PIX) — mesma
@@ -24858,7 +24922,7 @@ function imprimirTermoConstituicao(retornarHtml){
     '<p>'+t('termos.p_responsabilidade_administrador')+'</p>'+
     '<h2>'+t('termos.h2_divisao_dos_premios')+'</h2>'+
     '<p>'+t('termos.p_divisao_dos_premios')+'</p>'+
-    _exemploFaixasHtmlEstatico(s.faixa1Teto,s.faixa2Teto,s.admin.precoCota,s.reservaTransferenciaAuto)+
+    _exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(s.faixa1Percentual,s.admin.precoCota),s.faixa2Teto,s.admin.precoCota,s.reservaTransferenciaAuto,s.faixa1Percentual)+
     '<h2>'+t('termos.h2_declaracao_consentimento')+'</h2>'+
     '<p>'+t('termos.p_declaracao_consentimento')+'</p>'+
     '<h2>'+t('termos.h2_data_e_assinaturas')+'</h2>'+
@@ -25215,7 +25279,7 @@ function imprimirTermosCondicoes(){
     '<h2>'+t('termos.h2_7')+'</h2>'+
     _clausulaTaxaAdministrativa(s)+
     '<h2>'+t('termos.h2_8')+'</h2>'+
-    '<p>'+t('termos.p_8',{faixa1:(s.faixa1Teto==null?15:s.faixa1Teto).toFixed(2).replace('.',','),faixa2:(s.faixa2Teto==null?2428.80:s.faixa2Teto).toFixed(2).replace('.',',')})+'</p>'+
+    '<p>'+t('termos.p_8',{pct:_fmtPctFaixa(s.faixa1Percentual),faixa2:(s.faixa2Teto==null?2428.80:s.faixa2Teto).toFixed(2).replace('.',',')})+'</p>'+
     '<h2>'+t('termos.h2_9')+'</h2>'+
     '<p>'+t('termos.p_9')+'</p>'+
     '<h2>'+t('termos.h2_10')+'</h2>'+
@@ -27458,7 +27522,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), premioCreditado:parseFloat(b.premio_creditado||0), rodadas:b.rodadas||[],
     mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||'',
     pushLimitePremioCota:b.push_limite_premio_cota==null?500:parseFloat(b.push_limite_premio_cota),
-    palpitesAtivos:b.palpites_ativos!==false, limitePalpites:b.limite_palpites_secao==null?null:parseFloat(b.limite_palpites_secao), faixa1Teto:b.faixa1_teto==null?15.00:parseFloat(b.faixa1_teto), faixa2Teto:b.faixa2_teto==null?2428.80:parseFloat(b.faixa2_teto),
+    palpitesAtivos:b.palpites_ativos!==false, faixa1Percentual:(b.faixa1_percentual==null?25:parseFloat(b.faixa1_percentual)), limitePalpites:b.limite_palpites_secao==null?null:parseFloat(b.limite_palpites_secao), faixa1Teto:b.faixa1_teto==null?15.00:parseFloat(b.faixa1_teto), faixa2Teto:b.faixa2_teto==null?2428.80:parseFloat(b.faixa2_teto),
     faixa1Inicio:b.faixa1_inicio==null?0.05:parseFloat(b.faixa1_inicio), faixa3Fim:b.faixa3_fim==null?2000000.00:parseFloat(b.faixa3_fim), reservaTransferenciaAuto:!!b.reserva_transferencia_auto, premioCreditoAuto:!!b.premio_credito_auto,
     dataHoraEncerramentoOriginal:b.data_hora_encerramento||null,
     // Usa componentes LOCAIS pros dois campos — toISOString() devolve a
@@ -27716,7 +27780,7 @@ var BolaoJogosRepo = {
       data_sorteio: registro.dataSorteio||null, semana_inicio: registro.semanaInicio||null,
       semana_fim: registro.semanaFim||null, rodadas: registro.rodadas||[],
       num_dez: registro.numDez||0, push_limite_premio_cota: registro.pushLimitePremioCota==null?500:registro.pushLimitePremioCota,
-      faixa1_teto: registro.faixa1Teto==null?15.00:registro.faixa1Teto, faixa2_teto: registro.faixa2Teto==null?2428.80:registro.faixa2Teto,
+      faixa1_teto: registro.faixa1Teto==null?15.00:registro.faixa1Teto, faixa1_percentual: registro.faixa1Percentual==null?25:registro.faixa1Percentual, faixa2_teto: registro.faixa2Teto==null?2428.80:registro.faixa2Teto,
       faixa1_inicio: registro.faixa1Inicio==null?0.05:registro.faixa1Inicio, faixa3_fim: registro.faixa3Fim==null?2000000.00:registro.faixa3Fim, reserva_transferencia_auto: !!registro.reservaTransferenciaAuto, premio_credito_auto: !!registro.premioCreditoAuto,
       data_hora_encerramento: novaDataHoraEncerr,
       push_encerramento_titulo: registro.pushEncerramentoTitulo||null, push_encerramento_corpo: registro.pushEncerramentoCorpo||null,
@@ -28752,7 +28816,7 @@ function ptAbrirTermosCondicoes(){
     '<h2>'+t('termos.h2_7')+'</h2>'+
     ptClausulaTaxaAdministrativa(info)+
     '<h2>'+t('termos.h2_8')+'</h2>'+
-    '<p>'+t('termos.p_8',{faixa1:(info.faixa1_teto==null?15:info.faixa1_teto).toFixed(2).replace('.',','),faixa2:(info.faixa2_teto==null?2428.80:info.faixa2_teto).toFixed(2).replace('.',',')})+'</p>'+
+    '<p>'+t('termos.p_8',{pct:_fmtPctFaixa(info.faixa1_percentual),faixa2:(info.faixa2_teto==null?2428.80:info.faixa2_teto).toFixed(2).replace('.',',')})+'</p>'+
     '<h2>'+t('termos.h2_9')+'</h2>'+
     '<p>'+t('termos.p_9')+'</p>'+
     '<h2>'+t('termos.h2_10')+'</h2>'+
@@ -28874,7 +28938,7 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
     '<p>'+t('termos.p_responsabilidade_administrador')+'</p>'+
     '<h2>'+t('termos.h2_divisao_dos_premios')+'</h2>'+
     '<p>'+t('termos.p_divisao_dos_premios')+'</p>'+
-    _exemploFaixasHtmlEstatico(info.faixa1_teto,info.faixa2_teto,info.preco_cota,info.reserva_transferencia_auto)+
+    _exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(info.faixa1_percentual,info.preco_cota),info.faixa2_teto,info.preco_cota,info.reserva_transferencia_auto,info.faixa1_percentual)+
     '<h2>'+t('termos.h2_declaracao_consentimento')+'</h2>'+
     '<p>'+t('termos.p_declaracao_consentimento')+'</p>'+
     '<h2>'+t('termos.h2_data_e_assinaturas')+'</h2>'+
