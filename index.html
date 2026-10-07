@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.9.2':{
+    'en-US':["Version aligned with the mobile app (5.9.2). Prize → Balance: Tier 2 shows, in reais, where it starts (Tier 1 limit + R$ 0.01)."],
+    'es-ES':["Versión alineada con la app móvil (5.9.2). Premio → Saldo: el Tramo 2 muestra, en reales, dónde empieza (límite del Tramo 1 + R$ 0,01)."],
+    'it-IT':["Versione allineata con l app mobile (5.9.2). Premio → Saldo: la Fascia 2 mostra, in reais, dove inizia (limite della Fascia 1 + R$ 0,01)."]
+  },
   '5.9.1':{
     'en-US':["Version aligned with the mobile app (5.9.1). Change in prize distribution: Tier 1 (automatic credit to the balance) now goes up to a percentage of the pool collection (default 25%, adjustable in Prize → Balance), cumulatively. Once the limit is reached, the difference goes to the next pool reserve; Tiers 2 and 3 adjust automatically. Terms, examples, notices and manuals updated."],
     'es-ES':["Versión alineada con la app móvil (5.9.1). Cambio en la distribución del premio: el Tramo 1 (crédito automático en el saldo) ahora llega hasta un porcentaje de la recaudación del grupo (estándar 25%, ajustable en Premio → Saldo), de forma acumulada. Alcanzado el límite, la diferencia va a la reserva del próximo grupo; los Tramos 2 y 3 se ajustan solos. Términos, ejemplos, avisos y manuales actualizados."],
@@ -1762,6 +1767,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.9.2':[
+    "Versão alinhada com o app mobile (5.9.2). Prêmio → Saldo: a Faixa 2 mostra, em reais, onde começa (teto da Faixa 1 + R$ 0,01)."
+  ],
   '5.9.1':[
     "Versão alinhada com o app mobile (5.9.1). Mudança na distribuição do prêmio: a Faixa 1 (crédito automático no saldo) agora vai até um percentual da arrecadação do bolão (padrão 25%, ajustável em Prêmio → Saldo), de forma acumulada. Atingido o limite, a diferença vai para a reserva do próximo bolão; as Faixas 2 e 3 se ajustam sozinhas. Termo, exemplos, avisos e manuais atualizados."
   ],
@@ -2132,7 +2140,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.1</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.2</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2508,7 +2516,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.1</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.2</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -23109,7 +23117,7 @@ function _renderFaixasCamposDesktop(){
     _seg3dHtml('premio-saldo-reserva-modo', s.reservaTransferenciaAuto, t('geral.manual'), t('geral.automatica'), '_seg3dMarcar');
   el.innerHTML=linha('f1',t('boloes.ps_faixa1_titulo'),campo('premio-saldo-f1-de',f1de,false),t('organizador.faixa1_pct_label'),campoPct('premio-saldo-f1-ate',f1pct))+
     dicaF1+
-    linha('f2',t('boloes.ps_faixa2_titulo'),campoTexto(t('organizador.faixa2_de_apos_f1')),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f2-ate',f2ate,false))+
+    linha('f2',t('boloes.ps_faixa2_titulo'),(r ? campo('premio-saldo-f2-de',Number(r.teto_total||0)+0.01,true) : campoTexto(t('organizador.faixa2_de_apos_f1'))),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f2-ate',f2ate,false))+
     linha('f3',t('boloes.ps_faixa3_titulo'),campo('premio-saldo-f3-de',f2ate+0.01,true),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f3-ate',f3ate,false))+
     blocoModo+
     _exemploFaixasHtmlDesktop();
