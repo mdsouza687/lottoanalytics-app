@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.8.7':{
+    'en-US':["Prize Dossier: receipts and tickets sent as PDF now come out complete and legible in print (every page is included, instead of just an icon), and a new section brings the tickets of the winning games — PDFs are identified automatically and photos that cannot be checked are included if you choose. It applies to the organizer screen and the participant area. Version aligned with the mobile app (5.8.7). Operating Rules updated (lottery shop vs online and the tip to prefer PDF)."],
+    'es-ES':["Expediente del premio: los comprobantes y boletos enviados en PDF ahora salen completos y legibles al imprimir (se incluye cada página, en vez de solo un icono), y una nueva sección trae los boletos de los juegos premiados — los PDF se identifican automáticamente y las fotos que no puedan comprobarse se incluyen si tú lo eliges. Vale en la pantalla del organizador y en el área del participante. Versión alineada con la app móvil (5.8.7). Reglas de funcionamiento actualizado (agencia vs en línea y consejo de preferir PDF)."],
+    'it-IT':["Fascicolo del premio: le ricevute e i biglietti inviati in PDF ora escono completi e leggibili in stampa (ogni pagina è inclusa, invece di una semplice icona), e una nuova sezione riporta i biglietti delle giocate vincenti — i PDF vengono identificati automaticamente e le foto che non possono essere verificate si includono se lo scegli. Vale nella schermata dell'organizzatore e nell'area del partecipante. Versione allineata con l'app mobile (5.8.7). Regole di funzionamento aggiornato (ricevitoria vs online e consiglio di preferire il PDF)."]
+  },
   '5.8.6':{
     'en-US':["Version aligned with the mobile app (5.8.6): in Analysis > Forecast, the phone now includes the extra ball (Powerball and Mega Millions), the lucky month (Dia de Sorte) and the favorite team (Timemania) in the suggested combinations, and fixes the guess screen for American lotteries. Manuals updated."],
     'es-ES':["Versión alineada con la app móvil (5.8.6): en Análisis > Previsión, el móvil ahora incluye la bola extra (Powerball y Mega Millions), el mes de la suerte (Dia de Sorte) y el equipo del corazón (Timemania) en las combinaciones sugeridas, y corrige la pantalla de jugadas de las loterías estadounidenses. Manuales actualizados."],
@@ -1737,6 +1742,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.8.7':[
+    "Dossiê do Prêmio: comprovantes e bilhetes enviados em PDF agora saem completos e legíveis na impressão (cada página é incluída, em vez de só um ícone), e uma nova seção traz os bilhetes dos jogos premiados — os PDFs são identificados automaticamente e as fotos que não puderem ser conferidas entram por escolha sua. Vale na tela do organizador e na área do participante. Versão alinhada com o app mobile (5.8.7). Regras de Funcionamento atualizado (lotérica x online e dica de preferir PDF)."
+  ],
   '5.8.6':[
     "Versão alinhada com o app mobile (5.8.6): em Análises > Previsão, o celular passou a incluir a bola extra (Powerball e Mega Millions), o mês de sorte (Dia de Sorte) e o time do coração (Timemania) nas combinações sugeridas, e a corrigir a tela de palpite das loterias americanas. Manuais atualizados."
   ],
@@ -2092,7 +2100,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.6</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.7</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2468,7 +2476,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.6</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.8.7</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -24839,6 +24847,125 @@ function imprimirTermoConstituicao(retornarHtml){
 // a imagem (object-fit:contain, não cover) — cada comprovante precisa
 // continuar legível (valor/data/nome aparecem no próprio print do Pix).
 // Mesma fonte/junção com nome do participante já usada em verComprovantesPix().
+/*LA_DOSSIE_INI*/
+// ═══ DOSSIÊ DO PRÊMIO — mídia legível (PDF viram imagens das páginas) + bilhetes dos jogos premiados ═══
+// Módulo único injetado nos DOIS apps entre os marcadores LA_DOSSIE (ver injetar-dossie.js).
+// Problema (2026-10-07): comprovantes/bilhetes em PDF saíam no dossiê só como um ícone "PDF não incluído". Agora cada página do PDF é desenhada
+// (pdf.js) e entra como imagem legível; e os bilhetes dos jogos premiados entram numa seção própria (PDF: identificados pelo texto do arquivo).
+var _DOSS_TX = {
+  'pt-BR': { h1: 'Bilhetes dos jogos premiados', ident: '{n} bilhete(s) com jogo premiado identificado', semPremio: 'Nenhum jogo premiado apurado até agora: não há bilhetes a incluir.', semBilhete: 'Há jogo(s) premiado(s), mas nenhum bilhete foi anexado ao bolão.', nenhumIdent: 'Nenhum bilhete anexado pôde ser identificado automaticamente como sendo de um jogo premiado.', naoIdent: '{n} bilhete(s) em foto ou PDF sem texto não puderam ser conferidos automaticamente', incluidosTodos: ' e foram incluídos abaixo para conferência', omitidos: ' e NÃO foram incluídos (veja os arquivos originais no bolão)', enviado: 'Enviado em {q}', contem: 'Jogo premiado: {l}', naoConf: 'Não conferido automaticamente — verifique se contém jogo premiado', pergunta: 'Há {n} bilhete(s) (foto ou PDF sem texto) que não puderam ser conferidos automaticamente. Incluir todos no dossiê?', pagina: 'página {i} de {n}', maisPag: '… e mais {n} página(s) no arquivo original', falha: 'Não foi possível exibir este PDF na impressão. Abra o arquivo original no bolão.' },
+  'en-US': { h1: 'Tickets of the winning games', ident: '{n} ticket(s) with an identified winning game', semPremio: 'No winning game found so far: there are no tickets to include.', semBilhete: 'There are winning game(s), but no ticket was attached to the pool.', nenhumIdent: 'No attached ticket could be automatically identified as belonging to a winning game.', naoIdent: '{n} ticket(s) as photo or PDF without text could not be checked automatically', incluidosTodos: ' and were included below for checking', omitidos: ' and were NOT included (see the original files in the pool)', enviado: 'Sent on {q}', contem: 'Winning game: {l}', naoConf: 'Not checked automatically — verify whether it contains a winning game', pergunta: 'There are {n} ticket(s) (photo or PDF without text) that could not be checked automatically. Include all of them in the dossier?', pagina: 'page {i} of {n}', maisPag: '… and {n} more page(s) in the original file', falha: 'This PDF could not be shown in the printout. Open the original file in the pool.' },
+  'es-ES': { h1: 'Boletos de los juegos premiados', ident: '{n} boleto(s) con juego premiado identificado', semPremio: 'Ningún juego premiado hasta ahora: no hay boletos que incluir.', semBilhete: 'Hay juego(s) premiado(s), pero no se adjuntó ningún boleto al grupo.', nenhumIdent: 'Ningún boleto adjunto pudo identificarse automáticamente como de un juego premiado.', naoIdent: '{n} boleto(s) en foto o PDF sin texto no pudieron comprobarse automáticamente', incluidosTodos: ' y se incluyeron abajo para su revisión', omitidos: ' y NO se incluyeron (mira los archivos originales en el grupo)', enviado: 'Enviado el {q}', contem: 'Juego premiado: {l}', naoConf: 'No comprobado automáticamente — verifica si contiene un juego premiado', pergunta: 'Hay {n} boleto(s) (foto o PDF sin texto) que no pudieron comprobarse automáticamente. ¿Incluirlos todos en el expediente?', pagina: 'página {i} de {n}', maisPag: '… y {n} página(s) más en el archivo original', falha: 'No se pudo mostrar este PDF en la impresión. Abre el archivo original en el grupo.' },
+  'it-IT': { h1: 'Biglietti delle giocate vincenti', ident: '{n} biglietto/i con giocata vincente identificata', semPremio: 'Nessuna giocata vincente finora: non ci sono biglietti da includere.', semBilhete: 'Ci sono giocate vincenti, ma nessun biglietto è stato allegato al gruppo.', nenhumIdent: 'Nessun biglietto allegato ha potuto essere identificato automaticamente come di una giocata vincente.', naoIdent: '{n} biglietto/i in foto o PDF senza testo non hanno potuto essere verificati automaticamente', incluidosTodos: ' e sono stati inclusi qui sotto per la verifica', omitidos: ' e NON sono stati inclusi (vedi i file originali nel gruppo)', enviado: 'Inviato il {q}', contem: 'Giocata vincente: {l}', naoConf: 'Non verificato automaticamente — controlla se contiene una giocata vincente', pergunta: 'Ci sono {n} biglietto/i (foto o PDF senza testo) che non hanno potuto essere verificati automaticamente. Includerli tutti nel fascicolo?', pagina: 'pagina {i} di {n}', maisPag: '… e altre {n} pagina/e nel file originale', falha: 'Non è stato possibile mostrare questo PDF nella stampa. Apri il file originale nel gruppo.' },
+};
+(function () { try { Object.keys(_DOSS_TX).forEach(function (l) { if (typeof LA_I18N !== 'undefined' && LA_I18N[l]) Object.keys(_DOSS_TX[l]).forEach(function (k) { LA_I18N[l]['dossie.' + k] = _DOSS_TX[l][k]; }); }); } catch (e) {} })();
+
+var _dossPdfs = {};
+function _dossCarregaScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { rej(new Error('Falha ao carregar ' + src)); }; document.head.appendChild(s); }); }
+async function _dossAbrirPdf(url) {
+  if (typeof pdfjsLib === 'undefined') {
+    await _dossCarregaScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  if (!_dossPdfs[url]) _dossPdfs[url] = (async function () { var buf = await (await fetch(url)).arrayBuffer(); return pdfjsLib.getDocument({ data: buf }).promise; })();
+  return _dossPdfs[url];
+}
+// Desenha as páginas do PDF como imagens (JPEG) — é o que deixa o conteúdo legível na impressão do dossiê.
+async function _dossPdfImagens(url, maxPag, escala) {
+  var pdf = await _dossAbrirPdf(url), n = Math.min(pdf.numPages, maxPag || 4), out = [], i;
+  for (i = 1; i <= n; i++) {
+    var page = await pdf.getPage(i), vp = page.getViewport({ scale: escala || 1.8 }), cv = document.createElement('canvas');
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    out.push(cv.toDataURL('image/jpeg', 0.88));
+  }
+  return { imagens: out, total: pdf.numPages };
+}
+async function _dossPdfTexto(url) {
+  var pdf = await _dossAbrirPdf(url), partes = [], i;
+  for (i = 1; i <= pdf.numPages; i++) { var pg = await pdf.getPage(i), tc = await pg.getTextContent(); partes.push(tc.items.map(function (it) { return it.str; }).join(' ')); }
+  return partes.join(' ');
+}
+function _dossEhPdf(url) { return /\.pdf(\?|$)/i.test(url || ''); }
+// Mídia de um anexo: PDF → uma imagem por página (largura total); imagem → <img> grande. Estilos inline (valem sobre o CSS de cada impressão).
+async function _dossMidiaHtml(url, escFn) {
+  if (!_dossEhPdf(url)) return '<img src="' + escFn(url) + '" style="width:100%;height:auto;max-height:235mm;object-fit:contain;display:block"/>';
+  try {
+    var r = await _dossPdfImagens(url, 4, 1.8), h = '';
+    r.imagens.forEach(function (src, i) { h += '<img src="' + src + '" style="width:100%;height:auto;display:block;margin:0 0 2mm;border:1px solid #ddd"/>' + (r.total > 1 ? '<div style="font-size:8px;color:#777;text-align:center;margin-bottom:3mm">' + t('dossie.pagina', { i: i + 1, n: r.total }) + '</div>' : ''); });
+    if (r.total > r.imagens.length) h += '<div style="font-size:9px;color:#555;text-align:center">' + t('dossie.maisPag', { n: r.total - r.imagens.length }) + '</div>';
+    return h;
+  } catch (e) { console.warn('[dossiê] PDF não renderizado', e && e.message); return '<div style="padding:10px;font-size:11px;color:#a00;text-align:center">' + escFn(t('dossie.falha')) + '</div>'; }
+}
+// Seção de comprovantes: fotos em 2 por linha; PDFs (páginas inteiras) em linha própria, na largura total.
+async function _dossComprovantesGrade(lista, escFn) {
+  // lista: [{url, nome, quando}]
+  var itens = [];
+  for (var i = 0; i < lista.length; i++) {
+    var c = lista[i], pdf = _dossEhPdf(c.url), m = await _dossMidiaHtml(c.url, escFn);
+    itens.push('<div style="' + (pdf ? 'grid-column:1/-1;' : '') + 'border:1px solid #ddd;border-radius:4px;padding:4px;break-inside:avoid;page-break-inside:avoid">' + m + '<div style="font-size:9px;color:#444;text-align:center;margin-top:3px;line-height:1.3">' + escFn(c.nome || '—') + '<br>' + escFn(c.quando || '') + '</div></div>');
+  }
+  return '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6mm">' + itens.join('') + '</div>';
+}
+function _dossNums(j) { return (j.numeros || []).map(function (x) { return parseInt(x, 10); }).filter(function (x) { return !isNaN(x); }); }
+function _dossRotuloJogo(j) { return (typeof loterianome === 'function' ? loterianome(j.loteria) : ((typeof CFG !== 'undefined' && CFG[j.loteria] && CFG[j.loteria].nome) || j.loteria)) + ' ' + j.concurso + ': ' + _dossNums(j).map(function (n) { return String(n).padStart(2, '0'); }).join(' '); }
+// Quais jogos premiados aparecem no texto de um bilhete (todos os números do jogo + o nº do concurso, quando numérico)
+function _dossCasa(texto, premiados) {
+  var toks = {}; (texto.match(/\b\d{1,2}\b/g) || []).forEach(function (x) { toks[parseInt(x, 10)] = 1; });
+  return premiados.filter(function (p) {
+    var nums = _dossNums(p); if (!nums.length) return false;
+    if (!nums.every(function (n) { return toks[n]; })) return false;
+    var c = String(p.concurso || ''); if (/^\d{3,}$/.test(c) && !new RegExp('(^|\\D)' + c + '(\\D|$)').test(texto)) return false;
+    return true;
+  });
+}
+// Seção "Bilhetes dos jogos premiados". perguntar(msg) → Promise<boolean> (incluir os bilhetes não identificados?).
+async function _dossBilhetesSecao(bilhetes, jogos, escFn, perguntar) {
+  var premiados = (jogos || []).filter(function (j) { return j && j.premiado; }), corpo = '<h1 style="font-size:18px;margin:0 0 4px">' + escFn(t('dossie.h1')) + '</h1>';
+  if (!premiados.length) return { corpo: corpo + '<p style="color:#999">' + escFn(t('dossie.semPremio')) + '</p>' };
+  if (!(bilhetes || []).length) return { corpo: corpo + '<p style="color:#999">' + escFn(t('dossie.semBilhete')) + '</p>' };
+  var ident = [], nao = [], i;
+  for (i = 0; i < bilhetes.length; i++) {
+    var b = bilhetes[i], url = b.fotoUrl || b.foto_url, quando = b.criadoEm || b.created_at, hits = [];
+    if (_dossEhPdf(url)) { try { var tx = await _dossPdfTexto(url); if (tx && tx.replace(/\s/g, '').length > 20) hits = _dossCasa(tx, premiados); else hits = null; } catch (e) { hits = null; } } else hits = null;
+    if (hits && hits.length) ident.push({ url: url, quando: quando, hits: hits }); else if (hits === null) nao.push({ url: url, quando: quando }); // PDF sem texto/foto: não dá pra conferir
+  }
+  var incluirNao = false;
+  if (nao.length) { try { incluirNao = !!(await perguntar(t('dossie.pergunta', { n: nao.length }))); } catch (e) { incluirNao = false; } }
+  var q = function (iso) { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+  corpo += '<div style="color:#555;font-size:11px;margin-bottom:10px">' + escFn(t('dossie.ident', { n: ident.length })) + (nao.length ? '. ' + escFn(t('dossie.naoIdent', { n: nao.length }) + (incluirNao ? t('dossie.incluidosTodos') : t('dossie.omitidos'))) + '.' : '') + '</div>';
+  if (!ident.length && !(nao.length && incluirNao)) corpo += '<p style="color:#999">' + escFn(t('dossie.nenhumIdent')) + '</p>';
+  for (i = 0; i < ident.length; i++) {
+    var it = ident[i], m = await _dossMidiaHtml(it.url, escFn);
+    corpo += '<div style="border:1px solid #ccc;border-radius:5px;padding:5px;margin-bottom:6mm;break-inside:avoid-page">' + m + '<div style="font-size:10px;color:#222;margin-top:4px"><b>' + escFn(t('dossie.contem', { l: it.hits.map(_dossRotuloJogo).join(' · ') })) + '</b><br><span style="color:#666">' + escFn(t('dossie.enviado', { q: q(it.quando) })) + '</span></div></div>';
+  }
+  if (incluirNao) for (i = 0; i < nao.length; i++) {
+    var nb = nao[i], m2 = await _dossMidiaHtml(nb.url, escFn);
+    corpo += '<div style="border:1px dashed #aaa;border-radius:5px;padding:5px;margin-bottom:6mm;break-inside:avoid-page">' + m2 + '<div style="font-size:10px;color:#666;margin-top:4px">' + escFn(t('dossie.naoConf')) + '<br>' + escFn(t('dossie.enviado', { q: q(nb.quando) })) + '</div></div>';
+  }
+  return { corpo: corpo };
+}
+// Espera as imagens da janela de impressão terminarem de carregar (até ms), para a impressão sair completa.
+function _dossEsperarImagens(doc, ms) {
+  return new Promise(function (res) {
+    var fim = Date.now() + (ms || 10000);
+    (function tick() { var pend = Array.prototype.filter.call(doc.images || [], function (im) { return !im.complete; }); if (!pend.length || Date.now() > fim) res(); else setTimeout(tick, 200); })();
+  });
+}
+
+// Dados do bolão ao vivo (jogos com flag premiado + galeria de bilhetes) pela função do servidor — vale para organizador e participante.
+async function _dossDadosAoVivo(sbCli, bolaoId) {
+  var r = await sbCli.functions.invoke('publicar-resultados-automatico', { body: { bolao_id: bolaoId } });
+  if (r.error) throw r.error;
+  return { jogos: (r.data && r.data.jogos) || [], bilhetes: (r.data && r.data.bilhetes) || [] };
+}
+// Monta o HTML da seção sem nunca derrubar a geração do dossiê: em erro, a seção sai com um aviso.
+async function _dossSecaoSegura(dadosFn, escFn, perguntar) {
+  try { var d = await dadosFn(); return (await _dossBilhetesSecao(d.bilhetes, d.jogos, escFn, perguntar)).corpo; }
+  catch (e) { console.warn('[dossiê] bilhetes', e && e.message); return '<h1 style="font-size:18px;margin:0 0 4px">' + escFn(t('dossie.h1')) + '</h1><p style="color:#a00">' + escFn(String(e && e.message || e)) + '</p>'; }
+}
+
+/*LA_DOSSIE_FIM*/
 async function _buildHtmlComprovantesPix(bolaoId){
   var sb=_getSbClient();
   if(!sb||!bolaoId) return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:'<h1>'+t('termos.comprovantes_de_deposito_titulo')+'</h1><p style="color:#999">'+t('termos.servico_indisponivel_carregar_comprovantes')+'</p>'};
@@ -24847,21 +24974,12 @@ async function _buildHtmlComprovantesPix(bolaoId){
   var lista=data||[];
   var participantesPorId={};
   (_boloesState.participantes||[]).forEach(function(p){ participantesPorId[p.id]=p; });
-  var itens=lista.map(function(c){
-    var p=participantesPorId[c.bolao_participante_id];
-    var nome=p?p.nome:t('termos.participante_removido_parentese');
-    var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
-    // PDF não dá pra embutir o conteúdo na impressão (só a imagem/link) —
-    // mostra um aviso em vez de tentar renderizar como <img> (quebraria).
-    var midia=ehPdf
-      ? '<div style="height:58mm;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;color:#555;padding:4px">'+t('termos.anexo_pdf_nao_incluido_impressao')+'</div>'
-      : '<img src="'+_esc(c.foto_url)+'"/>';
-    return '<div class="item">'+midia+'<div class="cap">'+_esc(nome)+'<br>'+quando+'</div></div>';
-  }).join('');
+  var gradeHtml=lista.length ? await _dossComprovantesGrade(lista.map(function(c){
+    return {url:c.foto_url, nome:(participantesPorId[c.bolao_participante_id]||{nome:t('termos.participante_removido_parentese')}).nome, quando:new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+  }), _esc) : '';
   var corpo='<h1>'+t('termos.comprovantes_de_deposito_titulo')+'</h1>'+
     '<div class="sub">'+t('termos.n_comprovante_anexado_bolao',{n:lista.length,s:lista.length!==1?'s':''})+'</div>'+
-    (lista.length ? '<div class="grid">'+itens+'</div>' : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
+    (lista.length ? gradeHtml : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
   return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo};
 }
 // "📑 Dossiê do Prêmio" (fase 70) — pacote de documentação recomendado pra
@@ -24889,6 +25007,9 @@ async function imprimirDossiePremio(){
   secoes.push('<div class="dossie-sec sec-termo">'+(termo?termo.corpo:'<h1>'+t('termos.termo_constituicao_h1')+'</h1><p style="color:#999">'+t('termos.indisponivel_nenhum_participante_ativo')+'</p>')+'</div>');
   secoes.push('<div class="dossie-sec sec-relatorio">'+(relatorio?relatorio.corpo:'<h1>'+t('termos.jogos_premiados_h1')+'</h1><p style="color:#999">'+t('termos.nenhum_jogo_premiado_encontrado_bolao')+'</p>')+'</div>');
   secoes.push('<div class="dossie-sec sec-comprovantes">'+comprovantes.corpo+'</div>');
+  toast(t('termos.gerando_dossie'));
+  var bilhetesCorpo=await _dossSecaoSegura(function(){ return _dossDadosAoVivo(_getSbClient(), s.editId); }, _esc, function(m){ return Promise.resolve(confirm(m)); });
+  secoes.push('<div class="dossie-sec sec-bilhetes">'+bilhetesCorpo+'</div>');
 
   var html='<html><head><meta charset="utf-8"><title>'+t('termos.titulo_dossie_premio_x',{nome:_esc(s.nome)})+'</title>'+
     '<style>@page{size:A4;margin:12mm}'+
@@ -24937,7 +25058,7 @@ async function imprimirDossiePremio(){
   var w=window.open('','_blank');
   if(!w){ toast(t('termos.permita_popups')); return; }
   w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
-  setTimeout(function(){ w.print(); }, 500);
+  _dossEsperarImagens(w.document, 12000).then(function(){ w.print(); });
 }
 
 // Fase 15: Termos e Condições de participação — documento padrão pra
@@ -28862,17 +28983,12 @@ async function _ptBuildHtmlComprovantes(bolaoId){
   var sb=_getSbClient();
   var {data,error}=await sb.rpc('rpc_participante_comprovantes_bolao',{p_bolao_id:bolaoId});
   var lista=(!error&&data)?data:[];
-  var itens=lista.map(function(c){
-    var quando=new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    var ehPdf=/\.pdf(\?|$)/i.test(c.foto_url);
-    var midia=ehPdf
-      ? '<div class="item-pdf">'+t('pt.anexo_pdf_nao_incluido_impressao_curto')+'</div>'
-      : '<img src="'+_esc(c.foto_url)+'"/>';
-    return '<div class="item">'+midia+'<div class="cap">'+_esc(c.nome)+'<br>'+quando+'</div></div>';
-  }).join('');
+  var gradeHtml=lista.length ? await _dossComprovantesGrade(lista.map(function(c){
+    return {url:c.foto_url, nome:c.nome, quando:new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+  }), _esc) : '';
   var corpo='<h1>'+t('termos.comprovantes_de_deposito_titulo')+'</h1>'+
     '<div class="sub">'+t('termos.n_comprovante_anexado_bolao',{n:lista.length,s:lista.length!==1?'s':''})+'</div>'+
-    (lista.length ? '<div class="grid">'+itens+'</div>' : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
+    (lista.length ? gradeHtml : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
   return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo};
 }
 // "Dossiê do Prêmio" no app do participante — mesma ideia do botão já
@@ -28890,10 +29006,12 @@ async function ptAbrirDossiePremio(bolaoId){
     comprovantes=await _ptBuildHtmlComprovantes(bolaoId);
   }catch(e){ console.warn('[ptAbrirDossiePremio]',e.message); toast(t('pt.erro_gerar_dossie_x',{msg:e.message})); return; }
 
+  var bilhetesCorpo=await _dossSecaoSegura(function(){ return _dossDadosAoVivo(_getSbClient(), bolaoId); }, _esc, function(m){ return Promise.resolve(confirm(m)); });
   var secoes=[
     '<div class="dossie-sec sec-termo">'+(termo?termo.corpo:'<h1>'+t('termos.termo_constituicao_h1')+'</h1><p style="color:#999">'+t('geral.indisponivel_ponto')+'</p>')+'</div>',
     '<div class="dossie-sec sec-jogos">'+jogos.corpo+'</div>',
-    '<div class="dossie-sec sec-comprovantes">'+comprovantes.corpo+'</div>'
+    '<div class="dossie-sec sec-comprovantes">'+comprovantes.corpo+'</div>',
+    '<div class="dossie-sec sec-bilhetes">'+bilhetesCorpo+'</div>'
   ];
   var nomeBolao=(_ptUltimoInfoBolao&&_ptUltimoInfoBolao.bolao_nome)||t('boloes.bolao_fallback');
   var html='<html><head><meta charset="utf-8"><title>'+t('termos.titulo_dossie_premio_x',{nome:_esc(nomeBolao)})+'</title>'+
