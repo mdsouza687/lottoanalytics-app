@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.10.0':{
+    'en-US':["Named participant lists: Save List and Load Saved List now use named lists (Family, Friends…) kept in your account and identical on the phone; new My lists button to create, edit and delete; the old saved list from the browser can be brought in. The same person can be in several lists. Version aligned with the mobile app (5.10.0)."],
+    'es-ES':["Listas de participantes con nombre: Guardar lista y Cargar lista guardada ahora usan listas con nombre (Familia, Amigos…) guardadas en tu cuenta e iguales en el celular; nuevo botón Mis listas para crear, editar y eliminar; se puede traer la lista guardada antigua del navegador. La misma persona puede estar en varias listas. Versión alineada con la app móvil (5.10.0)."],
+    'it-IT':["Elenchi di partecipanti con nome: Salva elenco e Carica elenco salvato ora usano elenchi con nome (Famiglia, Amici…) conservati nel tuo account e uguali sul telefono; nuovo pulsante I miei elenchi per creare, modificare ed eliminare; si può portare il vecchio elenco salvato del browser. La stessa persona può stare in più elenchi. Versione allineata con l’app mobile (5.10.0)."]
+  },
   '5.9.5':{
     'en-US':["Quick result: when you turn on the computer, open the app, finish logging in, wake the PC from sleep or the internet comes back, the app checks the Caixa website right away and, if the official API has not released the result yet, publishes the provisional one for everyone; the official API still overwrites it when it comes out. Before, the check only ran during draw hours and was lost when login was slow. Version aligned with the mobile app (5.9.5)."],
     'es-ES':["Resultado rápido: al encender el ordenador, abrir la app, terminar el inicio de sesión, despertar del reposo o volver internet, la app verifica el sitio de Caixa en el acto y, si la API oficial aún no publicó el resultado, publica el provisional para todos; la API oficial sigue sobrescribiéndolo cuando salga. Antes la verificación solo funcionaba en horario de sorteo y se perdía si el inicio de sesión tardaba. Versión alineada con la app móvil (5.9.5)."],
@@ -1782,6 +1787,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.10.0':[
+    "Listas de participantes com nome: Salvar Lista e Carregar Lista Salva agora usam listas com nome (Família, Amigos…) guardadas na sua conta e iguais no celular; novo botão Minhas listas para criar, editar e excluir; a lista salva antiga do navegador pode ser trazida. A mesma pessoa pode estar em várias listas. Versão alinhada com o app mobile (5.10.0)."
+  ],
   '5.9.5':[
     "Resultado rápido: ao ligar o computador, abrir o app, concluir o login, acordar do sono ou voltar a internet, o app confere o site da Caixa na hora e, se a API oficial ainda não liberou o resultado, publica o provisório para todos; a API oficial continua sobrescrevendo quando sair. Antes a conferência só rodava no horário de sorteio e se perdia quando o login demorava. Versão alinhada com o app mobile (5.9.5)."
   ],
@@ -2164,7 +2172,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.5</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2540,7 +2548,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.5</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5668,6 +5676,10 @@ Object.assign(LA_I18N['pt-BR'], {"boloes.cadastro_geral_sub":"Todas as pessoas j
 Object.assign(LA_I18N['en-US'], {"boloes.cadastro_geral_sub":"Everyone already registered ({n})","boloes.cadastro_buscar":"Search by name, email or WhatsApp","boloes.cadastro_participou":"Pools","boloes.cadastro_neste_bolao":"In this pool"});
 Object.assign(LA_I18N['es-ES'], {"boloes.cadastro_geral_sub":"Todas las personas ya registradas ({n})","boloes.cadastro_buscar":"Buscar por nombre, e-mail o WhatsApp","boloes.cadastro_participou":"Grupos","boloes.cadastro_neste_bolao":"En este grupo"});
 Object.assign(LA_I18N['it-IT'], {"boloes.cadastro_geral_sub":"Tutte le persone già registrate ({n})","boloes.cadastro_buscar":"Cerca per nome, e-mail o WhatsApp","boloes.cadastro_participou":"Gruppi","boloes.cadastro_neste_bolao":"In questo gruppo"});
+Object.assign(LA_I18N['pt-BR'], {"listas.titulo":"Listas de participantes","listas.desc":"Monte listas com nome (Família, Amigos do trabalho…) e use em qualquer bolão novo. A mesma pessoa pode estar em várias listas.","listas.nova":"Nova lista","listas.nova_titulo":"Nova lista","listas.editar_titulo":"Editar lista","listas.nenhuma":"Você ainda não tem listas. Clique em “Nova lista” para criar a primeira.","listas.nenhuma_carregar":"Você ainda não tem listas salvas. Salve os participantes de um bolão como lista, ou crie uma em “Minhas listas”.","listas.uma_pessoa":"1 pessoa","listas.n_pessoas":"{n} pessoas","listas.nome":"Nome da lista","listas.nome_ph":"Ex.: Família","listas.pessoas":"Pessoas da lista","listas.buscar":"Buscar pelo nome…","listas.marcar_todos":"Marcar todos","listas.limpar":"Limpar","listas.cotas":"Cotas","listas.salvar":"Salvar lista","listas.excluir":"Excluir lista","listas.excluir_confirma":"Excluir a lista “{nome}”? As pessoas continuam no cadastro geral.","listas.salva_ok":"Lista salva.","listas.excluida_ok":"Lista excluída.","listas.sem_cadastro":"O cadastro geral ainda está vazio. Cadastre pessoas primeiro.","listas.nome_obrigatorio":"Dê um nome à lista.","listas.marque_alguem":"Marque pelo menos uma pessoa.","listas.erro":"Não foi possível concluir: {msg}","listas.btn_importar":"Importar lista","listas.btn_salvar":"Salvar lista","listas.btn_carregar":"Carregar lista","listas.btn_gerenciar":"Minhas listas","listas.carregar_titulo":"Carregar lista no bolão","listas.carregar_resumo":"{novos} pessoa(s) nova(s) entram no bolão; {ja} já estão nele.","listas.carregar_confirma":"Adicionar {n}","listas.carregar_ok":"{n} pessoa(s) adicionada(s) ao bolão.","listas.carregar_nada":"Todas as pessoas desta lista já estão no bolão.","listas.bolao_ativado":"Este bolão já foi ativado: a lista de participantes está fechada.","listas.salvar_titulo":"Salvar participantes como lista","listas.salvar_desc":"Guarda os {n} participantes deste bolão numa lista com nome, para usar em outros bolões.","listas.salvar_existe":"Já existe uma lista com esse nome. O que fazer?","listas.salvar_substituir":"Substituir as pessoas da lista","listas.salvar_acrescentar":"Só acrescentar à lista","listas.salvar_sem_participantes":"Este bolão ainda não tem participantes para salvar.","listas.importar_titulo":"Importar lista de um arquivo","listas.importar_desc":"Escolha uma planilha (.xlsx ou .csv) com as colunas Nome, E-mail, WhatsApp e Cotas.","listas.importar_escolher":"Escolher arquivo","listas.importar_lendo":"Lendo o arquivo…","listas.importar_nada":"Não encontrei pessoas neste arquivo. Confira se há uma linha de cabeçalho com “Nome” e “E-mail”.","listas.importar_resumo":"{n} pessoa(s) pronta(s) para importar; {sem} sem e-mail ou WhatsApp válidos (não entram).","listas.importar_rejeitados":"Ficam de fora:","listas.importar_tambem":"Também salvar como lista (opcional):","listas.importar_confirma":"Importar {n}","listas.importar_erro_arquivo":"Não consegui ler este arquivo.","listas.d_lista_antiga":"Lista salva antiga","listas.d_antiga":"antiga","listas.d_migrar_antiga":"Trazer minha lista salva antiga ({n})","listas.d_migrada_ok":"Lista antiga trazida como “{nome}”.","boloes.title_salvar_lista":"Salva os participantes deste bolão como uma lista com nome, para usar em qualquer bolão novo","boloes.title_carregar_lista":"Carrega uma das suas listas salvas neste bolão — evita redigitar participantes recorrentes"});
+Object.assign(LA_I18N['en-US'], {"listas.titulo":"Participant lists","listas.desc":"Build named lists (Family, Work friends…) and use them in any new pool. The same person can be in several lists.","listas.nova":"New list","listas.nova_titulo":"New list","listas.editar_titulo":"Edit list","listas.nenhuma":"You have no lists yet. Click “New list” to create the first one.","listas.nenhuma_carregar":"You have no saved lists yet. Save a pool’s participants as a list, or create one in “My lists”.","listas.uma_pessoa":"1 person","listas.n_pessoas":"{n} people","listas.nome":"List name","listas.nome_ph":"E.g.: Family","listas.pessoas":"People in the list","listas.buscar":"Search by name…","listas.marcar_todos":"Select all","listas.limpar":"Clear","listas.cotas":"Shares","listas.salvar":"Save list","listas.excluir":"Delete list","listas.excluir_confirma":"Delete the list “{nome}”? The people stay in the general registry.","listas.salva_ok":"List saved.","listas.excluida_ok":"List deleted.","listas.sem_cadastro":"The general registry is still empty. Register people first.","listas.nome_obrigatorio":"Give the list a name.","listas.marque_alguem":"Select at least one person.","listas.erro":"Could not complete: {msg}","listas.btn_importar":"Import list","listas.btn_salvar":"Save list","listas.btn_carregar":"Load list","listas.btn_gerenciar":"My lists","listas.carregar_titulo":"Load list into the pool","listas.carregar_resumo":"{novos} new person(s) join the pool; {ja} already in it.","listas.carregar_confirma":"Add {n}","listas.carregar_ok":"{n} person(s) added to the pool.","listas.carregar_nada":"Everyone in this list is already in the pool.","listas.bolao_ativado":"This pool has already been activated: the participant list is closed.","listas.salvar_titulo":"Save participants as a list","listas.salvar_desc":"Keeps this pool’s {n} participants in a named list, to use in other pools.","listas.salvar_existe":"A list with this name already exists. What to do?","listas.salvar_substituir":"Replace the people in the list","listas.salvar_acrescentar":"Only add to the list","listas.salvar_sem_participantes":"This pool has no participants to save yet.","listas.importar_titulo":"Import a list from a file","listas.importar_desc":"Choose a spreadsheet (.xlsx or .csv) with the columns Name, E-mail, WhatsApp and Shares.","listas.importar_escolher":"Choose file","listas.importar_lendo":"Reading the file…","listas.importar_nada":"No people found in this file. Check that there is a header row with “Name” and “E-mail”.","listas.importar_resumo":"{n} person(s) ready to import; {sem} without a valid e-mail or WhatsApp (not imported).","listas.importar_rejeitados":"Left out:","listas.importar_tambem":"Also save as a list (optional):","listas.importar_confirma":"Import {n}","listas.importar_erro_arquivo":"I could not read this file.","listas.d_lista_antiga":"Old saved list","listas.d_antiga":"old","listas.d_migrar_antiga":"Bring my old saved list ({n})","listas.d_migrada_ok":"Old list brought in as “{nome}”.","boloes.title_salvar_lista":"Saves this pool’s participants as a named list to use in any new pool","boloes.title_carregar_lista":"Loads one of your saved lists into this pool — no retyping recurring participants"});
+Object.assign(LA_I18N['es-ES'], {"listas.titulo":"Listas de participantes","listas.desc":"Arma listas con nombre (Familia, Amigos del trabajo…) y úsalas en cualquier grupo nuevo. La misma persona puede estar en varias listas.","listas.nova":"Nueva lista","listas.nova_titulo":"Nueva lista","listas.editar_titulo":"Editar lista","listas.nenhuma":"Aún no tienes listas. Haz clic en “Nueva lista” para crear la primera.","listas.nenhuma_carregar":"Aún no tienes listas guardadas. Guarda los participantes de un grupo como lista, o crea una en “Mis listas”.","listas.uma_pessoa":"1 persona","listas.n_pessoas":"{n} personas","listas.nome":"Nombre de la lista","listas.nome_ph":"Ej.: Familia","listas.pessoas":"Personas de la lista","listas.buscar":"Buscar por nombre…","listas.marcar_todos":"Marcar todos","listas.limpar":"Limpiar","listas.cotas":"Cuotas","listas.salvar":"Guardar lista","listas.excluir":"Eliminar lista","listas.excluir_confirma":"¿Eliminar la lista “{nome}”? Las personas siguen en el registro general.","listas.salva_ok":"Lista guardada.","listas.excluida_ok":"Lista eliminada.","listas.sem_cadastro":"El registro general aún está vacío. Registra personas primero.","listas.nome_obrigatorio":"Ponle un nombre a la lista.","listas.marque_alguem":"Marca al menos una persona.","listas.erro":"No se pudo completar: {msg}","listas.btn_importar":"Importar lista","listas.btn_salvar":"Guardar lista","listas.btn_carregar":"Cargar lista","listas.btn_gerenciar":"Mis listas","listas.carregar_titulo":"Cargar lista en el grupo","listas.carregar_resumo":"{novos} persona(s) nueva(s) entran en el grupo; {ja} ya están en él.","listas.carregar_confirma":"Añadir {n}","listas.carregar_ok":"{n} persona(s) añadida(s) al grupo.","listas.carregar_nada":"Todas las personas de esta lista ya están en el grupo.","listas.bolao_ativado":"Este grupo ya fue activado: la lista de participantes está cerrada.","listas.salvar_titulo":"Guardar participantes como lista","listas.salvar_desc":"Guarda los {n} participantes de este grupo en una lista con nombre, para usar en otros grupos.","listas.salvar_existe":"Ya existe una lista con ese nombre. ¿Qué hacer?","listas.salvar_substituir":"Reemplazar las personas de la lista","listas.salvar_acrescentar":"Solo añadir a la lista","listas.salvar_sem_participantes":"Este grupo aún no tiene participantes para guardar.","listas.importar_titulo":"Importar lista desde un archivo","listas.importar_desc":"Elige una hoja de cálculo (.xlsx o .csv) con las columnas Nombre, Correo, WhatsApp y Cuotas.","listas.importar_escolher":"Elegir archivo","listas.importar_lendo":"Leyendo el archivo…","listas.importar_nada":"No encontré personas en este archivo. Revisa que haya una fila de encabezado con “Nombre” y “Correo”.","listas.importar_resumo":"{n} persona(s) lista(s) para importar; {sem} sin correo o WhatsApp válidos (no entran).","listas.importar_rejeitados":"Quedan fuera:","listas.importar_tambem":"Guardar también como lista (opcional):","listas.importar_confirma":"Importar {n}","listas.importar_erro_arquivo":"No pude leer este archivo.","listas.d_lista_antiga":"Lista guardada anterior","listas.d_antiga":"anterior","listas.d_migrar_antiga":"Traer mi lista guardada anterior ({n})","listas.d_migrada_ok":"Lista anterior traída como “{nome}”.","boloes.title_salvar_lista":"Guarda los participantes de este grupo como una lista con nombre para usar en cualquier grupo nuevo","boloes.title_carregar_lista":"Carga una de tus listas guardadas en este grupo — evita volver a escribir participantes recurrentes"});
+Object.assign(LA_I18N['it-IT'], {"listas.titulo":"Elenchi di partecipanti","listas.desc":"Crea elenchi con un nome (Famiglia, Amici del lavoro…) e usali in qualsiasi nuovo gruppo. La stessa persona può stare in più elenchi.","listas.nova":"Nuovo elenco","listas.nova_titulo":"Nuovo elenco","listas.editar_titulo":"Modifica elenco","listas.nenhuma":"Non hai ancora elenchi. Fai clic su “Nuovo elenco” per creare il primo.","listas.nenhuma_carregar":"Non hai ancora elenchi salvati. Salva i partecipanti di un gruppo come elenco, oppure creane uno in “I miei elenchi”.","listas.uma_pessoa":"1 persona","listas.n_pessoas":"{n} persone","listas.nome":"Nome dell’elenco","listas.nome_ph":"Es.: Famiglia","listas.pessoas":"Persone dell’elenco","listas.buscar":"Cerca per nome…","listas.marcar_todos":"Seleziona tutti","listas.limpar":"Deseleziona","listas.cotas":"Quote","listas.salvar":"Salva elenco","listas.excluir":"Elimina elenco","listas.excluir_confirma":"Eliminare l’elenco “{nome}”? Le persone restano nell’anagrafica generale.","listas.salva_ok":"Elenco salvato.","listas.excluida_ok":"Elenco eliminato.","listas.sem_cadastro":"L’anagrafica generale è ancora vuota. Registra prima delle persone.","listas.nome_obrigatorio":"Dai un nome all’elenco.","listas.marque_alguem":"Seleziona almeno una persona.","listas.erro":"Impossibile completare: {msg}","listas.btn_importar":"Importa elenco","listas.btn_salvar":"Salva elenco","listas.btn_carregar":"Carica elenco","listas.btn_gerenciar":"I miei elenchi","listas.carregar_titulo":"Carica elenco nel gruppo","listas.carregar_resumo":"{novos} nuova/e persona/e entrano nel gruppo; {ja} già presenti.","listas.carregar_confirma":"Aggiungi {n}","listas.carregar_ok":"{n} persona/e aggiunta/e al gruppo.","listas.carregar_nada":"Tutte le persone di questo elenco sono già nel gruppo.","listas.bolao_ativado":"Questo gruppo è già stato attivato: l’elenco dei partecipanti è chiuso.","listas.salvar_titulo":"Salva i partecipanti come elenco","listas.salvar_desc":"Conserva i {n} partecipanti di questo gruppo in un elenco con nome, da usare in altri gruppi.","listas.salvar_existe":"Esiste già un elenco con questo nome. Cosa fare?","listas.salvar_substituir":"Sostituisci le persone dell’elenco","listas.salvar_acrescentar":"Aggiungi soltanto all’elenco","listas.salvar_sem_participantes":"Questo gruppo non ha ancora partecipanti da salvare.","listas.importar_titulo":"Importa un elenco da un file","listas.importar_desc":"Scegli un foglio di calcolo (.xlsx o .csv) con le colonne Nome, E-mail, WhatsApp e Quote.","listas.importar_escolher":"Scegli file","listas.importar_lendo":"Lettura del file…","listas.importar_nada":"Nessuna persona trovata in questo file. Controlla che ci sia una riga di intestazione con “Nome” e “E-mail”.","listas.importar_resumo":"{n} persona/e pronta/e per l’importazione; {sem} senza e-mail o WhatsApp validi (non importate).","listas.importar_rejeitados":"Escluse:","listas.importar_tambem":"Salva anche come elenco (facoltativo):","listas.importar_confirma":"Importa {n}","listas.importar_erro_arquivo":"Non sono riuscito a leggere questo file.","listas.d_lista_antiga":"Vecchio elenco salvato","listas.d_antiga":"vecchio","listas.d_migrar_antiga":"Porta il mio vecchio elenco salvato ({n})","listas.d_migrada_ok":"Vecchio elenco importato come “{nome}”.","boloes.title_salvar_lista":"Salva i partecipanti di questo gruppo come elenco con nome da usare in qualsiasi nuovo gruppo","boloes.title_carregar_lista":"Carica uno dei tuoi elenchi salvati in questo gruppo — evita di riscrivere i partecipanti ricorrenti"});
 /* Faixa 1 por percentual da arrecadação (2026-10-07): sobrepõe os textos antigos das faixas */
 Object.assign(LA_I18N['pt-BR'], {"termos.p_8":"As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada participante, após a dedução da taxa administrativa (quando aplicável), observadas as seguintes faixas de destinação: (i) Faixa 1 — creditado automaticamente ao saldo do participante neste bolão, de forma acumulada, até {pct}% da arrecadação total do bolão (valor pago pelos participantes); atingido esse limite, a diferença de cada prêmio seguinte é reservada para o próximo bolão; (ii) Faixa 2 — logo após a Faixa 1 e até R$ {faixa2} por cota: a parcela equivalente ao valor da cota vigente é reservada para o próximo bolão do mesmo participante (transferida automaticamente ou pelo organizador, conforme definido para este bolão), sendo o excedente pago via PIX; (iii) Faixa 3 — acima de R$ {faixa2} por cota: pago integralmente via PIX. Em todos os casos é respeitado o número de cotas e o percentual a que cada participante tem direito. O administrador poderá ajustar essas faixas a qualquer momento.","organizador.faixas_ajuda":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante — transferido automaticamente ou pelo organizador, conforme a opção escolhida para este bolão.","organizador.faixas_exemplo_titulo_dinamico":"Exemplos — com as faixas deste bolão (Faixa 1 até {pct}% da arrecadação, cerca de R$ {faixa1} por cota quando ainda não houve crédito; Faixa 2 até R$ {faixa2}) e uma cota custando R$ {cota}:","organizador.faixas_exemplo_titulo":"Exemplos — com as faixas padrão (Faixa 1 até 25% da arrecadação, Faixa 2 até R$2.428,80) e uma cota deste bolão custando R$50,00:","organizador.faixa1_pct_label":"Até (% da arrecadação)","organizador.faixa1_pct_dica":"Limite acumulado: a Faixa 1 já creditou {creditado} de até {teto} ({pct}% da arrecadação). Atingido o limite, a diferença vai para a reserva do próximo bolão.","organizador.faixa2_de_apos_f1":"após a Faixa 1","organizador.faixa_pct_invalida":"O percentual da Faixa 1 precisa estar entre 0 e 100.","organizador.notif_faixas_alteradas_corpo":"O organizador de \"{nome}\" atualizou as faixas de distribuição de prêmio: Faixa 1 de R$ {f1de} até {f1pct}% da arrecadação, acumulado (crédito automático), Faixa 2 depois da Faixa 1 até R$ {f2ate}/cota (reserva + PIX), Faixa 3 R$ {f3de} a R$ {f3ate}/cota (100% PIX).","boloes.ps_faixas_explicacao":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante. A Faixa 3 é 100% PIX."});
 Object.assign(LA_I18N['en-US'], {"termos.p_8":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), according to the following destination tiers: (i) Tier 1 — credited automatically to the participant's balance in this pool, cumulatively, up to {pct}% of the pool's total collection (the amount paid by the participants); once this limit is reached, the difference of each following prize is set aside for the next pool; (ii) Tier 2 — right after Tier 1 and up to R$ {faixa2} per share: the portion equal to the current share price is set aside for the same participant's next pool (transferred automatically or by the organizer, as defined for this pool), with the excess paid via PIX; (iii) Tier 3 — above R$ {faixa2} per share: paid entirely via PIX. In all cases the number of shares and the percentage each participant is entitled to are respected. The administrator may adjust these tiers at any time.","organizador.faixas_ajuda":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool — transferred automatically or by the organizer, depending on the option chosen for this pool.","organizador.faixas_exemplo_titulo_dinamico":"Examples — with this pool's tiers (Tier 1 up to {pct}% of the total collection, about R$ {faixa1} per share when nothing has been credited yet; Tier 2 up to R$ {faixa2}) and a share costing R$ {cota}:","organizador.faixas_exemplo_titulo":"Examples — with the default tiers (Tier 1 up to 25% of the total collection, Tier 2 up to R$2,428.80) and a share of this pool costing R$50.00:","organizador.faixa1_pct_label":"Up to (% of collection)","organizador.faixa1_pct_dica":"Cumulative limit: Tier 1 has already credited {creditado} out of up to {teto} ({pct}% of the collection). Once the limit is reached, the difference goes to the next pool's reserve.","organizador.faixa2_de_apos_f1":"after Tier 1","organizador.faixa_pct_invalida":"Tier 1's percentage must be between 0 and 100.","organizador.notif_faixas_alteradas_corpo":"The organizer of \"{nome}\" updated the prize distribution tiers: Tier 1 from R$ {f1de} up to {f1pct}% of the collection, cumulative (automatic credit), Tier 2 after Tier 1 up to R$ {f2ate}/share (reserve + PIX), Tier 3 R$ {f3de} to R$ {f3ate}/share (100% PIX).","boloes.ps_faixas_explicacao":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool. Tier 3 is 100% PIX."});
@@ -21176,6 +21188,7 @@ function renderFormBolao(){
           '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_importar'))+'"':'title="'+t('boloes.title_colunas_importar')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">'+_ic('entrada',13)+' '+t('boloes.importar_lista')+'</button>'+
           '<button onclick="salvarListaParticipantesModelo()" title="'+t('boloes.title_salvar_lista')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('salvar',13)+' '+t('boloes.salvar_lista')+'</button>'+
           '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_adicionar'))+'"':'title="'+t('boloes.title_carregar_lista')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">'+_ic('pasta',13)+' '+t('boloes.carregar_lista_salva')+'</button>'+
+          '<button onclick="gerenciarListasParticipantes()" title="'+t('listas.desc')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('grupo',13)+' '+t('listas.btn_gerenciar')+'</button>'+
           (_boloesState.editId ? '<button onclick="verBilhetesBolao()" title="'+t('boloes.title_bilhetes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('clipe',13)+' '+t('boloes.bilhetes')+'</button>' : '')+
           (_boloesState.editId ? '<button onclick="verComprovantesPix()" title="'+t('boloes.title_comprovantes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('recibo',13)+' '+t('boloes.comprovantes')+'</button>' : '')+
           '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('dado',13)+' '+t('boloes.jogos_do_bolao')+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
@@ -21454,40 +21467,212 @@ function addParticipanteBol(){
 // Cotas/valorCota/status ficam de fora do modelo: são específicos de cada
 // bolão, não da pessoa.
 var LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY='lottoanalytics_modelo_participantes';
-function salvarListaParticipantesModelo(){
-  // Desde 2026-10-01 a lista também guarda as COTAS de cada um e de qual bolão ela veio: ao carregar
-  // no bolão novo, as cotas já vêm iguais e o app oferece a transferência do saldo do bolão anterior.
-  var lista=(_boloesState.participantes||[]).map(function(p){
-    return { nome:p.nome, email:p.email, whatsapp:p.whatsapp, cpf:p.cpf||'', cotas:p.cotas||1 };
-  });
-  if(!lista.length){ toast(t('boloes.nao_ha_participantes_salvar')); return; }
-  try{
-    localStorage.setItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY, JSON.stringify({ versao:2, origemBolaoId:_boloesState.editId||null, origemNome:_boloesState.nome||'', participantes:lista }));
-    toast('✓ '+t('boloes.participantes_salvos_reuso',{n:lista.length}));
-  }catch(e){ console.error(e); toast(t('boloes.erro_salvar_lista_reuso')); }
+// ═══ Listas de participantes com nome (2026-10-08, pedido do usuário) ═══
+// Antes: UMA única lista guardada no localStorage deste navegador (Salvar/Carregar Lista). Agora: listas personalizadas COM NOME no servidor (mesmas do app
+// celular), e a mesma pessoa pode estar em várias. Membros = pessoas do CADASTRO GERAL (participantes_avulsos). Tabelas listas_participantes +
+// lista_participantes_itens (RLS do gestor) e RPC rpc_lista_salvar / rpc_lista_excluir. A lista lembra de qual bolão foi salva: ao carregá-la num bolão novo
+// o app continua oferecendo a transferência do saldo do bolão anterior (_ofertarTransferenciaListaSalva). A lista antiga do navegador pode ser trazida para cá.
+function _lsNorm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function _lsOrdena(a,b){ return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR',{sensitivity:'base'}); }
+function _lsQtd(n){ return n===1 ? t('listas.uma_pessoa') : t('listas.n_pessoas',{n:n}); }
+function _lsMsgErro(e){ var m=String((e&&e.message)||e||''); return m==='BOLAO_ATIVADO' ? t('listas.bolao_ativado') : m; }
+async function _lsCarregar(){
+  var sb=_getSbClient(); if(!sb) throw new Error(t('boloes.supabase_indisponivel'));
+  var r=await Promise.all([
+    sb.from('listas_participantes').select('id,nome,updated_at,origem_bolao_id,origem_nome').is('deleted_at',null),
+    sb.from('lista_participantes_itens').select('lista_id,avulso_id,cotas'),
+    sb.from('participantes_avulsos').select('*').is('deleted_at',null)
+  ]);
+  for(var k=0;k<3;k++){ if(r[k].error) throw r[k].error; }
+  var avulsos={}; (r[2].data||[]).forEach(function(a){ avulsos[a.id]=a; });
+  var listas=(r[0].data||[]).map(function(l){ return {id:l.id,nome:l.nome,origemId:l.origem_bolao_id||null,origemNome:l.origem_nome||'',membros:[]}; }).sort(_lsOrdena);
+  var porId={}; listas.forEach(function(l){ porId[l.id]=l; });
+  (r[1].data||[]).forEach(function(i){ var l=porId[i.lista_id], a=avulsos[i.avulso_id]; if(l&&a) l.membros.push({avulso:a,cotas:i.cotas||1}); });
+  listas.forEach(function(l){ l.membros.sort(function(x,y){ return _lsOrdena(x.avulso,y.avulso); }); });
+  return {listas:listas, avulsos:Object.keys(avulsos).map(function(k){ return avulsos[k]; }).sort(_lsOrdena)};
 }
-function carregarListaParticipantesModelo(){
-  var raw=null;
-  try{ raw=localStorage.getItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY); }catch(e){}
-  if(!raw){ toast(t('boloes.nenhuma_lista_salva_ainda')); return; }
-  var lista, meta=null; try{ lista=JSON.parse(raw); }catch(e){ lista=null; }
-  if(lista && !Array.isArray(lista) && Array.isArray(lista.participantes)){ meta=lista; lista=lista.participantes; } // formato novo (v2)
-  if(!lista||!lista.length){ toast(t('boloes.lista_salva_vazia_invalida')); return; }
-  var existentes={};
-  (_boloesState.participantes||[]).forEach(function(p){ if(p.whatsapp) existentes[p.whatsapp]=true; });
-  var adicionados=0, jaExistiam=0;
-  lista.forEach(function(n){
-    if(n.whatsapp && existentes[n.whatsapp]){ jaExistiam++; return; }
-    _boloesState.participantes.push({ nome:n.nome, email:n.email, whatsapp:n.whatsapp, cpf:n.cpf||'', admin:_boloesState.admin.nome||'', cotas:parseInt(n.cotas)||1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
-    if(n.whatsapp) existentes[n.whatsapp]=true;
-    adicionados++;
+// janela (mesmo padrão dos outros modais criados dinamicamente)
+function _lsModal(tituloHtml, corpoHtml, larg){
+  var old=document.getElementById('modal-listas'); if(old) old.remove();
+  var cor=(typeof MULTI_LOTERIA_COR!=='undefined')?MULTI_LOTERIA_COR:'#3A9B4E';
+  var div=document.createElement('div');
+  div.innerHTML=
+    '<div id="modal-listas" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.remove()">'+
+      '<div style="background:var(--bg,#12151f);border:1px solid '+cor+'44;border-radius:16px;max-width:'+(larg||520)+'px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5)">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--glass-border);background:'+cor+'14">'+
+          '<div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--text)">'+tituloHtml+'</div>'+
+          '<button onclick="_lsFechar()" style="border:none;background:transparent;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">×</button>'+
+        '</div>'+
+        '<div id="ls-corpo" style="padding:16px 20px;overflow-y:auto;flex:1">'+corpoHtml+'</div>'+
+      '</div></div>';
+  document.body.appendChild(div.firstChild);
+}
+function _lsFechar(){ var m=document.getElementById('modal-listas'); if(m) m.remove(); }
+function _lsBtn(txt,onclick,primario,extra){
+  var cor=(typeof MULTI_LOTERIA_COR!=='undefined')?MULTI_LOTERIA_COR:'#3A9B4E';
+  return '<button onclick="'+onclick+'" style="border:1px solid '+cor+';border-radius:10px;padding:8px 14px;'+(primario?'background:linear-gradient(135deg,#3A9B4E,#2d7a3d);border-color:#3A9B4E;color:#fff':'background:'+cor+'18;color:'+cor)+';font-weight:700;font-size:12px;cursor:pointer;'+(extra||'')+'">'+txt+'</button>';
+}
+var _lsInpEstilo='width:100%;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--bg2,#1a1e2b);color:var(--text);font-size:13px';
+
+// ── lista antiga do navegador (localStorage) ──
+function _lsLerModeloAntigo(){
+  try{
+    var raw=localStorage.getItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY); if(!raw) return null;
+    var lista=JSON.parse(raw), meta=null;
+    if(lista && !Array.isArray(lista) && Array.isArray(lista.participantes)){ meta=lista; lista=lista.participantes; }
+    if(!lista||!lista.length) return null;
+    return {meta:meta,lista:lista};
+  }catch(e){ return null; }
+}
+async function _lsMigrarAntiga(){
+  var a=_lsLerModeloAntigo(); if(!a) return;
+  var nome=(a.meta&&a.meta.origemNome)||t('listas.d_lista_antiga'); var sb=_getSbClient();
+  var d; try{ d=await _lsCarregar(); }catch(e){ toast(t('listas.erro',{msg:_lsMsgErro(e)})); return; }
+  if(d.listas.some(function(l){ return _lsNorm(l.nome)===_lsNorm(nome); })) nome=nome+' ('+t('listas.d_antiga')+')';
+  var itens=a.lista.map(function(p){ return {nome:p.nome,email:p.email,whatsapp:p.whatsapp,cpf:p.cpf,cotas:parseInt(p.cotas)||1}; });
+  var r=await sb.rpc('rpc_lista_salvar',{p_lista_id:null,p_nome:nome,p_itens:itens,p_modo:'substituir',p_origem_bolao_id:(a.meta&&a.meta.origemBolaoId)||null,p_origem_nome:(a.meta&&a.meta.origemNome)||null});
+  if(r.error){ toast(t('listas.erro',{msg:_lsMsgErro(r.error)})); return; }
+  try{ localStorage.removeItem(LOTTOANALYTICS_MODELO_PARTICIPANTES_KEY); }catch(e){}
+  toast('✓ '+t('listas.d_migrada_ok',{nome:nome}));
+  carregarListaParticipantesModelo();
+}
+
+// ── Carregar Lista Salva ──
+var _lsCtx=null;
+async function carregarListaParticipantesModelo(){
+  var d; try{ d=await _lsCarregar(); }catch(e){ toast(t('listas.erro',{msg:_lsMsgErro(e)})); return; }
+  var antiga=_lsLerModeloAntigo();
+  _lsCtx={listas:d.listas};
+  var corpo='';
+  if(!d.listas.length && !antiga) corpo+='<div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">'+t('listas.nenhuma_carregar')+'</div>';
+  corpo+=d.listas.map(function(l,i){
+    return '<button onclick="_lsEscolher('+i+')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:6px;background:var(--bg2,#1a1e2b);color:var(--text);cursor:pointer">'+
+      '<span><span style="font-weight:800;font-size:13px">'+_esc(l.nome)+'</span>'+(l.origemNome?'<span style="display:block;font-size:10px;color:var(--text-muted)">'+_esc(l.origemNome)+'</span>':'')+'</span>'+
+      '<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">'+_lsQtd(l.membros.length)+'</span></button>';
+  }).join('');
+  if(antiga) corpo+='<div style="margin:10px 0 4px">'+_lsBtn(_ic('entrada',13)+' '+t('listas.d_migrar_antiga',{n:antiga.lista.length}),'_lsMigrarAntiga()',false)+'</div>';
+  corpo+='<div style="margin-top:12px">'+_lsBtn(_ic('grupo',13)+' '+t('listas.btn_gerenciar'),'gerenciarListasParticipantes()',false)+'</div>';
+  _lsModal(_ic('pasta',15)+' '+t('listas.carregar_titulo'), corpo, 480);
+}
+function _lsEscolher(i){
+  var l=(_lsCtx&&_lsCtx.listas||[])[i]; if(!l) return;
+  var s=_boloesState, existentes={};
+  (s.participantes||[]).forEach(function(p){ existentes[_lsNorm(p.nome)]=true; });
+  var add=0, ja=0;
+  l.membros.forEach(function(m){
+    var a=m.avulso; if(existentes[_lsNorm(a.nome)]){ ja++; return; }
+    s.participantes.push({ nome:a.nome, email:a.email||'', whatsapp:a.whatsapp||'', cpf:a.cpf||'', endereco:a.endereco||null, pix:a.pix||null, pixTipo:a.pix?(a.pix_tipo||'cpf'):null,
+      admin:(s.admin&&s.admin.nome)||'', cotas:m.cotas||1, valorCota:0, statusPart:'ativo', statusPag:'naopagou' });
+    existentes[_lsNorm(a.nome)]=true; add++;
   });
-  _ordenarParticipantes();
-  renderParticipantesBoloes();
-  toast(adicionados
-    ? '✓ '+t('boloes.participantes_carregados',{n:adicionados})+(jaExistiam?' · '+t('boloes.ja_estavam_na_lista',{n:jaExistiam}):'')
-    : t('boloes.todos_participantes_ja_no_bolao'));
-  if(meta && meta.origemBolaoId && meta.origemBolaoId!==_boloesState.editId) _ofertarTransferenciaListaSalva(meta);
+  _lsFechar();
+  _ordenarParticipantes(); renderParticipantesBoloes();
+  toast(add ? '✓ '+t('boloes.participantes_carregados',{n:add})+(ja?' · '+t('boloes.ja_estavam_na_lista',{n:ja}):'') : t('boloes.todos_participantes_ja_no_bolao'));
+  if(add && l.origemId && l.origemId!==s.editId) _ofertarTransferenciaListaSalva({origemBolaoId:l.origemId, origemNome:l.origemNome});
+}
+
+// ── Salvar Lista: participantes deste bolão viram uma lista com nome ──
+async function salvarListaParticipantesModelo(){
+  var parts=_boloesState.participantes||[];
+  if(!parts.length){ toast(t('boloes.nao_ha_participantes_salvar')); return; }
+  var d; try{ d=await _lsCarregar(); }catch(e){ toast(t('listas.erro',{msg:_lsMsgErro(e)})); return; }
+  _lsCtx={listas:d.listas};
+  var corpo='<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">'+t('listas.salvar_desc',{n:parts.length})+'</div>'+
+    '<label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">'+t('listas.nome')+'</label>'+
+    '<input id="ls-nome" maxlength="80" list="ls-nomes" placeholder="'+_esc(t('listas.nome_ph'))+'" oninput="_lsNomeMudou()" autocomplete="off" style="'+_lsInpEstilo+'"/>'+
+    '<datalist id="ls-nomes">'+d.listas.map(function(l){ return '<option value="'+_esc(l.nome)+'"></option>'; }).join('')+'</datalist>'+
+    '<div id="ls-modo" style="display:none;margin-top:10px;font-size:12px;color:var(--text)"><div style="color:var(--text-muted);margin-bottom:4px">'+t('listas.salvar_existe')+'</div>'+
+      '<label style="display:flex;align-items:center;gap:6px;margin:4px 0"><input type="radio" name="ls-modo" value="substituir" checked/> '+t('listas.salvar_substituir')+'</label>'+
+      '<label style="display:flex;align-items:center;gap:6px;margin:4px 0"><input type="radio" name="ls-modo" value="adicionar"/> '+t('listas.salvar_acrescentar')+'</label></div>'+
+    '<div id="ls-erro" style="margin-top:8px;font-size:12px;color:#f87171"></div>'+
+    '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">'+_lsBtn(t('geral.cancelar'),'_lsFechar()',false)+_lsBtn(_ic('salvar',13)+' '+t('listas.salvar'),'_lsConfirmaSalvar()',true)+'</div>';
+  _lsModal(_ic('salvar',15)+' '+t('listas.salvar_titulo'), corpo, 460);
+  setTimeout(function(){ var i=document.getElementById('ls-nome'); if(i) i.focus(); },50);
+}
+function _lsNomeMudou(){
+  var v=_lsNorm((document.getElementById('ls-nome')||{}).value||'');
+  var existe=!!v && (_lsCtx&&_lsCtx.listas||[]).some(function(l){ return _lsNorm(l.nome)===v; });
+  var m=document.getElementById('ls-modo'); if(m) m.style.display=existe?'block':'none';
+}
+async function _lsConfirmaSalvar(){
+  var erro=document.getElementById('ls-erro'); erro.textContent='';
+  var nome=(document.getElementById('ls-nome').value||'').trim();
+  if(!nome){ erro.textContent=t('listas.nome_obrigatorio'); return; }
+  var radio=document.querySelector('input[name="ls-modo"]:checked'); var modo=(radio&&document.getElementById('ls-modo').style.display!=='none')?radio.value:'substituir';
+  var itens=(_boloesState.participantes||[]).map(function(p){ return {nome:p.nome,email:p.email,whatsapp:p.whatsapp,cpf:p.cpf,cotas:p.cotas||1}; });
+  var sb=_getSbClient();
+  var r=await sb.rpc('rpc_lista_salvar',{p_lista_id:null,p_nome:nome,p_itens:itens,p_modo:modo,p_origem_bolao_id:_boloesState.editId||null,p_origem_nome:_boloesState.nome||null});
+  if(r.error){ erro.textContent=t('listas.erro',{msg:_lsMsgErro(r.error)}); return; }
+  _lsFechar(); toast('✓ '+t('listas.salva_ok'));
+}
+
+// ── Minhas listas: criar, editar (pessoas + cotas padrão), excluir ──
+var _lsEd=null;
+async function gerenciarListasParticipantes(){
+  var d; try{ d=await _lsCarregar(); }catch(e){ toast(t('listas.erro',{msg:_lsMsgErro(e)})); return; }
+  _lsCtx={listas:d.listas};
+  var corpo='<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">'+t('listas.desc')+'</div>'+
+    '<div style="margin-bottom:10px">'+_lsBtn(_ic('mais',13)+' '+t('listas.nova'),'_lsEditar(null)',true)+'</div>'+
+    (d.listas.length ? d.listas.map(function(l){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;margin-bottom:6px;background:var(--bg2,#1a1e2b)">'+
+        '<div><div style="font-weight:800;font-size:13px;color:var(--text)">'+_esc(l.nome)+'</div><div style="font-size:10px;color:var(--text-muted)">'+_lsQtd(l.membros.length)+(l.origemNome?' · '+_esc(l.origemNome):'')+'</div></div>'+
+        '<div style="display:flex;gap:6px">'+_lsBtn(_ic('editar',13),'_lsEditar(\''+l.id+'\')',false)+'</div></div>';
+    }).join('') : '<div style="font-size:13px;color:var(--text-muted)">'+t('listas.nenhuma')+'</div>');
+  _lsModal(_ic('pasta',15)+' '+t('listas.titulo'), corpo, 520);
+}
+async function _lsEditar(id){
+  var d; try{ d=await _lsCarregar(); }catch(e){ toast(t('listas.erro',{msg:_lsMsgErro(e)})); return; }
+  var lista=id ? d.listas.filter(function(l){ return l.id===id; })[0] : null;
+  if(id && !lista){ gerenciarListasParticipantes(); return; }
+  var sel={}; if(lista) lista.membros.forEach(function(m){ sel[m.avulso.id]=m.cotas; });
+  _lsEd={id:id||null, nome:lista?lista.nome:'', sel:sel, avulsos:d.avulsos};
+  var corpo=
+    '<label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px">'+t('listas.nome')+'</label>'+
+    '<input id="ls-ed-nome" maxlength="80" placeholder="'+_esc(t('listas.nome_ph'))+'" value="'+_esc(_lsEd.nome)+'" style="'+_lsInpEstilo+'"/>'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 6px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">'+t('listas.pessoas')+'</div><div id="ls-ed-cont" style="font-size:11px;color:var(--text-muted)"></div></div>'+
+    '<div style="display:flex;gap:6px;margin-bottom:6px"><input id="ls-ed-busca" placeholder="'+_esc(t('listas.buscar'))+'" oninput="_lsPintar()" autocomplete="off" style="'+_lsInpEstilo+';flex:1"/>'+_lsBtn(t('listas.marcar_todos'),'_lsMarcarTodos(true)',false)+_lsBtn(t('listas.limpar'),'_lsMarcarTodos(false)',false)+'</div>'+
+    '<div id="ls-ed-lista" style="max-height:38vh;overflow-y:auto;border:1px solid var(--glass-border);border-radius:10px;padding:0 10px"></div>'+
+    '<div id="ls-erro" style="margin-top:8px;font-size:12px;color:#f87171"></div>'+
+    '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px"><div>'+(id?_lsBtn(_ic('lixeira',13)+' '+t('listas.excluir'),'_lsExcluir()',false,'color:#f87171;border-color:#f8717166;background:transparent'):'')+'</div>'+
+      '<div style="display:flex;gap:8px">'+_lsBtn(_ic('salvar',13)+' '+t('listas.salvar'),'_lsSalvarEd()',true)+'</div></div>';
+  _lsModal(_ic('pasta',15)+' '+t(id?'listas.editar_titulo':'listas.nova_titulo'), corpo, 560);
+  _lsPintar();
+}
+function _lsFiltrados(){
+  var q=_lsNorm((document.getElementById('ls-ed-busca')||{}).value||'');
+  return _lsEd.avulsos.filter(function(a){ return !q || _lsNorm(a.nome).indexOf(q)!==-1; });
+}
+function _lsPintar(){
+  var box=document.getElementById('ls-ed-lista'); if(!box||!_lsEd) return;
+  box.innerHTML=!_lsEd.avulsos.length ? '<div style="padding:12px 0;font-size:12px;color:var(--text-muted)">'+t('listas.sem_cadastro')+'</div>' : _lsFiltrados().map(function(a){
+    var marcado=_lsEd.sel[a.id]!=null;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border)">'+
+      '<input type="checkbox" '+(marcado?'checked ':'')+'onchange="_lsMarcar(\''+a.id+'\',this.checked)" style="width:16px;height:16px;flex:0 0 auto"/>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">'+_esc(a.nome)+'</div><div style="font-size:10px;color:var(--text-muted)">'+_esc(a.whatsapp||a.email||'—')+'</div></div>'+
+      (marcado?'<label style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px">'+t('listas.cotas')+'<input type="number" min="1" max="999" value="'+_lsEd.sel[a.id]+'" onchange="_lsCotas(\''+a.id+'\',this.value)" style="width:56px;padding:5px;border-radius:8px;border:1px solid var(--glass-border);background:var(--bg2,#1a1e2b);color:var(--text);font-size:12px;text-align:center"/></label>':'')+
+    '</div>';
+  }).join('');
+  var c=document.getElementById('ls-ed-cont'); if(c) c.textContent=_lsQtd(Object.keys(_lsEd.sel).length);
+}
+function _lsMarcar(id,on){ if(!_lsEd) return; if(on){ if(_lsEd.sel[id]==null) _lsEd.sel[id]=1; } else delete _lsEd.sel[id]; _lsPintar(); }
+function _lsCotas(id,v){ if(!_lsEd) return; var n=parseInt(v,10); _lsEd.sel[id]=n>=1?n:1; }
+function _lsMarcarTodos(on){ if(!_lsEd) return; _lsFiltrados().forEach(function(a){ if(on){ if(_lsEd.sel[a.id]==null) _lsEd.sel[a.id]=1; } else delete _lsEd.sel[a.id]; }); _lsPintar(); }
+async function _lsSalvarEd(){
+  if(!_lsEd) return; var erro=document.getElementById('ls-erro'); erro.textContent='';
+  var nome=(document.getElementById('ls-ed-nome').value||'').trim();
+  if(!nome){ erro.textContent=t('listas.nome_obrigatorio'); return; }
+  var ids=Object.keys(_lsEd.sel); if(!ids.length){ erro.textContent=t('listas.marque_alguem'); return; }
+  var r=await _getSbClient().rpc('rpc_lista_salvar',{p_lista_id:_lsEd.id,p_nome:nome,p_itens:ids.map(function(id){ return {avulso_id:id,cotas:_lsEd.sel[id]}; }),p_modo:'substituir'});
+  if(r.error){ erro.textContent=t('listas.erro',{msg:_lsMsgErro(r.error)}); return; }
+  toast('✓ '+t('listas.salva_ok')); gerenciarListasParticipantes();
+}
+async function _lsExcluir(){
+  if(!_lsEd||!_lsEd.id) return;
+  var nome=(document.getElementById('ls-ed-nome').value||_lsEd.nome||'').trim();
+  if(!confirm(t('listas.excluir_confirma',{nome:nome}))) return;
+  var r=await _getSbClient().rpc('rpc_lista_excluir',{p_lista_id:_lsEd.id});
+  if(r.error){ var erro=document.getElementById('ls-erro'); if(erro) erro.textContent=t('listas.erro',{msg:_lsMsgErro(r.error)}); return; }
+  toast('✓ '+t('listas.excluida_ok')); gerenciarListasParticipantes();
 }
 // Ao carregar a lista salva de um bolão anterior (mesmos participantes e cotas), oferece transferir o saldo
 // dele para este bolão — é a hora certa: o novo fica igual ao anterior em cotas por participante.
@@ -22653,10 +22838,10 @@ function _acharCabecalhoImport(linhas){
     var n=arr.map(function(c){ return (c==null?'':String(c)).trim().toLowerCase(); });
     var iNome=-1, iEmail=-1, iZap=-1, iCotas=-1;
     n.forEach(function(c,k){
-      if(iNome<0 && /^nome/.test(c)) iNome=k;
-      else if(iEmail<0 && /^e-?mail/.test(c)) iEmail=k;
-      else if(iZap<0 && /(whats|celular|telefone|fone)/.test(c)) iZap=k;
-      else if(iCotas<0 && /^cotas?$/.test(c)) iCotas=k;
+      if(iNome<0 && /^(nome|name|nombre)/.test(c)) iNome=k;
+      else if(iEmail<0 && /^(e-?mail|correo|mail)/.test(c)) iEmail=k;
+      else if(iZap<0 && /(whats|celular|telefone|tel[eé]fono|fone|phone|cell|m[oó]vil)/.test(c)) iZap=k;
+      else if(iCotas<0 && /^(cotas?|shares?|cuotas?|quot[ae])$/.test(c)) iCotas=k;
     });
     if(iNome>=0 && iEmail>=0) return {linha:i, nome:iNome, email:iEmail, whatsapp:iZap>=0?iZap:iEmail+1, cotas:iCotas};
   }
@@ -22675,7 +22860,7 @@ function _parseLinhas(linhas){
     if(!nome) return;
     var low=nome.toLowerCase();
     // Ignora cabeçalhos repetidos e linhas de totais
-    if(/^(nome|participante|valor|total|participantes|pgto|pagto|cota|situa)/.test(low)) return;
+    if(/^(nome|name|nombre|participante|participant|partecipante|valor|total|participantes|pgto|pagto|cota|cuota|share|quot|situa)/.test(low)) return;
     var item={ nome:nome, email:(arr[iE]||'').toString().trim(), whatsapp:(arr[iW]||'').toString().trim() };
     if(cab && cab.cotas>=0){ var q=parseInt(arr[cab.cotas],10); if(q>=1) item.cotas=q; }
     out.push(item);
