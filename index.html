@@ -1590,6 +1590,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.9.5':{
+    'en-US':["Quick result: when you turn on the computer, open the app, finish logging in, wake the PC from sleep or the internet comes back, the app checks the Caixa website right away and, if the official API has not released the result yet, publishes the provisional one for everyone; the official API still overwrites it when it comes out. Before, the check only ran during draw hours and was lost when login was slow. Version aligned with the mobile app (5.9.5)."],
+    'es-ES':["Resultado rápido: al encender el ordenador, abrir la app, terminar el inicio de sesión, despertar del reposo o volver internet, la app verifica el sitio de Caixa en el acto y, si la API oficial aún no publicó el resultado, publica el provisional para todos; la API oficial sigue sobrescribiéndolo cuando salga. Antes la verificación solo funcionaba en horario de sorteo y se perdía si el inicio de sesión tardaba. Versión alineada con la app móvil (5.9.5)."],
+    'it-IT':["Risultato rapido: quando si accende il computer, si apre l’app, si completa l’accesso, il PC si riattiva dalla sospensione o torna la connessione, l’app controlla subito il sito di Caixa e, se l’API ufficiale non ha ancora rilasciato il risultato, pubblica quello provvisorio per tutti; l’API ufficiale continua a sovrascriverlo quando esce. Prima il controllo funzionava solo negli orari delle estrazioni e andava perso se l’accesso era lento. Versione allineata con l’app mobile (5.9.5)."]
+  },
   '5.9.4':{
     'en-US':["Registry: shows everyone who has ever taken part in any pool, including deleted pools, in alphabetical order. New pool: when you type or pick a name, the e-mail, WhatsApp and other details come along from the registry and are replaced when you switch person. Import participants: accepts the spreadsheet template with banner and Shares column. Version aligned with the mobile app (5.9.4)."],
     'es-ES':["Registro: muestra a todas las personas que han participado en algún grupo, incluso en grupos eliminados, en orden alfabético. Nuevo grupo: al escribir o elegir el nombre, el correo, el WhatsApp y los demás datos vienen juntos del registro y se cambian al cambiar de persona. Importar participantes: acepta la plantilla de hoja de cálculo con banner y columna de Cuotas. Versión alineada con la app móvil (5.9.4)."],
@@ -1777,6 +1782,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.9.5':[
+    "Resultado rápido: ao ligar o computador, abrir o app, concluir o login, acordar do sono ou voltar a internet, o app confere o site da Caixa na hora e, se a API oficial ainda não liberou o resultado, publica o provisório para todos; a API oficial continua sobrescrevendo quando sair. Antes a conferência só rodava no horário de sorteio e se perdia quando o login demorava. Versão alinhada com o app mobile (5.9.5)."
+  ],
   '5.9.4':[
     "Cadastro: mostra todas as pessoas que já participaram de qualquer bolão, inclusive de bolões apagados, em ordem alfabética. Novo bolão: ao digitar ou escolher o nome, o e-mail, o WhatsApp e os demais dados vêm juntos do cadastro e são trocados ao mudar de pessoa. Importar participantes: aceita o modelo de planilha com banner e coluna de Cotas. Versão alinhada com o app mobile (5.9.4)."
   ],
@@ -2156,7 +2164,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.4</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.5</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2532,7 +2540,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.4</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.9.5</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -6194,6 +6202,7 @@ async function _agAposLogin(user){
   }
   window._usuarioAtual={id:user.id,email:user.email,nome:perfil&&perfil.nome_completo||'',trialInicio,permanente,isAdmin:!!(perfil&&perfil.is_admin),superAdmin:!!(perfil&&perfil.super_admin),papeis:{organizador:souOrganizador,participante:souParticipante}};
   closeModal('auth-gate');
+  if(window._usuarioAtual.isAdmin) setTimeout(()=>{ try{ _provCatchUp('login'); }catch(e){} },800);
   const btnAdmin=document.getElementById('btn-admin');
   if(btnAdmin) btnAdmin.style.display=window._usuarioAtual.isAdmin?'':'none';
   const btnLogout=document.getElementById('btn-logout'); if(btnLogout) btnLogout.style.display='';
@@ -8103,9 +8112,12 @@ function _montarProvisorioServidor(apiKey,h){
   if(Array.isArray(h.trevosSorteados)) o.trevosSorteados=h.trevosSorteados.map(String);
   return o;
 }
+let _provPendente=false; // leitura que não pôde sair (sem sessão ainda): refeita por _provCatchUp assim que o login terminar / o PC acordar / a internet voltar
 async function _enviarProvisoriosAoServidor(home){
   if(Date.now()<_provNegadoAte||!home) return;
   const sb=_getSbClient(); if(!sb) return;
+  // O app abre e já lê o portal antes de o login terminar: sem sessão a chamada voltaria 401. Guarda como pendente em vez de perder.
+  try{ const {data:ses}=await sb.auth.getSession(); if(!(ses&&ses.session)){ _provPendente=true; return; } }catch(e){ _provPendente=true; return; }
   for(const apiKey of Object.keys(PORTAL_HOME_KEYS)){
     const h=home[PORTAL_HOME_KEYS[apiKey]]; if(!h) continue;
     const n=Number(h.numeroDoConcurso)||0;
@@ -8113,7 +8125,12 @@ async function _enviarProvisoriosAoServidor(home){
     const dados=_montarProvisorioServidor(apiKey,h); if(!dados) continue;
     try{
       const {error}=await sb.rpc('rpc_publicar_resultado_provisorio',{p_loteria:apiKey==='diadesorte'?'diasorte':apiKey,p_dados:dados});
-      if(error){ if(/permissao/i.test(error.message||'')){ _provNegadoAte=Date.now()+30*60000; return; } continue; }
+      if(error){
+        const msg=String(error.message||'');
+        if(/permissao/i.test(msg)){ _provNegadoAte=Date.now()+30*60000; return; }            // logado, mas não é administrador
+        if(error.code==='42501'||/permission denied|jwt/i.test(msg)){ _provPendente=true; return; } // sessão ainda não aceita pelo servidor: refaz depois
+        continue;
+      }
       _provEnviado[apiKey]=n; // 'gravado' ou 'ignorado' (servidor já tem esse concurso ou um mais novo)
     }catch(e){}
   }
@@ -15862,6 +15879,10 @@ function agendarVerificacaoPeriodica(){
   // domingo das 11h às 14h, horário de Brasília. A cada 3 min lê o portal; se há concurso mais novo que o exibido,
   // roda a atualização completa (que também publica o provisório ao servidor, se este for um administrador).
   setInterval(_cicloRapidoSorteio, 3*60*1000);
+  let _ultimoTic=Date.now();
+  setInterval(()=>{ const agora=Date.now(), salto=agora-_ultimoTic; _ultimoTic=agora; if(salto>90000) _provCatchUp('acordou'); },30000);
+  window.addEventListener('online',()=>_provCatchUp('online'));
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') _provCatchUp('visivel'); });
 }
 function _emJanelaDeSorteio(){
   const b=new Date(Date.now()-3*3600000), dow=b.getUTCDay(), min=b.getUTCHours()*60+b.getUTCMinutes();
@@ -15870,8 +15891,8 @@ function _emJanelaDeSorteio(){
   return false;
 }
 let _cicloRapidoBusy=false;
-async function _cicloRapidoSorteio(){
-  if(_cicloRapidoBusy||!_emJanelaDeSorteio()) return;
+async function _cicloRapidoSorteio(forcar){
+  if(_cicloRapidoBusy||(forcar!==true&&!_emJanelaDeSorteio())) return;
   _cicloRapidoBusy=true;
   try{
     _portalHomeCache=null; // sempre leitura nova
@@ -15883,6 +15904,16 @@ async function _cicloRapidoSorteio(){
     if(maisNovo) await atualizarTodas(true);
   }catch(e){}
   finally{ _cicloRapidoBusy=false; }
+}
+// "Quando eu ligo" (pedido do usuário, 2026-10-07): ao terminar o login, ao ACORDAR o PC, ao voltar a internet e ao voltar à janela do app,
+// confere o portal NA HORA — sem esperar o ciclo de 3 min nem a janela de horário. Se há concurso mais novo (a API oficial, que é a principal e
+// sobrescreve esta, ainda não saiu), mostra na tela e publica o provisório ao servidor. Só administrador publica; o servidor nunca regride nada.
+let _provUltimoCatchUp=0;
+function _provCatchUp(motivo){
+  const u=window._usuarioAtual; if(!u||!u.isAdmin) return;
+  const agora=Date.now(); if(motivo!=='login'&&agora-_provUltimoCatchUp<45000) return;
+  _provUltimoCatchUp=agora; _provPendente=false;
+  return _cicloRapidoSorteio(true);
 }
 function limparResultado(){
   document.getElementById('result-box').style.display='none';
