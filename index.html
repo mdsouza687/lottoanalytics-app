@@ -1603,6 +1603,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.10.5':{
+    'en-US':["The prize distribution tiers now have an on/off switch per pool (same as the one for Send guess), in the Prize → Balance window: when off, the prize is not split — it goes in full to the participants' balances — and the tiers no longer appear in the pool's Constitution Term and Terms and Conditions. Manuals and Operating Rules updated. Print Playslips now also exists for Powerball and Mega Millions (Arkansas design, 5 plays per slip, 2 per A4 sheet). New look: the lottery clover now follows the Caixa shape, Mega Millions and Powerball have their own icons, and the lottery colors were checked against the printed playslips (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena and +Milionária)."],
+    'es-ES':["Los tramos de distribución del premio ahora tienen un interruptor por grupo (igual al de Enviar apuesta), en la ventana Premio → Saldo: desactivado, el premio no se divide — va íntegro al saldo de los participantes — y los tramos dejan de aparecer en el Acta de constitución y en los Términos y Condiciones del grupo. Manuales y Reglas de funcionamiento actualizados. Imprimir cupones ahora también existe para Powerball y Mega Millions (modelo de Arkansas, 5 jugadas por cupón, 2 por hoja A4). Nuevo aspecto: el trébol de las loterías ahora sigue la forma de Caixa, Mega Millions y Powerball tienen iconos propios y los colores de las loterías se conferieron con los cupones impresos (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena y +Milionária)."],
+    'it-IT':["Le fasce di distribuzione del premio ora hanno un interruttore per gruppo (come quello di Invia proposta), nella finestra Premio → Saldo: disattivato, il premio non viene suddiviso — va per intero sul saldo dei partecipanti — e le fasce non compaiono più nell’Atto costitutivo e nei Termini e condizioni del gruppo. Manuali e Regole di funzionamento aggiornati. Stampa schedine ora esiste anche per Powerball e Mega Millions (modello dell’Arkansas, 5 giocate per schedina, 2 per foglio A4). Nuovo aspetto: il quadrifoglio delle lotterie ora segue la forma di Caixa, Mega Millions e Powerball hanno icone proprie e i colori delle lotterie sono stati verificati con le schedine stampate (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena e +Milionária)."]
+  },
   '5.10.4':{
     'en-US':["New Winning Tickets button on the Pools page (before Create Pool) and in the participant area, just like the phone app: it shows, per pool, the total prizes received and every ticket that has already won, and glows gold when a new prize comes in. Version aligned with the phone app (5.10.4), which now shows the extra ball and multiplier for Powerball and Mega Millions in Analyses › Results."],
     'es-ES':["Nuevo botón Juegos premiados en la página Grupos (antes de Crear grupo) y en el área de participante, igual al de la app del celular: muestra, por grupo, el total de premios recibidos y todos los juegos que ya ganaron, y brilla en dorado cuando llega un premio nuevo. Versión alineada con la app del celular (5.10.4), que ahora muestra la bola extra y el multiplicador de Powerball y Mega Millions en Análisis › Resultados."],
@@ -1820,6 +1825,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.10.5':[
+    "Faixas de distribuição do prêmio ganharam uma chave liga/desliga por bolão (igual à do Enviar palpite), no modal Prêmio → Saldo: desligada, o prêmio não é dividido — vai inteiro para o saldo dos participantes — e as faixas deixam de aparecer no Termo de Constituição e nos Termos e Condições do bolão. Manuais e Regras de Funcionamento atualizados. Imprimir Volantes agora também existe para Powerball e Mega Millions (modelo do Arkansas, 5 jogos por volante, 2 por folha A4). Visual novo: o trevo das loterias agora segue o formato da Caixa, Mega Millions e Powerball ganharam ícones próprios e as cores das loterias foram conferidas com os volantes impressos (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena e +Milionária)."
+  ],
   '5.10.4':[
     "Novo botão Jogos Premiados na página Bolões (antes de Criar Bolão) e na área de participante, igual ao do celular: mostra, por bolão, o total de prêmios recebidos e todos os jogos que já ganharam, e brilha em dourado quando sai um prêmio novo. Versão alinhada com o app do celular (5.10.4), que agora mostra a bola extra e o multiplicador de Powerball e Mega Millions em Análises › Resultados."
   ],
@@ -2217,7 +2225,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.4</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.5</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2449,10 +2457,10 @@ function _mostrarNovidadesVersao(versao){
       </div>
 
       <div class="ps-card">
-        <div class="ps-card-head" data-i18n="boloes.ps_faixas_titulo">⚙️ Faixas de distribuição do prêmio</div>
-        <div style="font-size:10.5px;color:var(--text-muted);margin-bottom:10px" data-i18n="boloes.ps_faixas_explicacao">O prêmio é fatiado progressivamente, faixa por faixa: a fatia dentro da Faixa 1 vira crédito automático; a fatia dentro da Faixa 2 é parte reserva pro próximo bolão e parte PIX; a fatia dentro da Faixa 3 é 100% PIX. Um prêmio grande aciona todas as faixas ao mesmo tempo — por isso pode ter crédito, reserva e PIX juntos, como nos exemplos abaixo.</div>
+        <div class="ps-card-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span data-i18n="boloes.ps_faixas_titulo">⚙️ Faixas de distribuição do prêmio</span><span id="premio-saldo-faixas-switch" style="display:inline-flex"></span></div>
+        <div id="premio-saldo-faixas-expl" style="font-size:10.5px;color:var(--text-muted);margin-bottom:10px" data-i18n="boloes.ps_faixas_explicacao">O prêmio é fatiado progressivamente, faixa por faixa: a fatia dentro da Faixa 1 vira crédito automático; a fatia dentro da Faixa 2 é parte reserva pro próximo bolão e parte PIX; a fatia dentro da Faixa 3 é 100% PIX. Um prêmio grande aciona todas as faixas ao mesmo tempo — por isso pode ter crédito, reserva e PIX juntos, como nos exemplos abaixo.</div>
         <div id="premio-saldo-faixas-campos"></div>
-        <button type="button" onclick="_pcSalvarFaixas()" style="border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;margin-top:2px" data-i18n="boloes.ps_salvar_faixas">Salvar faixas</button>
+        <button type="button" id="premio-saldo-faixas-salvar" onclick="_pcSalvarFaixas()" style="border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px;background:var(--glass-bg);color:var(--text);font-weight:700;font-size:11px;cursor:pointer;margin-top:2px" data-i18n="boloes.ps_salvar_faixas">Salvar faixas</button>
         <div id="premio-saldo-faixas-msg" style="font-size:11px;margin-top:6px"></div>
       </div>
 
@@ -2593,7 +2601,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.4</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.5</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5731,6 +5739,11 @@ Object.assign(LA_I18N['pt-BR'], {"boloes.aviso_jogos_de_palpite":"incluindo jogo
 Object.assign(LA_I18N['en-US'], {"boloes.aviso_jogos_de_palpite":"including games from guesses sent by {nomes}"});
 Object.assign(LA_I18N['es-ES'], {"boloes.aviso_jogos_de_palpite":"incluidos juegos de jugadas enviadas por {nomes}"});
 Object.assign(LA_I18N['it-IT'], {"boloes.aviso_jogos_de_palpite":"incluse giocate dalle proposte inviate da {nomes}"});
+/* Faixas desligadas (2026-10-09): textos da chave e dos documentos sem as faixas. */
+Object.assign(LA_I18N['pt-BR'], {"organizador.faixas_desligadas_nota":"Faixas desligadas: o prêmio não é dividido. Todo prêmio creditado vai inteiro para o saldo dos participantes (sem reserva para o próximo bolão e sem PIX), e as faixas não aparecem no Termo de Constituição nem nos Termos e Condições deste bolão.","organizador.faixas_ativadas_toast":"Faixas ligadas.","organizador.faixas_desativadas_toast":"Faixas desligadas — o prêmio vai inteiro para o saldo.","termos.p_8_sem_faixas":"As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada participante, após a dedução da taxa administrativa (quando aplicável), e creditadas integralmente ao saldo do participante neste bolão. Em todos os casos é respeitado o número de cotas e o percentual a que cada participante tem direito.","termos.p_divisao_dos_premios_sem_faixas":"Todo prêmio será dividido proporcionalmente ao percentual de participação constante neste documento, respeitado sempre o número de cotas e o percentual a que cada participante tem direito, e creditado ao saldo do participante neste bolão. Os participantes reconhecem que os valores pertencem ao grupo desde a realização da aposta."});
+Object.assign(LA_I18N['en-US'], {"organizador.faixas_desligadas_nota":"Tiers off: the prize is not split. Every prize credited goes in full to the participants' balances (no reserve for the next pool and no PIX), and the tiers do not appear in this pool's Constitution Term or Terms and Conditions.","organizador.faixas_ativadas_toast":"Tiers on.","organizador.faixas_desativadas_toast":"Tiers off — the prize goes in full to the balance.","termos.p_8_sem_faixas":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), and credited in full to the participant's balance in this pool. In all cases the number of shares and the percentage each participant is entitled to are respected.","termos.p_divisao_dos_premios_sem_faixas":"Every prize will be divided in proportion to the participation percentage stated in this document, always respecting the number of shares and the percentage each participant is entitled to, and credited to the participant's balance in this pool. The participants acknowledge that the amounts belong to the group from the moment the bet is placed."});
+Object.assign(LA_I18N['es-ES'], {"organizador.faixas_desligadas_nota":"Tramos desactivados: el premio no se divide. Todo premio acreditado va íntegro al saldo de los participantes (sin reserva para el próximo grupo y sin PIX), y los tramos no aparecen en el Acta de constitución ni en los Términos y Condiciones de este grupo.","organizador.faixas_ativadas_toast":"Tramos activados.","organizador.faixas_desativadas_toast":"Tramos desactivados — el premio va íntegro al saldo.","termos.p_8_sem_faixas":"Los premios obtenidos se distribuirán proporcionalmente al número de cuotas de cada participante, tras deducir la tarifa administrativa (cuando corresponda), y se acreditarán íntegramente al saldo del participante en este grupo. En todos los casos se respeta el número de cuotas y el porcentaje al que tiene derecho cada participante.","termos.p_divisao_dos_premios_sem_faixas":"Todo premio se dividirá proporcionalmente al porcentaje de participación que consta en este documento, respetando siempre el número de cuotas y el porcentaje al que tiene derecho cada participante, y se acreditará al saldo del participante en este grupo. Los participantes reconocen que los valores pertenecen al grupo desde la realización de la apuesta."});
+Object.assign(LA_I18N['it-IT'], {"organizador.faixas_desligadas_nota":"Fasce disattivate: il premio non viene suddiviso. Ogni premio accreditato va per intero sul saldo dei partecipanti (senza riserva per il prossimo gruppo e senza PIX), e le fasce non compaiono nell'Atto costitutivo né nei Termini e condizioni di questo gruppo.","organizador.faixas_ativadas_toast":"Fasce attivate.","organizador.faixas_desativadas_toast":"Fasce disattivate — il premio va per intero sul saldo.","termos.p_8_sem_faixas":"I premi ottenuti saranno distribuiti proporzionalmente al numero di quote di ciascun partecipante, dopo la deduzione della commissione amministrativa (quando applicabile), e accreditati integralmente sul saldo del partecipante in questo gruppo. In tutti i casi vengono rispettati il numero di quote e la percentuale a cui ciascun partecipante ha diritto.","termos.p_divisao_dos_premios_sem_faixas":"Ogni premio sarà diviso proporzionalmente alla percentuale di partecipazione indicata in questo documento, nel rispetto sempre del numero di quote e della percentuale a cui ciascun partecipante ha diritto, e accreditato sul saldo del partecipante in questo gruppo. I partecipanti riconoscono che gli importi appartengono al gruppo fin dal momento della scommessa."});
 Object.assign(LA_I18N['pt-BR'], {"termos.p_8":"As premiações obtidas serão distribuídas proporcionalmente ao número de cotas adquiridas por cada participante, após a dedução da taxa administrativa (quando aplicável), observadas as seguintes faixas de destinação: (i) Faixa 1 — creditado automaticamente ao saldo do participante neste bolão, de forma acumulada, até {pct}% da arrecadação total do bolão (valor pago pelos participantes); atingido esse limite, a diferença de cada prêmio seguinte é reservada para o próximo bolão; (ii) Faixa 2 — logo após a Faixa 1 e até R$ {faixa2} por cota: a parcela equivalente ao valor da cota vigente é reservada para o próximo bolão do mesmo participante (transferida automaticamente ou pelo organizador, conforme definido para este bolão), sendo o excedente pago via PIX; (iii) Faixa 3 — acima de R$ {faixa2} por cota: pago integralmente via PIX. Em todos os casos é respeitado o número de cotas e o percentual a que cada participante tem direito. O administrador poderá ajustar essas faixas a qualquer momento.","organizador.faixas_ajuda":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante — transferido automaticamente ou pelo organizador, conforme a opção escolhida para este bolão.","organizador.faixas_exemplo_titulo_dinamico":"Exemplos — com as faixas deste bolão (Faixa 1 até {pct}% da arrecadação, cerca de R$ {faixa1} por cota quando ainda não houve crédito; Faixa 2 até R$ {faixa2}) e uma cota custando R$ {cota}:","organizador.faixas_exemplo_titulo":"Exemplos — com as faixas padrão (Faixa 1 até 25% da arrecadação, Faixa 2 até R$2.428,80) e uma cota deste bolão custando R$50,00:","organizador.faixa1_pct_label":"Até (% da arrecadação)","organizador.faixa1_pct_dica":"Limite acumulado: a Faixa 1 já creditou {creditado} de até {teto} ({pct}% da arrecadação). Atingido o limite, a diferença vai para a reserva do próximo bolão.","organizador.faixa2_de_apos_f1":"após a Faixa 1","organizador.faixa_pct_invalida":"O percentual da Faixa 1 precisa estar entre 0 e 100.","organizador.notif_faixas_alteradas_corpo":"O organizador de \"{nome}\" atualizou as faixas de distribuição de prêmio: Faixa 1 de R$ {f1de} até {f1pct}% da arrecadação, acumulado (crédito automático), Faixa 2 depois da Faixa 1 até R$ {f2ate}/cota (reserva + PIX), Faixa 3 R$ {f3de} a R$ {f3ate}/cota (100% PIX).","boloes.ps_faixas_explicacao":"O prêmio é dividido em faixas. A Faixa 1 é um limite ACUMULADO: a soma do que já foi creditado ao saldo, em todos os prêmios do bolão, vai até o percentual da arrecadação que você definir. Atingido o limite, a diferença vai para a reserva do próximo bolão. A Faixa 2 começa onde a Faixa 1 termina; dentro dela, o que exceder o valor da cota deste bolão vai de PIX e o resto fica reservado para o próximo bolão do participante. A Faixa 3 é 100% PIX."});
 Object.assign(LA_I18N['en-US'], {"termos.p_8":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), according to the following destination tiers: (i) Tier 1 — credited automatically to the participant's balance in this pool, cumulatively, up to {pct}% of the pool's total collection (the amount paid by the participants); once this limit is reached, the difference of each following prize is set aside for the next pool; (ii) Tier 2 — right after Tier 1 and up to R$ {faixa2} per share: the portion equal to the current share price is set aside for the same participant's next pool (transferred automatically or by the organizer, as defined for this pool), with the excess paid via PIX; (iii) Tier 3 — above R$ {faixa2} per share: paid entirely via PIX. In all cases the number of shares and the percentage each participant is entitled to are respected. The administrator may adjust these tiers at any time.","organizador.faixas_ajuda":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool — transferred automatically or by the organizer, depending on the option chosen for this pool.","organizador.faixas_exemplo_titulo_dinamico":"Examples — with this pool's tiers (Tier 1 up to {pct}% of the total collection, about R$ {faixa1} per share when nothing has been credited yet; Tier 2 up to R$ {faixa2}) and a share costing R$ {cota}:","organizador.faixas_exemplo_titulo":"Examples — with the default tiers (Tier 1 up to 25% of the total collection, Tier 2 up to R$2,428.80) and a share of this pool costing R$50.00:","organizador.faixa1_pct_label":"Up to (% of collection)","organizador.faixa1_pct_dica":"Cumulative limit: Tier 1 has already credited {creditado} out of up to {teto} ({pct}% of the collection). Once the limit is reached, the difference goes to the next pool's reserve.","organizador.faixa2_de_apos_f1":"after Tier 1","organizador.faixa_pct_invalida":"Tier 1's percentage must be between 0 and 100.","organizador.notif_faixas_alteradas_corpo":"The organizer of \"{nome}\" updated the prize distribution tiers: Tier 1 from R$ {f1de} up to {f1pct}% of the collection, cumulative (automatic credit), Tier 2 after Tier 1 up to R$ {f2ate}/share (reserve + PIX), Tier 3 R$ {f3de} to R$ {f3ate}/share (100% PIX).","boloes.ps_faixas_explicacao":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool. Tier 3 is 100% PIX."});
 Object.assign(LA_I18N['es-ES'], {"termos.p_8":"Los premios obtenidos se distribuirán proporcionalmente al número de cuotas de cada participante, tras deducir la tarifa administrativa (cuando corresponda), conforme a los siguientes tramos de destino: (i) Tramo 1 — se acredita automáticamente al saldo del participante en este grupo, de forma acumulada, hasta el {pct}% de la recaudación total del grupo (lo pagado por los participantes); alcanzado ese límite, la diferencia de cada premio siguiente se reserva para el próximo grupo; (ii) Tramo 2 — justo después del Tramo 1 y hasta R$ {faixa2} por cuota: la parte equivalente al valor de la cuota vigente se reserva para el próximo grupo del mismo participante (transferida automáticamente o por el organizador, según lo definido para este grupo), y el excedente se paga por PIX; (iii) Tramo 3 — por encima de R$ {faixa2} por cuota: se paga íntegramente por PIX. En todos los casos se respeta el número de cuotas y el porcentaje que le corresponde a cada participante. El administrador podrá ajustar estos tramos en cualquier momento.","organizador.faixas_ajuda":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante — transferido automáticamente o por el organizador, según la opción elegida para este grupo.","organizador.faixas_exemplo_titulo_dinamico":"Ejemplos — con los tramos de este grupo (Tramo 1 hasta el {pct}% de la recaudación, unos R$ {faixa1} por cuota cuando aún no hubo crédito; Tramo 2 hasta R$ {faixa2}) y una cuota que cuesta R$ {cota}:","organizador.faixas_exemplo_titulo":"Ejemplos — con los tramos estándar (Tramo 1 hasta el 25% de la recaudación, Tramo 2 hasta R$2.428,80) y una cuota de este grupo que cuesta R$50,00:","organizador.faixa1_pct_label":"Hasta (% de la recaudación)","organizador.faixa1_pct_dica":"Límite acumulado: el Tramo 1 ya acreditó {creditado} de hasta {teto} ({pct}% de la recaudación). Alcanzado el límite, la diferencia va a la reserva del próximo grupo.","organizador.faixa2_de_apos_f1":"después del Tramo 1","organizador.faixa_pct_invalida":"El porcentaje del Tramo 1 debe estar entre 0 y 100.","organizador.notif_faixas_alteradas_corpo":"El organizador de \"{nome}\" actualizó los tramos de distribución de premios: Tramo 1 de R$ {f1de} hasta el {f1pct}% de la recaudación, acumulado (crédito automático), Tramo 2 después del Tramo 1 hasta R$ {f2ate}/cuota (reserva + PIX), Tramo 3 R$ {f3de} a R$ {f3ate}/cuota (100% PIX).","boloes.ps_faixas_explicacao":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante. El Tramo 3 es 100% PIX."});
@@ -5924,15 +5937,15 @@ const CFG = {
   // progressão simples, sem múltiplos de 3). Loterias americanas
   // (Powerball/Mega Millions) não têm Teimosinha — modalidade exclusiva
   // das loterias da Caixa.
-  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00AB67',corD:'#009B63',corClara:'#6BCEA7',orb:[0,171,103],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
-  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#803594',corD:'#702A82',corClara:'#B58AC1',orb:[128,53,148],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
-  quina:         {nome:'QUINA',        emoji:'💜',cor:'#005DA4',corD:'#00508F',corClara:'#6BA1CA',orb:[0,93,164],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#49B439',corD:'#41A133',corClara:'#95D48C',orb:[73,180,57],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
+  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#9F267A',corD:'#8A216A',corClara:'#C781B2',orb:[159,38,122],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  quina:         {nome:'QUINA',        emoji:'💜',cor:'#640F7C',corD:'#520C65',corClara:'#A574B3',orb:[100,15,124],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
   lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#F58220',corD:'#F99D1C',corClara:'#F9B67E',orb:[245,130,32], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
-  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFDD00',corD:'#FFEB95',corClara:'#FFEB6B',corTexto:'#00AB67',orb:[255,221,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
-  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A62A52',corD:'#90214A',corClara:'#CB839B',orb:[166,42,82],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#E9EA4F',corD:'#E6E738',corClara:'#F2F399',corTexto:'#00AB67',orb:[233,234,79],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A74522',corD:'#923C1E',corClara:'#CC937F',orb:[167,69,34],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#C8A800',corD:'#9a8000',corClara:'#E0C766',orb:[200,168,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,9,12]},
   supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#A6CE39',corD:'#80C342',corClara:'#CBE38C',orb:[166,206,57], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
-  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#1E3F8A',corD:'#152e66',corClara:'#6E84B8',orb:[30,63,138],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
+  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#453084',corD:'#3B2971',corClara:'#9387B8',orb:[69,48,132],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
   powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26, estadosMultiDraw:true},
   megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#FFB800',corD:'#cc9200',orb:[255,184,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25, estadosMultiDraw:true},
 };
@@ -8690,28 +8703,63 @@ function setDot(s,t){
    trevo é o símbolo proprietário, sempre composto por 4 partes
    iguais, em 2 tons da cor da modalidade (padrão "xadrez": topo/
    base num tom, laterais no tom claro). */
+// Ícones ORIGINAIS das loterias americanas (2026-10-09; sem logo oficial — marca registrada): Mega Millions = bola dourada com estrela branca (opção B aprovada pelo usuário; as estrelinhas da opção C sumiam em tamanho pequeno), Powerball = bola vermelha com raio.
+// o.mono = cor única (chips e fundos coloridos); sem o.mono = versão colorida. key = 'megamillions' | 'powerball'.
+function iconeAmericanoSVG(key, tamanho, o){
+  tamanho=tamanho||28; o=o||{};
+  var mm=(key==='megamillions');
+  var cor=o.cor||(mm?'#FFB800':'#E31D1A'), escura=mm?'#CC9200':'#A81410', mono=o.mono||null;
+  var corpo;
+  if(mm){
+    var pts=[], k, ang, rr;
+    for(k=0;k<10;k++){ ang=-Math.PI/2+k*Math.PI/5; rr=(k%2)?6.6:15.5; pts.push((32+rr*Math.cos(ang)).toFixed(1)+','+(33.5+rr*Math.sin(ang)).toFixed(1)); }
+    var estrela='<polygon points="'+pts.join(' ')+'" fill="'+(mono||'#fff')+'" stroke="'+(mono||'#fff')+'" stroke-width="1.2" stroke-linejoin="round"/>';
+    if(mono){
+      corpo='<circle cx="32" cy="32" r="24" fill="'+mono+'" fill-opacity=".22" stroke="'+mono+'" stroke-width="3"/>'+estrela;
+    } else {
+      corpo='<circle cx="32" cy="32" r="25" fill="'+cor+'"/><circle cx="32" cy="32" r="24" fill="none" stroke="'+escura+'" stroke-width="2"/>'+
+        '<ellipse cx="22" cy="19" rx="8" ry="4.8" fill="#fff" fill-opacity=".35" transform="rotate(-35 22 19)"/>'+estrela;
+    }
+  } else {
+    var raio='M36 11 L19 36 H30 L26 54 L45 27 H34 Z';
+    if(mono){
+      corpo='<circle cx="32" cy="32" r="24" fill="'+mono+'" fill-opacity=".22" stroke="'+mono+'" stroke-width="3"/><path d="'+raio+'" fill="'+mono+'"/>';
+    } else {
+      corpo='<circle cx="32" cy="32" r="25" fill="'+cor+'"/><circle cx="32" cy="32" r="24" fill="none" stroke="'+escura+'" stroke-width="2"/>'+
+        '<ellipse cx="22" cy="19" rx="9" ry="5.5" fill="#fff" fill-opacity=".3" transform="rotate(-35 22 19)"/><path d="'+raio+'" fill="#fff"/>';
+    }
+  }
+  return '<svg viewBox="0 0 64 64" width="'+tamanho+'" height="'+tamanho+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align:middle;flex-shrink:0">'+corpo+'</svg>';
+}
+// Trevo no formato da identidade Loterias CAIXA (2026-10-09; o anterior tinha os corações na orientação errada, em "X", e "nem parecia um trevo"):
+// 4 corações, um por quadrante, ponta voltada para o centro, lados retos alinhados aos eixos (cruz fina entre eles), sem caule, xadrez em 2 tons.
+// cor/clara = tons da loteria (topo-esq e baixo-dir em cor; topo-dir e baixo-esq em clara); o.mono = cor única (chips e fundos coloridos; os 2 tons viram 100% e 60%).
+function iconeTrevoSVG(tamanho, cor, clara, o){
+  tamanho=tamanho||28; o=o||{};
+  var p='M-1.6,-1.6 V-19 A10.5,10.5 0 0 0 -22.1,-22.1 A10.5,10.5 0 0 0 -19,-1.6 Z', mono=o.mono||null, c2=mono||clara||cor;
+  var q=function(sx,sy,fill,op){ return '<path d="'+p+'" fill="'+fill+'"'+(op?' fill-opacity="'+op+'"':'')+' transform="scale('+sx+','+sy+')"/>'; };
+  return '<svg viewBox="0 0 64 64" width="'+tamanho+'" height="'+tamanho+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,32)">'+
+    q(1,1,mono||cor)+q(-1,1,c2,mono?.6:0)+q(-1,-1,mono||cor)+q(1,-1,c2,mono?.6:0)+'</g></svg>';
+}
 function trevoSVG(d, tamanho){
   tamanho = tamanho||28;
   const corA = (d&&d.cor)||CFG.megasena.cor;
   const corB = (d&&d.corClara)||corA;
-  const petala = 'M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
-  return `<svg viewBox="0 0 64 64" width="${tamanho}" height="${tamanho}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)"><path d="${petala}" fill="${corA}"/><path d="${petala}" fill="${corB}" transform="rotate(90)"/><path d="${petala}" fill="${corA}" transform="rotate(180)"/><path d="${petala}" fill="${corB}" transform="rotate(270)"/></g></svg>`;
+  return iconeTrevoSVG(tamanho, corA, corB);
 }
 // Variante do trevo para uso sobre o próprio fundo colorido da loteria
 // (ex. faixa superior do card de resultado). Usa a cor de contraste
-// (branco/preto via corTextoSobre) em 2 opacidades, já que a cor da
-// marca não teria contraste sobre seu próprio fundo — caso típico da
+// (branco/preto via corTextoSobre) em 2 opacidades (100% e 60%), já que a
+// cor da marca não teria contraste sobre seu próprio fundo — caso típico da
 // Timemania, cujo amarelo oficial ficaria invisível sobre amarelo.
 function trevoSVGSobreFundo(d, tamanho){
   tamanho = tamanho||28;
   const base = corTextoSobre((d&&d.cor)||CFG.megasena.cor);
-  const corA = base, corB = base==='#fff'?'rgba(255,255,255,.55)':'rgba(0,0,0,.45)';
-  const petala = 'M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
-  return `<svg viewBox="0 0 64 64" width="${tamanho}" height="${tamanho}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)"><path d="${petala}" fill="${corA}"/><path d="${petala}" fill="${corB}" transform="rotate(90)"/><path d="${petala}" fill="${corA}" transform="rotate(180)"/><path d="${petala}" fill="${corB}" transform="rotate(270)"/></g></svg>`;
+  return iconeTrevoSVG(tamanho, base, base, {mono:base});
 }
 function iconLoteria(d, tamanho, sobreFundo){
   if(!d) return '';
-  if(d.americano) return `<span style="font-size:${tamanho||28}px;line-height:1">${d.emoji||''}</span>`;
+  if(d.americano) return sobreFundo?iconeAmericanoSVG(d.apiKey,tamanho||28,{mono:corTextoSobre(d.cor)}):iconeAmericanoSVG(d.apiKey,tamanho||28);
   return sobreFundo?trevoSVGSobreFundo(d,tamanho):trevoSVG(d, tamanho);
 }
 
@@ -8733,7 +8781,7 @@ function buildDash(){
     card.style.borderColor=d.cor+'33';
     const del=delays[di++]||0;
     const ballHtml=d.americano
-      ?`<div class="lcn-ball" style="animation-delay:${del}s">${d.emoji}</div>`
+      ?`<div style="width:88px;height:88px;display:flex;align-items:center;justify-content:center;animation:lcnFloat 3s ease-in-out ${del}s infinite">${iconeAmericanoSVG(d.apiKey,84)}</div>`
       :`<div style="width:88px;height:88px;display:flex;align-items:center;justify-content:center;animation:lcnFloat 3s ease-in-out ${del}s infinite">${trevoSVG(d,84)}</div>`;
     card.innerHTML=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,${d.cor}1a 0%,transparent 65%);pointer-events:none;z-index:0"></div><div class="lcn-ball-wrap">${ballHtml}</div><div class="lcn-body"><div class="lcn-name">${d.nome}</div><div class="lcn-prize" id="prize-${key}">Prêmio estimado: <strong>—</strong></div><div class="lcn-concurso" id="sub-${key}">—</div><div class="lcn-next" id="next-${key}"></div><div class="lcn-status" id="status-${key}"></div><div class="lcn-play" style="background:${d.cor};position:relative;overflow:hidden">Ver Agora »</div></div>`;
     return card;
@@ -9672,7 +9720,7 @@ function _corMarcaLegivelHero(d){
   if(document.body.classList.contains('theme-light')){
     return corMarca(d);
   }
-  var CLARA_LEGIVEL_ESCURO={megasena:'#6BCEA7',timemania:'#6BCEA7',lotofacil:'#C9A6D2',quina:'#8FBEDD',duplasena:'#DDA3B8',maismilionaria:'#93A3DE',powerball:'#f5a7a5'};
+  var CLARA_LEGIVEL_ESCURO={megasena:'#9DDB94',timemania:'#6BCEA7',lotofacil:'#DB94C5',quina:'#CC94DB',duplasena:'#DBA794',maismilionaria:'#A796D9',powerball:'#f5a7a5'};
   return CLARA_LEGIVEL_ESCURO[d.apiKey]||corMarca(d);
 }
 // Cor do NÚMERO dentro da bolinha — diferente de corMarca(), que cai pra
@@ -9713,7 +9761,7 @@ function _corFundoChipLoteria(d){
 function _corTextoChipLoteria(d){
   var temWrapper=d&&Object.prototype.hasOwnProperty.call(d,'_cfg');
   var cfg=temWrapper?d._cfg:d;
-  var ESCURA_LEGIVEL={megasena:'#046339',lotomania:'#8C4400',timemania:'#5C4D00',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
+  var ESCURA_LEGIVEL={megasena:'#2A6921',lotomania:'#8C4400',timemania:'#68690D',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
   if(cfg&&ESCURA_LEGIVEL[cfg.apiKey]) return ESCURA_LEGIVEL[cfg.apiKey];
   if(!cfg) return '#0B6E8C'; // concurso sem loteria identificada (MULTI_LOTERIA_COR)
   return cfg.corD||corMarca(d);
@@ -9724,12 +9772,9 @@ function _corTextoChipLoteria(d){
 // sobre o novo fundo pastel do chip. Loterias americanas continuam com o
 // emoji fixo (não é texto colorido, não tem esse problema).
 function _iconeChipLoteria(cfg, tamanho, corTexto){
-  if(cfg&&cfg.americano) return '<span style="font-size:'+(tamanho||14)+'px;line-height:1">'+(cfg.emoji||'')+'</span>';
+  if(cfg&&cfg.americano) return iconeAmericanoSVG(cfg.apiKey,tamanho||14,{mono:corTexto});
   tamanho=tamanho||14;
-  var petala='M0,0 C-3,-4 -16,-12 -16,-21 C-16,-29 -7,-30 0,-22 C7,-30 16,-29 16,-21 C16,-12 3,-4 0,0 Z';
-  return '<svg viewBox="0 0 64 64" width="'+tamanho+'" height="'+tamanho+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(32,34)">'+
-    '<path d="'+petala+'" fill="'+corTexto+'"/><path d="'+petala+'" fill="'+corTexto+'99" transform="rotate(90)"/>'+
-    '<path d="'+petala+'" fill="'+corTexto+'" transform="rotate(180)"/><path d="'+petala+'" fill="'+corTexto+'99" transform="rotate(270)"/></g></svg>';
+  return iconeTrevoSVG(tamanho, corTexto, corTexto, {mono:corTexto});
 }
 const LA_MESES_NOMES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'].map(m=>t('meses.'+m));
 // Gera o HTML do mês da sorte / time do coração de um jogo gerado, no
@@ -10163,7 +10208,7 @@ function setOrb(orb,d){
 function renderSkel(d){document.getElementById('lottery-card').innerHTML=`<div class="card-top" style="background:${d.cor}"><span class="card-top-concurso">...</span><span class="card-top-nome"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">${iconLoteria(d,18,true)}${d.nome}</span></span><span class="card-top-data">...</span></div><div style="padding:20px;display:flex;flex-direction:column;gap:10px"><div class="skel" style="height:48px;border-radius:12px"></div><div class="skel" style="height:14px;width:60%;margin:0 auto"></div><div class="skel" style="height:14px;width:80%;margin:0 auto"></div></div>`;}
 function _buildResultCardHtml(res,d){
   let h='';
-  h+=`<div class="card-top" style="background:${d.cor}${d.corTexto?';color:'+d.corTexto:''}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
+  h+=`<div class="card-top" style="background:${d.cor};color:${d.corTexto||corTextoSobre(d.cor)}"><span class="card-top-concurso"># ${res.concurso}</span><span class="card-top-data">${res.data}</span></div>`;
   // 1º Sorteio (ou único para loterias simples)
   if(d.dupla) h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 16px 2px"><div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${corMarca(d)};opacity:.9;border-left:3px solid ${d.cor};padding-left:6px">${t('resultado.primeiro_sorteio_maiusc')}</div></div>`;
   h+=`<div class="balls-wrap" style="${d.dupla?'padding-top:4px;padding-bottom:8px':''}">`;
@@ -10430,8 +10475,8 @@ function setupMods(d){
   // via [data-lotbtn] acima.
   const rh=document.getElementById('result-hdr'); if(rh) rh.style.background=d.cor;
   // "Imprimir Volantes" (volante oficial em escala real) existe para as 9
-  // loterias da Caixa configuradas em VOLANTE_IMG — Powerball/Mega
-  // Millions não têm volante físico brasileiro equivalente, então ficam de fora.
+  // loterias configuradas em VOLANTE_IMG: as 9 da Caixa e, desde 2026-10-09, Powerball/Mega
+  // Millions (modelo do Arkansas, entradas com us:true).
   {const btnVolMM=document.getElementById('btn-imprimir-volante-mm'); if(btnVolMM) btnVolMM.style.display=(typeof VOLANTE_IMG!=='undefined'&&VOLANTE_IMG[currentKey])?'':'none';}
   const btnA=document.getElementById('btn-analise');
   if(btnA){btnA.style.borderColor=`${d.cor}88`;btnA.style.background=`linear-gradient(135deg,${d.cor}22,rgba(255,255,255,.05))`;}
@@ -13171,6 +13216,8 @@ const VOLANTE_ASSETS_BASE = 'assets/volantes/';
 // são um override opcional do tamanho padrão (fração do espaçamento entre
 // colunas) — usados quando o colchete real da loteria é maior/menor do que
 // essa fração cobre bem (ver _volanteMarcacoesHtml).
+// Largura REAL (mm) dos volantes dos EUA — valor ASSUMIDO (3,25"); não há medida oficial publicada. Medir um volante de papel e ajustar aqui: a altura e todas as posições acompanham.
+const MM_VOLANTE_LARG_MM = 82.55, PB_VOLANTE_LARG_MM = 82.55;
 const VOLANTE_IMG = {
   megasena: { file:'megasena.jpg', wmm:83, hmm:184.72, jogos:[
     {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[50.0,53.3,56.6,59.9,63.2,66.5]},
@@ -13343,6 +13390,25 @@ const VOLANTE_IMG = {
     {v:2,x:88.85,w:2.8},{v:3,x:94.74,w:2.8},{v:4,x:100.58,w:2.8},{v:5,x:106.26,w:2.8},
   ], h:1.8},
   },
+  // ═══ Volantes dos EUA (2026-10-09): Mega Millions e Powerball (modelo do Arkansas). Coordenadas em PIXELS da imagem (px.w x px.h), medidas por pixel; a conversão
+  // para mm usa wmm/px.w — para acertar o tamanho de impressão basta mudar a largura REAL do volante nas constantes MM_VOLANTE_LARG_MM / PB_VOLANTE_LARG_MM (a altura
+  // acompanha a proporção da imagem). Cada volante tem 5 jogos (A-E). num/extra: ordem 'linhas' (n = linha*colunas + coluna + 1) ou 'colunas' (n = coluna*linhas + linha + 1,
+  // linhas guardadas de baixo p/ cima, como no Powerball); mw/mh = tamanho da marca em px. QP/VOID/Power Play ficam sem marca (não existem no app). multidraw: marca a opção
+  // igual ao nº de concursos do jogo (jogo._teimosinhaConcursos), só se existir impressa no volante.
+  megamillions: { file:'megamillions.png', us:true, px:{w:352,h:893}, wmm:MM_VOLANTE_LARG_MM, hmm:MM_VOLANTE_LARG_MM*893/352, maxNum:70, maxExtra:24, jogos:[
+    {num:{cols:[50.5,68,86,104,122,140,158,175.5,193,211],rows:[150,167,184,202,219,236,254],ordem:'linhas',mw:10.73,mh:11},extra:{cols:[265,283,300.5,318.5],rows:[150,167,184,202,219,236],ordem:'linhas',mw:10.73,mh:11}},
+    {num:{cols:[50.5,68.5,86,104,122,139.5,157.5,175.5,193.5,211],rows:[288.5,305,322.5,340,357,374.5,391.5],ordem:'linhas',mw:10.36,mh:10.44},extra:{cols:[265,282.5,300.5,318.5],rows:[288.5,305,322.5,340,357,374.5],ordem:'linhas',mw:10.36,mh:10.44}},
+    {num:{cols:[50.5,68,86,104,122,140,158,175.5,193,211],rows:[426,444,461,478,496,513,530],ordem:'linhas',mw:10.73,mh:11},extra:{cols:[265,283,300.5,318.5],rows:[426,444,461,478,496,513],ordem:'linhas',mw:10.73,mh:11}},
+    {num:{cols:[50.5,68.5,86,104,122,139.5,157.5,175.5,193.5,211],rows:[564.75,582,599.5,617,634,651.5,668.5],ordem:'linhas',mw:10.36,mh:10.52},extra:{cols:[265,282.5,300.5,318.5],rows:[564.63,582,599.5,617,634,651.5],ordem:'linhas',mw:10.36,mh:10.52}},
+    {num:{cols:[50.5,68,86,104,122,140,158,175.5,193,211],rows:[703,721,738,755,772.5,790,807],ordem:'linhas',mw:10.73,mh:10.85},extra:{cols:[265,283,300.5,318.5],rows:[703,721,738,755,772.5,790],ordem:'linhas',mw:10.73,mh:10.85}}
+  ], multidraw:[{v:2,x:139.5,y:824.5,mw:10,mh:10},{v:3,x:157.5,y:824.5,mw:10,mh:10},{v:4,x:175.5,y:824.5,mw:10,mh:10},{v:5,x:193.5,y:824.5,mw:10,mh:10},{v:6,x:211,y:824.5,mw:11,mh:10},{v:7,x:229,y:824.5,mw:11,mh:10},{v:8,x:247,y:824.5,mw:11,mh:10},{v:9,x:265,y:824.5,mw:11,mh:10},{v:10,x:282.5,y:824.5,mw:10,mh:10},{v:15,x:300.5,y:824.5,mw:10,mh:10},{v:20,x:318.5,y:824.5,mw:10,mh:10}] },
+  powerball: { file:'powerball.jpg', us:true, px:{w:600,h:1563}, wmm:PB_VOLANTE_LARG_MM, hmm:PB_VOLANTE_LARG_MM*1563/600, maxNum:69, maxExtra:26, jogos:[
+    {num:{cols:[73.5,108.5,143,178,212.94,247.75,282.13,317,352],rows:[1348,1323,1298.11,1273.28,1248.94,1224,1199,1174.63],ordem:'colunas',mw:21,mh:13},extra:{cols:[421.5,456,491,525.5],rows:[1348,1323,1298,1273.17,1249,1224,1199,1174.5],ordem:'colunas',mw:21,mh:13}},
+    {num:{cols:[73.5,108.5,143,178,212.94,247.75,282.13,317,352],rows:[1125.5,1101,1076,1051,1026.44,1002,977,952],ordem:'colunas',mw:21,mh:13},extra:{cols:[421.5,456,491,525.5],rows:[1125.5,1101,1076,1051,1026.33,1002,977,952],ordem:'colunas',mw:21,mh:13}},
+    {num:{cols:[73.5,108.5,143,178,212.88,247.75,282.13,317,352],rows:[903,878.39,854,829,804,779.56,755,730],ordem:'colunas',mw:21,mh:13},extra:{cols:[421.5,456,491,525.5],rows:[903,878.5,854,829,804,779.5,755,730],ordem:'colunas',mw:21,mh:13}},
+    {num:{cols:[73.5,108.5,143,178,212.81,247.75,282.13,317,352],rows:[681,656,631.61,606.89,582,557,532.63,508],ordem:'colunas',mw:21,mh:13},extra:{cols:[421.5,456,491,525.5],rows:[681,656,631.5,607,582,557,532.5,508],ordem:'colunas',mw:21,mh:13}},
+    {num:{cols:[73.5,108.5,143,178,212.75,247.75,282.13,317,352],rows:[459,434,409.06,384.44,360,335,310,285.88],ordem:'colunas',mw:21,mh:13},extra:{cols:[421.5,456,491,525.5],rows:[459,434,409,384.17,360,335,310,285.67],ordem:'colunas',mw:21,mh:13}}
+  ], multidraw:[{v:6,x:351.5,y:1372.5,mw:20,mh:10},{v:7,x:386.5,y:1372.5,mw:20,mh:10},{v:8,x:421.5,y:1372.5,mw:20,mh:10},{v:9,x:456.5,y:1372.5,mw:20,mh:10},{v:10,x:491,y:1372.5,mw:19,mh:10},{v:15,x:525.5,y:1372.5,mw:20,mh:10},{v:20,x:560.3,y:1372.5,mw:20,mh:10},{v:2,x:352,y:1397,mw:19,mh:9},{v:3,x:386.5,y:1397,mw:20,mh:9},{v:4,x:421.5,y:1397,mw:20,mh:9},{v:5,x:456.5,y:1397,mw:20,mh:9}] },
 };
 
 // Desenha UM retângulo de marcação sobre a imagem real, cobrindo o número
@@ -13371,6 +13437,7 @@ function _volanteDims(key){
 function _volanteMarcacoesHtml(key,jogosGrupo){
   const v=VOLANTE_IMG[key], d=CFG[key];
   const jogos=Array.isArray(jogosGrupo)?jogosGrupo:[jogosGrupo];
+  if(v.us) return _volanteMarcacoesUS(key,jogos);
   // Frações do espaçamento real entre marcas usadas como tamanho do
   // retângulo — medidas a partir da largura/altura real da tinta impressa
   // de cada TIPO de campo (não um valor único para tudo, porque a razão
@@ -13532,6 +13599,30 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   }
   return html;
 }
+// Volantes dos EUA (Mega Millions / Powerball): marca cada número jogado (painéis A-E), a bola extra (Mega Ball / Powerball) e o Multi-Draw.
+// Coordenadas em px da imagem -> mm por wmm/px.w (ver o comentário nas entradas de VOLANTE_IMG). QP, VOID e Power Play ficam sem marca.
+function _volanteMarcacoesUS(key,jogos){
+  const v=VOLANTE_IMG[key], s=v.wmm/v.px.w; let html='';
+  const marca=(cx,cy,mw,mh,on)=>{ html+=_volanteMarcaDiv(cx*s,cy*s,mw*s,mh*s,'#000',on); };
+  const grade=(g,max,marcados)=>{
+    const nc=g.cols.length, nr=g.rows.length;
+    g.cols.forEach((cx,c)=>g.rows.forEach((cy,r)=>{
+      const n=g.ordem==='colunas'?c*nr+r+1:r*nc+c+1;
+      if(n>max) return;
+      marca(cx,cy,g.mw,g.mh,marcados.has(n));
+    }));
+  };
+  jogos.forEach((jogo,idx)=>{
+    const jg=v.jogos[idx]; if(!jg) return;
+    const ex=(jogo&&jogo._extra!=null)?Number(jogo._extra):null;
+    grade(jg.num,v.maxNum,new Set((jogo||[]).map(Number)));
+    grade(jg.extra,v.maxExtra,new Set(ex!=null?[ex]:[]));
+  });
+  // Multi-Draw: igual à Teimosinha — só marca se a quantidade de concursos do jogo existir impressa no volante
+  const ref=jogos[0], qtd=(ref&&ref._teimosinhaConcursos)?ref._teimosinhaConcursos.length:null;
+  if(qtd!=null) (v.multidraw||[]).forEach(c=>marca(c.x,c.y,c.mw,c.mh,c.v===qtd));
+  return html;
+}
 function buildVolanteSVG(key,jogosGrupo){
   const v=VOLANTE_IMG[key];
   const marcacoes=_volanteMarcacoesHtml(key,jogosGrupo);
@@ -13549,9 +13640,11 @@ function _jogosPorVolante(key){
 }
 // Calcula quantos volantes cabem numa página A4 (retrato ou paisagem) com
 // a folga (gap) reservada para as marcas de corte entre eles.
-function _volanteGradePagina(pagW,pagH,dim,gap,margem){
-  const cols=Math.max(1,Math.floor((pagW-margem*2+gap)/(dim.w+gap)));
-  const rows=Math.max(1,Math.floor((pagH-margem*2+gap)/(dim.h+gap)));
+function _volanteGradePagina(pagW,pagH,dim,gap,margem,exato){
+  let cols=Math.floor((pagW-margem*2+gap)/(dim.w+gap));
+  let rows=Math.floor((pagH-margem*2+gap)/(dim.h+gap));
+  // exato (volantes dos EUA, mais altos): se não cabe nenhum, a orientação rende 0 — nas brasileiras segue forçando 1, como sempre foi
+  if(exato){ cols=Math.max(0,cols); rows=Math.max(0,rows); } else { cols=Math.max(1,cols); rows=Math.max(1,rows); }
   return {cols,rows,total:cols*rows};
 }
 function imprimirVolantes(key,jogosParaImprimir){
@@ -13568,13 +13661,17 @@ function imprimirVolantes(key,jogosParaImprimir){
   // possível na folha. GAP=5mm é o corredor entre volantes onde ficam as
   // marcas de corte (guilhotina), sem invadir a arte de nenhum dos dois.
   const GAP=5, MARGEM=5;
-  const retrato=_volanteGradePagina(210,297,dim,GAP,MARGEM);
-  const paisagem=_volanteGradePagina(297,210,dim,GAP,MARGEM);
+  const retrato=_volanteGradePagina(210,297,dim,GAP,MARGEM,!!v.us);
+  const paisagem=_volanteGradePagina(297,210,dim,GAP,MARGEM,!!v.us);
   const usaPaisagem=paisagem.total>retrato.total;
   const grade=usaPaisagem?paisagem:retrato;
   const orient=usaPaisagem?'landscape':'portrait';
   const pagW=usaPaisagem?297:210, pagH=usaPaisagem?210:297;
   const porPagina=grade.cols*grade.rows;
+  if(!porPagina){ toast(t('gerador.impressao_volante_indisponivel')); return; }
+  // Volantes dos EUA: o espaço livre da folha é dividido por igual entre bordas e corredores (nunca menos que o GAP mínimo) — pedido do usuário, mais afastados para cortar
+  const gapX=(v.us&&grade.cols>1)?Math.max(GAP,((pagW-MARGEM*2)-grade.cols*dim.w)/(grade.cols+1)):GAP;
+  const gapY=(v.us&&grade.rows>1)?Math.max(GAP,((pagH-MARGEM*2)-grade.rows*dim.h)/(grade.rows+1)):GAP;
 
   // Agrupa os jogos gerados em blocos de jogosPorVolante — cada bloco vira
   // 1 volante impresso (não 1 jogo por volante, ver comentário do módulo).
@@ -13592,7 +13689,7 @@ function imprimirVolantes(key,jogosParaImprimir){
   const extraCSS=`
     @page{size:A4 ${orient};margin:${MARGEM}mm;}
     .volante-wrap{transform:translate(${VOLANTE_CALIB.offsetX}mm,${VOLANTE_CALIB.offsetY}mm) scale(${VOLANTE_CALIB.escala});transform-origin:top left;}
-    .volante-page{display:grid;grid-template-columns:repeat(${grade.cols},${dim.w}mm);grid-auto-rows:${dim.h}mm;gap:${GAP}mm;page-break-after:always;width:${pagW-MARGEM*2}mm;height:${pagH-MARGEM*2}mm;justify-content:center;align-content:center;}
+    .volante-page{display:grid;grid-template-columns:repeat(${grade.cols},${dim.w}mm);grid-auto-rows:${dim.h}mm;gap:${gapY}mm ${gapX}mm;page-break-after:always;width:${pagW-MARGEM*2}mm;height:${pagH-MARGEM*2}mm;justify-content:center;align-content:center;}
     .volante-page:last-child{page-break-after:auto;}
     .volante-cell{position:relative;overflow:visible;}
     .volante-img-wrap{position:relative;overflow:hidden;}
@@ -23075,6 +23172,7 @@ async function _salvarBolaoImpl(){
     // automático de prêmio e a reserva automática, voltava as faixas de prêmio ao padrão e apagava o limite de palpites por seção.
     limitePalpites: s.limitePalpites||null,
     palpitesAtivos: s.palpitesAtivos!==false,
+    faixasAtivas: s.faixasAtivas!==false,
     faixa1Teto: s.faixa1Teto, faixa1Percentual: s.faixa1Percentual==null?25:s.faixa1Percentual, faixa2Teto: s.faixa2Teto, faixa1Inicio: s.faixa1Inicio, faixa3Fim: s.faixa3Fim,
     reservaTransferenciaAuto: s.reservaTransferenciaAuto, premioCreditoAuto: s.premioCreditoAuto,
     dataEncerramento: s.dataEncerramento||'', horaEncerramento: s.horaEncerramento||'',
@@ -23421,6 +23519,11 @@ function _calcFaixasPremioPorCota(valorPorCota, faixa1Teto, faixa2Teto, precoCot
 function _renderFaixasCamposDesktop(){
   var el=document.getElementById('premio-saldo-faixas-campos'); if(!el) return;
   var s=_boloesState;
+  var _fxOn=s.faixasAtivas!==false;
+  var _sw=document.getElementById('premio-saldo-faixas-switch'); if(_sw) _sw.innerHTML=_laSwitchHtml('premio-saldo-faixas-ativas',_fxOn,'_pcAlternarFaixasDesktop()');
+  var _ex=document.getElementById('premio-saldo-faixas-expl'), _sv=document.getElementById('premio-saldo-faixas-salvar'), _ms=document.getElementById('premio-saldo-faixas-msg');
+  if(_ex) _ex.style.display=_fxOn?'':'none'; if(_sv) _sv.style.display=_fxOn?'':'none';
+  if(!_fxOn){ el.innerHTML='<div style="font-size:11px;color:var(--text-muted)">'+t('organizador.faixas_desligadas_nota')+'</div>'; if(_ms) _ms.innerHTML=''; return; }
   var f1de=s.faixa1Inicio==null?0.05:s.faixa1Inicio, f1pct=s.faixa1Percentual==null?25:s.faixa1Percentual;
   var f2ate=s.faixa2Teto==null?2428.80:s.faixa2Teto, f3ate=s.faixa3Fim==null?2000000:s.faixa3Fim;
   var fmt=function(v){ return v.toFixed(2).replace('.',','); };
@@ -23461,6 +23564,18 @@ function _renderFaixasCamposDesktop(){
     linha('f3',t('boloes.ps_faixa3_titulo'),campo('premio-saldo-f3-de',f2ate+0.01,true),t('boloes.ps_ate_por_cota'),campo('premio-saldo-f3-ate',f3ate,false))+
     blocoModo+
     _exemploFaixasHtmlDesktop();
+}
+// Chave "Faixas de distribuição do prêmio" (pedido do usuário, 2026-10-09): desligada, o prêmio vai INTEIRO para o saldo e as faixas somem dos documentos do bolão.
+async function _pcAlternarFaixasDesktop(){
+  var s=_boloesState; var ligado=_laSwitchLigado('premio-saldo-faixas-ativas');
+  var sbC=_getSbClient();
+  if(s.editId&&sbC){
+    var r=await sbC.from('boloes').update({faixas_ativas:ligado}).eq('id',s.editId);
+    if(r&&r.error){ var b=document.getElementById('premio-saldo-faixas-ativas'); if(b) _laSwitchAlterna(b); toast(t('organizador.erro_salvar_modo',{msg:r.error.message})); return; }
+  }
+  s.faixasAtivas=ligado;
+  toast('✓ '+t(ligado?'organizador.faixas_ativadas_toast':'organizador.faixas_desativadas_toast'));
+  _renderFaixasCamposDesktop(); _pcAtualizarRateioPreview();
 }
 function _seg3dHtml(grupoId, auto, rotManual, rotAuto, onclickFn){
   auto=!!auto;
@@ -23543,9 +23658,9 @@ function _pcAtualizarRateioPreview(){
   var totalCotas=elegiveis.reduce(function(a,p){return a+(p.cotas||0);},0);
   if(!totalCotas){ box.innerHTML='<div style="color:#e0503c;font-size:11px">'+t('boloes.ps_nenhum_elegivel')+'</div>'; return; }
   var f1Teto=_faixa1EfetivaPorCotaDesktop(totalCotas);
-  var f2Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL')||s.faixa2Teto||2428.80;
+  var _elF2=document.getElementById('premio-saldo-f2-ate'); var f2Teto=(_elF2?_parseMoedaPorTipo(_elF2.value,'BRL'):0)||s.faixa2Teto||2428.80;
   var valorPorCota=valor/totalCotas;
-  var fx=_calcFaixasPremioPorCota(valorPorCota, f1Teto, f2Teto, s.admin.precoCota||0);
+  var fx=s.faixasAtivas===false ? {credito:valorPorCota,reserva:0,pix:0} : _calcFaixasPremioPorCota(valorPorCota, f1Teto, f2Teto, s.admin.precoCota||0);
   var temDivisao=fx.reserva>0||fx.pix>0;
   var linhas=elegiveis.map(function(p){
     var credito=fx.credito*p.cotas, reserva=fx.reserva*p.cotas, pix=fx.pix*p.cotas;
@@ -23686,15 +23801,18 @@ async function confirmarCreditoPremio(){
   var raw=document.getElementById('premio-saldo-valor').value;
   var valor=_parseMoedaPorTipo(raw,'BRL');
   if(!valor||isNaN(valor)||valor<=0){ toast(t('boloes.informe_valor_valido')); return; }
-  var f1Inicio=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-de').value,'BRL');
-  var f1Pct=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
-  var f2Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL');
-  var f3Fim=_parseMoedaPorTipo(document.getElementById('premio-saldo-f3-ate').value,'BRL');
-  if(!(f1Pct>=0)||f1Pct>100){ toast(t('organizador.faixa_pct_invalida')); return; }
-  var f1Est=_faixa1PorCotaEstimada(f1Pct,s.admin.precoCota||0);
-  if(!(f1Inicio>=0)||!f2Teto||f2Teto<=f1Est||!f3Fim||f3Fim<=f2Teto){ toast(t('organizador.faixa_fim_menor')); return; }
-  s.faixa1Inicio=f1Inicio; s.faixa1Percentual=f1Pct; s.faixa2Teto=f2Teto; s.faixa3Fim=f3Fim;
-  if(document.getElementById('premio-saldo-reserva-modo')) s.reservaTransferenciaAuto=_seg3dValor('premio-saldo-reserva-modo');
+  var _fxOn=s.faixasAtivas!==false, f1Inicio, f1Pct, f2Teto, f3Fim;
+  if(_fxOn){
+    f1Inicio=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-de').value,'BRL');
+    f1Pct=_parseMoedaPorTipo(document.getElementById('premio-saldo-f1-ate').value,'BRL');
+    f2Teto=_parseMoedaPorTipo(document.getElementById('premio-saldo-f2-ate').value,'BRL');
+    f3Fim=_parseMoedaPorTipo(document.getElementById('premio-saldo-f3-ate').value,'BRL');
+    if(!(f1Pct>=0)||f1Pct>100){ toast(t('organizador.faixa_pct_invalida')); return; }
+    var f1Est=_faixa1PorCotaEstimada(f1Pct,s.admin.precoCota||0);
+    if(!(f1Inicio>=0)||!f2Teto||f2Teto<=f1Est||!f3Fim||f3Fim<=f2Teto){ toast(t('organizador.faixa_fim_menor')); return; }
+    s.faixa1Inicio=f1Inicio; s.faixa1Percentual=f1Pct; s.faixa2Teto=f2Teto; s.faixa3Fim=f3Fim;
+    if(document.getElementById('premio-saldo-reserva-modo')) s.reservaTransferenciaAuto=_seg3dValor('premio-saldo-reserva-modo');
+  }
   var elSemana=document.getElementById('premio-saldo-semana');
   var idxSemana=elSemana&&elSemana.value!==''?parseInt(elSemana.value,10):null;
   var ccSemana=(idxSemana!=null&&s.concursos&&s.concursos[idxSemana])?s.concursos[idxSemana]:null;
@@ -23704,7 +23822,7 @@ async function confirmarCreditoPremio(){
   var valorPorCota=valor/totalCotas;
   // Faixa 1 acumulada: grava o percentual agora (o servidor calcula o teto restante com ele) e lê o resumo atualizado.
   var _sbPre=_getSbClient();
-  if(_sbPre && s.editId){
+  if(_sbPre && s.editId && _fxOn){
     try{ await _sbPre.from('boloes').update({faixa1_inicio:f1Inicio,faixa1_percentual:f1Pct,faixa2_teto:f2Teto,faixa3_fim:f3Fim}).eq('id',s.editId); }catch(e){ console.warn('[confirmarCreditoPremio] faixas',e.message); }
   }
   await _carregarResumoFaixa1Desktop(s.editId);
@@ -23713,7 +23831,7 @@ async function confirmarCreditoPremio(){
   // até o valor da cota deste bolão fica reservado pro próximo bolão do
   // participante, o resto vai de PIX; Faixa 3 = 100% PIX) — mesma
   // matemática do mobile/RPC, ver _calcFaixasPremioPorCota.
-  var fx=_calcFaixasPremioPorCota(valorPorCota, f1Teto, f2Teto, s.admin.precoCota||0);
+  var fx=s.faixasAtivas===false ? {credito:valorPorCota,reserva:0,pix:0} : _calcFaixasPremioPorCota(valorPorCota, f1Teto, f2Teto, s.admin.precoCota||0);
   elegiveis.forEach(function(p){
     var cotas=p.cotas||0;
     var _fatiaCredito=fx.credito*cotas, _fatiaReserva=fx.reserva*cotas, _fatiaPix=fx.pix*cotas;
@@ -25269,8 +25387,8 @@ function imprimirTermoConstituicao(retornarHtml){
     '<h2>'+t('termos.h2_responsabilidade_administrador')+'</h2>'+
     '<p>'+t('termos.p_responsabilidade_administrador')+'</p>'+
     '<h2>'+t('termos.h2_divisao_dos_premios')+'</h2>'+
-    '<p>'+t('termos.p_divisao_dos_premios')+'</p>'+
-    _exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(s.faixa1Percentual,s.admin.precoCota),s.faixa2Teto,s.admin.precoCota,s.reservaTransferenciaAuto,s.faixa1Percentual)+
+    '<p>'+t(s.faixasAtivas===false?'termos.p_divisao_dos_premios_sem_faixas':'termos.p_divisao_dos_premios')+'</p>'+
+    (s.faixasAtivas===false?'':_exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(s.faixa1Percentual,s.admin.precoCota),s.faixa2Teto,s.admin.precoCota,s.reservaTransferenciaAuto,s.faixa1Percentual))+
     '<h2>'+t('termos.h2_declaracao_consentimento')+'</h2>'+
     '<p>'+t('termos.p_declaracao_consentimento')+'</p>'+
     '<h2>'+t('termos.h2_data_e_assinaturas')+'</h2>'+
@@ -25627,7 +25745,7 @@ function imprimirTermosCondicoes(){
     '<h2>'+t('termos.h2_7')+'</h2>'+
     _clausulaTaxaAdministrativa(s)+
     '<h2>'+t('termos.h2_8')+'</h2>'+
-    '<p>'+t('termos.p_8',{pct:_fmtPctFaixa(s.faixa1Percentual),faixa2:(s.faixa2Teto==null?2428.80:s.faixa2Teto).toFixed(2).replace('.',',')})+'</p>'+
+    '<p>'+t(s.faixasAtivas===false?'termos.p_8_sem_faixas':'termos.p_8',{pct:_fmtPctFaixa(s.faixa1Percentual),faixa2:(s.faixa2Teto==null?2428.80:s.faixa2Teto).toFixed(2).replace('.',',')})+'</p>'+
     '<h2>'+t('termos.h2_9')+'</h2>'+
     '<p>'+t('termos.p_9')+'</p>'+
     '<h2>'+t('termos.h2_10')+'</h2>'+
@@ -27945,7 +28063,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     arrecadacaoTotal:parseFloat(b.arrecadacao_total||0), premioCreditado:parseFloat(b.premio_creditado||0), rodadas:b.rodadas||[],
     mesReferencia:b.mes_referencia||new Date().toISOString().slice(0,7), dataSorteio:b.data_sorteio||'',
     pushLimitePremioCota:b.push_limite_premio_cota==null?500:parseFloat(b.push_limite_premio_cota),
-    palpitesAtivos:b.palpites_ativos!==false, faixa1Percentual:(b.faixa1_percentual==null?25:parseFloat(b.faixa1_percentual)), limitePalpites:b.limite_palpites_secao==null?null:parseFloat(b.limite_palpites_secao), faixa1Teto:b.faixa1_teto==null?15.00:parseFloat(b.faixa1_teto), faixa2Teto:b.faixa2_teto==null?2428.80:parseFloat(b.faixa2_teto),
+    palpitesAtivos:b.palpites_ativos!==false, faixasAtivas:b.faixas_ativas!==false, faixa1Percentual:(b.faixa1_percentual==null?25:parseFloat(b.faixa1_percentual)), limitePalpites:b.limite_palpites_secao==null?null:parseFloat(b.limite_palpites_secao), faixa1Teto:b.faixa1_teto==null?15.00:parseFloat(b.faixa1_teto), faixa2Teto:b.faixa2_teto==null?2428.80:parseFloat(b.faixa2_teto),
     faixa1Inicio:b.faixa1_inicio==null?0.05:parseFloat(b.faixa1_inicio), faixa3Fim:b.faixa3_fim==null?2000000.00:parseFloat(b.faixa3_fim), reservaTransferenciaAuto:!!b.reserva_transferencia_auto, premioCreditoAuto:!!b.premio_credito_auto,
     dataHoraEncerramentoOriginal:b.data_hora_encerramento||null,
     // Usa componentes LOCAIS pros dois campos — toISOString() devolve a
@@ -28196,6 +28314,7 @@ var BolaoJogosRepo = {
       preco_cota: adm.precoCota||0,
       limite_palpites_secao: (registro.limitePalpites>0?registro.limitePalpites:null),
       palpites_ativos: registro.palpitesAtivos!==false,
+      faixas_ativas: registro.faixasAtivas!==false,
       modalidade: registro.modalidade||null, sorteio: registro.sorteio||null,
       concurso: registro.concurso!=null?String(registro.concurso):null,
       cotas: registro.cotas||{}, premio: registro.premio||0,
@@ -29240,7 +29359,7 @@ function ptAbrirTermosCondicoes(){
     '<h2>'+t('termos.h2_7')+'</h2>'+
     ptClausulaTaxaAdministrativa(info)+
     '<h2>'+t('termos.h2_8')+'</h2>'+
-    '<p>'+t('termos.p_8',{pct:_fmtPctFaixa(info.faixa1_percentual),faixa2:(info.faixa2_teto==null?2428.80:info.faixa2_teto).toFixed(2).replace('.',',')})+'</p>'+
+    '<p>'+t(info.faixas_ativas===false?'termos.p_8_sem_faixas':'termos.p_8',{pct:_fmtPctFaixa(info.faixa1_percentual),faixa2:(info.faixa2_teto==null?2428.80:info.faixa2_teto).toFixed(2).replace('.',',')})+'</p>'+
     '<h2>'+t('termos.h2_9')+'</h2>'+
     '<p>'+t('termos.p_9')+'</p>'+
     '<h2>'+t('termos.h2_10')+'</h2>'+
@@ -29361,8 +29480,8 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
     '<h2>'+t('termos.h2_responsabilidade_administrador')+'</h2>'+
     '<p>'+t('termos.p_responsabilidade_administrador')+'</p>'+
     '<h2>'+t('termos.h2_divisao_dos_premios')+'</h2>'+
-    '<p>'+t('termos.p_divisao_dos_premios')+'</p>'+
-    _exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(info.faixa1_percentual,info.preco_cota),info.faixa2_teto,info.preco_cota,info.reserva_transferencia_auto,info.faixa1_percentual)+
+    '<p>'+t(info.faixas_ativas===false?'termos.p_divisao_dos_premios_sem_faixas':'termos.p_divisao_dos_premios')+'</p>'+
+    (info.faixas_ativas===false?'':_exemploFaixasHtmlEstatico(_faixa1PorCotaEstimada(info.faixa1_percentual,info.preco_cota),info.faixa2_teto,info.preco_cota,info.reserva_transferencia_auto,info.faixa1_percentual))+
     '<h2>'+t('termos.h2_declaracao_consentimento')+'</h2>'+
     '<p>'+t('termos.p_declaracao_consentimento')+'</p>'+
     '<h2>'+t('termos.h2_data_e_assinaturas')+'</h2>'+
@@ -30069,10 +30188,12 @@ async function ptRenderDetalheBolao(bolaoId){
   }
   var ativado=!!info.ativado_em;
   var loteriasVigentes=Array.from(new Set((jogosAoVivo||[]).filter(function(j){return j.status==='vigente';}).map(function(j){return j.loteria;})));
-  var [comprovantes,premiosPorLoteria]=await Promise.all([
+  var [comprovantes,premiosPorLoteria,_faixasAtivasRes]=await Promise.all([
     ptCarregarComprovantesPix(info.bolao_participante_id),
-    Promise.all(loteriasVigentes.map(function(l){ return ptBuscarPremioAtual(l).then(function(p){ return {loteria:l,premio:p}; }); }))
+    Promise.all(loteriasVigentes.map(function(l){ return ptBuscarPremioAtual(l).then(function(p){ return {loteria:l,premio:p}; }); })),
+    sb.rpc('rpc_bolao_faixas_ativas',{p_bolao_id:bolaoId}).then(function(r){ return (r&&!r.error)?r.data:null; },function(){ return null; })
   ]);
+  info.faixas_ativas=(_faixasAtivasRes!==false);
   if(myGen!==_ptState.detailGen) return;
   var cardsPremioProporcional=premiosPorLoteria.map(function(r){
     var prop=(r.premio&&r.premio.estimativa)?ptCalcPremioProporcional(r.premio.estimativa,info):null;
