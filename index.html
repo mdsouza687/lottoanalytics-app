@@ -327,7 +327,7 @@ body.theme-colorful .topbar-tabs-wrap::after{background:linear-gradient(270deg,r
 .gen-sec{background:rgba(255,255,255,.025);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;flex-direction:column;gap:9px;}
 body.theme-light .gen-sec{background:rgba(15,23,42,.025);border-color:rgba(15,23,42,.08);}
 .gen-sec-hdr{display:flex;align-items:center;gap:9px;}
-.gen-sec-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:11px;flex-shrink:0;}
+.gen-sec-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:var(--ac-bola-txt,#fff);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:11px;flex-shrink:0;}
 .gen-sec-title{font-family:var(--font-head);font-weight:800;font-size:12.5px;letter-spacing:.2px;color:var(--text);}
 .gen-sec-hint{font-size:10px;color:var(--text-dim);margin-left:auto;font-weight:400;text-align:right;max-width:46%;line-height:1.4;}
 .gen-sec-divider{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.1),transparent);margin:2px 0;}
@@ -422,7 +422,7 @@ select option[selected]{
 .gb-tab-btn{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--radius-lg);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);color:var(--text-muted);transition:var(--btn-transition);white-space:nowrap;}
 .gb-tab-btn .ttl{font-family:var(--font-head);font-weight:700;font-size:13px;}
 .gb-tab-btn:hover{background:rgba(255,255,255,.08);color:var(--text);}
-.gb-tab-btn.active{background:var(--ac,#3A9B4E);border-color:var(--ac,#3A9B4E);color:#fff;}
+.gb-tab-btn.active{background:var(--ac,#3A9B4E);border-color:var(--ac,#3A9B4E);color:var(--ac-bola-txt,#fff);}
 .gb-card{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;box-shadow:0 18px 50px -30px rgba(0,0,0,.7);}
 .gb-content{flex:1;min-height:0;overflow-y:auto;padding:24px;}
 /* Painel real (Apostas Aleatórias / Fechamento / Score) "emprestado" da aba
@@ -450,7 +450,7 @@ select option[selected]{
 .gen-mode-group{display:flex;gap:6px;flex-wrap:wrap;}
 .gen-mode-pill{border:1px solid var(--glass-border);border-radius:999px;padding:5px 11px;font-family:var(--btn-font);font-size:10.5px;font-weight:700;letter-spacing:.2px;color:var(--text-muted);cursor:pointer;background:transparent;transition:var(--btn-transition);white-space:nowrap;}
 .gen-mode-pill:hover{background:rgba(255,255,255,.08);color:var(--text);}
-.gen-mode-pill.active{background:var(--ac,#3A9B4E);border-color:var(--ac,#3A9B4E);color:#fff;transform:translateY(-1px);}
+.gen-mode-pill.active{background:var(--ac,#3A9B4E);border-color:var(--ac,#3A9B4E);color:var(--ac-bola-txt,#fff);transform:translateY(-1px);}
 .gb-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:280px;text-align:center;gap:8px;}
 #gb-side-slot{flex-shrink:0;align-self:stretch;}
 #gb-side-slot #side-right{position:static!important;height:100%!important;}
@@ -529,7 +529,7 @@ body.theme-colorful .fc2.he{color:#2a0a33;}
 .dt-date{font-size:10px;color:var(--text-dim);}
 .dt-balls{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-top:2px;}
 .dt-balls .b{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;font-size:9.5px;font-weight:800;color:#fff;}
-.dt-balls .b.m{background:var(--ac,#3b6fd1);}
+.dt-balls .b.m{background:var(--ac,#3b6fd1);color:var(--ac-bola-txt,#fff);}
 .dt-balls .b.e{background:var(--dt-hit-extra,#d18a00);}
 .dt-balls .sep-dot{width:3px;height:3px;border-radius:50%;background:var(--glass-border);margin:0 1px;}
 /* Dupla Sena: mesmo padrão do card "Histórico de Sorteios" da home — linha
@@ -637,7 +637,7 @@ body.theme-colorful .fc2.he{color:#2a0a33;}
 
 /* SPECIAL BTN */
 .btn-sm{border:1px solid var(--glass-border);border-radius:var(--btn-radius-sm);padding:8px 16px;font-family:var(--btn-font);font-weight:700;font-size:var(--btn-size-sm);color:var(--text);background:var(--glass-bg);cursor:pointer;transition:var(--btn-transition);white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
-.btn-sm:hover{background:var(--ac);border-color:var(--ac);color:#fff;transform:translateY(-2px);box-shadow:var(--btn-shadow-hover);}
+.btn-sm:hover{background:var(--ac);border-color:var(--ac);color:var(--ac-bola-txt,#fff);transform:translateY(-2px);box-shadow:var(--btn-shadow-hover);}
 .btn-sm:active{transform:translateY(0);}
 .btn-especial-modulo{border:2px solid transparent;border-radius:var(--radius-sm);padding:4px 10px;font-family:var(--font-body);font-weight:800;font-size:11px;background:#fff;cursor:pointer;display:none;align-items:center;gap:4px;transition:transform .12s,opacity .12s;flex-shrink:0;white-space:nowrap;}
 .btn-especial-modulo:hover{transform:translateY(-1px);opacity:.82;}
@@ -702,9 +702,9 @@ body.theme-colorful .fc2.he{color:#2a0a33;}
 .seg3d{display:flex;gap:10px;padding-bottom:5px;}
 .op3d{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;margin:0;padding:11px 8px;border-radius:12px;font-family:var(--font-head);font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;background:var(--bg2);border:1px solid var(--glass-border);color:var(--text);transition:background .15s ease,border-color .15s ease,color .15s ease;}
 .op3d:hover{filter:brightness(1.06);}
-.op3d.on{background:var(--ac);border-color:var(--ac);color:#fff;}
+.op3d.on{background:var(--ac);border-color:var(--ac);color:var(--ac-bola-txt,#fff);}
 .op3d.on .ic{display:none;}
-.op3d.on::before{content:"✓";display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#fff;color:var(--ac);font-size:12.5px;font-weight:900;}
+.op3d.on::before{content:"✓";display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#fff;color:var(--ac-marca,var(--ac));font-size:12.5px;font-weight:900;}
 .modal-period-label{font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;}
 .period-btn{border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 10px;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-weight:700;font-size:10px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
 .period-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
@@ -1107,9 +1107,9 @@ body.theme-light .fc2{color:#9aa6b8;}
 body.theme-light .fc2.hm,body.theme-light .fc2.he{color:#fff;}
 body.theme-light .tbl-wrap,body.theme-light .np-wrap{border-color:#e3e8f0!important;}
 body.theme-light .fill-btn{border-color:#d6dde8!important;color:#5d6b80!important;background:#ffffff!important;}
-body.theme-light .fill-btn:hover,body.theme-light .fill-btn.is-on{background:var(--ac)!important;color:#fff!important;border-color:var(--ac)!important;}
+body.theme-light .fill-btn:hover,body.theme-light .fill-btn.is-on{background:var(--ac)!important;color:var(--ac-bola-txt,#fff)!important;border-color:var(--ac)!important;}
 body.theme-light .np-ball{border-color:#d6dde8!important;color:#5d6b80!important;}
-body.theme-light .np-ball.sel{background:var(--ac)!important;color:#fff!important;border-color:var(--ac)!important;}
+body.theme-light .np-ball.sel{background:var(--ac)!important;color:var(--ac-bola-txt,#fff)!important;border-color:var(--ac)!important;}
 /* Campos de formulário */
 body.theme-light input,body.theme-light select,body.theme-light textarea,
 body.theme-light .f-inp,body.theme-light .f-sel{background:#ffffff!important;border:1px solid #d6dde8!important;color:#1a2233!important;}
@@ -1289,7 +1289,7 @@ body.theme-light .la-home #laAurora b{opacity:.16}
   border-radius:var(--radius-lg);border:1px solid var(--glass-border);background:rgba(0,0,0,.22);padding:16px 18px;backdrop-filter:blur(6px)}
 body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-hero-info .la-card-hd{margin-bottom:12px}
-.la-hi-nome{font-family:var(--font-head);font-weight:900;font-size:18px;text-align:center;color:var(--ac);margin-bottom:10px;letter-spacing:.3px}
+.la-hi-nome{font-family:var(--font-head);font-weight:900;font-size:18px;text-align:center;color:var(--ac-marca,var(--ac));margin-bottom:10px;letter-spacing:.3px}
 .la-hi-row{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;margin-bottom:10px}
 .la-hi-lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim)}
 .la-hi-val{font-family:var(--font-mono);font-weight:800;font-size:20px;color:var(--text)}
@@ -1298,7 +1298,7 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
 .la-hi-acc{display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:800;color:#F08020;letter-spacing:.4px}
 @media (max-width:980px){ .la-hero-info-wrap{display:none} }
 .la-btn{font-family:var(--btn-font);font-weight:var(--btn-weight);font-size:var(--btn-size);padding:var(--btn-pad-y) var(--btn-pad-x);border-radius:var(--btn-radius);text-decoration:none;cursor:pointer;border:1px solid transparent;transition:var(--btn-transition);display:inline-flex;align-items:center;gap:9px;letter-spacing:var(--btn-tracking)}
-.la-btn.primary{color:#fff;background:var(--ac);box-shadow:0 8px 24px -6px var(--ac)}
+.la-btn.primary{color:var(--ac-bola-txt,#fff);background:var(--ac);box-shadow:0 8px 24px -6px var(--ac)}
 .la-btn.primary:hover{transform:translateY(-2px);box-shadow:var(--btn-shadow-hover),0 8px 24px -6px var(--ac)}
 .la-btn.ghost{color:var(--text);background:var(--glass-bg);border-color:var(--glass-border)}
 .la-btn.ghost:hover{transform:translateY(-2px);box-shadow:var(--btn-shadow-hover)}
@@ -1331,7 +1331,7 @@ body.theme-light .la-hero-info{background:rgba(255,255,255,.45)}
   opacity:0;transform:scale(.3) translateY(6px);animation:laPop .36s cubic-bezier(.2,1.4,.4,1) forwards}
 .la-ball.extra{background:var(--la-xc,#00BCD4);border:2px solid rgba(255,255,255,.3)}
 .la-ball.trevo{background:#0fae8a}
-.la-chip{font-family:var(--font-head);font-weight:800;font-size:7.2px;padding:2.7px 6.2px;border-radius:6px;color:#fff;background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
+.la-chip{font-family:var(--font-head);font-weight:800;font-size:7.2px;padding:2.7px 6.2px;border-radius:6px;color:var(--ac-bola-txt,#fff);background:var(--ac);opacity:0;animation:laPop .36s ease forwards}
 .la-xsep{font-family:var(--font-mono);font-size:6.3px;font-weight:700;color:var(--text-muted);padding:0 2px;align-self:center}
 @keyframes laPop{to{opacity:1;transform:scale(1) translateY(0)}}
 
@@ -1376,7 +1376,7 @@ body.theme-light .la-hd-col{background:rgba(15,23,42,.06)}
 .la-hd-data{font-family:var(--font-mono);font-size:10.3px;font-weight:700;color:var(--text);line-height:1.25;white-space:nowrap}
 .la-hd-dia{font-family:var(--font-mono);font-size:9.2px;color:var(--text-muted);line-height:1.25;text-transform:lowercase;white-space:nowrap}
 .la-hist-balls{display:flex;gap:3px;flex-wrap:wrap}
-.la-hb{width:19.7px;height:19.7px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.1px;color:#fff;background:var(--ac)}
+.la-hb{width:19.7px;height:19.7px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:8.1px;color:var(--ac-bola-txt,#fff);background:var(--ac)}
 /* ── Histórico: estrutura de tabela independente por loteria ── */
 .la-hist-table{width:100%;border-collapse:collapse}
 .la-hist-tr td{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s}
@@ -1432,7 +1432,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-nav-tabs{display:flex;gap:6px;margin-left:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;flex-shrink:0}
 .pt-tab{font-family:var(--font-head);font-weight:700;font-size:12px;white-space:nowrap;padding:9px 14px;border-radius:999px;cursor:pointer;border:1px solid transparent;color:var(--text-muted);background:transparent;transition:var(--btn-transition);display:inline-flex;align-items:center;gap:6px}
 .pt-tab:hover{color:var(--text);background:var(--glass-bg)}
-.pt-tab.active{color:#fff;background:var(--ac);box-shadow:0 4px 16px -4px var(--ac)}
+.pt-tab.active{color:var(--ac-bola-txt,#fff);background:var(--ac);box-shadow:0 4px 16px -4px var(--ac)}
 .pt-tab .pt-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block}
 .pt-nav-tabs{padding:12px 8px;margin-top:-12px;margin-bottom:-12px}
 .pt-tab.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
@@ -1513,7 +1513,7 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-chip.premio{background:rgba(0,201,122,.15);color:var(--green);border-color:rgba(0,201,122,.35)}
 .pt-filtro-jogos{display:flex;gap:4px;flex-wrap:wrap}
 .pt-chip-filtro{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg2);color:var(--text-muted);border:1px solid var(--glass-border);cursor:pointer;white-space:nowrap}
-.pt-chip-filtro.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pt-chip-filtro.active{background:var(--ac);color:var(--ac-bola-txt,#fff);border-color:var(--ac)}
 .pt-encerrados-toggle{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:10px 2px;user-select:none}
 .pt-encerrados-toggle::-webkit-details-marker{display:none}
 .pt-encerrados-toggle::before{content:'▸ ';display:inline-block}
@@ -1521,7 +1521,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .pt-field{margin-bottom:10px}
 .pt-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
 .pt-field input,.pt-field select{width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box}
-.pt-btn-link{background:none;border:none;color:var(--ac);font-size:12px;font-family:inherit;cursor:pointer;padding:8px 0;display:inline-block;text-decoration:none}
+.pt-btn-link{background:none;border:none;color:var(--ac-marca,var(--ac));font-size:12px;font-family:inherit;cursor:pointer;padding:8px 0;display:inline-block;text-decoration:none}
 .pt-avatar{border-radius:50%;object-fit:cover;vertical-align:middle}
 @media (max-width:680px){ .pt-main{padding:16px 14px 32px} .pt-nav{padding:10px 14px} .pt-premios-strip{padding:14px 14px 4px} }
 
@@ -1537,7 +1537,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .ag-sub{text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:20px}
 .ag-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--glass-hover);border-radius:var(--radius-md);padding:4px}
 .ag-tab{flex:1;text-align:center;padding:9px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;user-select:none}
-.ag-tab.active{background:var(--ac);color:#fff}
+.ag-tab.active{background:var(--ac);color:var(--ac-bola-txt,#fff)}
 .ag-field{margin-bottom:12px}
 .ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
 .ag-field input{width:100%;background:var(--glass-hover);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font-body)}
@@ -1547,9 +1547,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .ag-pwd-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;font-size:15px;padding:6px;line-height:1;opacity:.65}
 .ag-pwd-toggle:hover{opacity:1}
 .ag-req{color:#f87171;font-size:10px;margin-left:2px}
-.ag-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-md);background:var(--ac);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
+.ag-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-md);background:var(--ac);color:var(--ac-bola-txt,#fff);font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
 .ag-btn:disabled{opacity:.5;cursor:not-allowed}
-.ag-btn-link{background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block;text-align:center;width:100%}
+.ag-btn-link{background:none;border:none;color:var(--ac-marca,var(--ac));font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block;text-align:center;width:100%}
 .ag-msg{font-size:12px;border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:14px;display:none}
 .ag-msg.err{display:block;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#fca5a5}
 .ag-msg.ok{display:block;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#4ade80}
@@ -1557,7 +1557,7 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .la-hero-auth-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .ag-hero-btn{padding:11px 24px;border-radius:var(--radius-lg);font-size:13px;font-weight:800;cursor:pointer;font-family:var(--btn-font)}
 .ag-hero-btn.ghost{background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text)}
-.ag-hero-btn.solid{background:var(--ac);border:1px solid var(--ac);color:#fff}
+.ag-hero-btn.solid{background:var(--ac);border:1px solid var(--ac);color:var(--ac-bola-txt,#fff)}
   /*LA_MARCA_INI*/
   /* ícone do botão como marca d'água (igual ao app do celular): centralizado, 90% da altura, cor de destaque, bem suave, por cima do texto */
   .la-marca{position:relative;isolation:isolate;overflow:hidden}
@@ -1607,9 +1607,9 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
   '5.10.6':{
-    'en-US':["Contrast reviewed across the whole app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete and Mega Millions got shades that make white numbers and text readable, and the result header now uses white text; matrix cells, deviation and pair tables, ball buttons, secondary text in the dark theme and the predictions in the dark and colorful themes are more readable."],
-    'es-ES':["Contraste revisado en toda la app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete y Mega Millions recibieron tonos que hacen legibles los números y textos blancos, y el encabezado del resultado ahora usa texto blanco; las celdas de la matriz, las tablas de desvíos y de pares, los botones de bolas, los textos secundarios del tema oscuro y las predicciones en los temas oscuro y colorido se leen mejor."],
-    'it-IT':["Contrasto rivisto in tutta l’app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete e Mega Millions hanno nuove tonalità che rendono leggibili numeri e testi bianchi, e l’intestazione del risultato ora usa il testo bianco; le celle della matrice, le tabelle di scarti e di coppie, i pulsanti delle palline, i testi secondari del tema scuro e le previsioni nei temi scuro e colorato sono più leggibili."]
+    'en-US':["Contrast reviewed across the whole app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete and Mega Millions got shades that make white numbers and text readable, and the result header now uses white text; matrix cells, deviation and pair tables, ball buttons, secondary text in the dark theme and the predictions in the dark and colorful themes are more readable. Lottery colors now follow exactly those of the official Caixa app."],
+    'es-ES':["Contraste revisado en toda la app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete y Mega Millions recibieron tonos que hacen legibles los números y textos blancos, y el encabezado del resultado ahora usa texto blanco; las celdas de la matriz, las tablas de desvíos y de pares, los botones de bolas, los textos secundarios del tema oscuro y las predicciones en los temas oscuro y colorido se leen mejor. Los colores de las loterías ahora siguen exactamente los de la app oficial de Caixa."],
+    'it-IT':["Contrasto rivisto in tutta l’app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete e Mega Millions hanno nuove tonalità che rendono leggibili numeri e testi bianchi, e l’intestazione del risultato ora usa il testo bianco; le celle della matrice, le tabelle di scarti e di coppie, i pulsanti delle palline, i testi secondari del tema scuro e le previsioni nei temi scuro e colorato sono più leggibili. I colori delle lotterie ora seguono esattamente quelli dell’app ufficiale di Caixa."]
   },
   '5.10.5':{
     'en-US':["The prize distribution tiers now have an on/off switch per pool (same as the one for Send guess), in the Prize → Balance window: when off, the prize is not split — it goes in full to the participants' balances — and the tiers no longer appear in the pool's Constitution Term and Terms and Conditions. Manuals and Operating Rules updated. Print Playslips now also exists for Powerball and Mega Millions (Arkansas design, 5 plays per slip, 2 per A4 sheet). New look: the lottery clover now follows the Caixa shape, Mega Millions and Powerball have their own icons, and the lottery colors were checked against the printed playslips (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena and +Milionária)."],
@@ -1834,7 +1834,7 @@ var LA_CHANGELOG_I18N={
 };
 var LA_CHANGELOG_DESKTOP={
   '5.10.6':[
-    "Contraste revisado em todo o app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete e Mega Millions ganharam tons que deixam os números e os textos brancos legíveis, e o cabeçalho do resultado passou a usar texto branco; as células da matriz, as tabelas de desvios e de pares, os botões de bolinhas, os textos secundários do tema escuro e as previsões nos temas escuro e colorido ficaram mais legíveis."
+    "Contraste revisado em todo o app: Mega-Sena, Timemania, Lotomania, Dia de Sorte, Super Sete e Mega Millions ganharam tons que deixam os números e os textos brancos legíveis, e o cabeçalho do resultado passou a usar texto branco; as células da matriz, as tabelas de desvios e de pares, os botões de bolinhas, os textos secundários do tema escuro e as previsões nos temas escuro e colorido ficaram mais legíveis. As cores das loterias agora seguem exatamente as do app oficial da Caixa."
   ],
   '5.10.5':[
     "Faixas de distribuição do prêmio ganharam uma chave liga/desliga por bolão (igual à do Enviar palpite), no modal Prêmio → Saldo: desligada, o prêmio não é dividido — vai inteiro para o saldo dos participantes — e as faixas deixam de aparecer no Termo de Constituição e nos Termos e Condições do bolão. Manuais e Regras de Funcionamento atualizados. Imprimir Volantes agora também existe para Powerball e Mega Millions (modelo do Arkansas, 5 jogos por volante, 2 por folha A4). Visual novo: o trevo das loterias agora segue o formato da Caixa, Mega Millions e Powerball ganharam ícones próprios e as cores das loterias foram conferidas com os volantes impressos (Mega-Sena, Lotofácil, Quina, Timemania, Dupla Sena e +Milionária)."
@@ -2448,9 +2448,9 @@ function _mostrarNovidadesVersao(versao){
         <div class="ps-row"><span data-i18n="boloes.premio_apurado_total">Prêmio apurado (total)</span><span id="premio-saldo-apurado">—</span></div>
         <div class="ps-row"><span data-i18n="boloes.ja_creditado_saldo">Já creditado ao saldo</span><span id="premio-saldo-ja-creditado">—</span></div>
         <div class="ps-hero"><span data-i18n="boloes.disponivel_para_creditar">Disponível para creditar</span><span id="premio-saldo-disponivel">—</span></div>
-        <div class="ps-row"><span>📥 <span data-i18n="organizador.total_reservado">Total Reservado (Próx. Bolão)</span></span><span id="premio-saldo-total-reserva" style="color:var(--ac)">—</span></div>
+        <div class="ps-row"><span>📥 <span data-i18n="organizador.total_reservado">Total Reservado (Próx. Bolão)</span></span><span id="premio-saldo-total-reserva" style="color:var(--ac-marca,var(--ac))">—</span></div>
         <div class="ps-row"><span>💸 <span data-i18n="organizador.total_pix_pendente">Total PIX Pendente</span></span><span id="premio-saldo-total-pix" style="color:#FF7A00">—</span></div>
-        <button type="button" onclick="_aplicarReservasPendentesDesktop()" style="width:100%;margin-top:10px;border:1px solid var(--glass-border);border-radius:10px;padding:7px 10px;background:var(--glass-bg);color:var(--ac);font-weight:700;font-size:11.5px;cursor:pointer"><span data-ic="sincronizar" data-ic-tam="14"></span> <span data-i18n="organizador.aplicar_reservas_titulo">Aplicar Reservas Pendentes</span></button>
+        <button type="button" onclick="_aplicarReservasPendentesDesktop()" style="width:100%;margin-top:10px;border:1px solid var(--glass-border);border-radius:10px;padding:7px 10px;background:var(--glass-bg);color:var(--ac-marca,var(--ac));font-weight:700;font-size:11.5px;cursor:pointer"><span data-ic="sincronizar" data-ic-tam="14"></span> <span data-i18n="organizador.aplicar_reservas_titulo">Aplicar Reservas Pendentes</span></button>
       </div>
 
       <div class="ps-card">
@@ -2700,7 +2700,7 @@ function _mostrarNovidadesVersao(versao){
 <div id="participante-shell">
   <div class="pt-nav">
     <div class="dash-brand" style="cursor:pointer" onclick="ptIrPara('boloes')">
-      <span style="font-family:var(--font-head);font-weight:900;font-size:16px;color:var(--text);white-space:nowrap">LOTTO<span style="color:var(--ac)">ANALYTICS</span></span>
+      <span style="font-family:var(--font-head);font-weight:900;font-size:16px;color:var(--text);white-space:nowrap">LOTTO<span style="color:var(--ac-marca,var(--ac))">ANALYTICS</span></span>
     </div>
     <span style="font-size:9px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;flex-shrink:0" data-i18n="nav.participante">Participante</span>
     <div class="pt-nav-tabs">
@@ -5948,15 +5948,15 @@ const CFG = {
   // progressão simples, sem múltiplos de 3). Loterias americanas
   // (Powerball/Mega Millions) não têm Teimosinha — modalidade exclusiva
   // das loterias da Caixa.
-  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#34902B',corD:'#2D7C25',corClara:'#89BF84',orb:[52,144,43],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
-  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#9F267A',corD:'#8A216A',corClara:'#C781B2',orb:[159,38,122],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
-  quina:         {nome:'QUINA',        emoji:'💜',cor:'#640F7C',corD:'#520C65',corClara:'#A574B3',orb:[100,15,124],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
-  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#D4670A',corD:'#BC5B09',corClara:'#E6A771',orb:[212,103,10], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
-  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFF200',corD:'#E6DA00',corClara:'#FFF76B',corTexto:'#1F7A1F',orb:[255,242,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
-  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A74522',corD:'#923C1E',corClara:'#CC937F',orb:[167,69,34],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
-  diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#9E8500',corD:'#857000',corClara:'#C7B86B',orb:[158,133,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,9,12]},
-  supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#749124',corD:'#647D1F',corClara:'#AEBF80',orb:[116,145,36], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
-  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#453084',corD:'#3B2971',corClara:'#9387B8',orb:[69,48,132],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
+  megasena:      {nome:'MEGA-SENA',    emoji:'🍀',cor:'#00A652',corD:'#00984B',corClara:'#6BCB9B',orb:[0,166,82],  min:6, max:20,universe:60, start:1,  selDez:true, dezStart:6, apiKey:'megasena',iaRange:[1,4,5,25], precoBase:6.00,moeda:'BRL',specialLabel:'Mega da Virada',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[2,4,8]},
+  lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#92278F',corD:'#851F82',corClara:'#C082BE',orb:[146,39,143],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  quina:         {nome:'QUINA',        emoji:'💜',cor:'#2E3192',corD:'#2A2986',corClara:'#8688C0',orb:[46,49,146],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
+  lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#E67300',corD:'#CC6500',corClara:'#F1AE6B',orb:[230,115,0], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFF200',corD:'#E6DC14',corClara:'#FFF76B',corTexto:'#1F7A1F',orb:[255,242,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A72B43',corD:'#97253C',corClara:'#CC8492',orb:[167,43,67],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
+  diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#E2C021',corD:'#AD9318',corClara:'#EEDA7E',corTexto:'#7F6600',orb:[226,192,33],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,9,12]},
+  supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#BDD630',corD:'#839F38',corClara:'#D9E787',corTexto:'#087E34',orb:[189,214,48], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  maismilionaria:{iaRange:[1,4,5,20],nome:'+MILIONÁRIA',  emoji:'💎',cor:'#29357F',corD:'#262E76',corClara:'#838AB5',orb:[41,53,127],  min:6, max:12,universe:50, start:1,  selDez:true, hasTrevo:true, trevosMin:2, trevosMax:6, trevosUniverse:6, trevoCor:'#0fae8a', precoBase:6.00,moeda:'BRL',apiKey:'maismilionaria',teimosinha:[2,3,4,5],teimosinhaFisico:[2,3,4,5]},
   powerball:    {nome:'POWERBALL',    emoji:'🔴',cor:'#E31D1A',corD:'#a81410',orb:[227,29,26],  min:5, max:5, universe:69, start:1,  selDez:false, apiKey:'powerball',iaRange:[1,4,5,20],   americano:true, bolaExtra:true, bolaExtraMax:26, bolaExtraNome:'PowerBall', bolaExtraCor:'#00BCD4', precoBase:2.00,moeda:'USD',powerBallMax:26, estadosMultiDraw:true},
   megamillions: {nome:'MEGA MILLIONS',emoji:'⭐',cor:'#AD7D00',corD:'#946B00',orb:[173,125,0],  min:5, max:5, universe:70, start:1,  selDez:false, apiKey:'megamillions',iaRange:[1,4,5,20], americano:true, bolaExtra:true, bolaExtraMax:25, bolaExtraNome:'Mega Ball',  bolaExtraCor:'#00BCD4', precoBase:5.00,moeda:'USD',megaBallMax:25, estadosMultiDraw:true},
 };
@@ -9010,6 +9010,8 @@ function laAccent(d){
   document.documentElement.style.setProperty('--la-a2',d.corD||d.cor);
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  document.documentElement.style.setProperty('--ac-bola-txt',d.corTexto||'#fff');
+  document.documentElement.style.setProperty('--ac-marca',corMarcaTema(d));
   // Variante legível de --ac pra texto direto sobre o Hero (tarja "Ferramenta
   // de Gestão..." e a palavra "LOTERIAS") — ver _corMarcaLegivelHero.
   document.documentElement.style.setProperty('--ac-legivel',_corMarcaLegivelHero(d));
@@ -9659,13 +9661,13 @@ function _escurecerHex(hex,fator){
   return '#'+toHex(nr)+toHex(ng)+toHex(nb);
 }
 // Garante >= 4,5:1 da cor (usada como TEXTO) contra o fundo: sobre fundo claro escurece, sobre fundo escuro clareia. (2026-10-09, scanner de contraste)
-function _garantirContrasteHex(hex,fundo){
+function _garantirContrasteHex(hex,fundo,min){
   const lum=_luminanciaHex, ct=(a,b)=>{ const x=lum(a), y=lum(b); return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05); };
   if(!/^#[0-9a-fA-F]{6}$/.test(hex||'')) return hex;
-  if(ct(hex,fundo)>=4.5) return hex;
+  min=min||4.5; if(ct(hex,fundo)>=min) return hex;
   let c=hex;
-  if(lum(fundo)<0.3){ for(let r=0.08;r<=1;r+=0.04){ c=_mixBranco(hex,r); if(ct(c,fundo)>=4.5) break; } }
-  else { for(let f=0.92;f>=0.2;f-=0.06){ c=_escurecerHex(hex,f); if(ct(c,fundo)>=4.5) break; } }
+  if(lum(fundo)<0.3){ for(let r=0.08;r<=1;r+=0.04){ c=_mixBranco(hex,r); if(ct(c,fundo)>=min) break; } }
+  else { for(let f=0.92;f>=0.2;f-=0.06){ c=_escurecerHex(hex,f); if(ct(c,fundo)>=min) break; } }
   return c;
 }
 // Texto (branco ou quase preto) pelo contraste sobre uma cor rgba() translúcida já misturada com o fundo do tema ativo.
@@ -9723,7 +9725,14 @@ function _luminanciaHex(hex){
 // contraste como TEXTO (nome, rótulos, ícones), por isso usa-se o verde
 // (d.corTexto) nesses contextos — só a bolinha em si (fundo) usa o
 // amarelo (d.cor). Restaurado: corTexto tem prioridade quando definido.
+// Tom claro de cada marca para TEXTO sobre os temas escuro/colorido (a cor crua de Quina, +Milionária etc. some nesses fundos). Fonte única: corMarca() e o Hero.
+var LA_CLARA_ESCURO={megasena:'#94DBB7',timemania:'#8FD88F',lotofacil:'#DB94D9',quina:'#9496DB',duplasena:'#DB94A2',maismilionaria:'#949EDB',powerball:'#f5a7a5',lotomania:'#FF9A45',diadesorte:'#E2C021',supersete:'#BDD630',megamillions:'#FFB800'};
 function corMarca(d){ return (d&&d.corTexto)||(d&&d.cor)||'#fff'; }
+// Versão que se adapta ao TEMA (tom claro nos temas escuro/colorido). Só para texto sobre fundo que muda com o tema; NUNCA no cartão de resultado, em documentos ou impressões (fundo sempre claro) — esses usam corMarca().
+function corMarcaTema(d){
+  if(d&&d.apiKey&&LA_CLARA_ESCURO[d.apiKey]&&document.body&&!document.body.classList.contains('theme-light')) return LA_CLARA_ESCURO[d.apiKey];
+  return corMarca(d);
+}
 // Cor de marca legível sobre os fundos translúcidos escuros do Hero da home
 // — tanto o painel .la-hero-info (rgba(0,0,0,.22) sobre o fundo do tema)
 // quanto o próprio .la-hero (rgba(30,58,95,.5), mais claro que o painel, onde
@@ -9751,8 +9760,7 @@ function _corMarcaLegivelHero(d){
   if(document.body.classList.contains('theme-light')){
     return corMarca(d);
   }
-  var CLARA_LEGIVEL_ESCURO={megasena:'#9ADB94',timemania:'#6BCEA7',lotofacil:'#DB94C5',quina:'#CC94DB',duplasena:'#DBA794',maismilionaria:'#A796D9',powerball:'#f5a7a5',lotomania:'#F58220',diadesorte:'#C8A800',supersete:'#A6CE39',megamillions:'#FFB800'};
-  return CLARA_LEGIVEL_ESCURO[d.apiKey]||corMarca(d);
+  return corMarcaTema(d);
 }
 // Cor do NÚMERO dentro da bolinha — diferente de corMarca(), que cai pra
 // d.cor quando não há corTexto (serviria pra rótulos, nunca pra texto
@@ -9792,7 +9800,7 @@ function _corFundoChipLoteria(d){
 function _corTextoChipLoteria(d){
   var temWrapper=d&&Object.prototype.hasOwnProperty.call(d,'_cfg');
   var cfg=temWrapper?d._cfg:d;
-  var ESCURA_LEGIVEL={megasena:'#25661E',lotomania:'#8C4400',timemania:'#6B6600',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
+  var ESCURA_LEGIVEL={megasena:'#006632',lotomania:'#8F4700',timemania:'#6B6600',diadesorte:'#715F0F',supersete:'#5A6614',megamillions:'#7a5700'};
   if(cfg&&ESCURA_LEGIVEL[cfg.apiKey]) return ESCURA_LEGIVEL[cfg.apiKey];
   if(!cfg) return '#0B6E8C'; // concurso sem loteria identificada (MULTI_LOTERIA_COR)
   return cfg.corD||corMarca(d);
@@ -9881,6 +9889,8 @@ function setTheme(t){
   const btnTb=document.getElementById(`theme-${t}-tb`);
   if(btnTb)btnTb.classList.add('active');
   try{localStorage.setItem('loterias_theme',t);}catch(e){}
+  // as cores 'marca como texto' dependem do tema: recalcula para a loteria aberta
+  try{ if(typeof currentKey!=='undefined'&&CFG[currentKey]){ document.documentElement.style.setProperty('--ac-marca',corMarcaTema(CFG[currentKey])); document.documentElement.style.setProperty('--ac-bola-txt',CFG[currentKey].corTexto||'#fff'); } }catch(e){}
 }
 let _apPeriod=24;
 // setApPeriod(): usada pelos botões .ap-period-btn (#ap-controls) — a
@@ -10516,6 +10526,8 @@ function setupMods(d){
   ['btn-especial-jogo'].forEach(id=>{ const el=document.getElementById(id);if(!el)return; if(d.specialLabel){ el.classList.add('visivel'); el.style.background='#fff'; el.style.color=corContrasteBranco(d.cor); el.style.borderColor=d.cor; el.innerHTML=`⭐ ${d.specialLabel}`; } else { el.classList.remove('visivel'); } });
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  document.documentElement.style.setProperty('--ac-bola-txt',d.corTexto||'#fff');
+  document.documentElement.style.setProperty('--ac-marca',corMarcaTema(d));
   document.documentElement.style.setProperty('--ac-legivel',_corMarcaLegivelHero(d));
   // Cabeçalhos das colunas do Gerador (Apostas Aleatórias / Fechamento /
   // Fechamento p/ Score) seguem o mesmo padrão "clean": contorno fino +
@@ -10883,7 +10895,7 @@ function buildFixosGrid(tipo) {
     <div style="width:100%">
       <button type="button" id="vol-btn-${tipo}"
         onclick="abrirVolante('${tipo}')"
-        style="width:100%;text-align:left;border:1px solid ${ac}55;border-radius:10px;padding:7px 11px;background:${fixos.size>0?ac+'18':'rgba(255,255,255,.04)'};color:${fixos.size>0?ac:'rgba(255,255,255,.45)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
+        style="width:100%;text-align:left;border:1px solid ${ac}55;border-radius:10px;padding:7px 11px;background:${fixos.size>0?ac+'18':'rgba(255,255,255,.04)'};color:${fixos.size>0?temColorAcc(ac):'var(--text-dim)'};font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px">
         <span style="font-size:14px">🎯</span>
         <span id="vol-label-${tipo}" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${countLabel}</span>
         ${fixos.size > 0 ? `<span onclick="event.stopPropagation();limparFixos('${tipo}')" style="color:rgba(255,100,100,.7);font-size:12px;padding:0 2px;cursor:pointer" title="${t('gerador.limpar_fixos_title')}">✕</span>` : ''}
@@ -18405,12 +18417,12 @@ function renderResultados(body,d,hist,freq){
     // mesmo dourado genérico fixo (--dt-hit-extra), então precisa do mesmo
     // ajuste de cor por loteria (d.bolaExtraCor/d.trevoCor), senão continua
     // errado aqui mesmo com a grade já corrigida.
-    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${sorteio2LblHtml}${extraSorted.map(n=>`<div class="b e" style="background:${d.corD||d.cor}">${n}</div>`).join('')}</div>`:'';
+    const ball2RowHtml=(isDupla&&extraSorted.length)?`<div class="dt-balls dt-balls-2">${sorteio2LblHtml}${extraSorted.map(n=>`<div class="b e" style="background:${d.corD||d.cor};color:${corTextoSobre(d.corD||d.cor)}">${n}</div>`).join('')}</div>`:'';
     let ballsHtml;
     if(isDupla){
       ballsHtml=`<div class="dt-balls">${sorteio1LblHtml}${ball1InlineHtml}</div>`+ball2RowHtml;
     } else {
-      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e" style="background:${hitColorExtra()}">${n}</div>`).join('')}`:''}</div>`;
+      ballsHtml=`<div class="dt-balls">${ball1InlineHtml}${extraSorted.length?`<div class="sep-dot"></div>${extraSorted.map(n=>`<div class="b e" style="background:${hitColorExtra()};color:${corTextoSobre(hitColorExtra())}">${n}</div>`).join('')}`:''}</div>`;
     }
     if(view.info===0){
       infoHtml=isDupla
@@ -18443,7 +18455,7 @@ function renderResultados(body,d,hist,freq){
       extraTds='<td class="dt-sep"></td>'+extraCols.map(n=>{
         const hit=extraVals.includes(n);
         const val=view.mode==='posicoes'?(hit?extraPosMap[n]:''):n;
-        return `<td><div class="fc2${hit?' he':''}"${hit?` style="background:${hitColorExtra()}"`:''}>${hit?val:n}</div></td>`;
+        return `<td><div class="fc2${hit?' he':''}"${hit?` style="background:${hitColorExtra()};color:${corTextoSobre(hitColorExtra())}"`:''}>${hit?val:n}</div></td>`;
       }).join('');
     }
 
@@ -18521,7 +18533,7 @@ function renderPausas(body,d,universe,hist,atraso){
   const pad=x=>String(x).padStart(2,'0');
   const chips=universe.map(n=>{
     const on=sel.has(n);
-    return `<button onclick="_pausasToggle(${n})" style="width:30px;height:30px;border-radius:50%;border:1.5px solid ${on?d.cor:'var(--glass-border)'};background:${on?d.cor:'transparent'};color:${on?'#fff':'var(--text-muted)'};font-family:var(--font-mono);font-size:10px;font-weight:800;cursor:pointer;transition:all .15s">${pad(n)}</button>`;
+    return `<button onclick="_pausasToggle(${n})" style="width:30px;height:30px;border-radius:50%;border:1.5px solid ${on?d.cor:'var(--glass-border)'};background:${on?d.cor:'transparent'};color:${on?(d.corTexto||'#fff'):'var(--text-muted)'};font-family:var(--font-mono);font-size:10px;font-weight:800;cursor:pointer;transition:all .15s">${pad(n)}</button>`;
   }).join('');
 
   const selArr=[...sel].sort((a,b)=>a-b);
@@ -18704,7 +18716,7 @@ function renderPrevisao(body,d,hist,freq,atraso,mediaFreq){
   const bolaExtraMax=d.bolaExtraMax||null;
   const modos=['principal','quente','atrasado','equilibrado','aleatorio'];
   const labels=modos.map(m=>t('previsao.label.'+m));
-  const labelColors=[d.cor,'#ff6b35','#f5c030','#4A9BE0','#a855f7'].map((c,i)=>i===0?c:temColorAcc(c));
+  const labelColors=[d.cor,'#ff6b35','#f5c030','#4A9BE0','#a855f7'].map((c,i)=>i===0?corMarcaTema(d):temColorAcc(c));
   const razoes=modos.map(m=>t('previsao.razao.'+m));
 
   const variantes=[1,2,3].map(vi=>{
@@ -18795,7 +18807,7 @@ function prevMaisVariantes(vi){
   else{for(let i=d.start;i<=d.start+d.universe-1;i++)universe.push(i);}
 
   const labels=['principal','quente','atrasado','equilibrado','aleatorio'].map(m=>t('previsao.label.'+m));
-  const labelColors=[d.cor,'#ff6b35','#f5c030','#4A9BE0','#a855f7'].map((c,i)=>i===0?c:temColorAcc(c));
+  const labelColors=[d.cor,'#ff6b35','#f5c030','#4A9BE0','#a855f7'].map((c,i)=>i===0?corMarcaTema(d):temColorAcc(c));
   const razoes=['principal','quente','atrasado','equilibrado','aleatorio'].map(m=>t('previsao.razao.'+m));
 
   // Gerar 1 jogo novo por categoria
@@ -19172,7 +19184,7 @@ function renderDesvios(body,d,universe,freq,teoria,hist,atraso){
     <!-- Painel de bolas + enviar ao gerador -->
     <div style="margin-top:16px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:var(--btn-radius-sm);box-sizing:border-box;width:100%;overflow:hidden">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-        <span style="font-size:11px;font-weight:800;font-family:var(--font-head);color:var(--ac)">${t('desvios.numeros_gerador')}</span>
+        <span style="font-size:11px;font-weight:800;font-family:var(--font-head);color:var(--ac-marca,var(--ac))">${t('desvios.numeros_gerador')}</span>
         <button onclick="window._desvSel.clear();window._desvRenderBalls()" style="border:1px solid var(--glass-border);border-radius:var(--btn-radius-sm);padding:4px 12px;font-size:10px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.05);color:var(--text-muted);font-family:var(--font-head)">${t('geral.limpar')}</button>
         <span id="desvSelCount" style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono)">${t('desvios.contagem',{n:0,total:universe.length})}</span>
         <button onclick="window._desvEnviar()" style="margin-left:auto;border:1px solid var(--ac);border-radius:var(--btn-radius-sm);padding:8px 18px;background:var(--ac);color:var(--ac-text,#000);font-family:var(--btn-font);font-weight:800;font-size:12px;cursor:pointer;transition:var(--btn-transition)">${t('desvios.enviar_gerador')}</button>
@@ -29059,7 +29071,7 @@ function ptRenderFamiliaTeimosinha(fam,idx){
   return '<div style="padding:9px 10px;border:1px solid var(--glass-border);border-radius:var(--radius-md);background:var(--bg2);margin-bottom:6px;font-size:11px">'+
     '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:2px">'+
       '<span style="color:var(--text-muted);margin-right:4px;font-weight:700">'+(idx+1)+'.</span>'+
-      '<span class="pt-chip" style="background:rgba(58,155,78,.14);color:var(--ac);border-color:rgba(58,155,78,.3)">🔁 '+_esc((fam.loteria==='powerball'||fam.loteria==='megamillions')?t('jogo.multidraw'):t('jogo.teimosinha'))+' ('+fam.concursos.length+')</span>'+mesTime+
+      '<span class="pt-chip" style="background:rgba(58,155,78,.14);color:var(--ac-marca,var(--ac));border-color:rgba(58,155,78,.3)">🔁 '+_esc((fam.loteria==='powerball'||fam.loteria==='megamillions')?t('jogo.multidraw'):t('jogo.teimosinha'))+' ('+fam.concursos.length+')</span>'+mesTime+
     '</div>'+linhas+
   '</div>';
 }
