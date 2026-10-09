@@ -5952,7 +5952,7 @@ const CFG = {
   lotofacil:     {nome:'LOTOFÁCIL',    emoji:'🌸',cor:'#9F267A',corD:'#8A216A',corClara:'#C781B2',orb:[159,38,122],min:15,max:20,universe:25, start:1,  selDez:true, fixosMin:7,fixosMax:12,apiKey:'lotofacil',iaRange:[5,12,1,7], precoBase:3.50,moeda:'BRL',specialLabel:'Lotofácil da Independência',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
   quina:         {nome:'QUINA',        emoji:'💜',cor:'#640F7C',corD:'#520C65',corClara:'#A574B3',orb:[100,15,124],  min:5, max:15,universe:80, start:1,  selDez:true, dezStart:5, apiKey:'quina',iaRange:[1,4,10,30], precoBase:3.00,moeda:'BRL',specialLabel:'Quina de São João',teimosinha:[3,6,12,18,24],teimosinhaFisico:[3,6,12,18,24]},
   lotomania:     {iaRange:[1,7,10,40],nome:'LOTOMANIA',    emoji:'🟠',cor:'#D4670A',corD:'#BC5B09',corClara:'#E6A771',orb:[212,103,10], min:50,max:50,universe:100,start:0,  selDez:false,fixosMin:1,fixosMax:20,precoBase:3.00,moeda:'BRL',apiKey:'lotomania',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
-  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#E9EA4F',corD:'#E6E738',corClara:'#F2F399',corTexto:'#1F7A1F',orb:[233,234,79],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
+  timemania:     {iaRange:[1,6,10,30],nome:'TIMEMANIA',    emoji:'⚽',cor:'#FFF200',corD:'#E6DA00',corClara:'#FFF76B',corTexto:'#1F7A1F',orb:[255,242,0],  min:10,max:10,universe:80, start:1,  selDez:false,fixosMin:1,fixosMax:7, precoBase:3.50,moeda:'BRL',apiKey:'timemania',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
   duplasena:     {nome:'DUPLA SENA',   emoji:'🍀🍀',cor:'#A74522',corD:'#923C1E',corClara:'#CC937F',orb:[167,69,34],  min:6, max:15,universe:50, start:1,  selDez:true, dezStart:6, apiKey:'duplasena',iaRange:[1,4,5,20], dupla:true, precoBase:3.00,moeda:'BRL',specialLabel:'Dupla Sena de Páscoa',teimosinha:[2,3,4,6,8,9,12],teimosinhaFisico:[3,6,9,12]},
   diasorte:      {iaRange:[1,4,1,4],nome:'DIA DE SORTE', emoji:'🌟',cor:'#9E8500',corD:'#857000',corClara:'#C7B86B',orb:[158,133,0],  min:7, max:15,universe:31, start:1,  selDez:true, dezStart:7, precoBase:2.50,moeda:'BRL',apiKey:'diadesorte',teimosinha:[2,3,4,6,8,9,12,18,24],teimosinhaFisico:[3,6,9,12]},
   supersete:     {iaRange:[1,7,1,3],nome:'SUPER SETE',   emoji:'7️⃣',cor:'#749124',corD:'#647D1F',corClara:'#AEBF80',orb:[116,145,36], min:7, max:21, universe:10, start:0,  selDez:true, dezStart:7, superSete:true,precoBase:3.00,moeda:'BRL',apiKey:'supersete',teimosinha:[3,6,9,12],teimosinhaFisico:[3,6,9,12]},
@@ -9792,7 +9792,7 @@ function _corFundoChipLoteria(d){
 function _corTextoChipLoteria(d){
   var temWrapper=d&&Object.prototype.hasOwnProperty.call(d,'_cfg');
   var cfg=temWrapper?d._cfg:d;
-  var ESCURA_LEGIVEL={megasena:'#25661E',lotomania:'#8C4400',timemania:'#68690D',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
+  var ESCURA_LEGIVEL={megasena:'#25661E',lotomania:'#8C4400',timemania:'#6B6600',diadesorte:'#665300',supersete:'#3E5514',megamillions:'#7a5700'};
   if(cfg&&ESCURA_LEGIVEL[cfg.apiKey]) return ESCURA_LEGIVEL[cfg.apiKey];
   if(!cfg) return '#0B6E8C'; // concurso sem loteria identificada (MULTI_LOTERIA_COR)
   return cfg.corD||corMarca(d);
