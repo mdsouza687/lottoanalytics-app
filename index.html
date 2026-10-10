@@ -1606,6 +1606,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.0':{
+    'en-US':["New language: British English (English UK), with the United Kingdom flag in the language selector (American English now appears as English US). Version aligned with the mobile app (5.11.0), where the Organiser's Generate Tickets now shows each lottery's extra ball, clovers, team and month. Printed Timemania slip: it now also marks the Heart Team."],
+    'es-ES':["Nuevo idioma: inglés británico (English UK), con la bandera del Reino Unido en el selector de idiomas (el inglés estadounidense ahora aparece como English US). Versión alineada con la app móvil (5.11.0), donde Generar juegos del Organizador ahora muestra la bola extra, los tréboles, el equipo y el mes de cada lotería. Cupón impreso de la Timemania: ahora también marca el Equipo del Corazón."],
+    'it-IT':["Nuova lingua: inglese britannico (English UK), con la bandiera del Regno Unito nel selettore delle lingue (l’inglese americano ora appare come English US). Versione allineata con l’app mobile (5.11.0), dove Genera giocate dell’organizzatore ora mostra la palla extra, i quadrifogli, la squadra e il mese di ogni lotteria. Schedina stampata della Timemania: ora segna anche la Squadra del Cuore."]
+  },
   '5.10.7':{
     'en-US':["The open pool's spending and balance now update by themselves: receipts linked or removed from the phone, another session or directly in the database show up right away, without closing the app. New videos in the manuals (Manager and Participant) in Portuguese, English, Spanish and Italian."],
     'es-ES':["Los gastos y el saldo del grupo abierto ahora se actualizan solos: los recibos vinculados o eliminados desde el móvil, otra sesión o directamente en la base aparecen al instante, sin cerrar la aplicación. Videos nuevos en los manuales (Gestor y Participante) en portugués, inglés, español e italiano."],
@@ -1838,6 +1843,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.0':[
+    "Novo idioma: inglês britânico (English UK), com a bandeira do Reino Unido no seletor de idiomas (o inglês americano agora aparece como English US). Versão alinhada com o app mobile (5.11.0), onde o Gerar Jogos do Organizador agora mostra a bola extra, os trevos, o time e o mês de cada loteria. Volante impresso da Timemania: agora marca também o Time do Coração."
+  ],
   '5.10.7':[
     "Os gastos e o saldo do bolão aberto agora se atualizam sozinhos: recibos vinculados ou removidos pelo celular, por outra sessão ou direto no banco aparecem na hora, sem precisar fechar o aplicativo. Vídeos novos nos manuais (Gestor e Participante) em português, inglês, espanhol e italiano."
   ],
@@ -2160,7 +2168,8 @@ var LA_CHANGELOG_DESKTOP={
   ]
 };
 function _mostrarNovidadesVersao(versao){
-  var itens=(LA_CHANGELOG_I18N[versao]&&LA_CHANGELOG_I18N[versao][_idiomaAtual()])||LA_CHANGELOG_DESKTOP[versao];
+  const _iaNov=_idiomaAtual(), _cl=LA_CHANGELOG_I18N[versao];
+  var itens=(_cl&&_cl[_iaNov])||((_iaNov==='en-GB'&&_cl&&_cl['en-US'])?_cl['en-US'].map(_laBritanico):null)||LA_CHANGELOG_DESKTOP[versao];
   if(!itens||!itens.length){ toast(t('atualizacao.atualizado_versao',{v:versao})); return; }
   var modalId='modal-novidades-versao';
   var elExistente=document.getElementById(modalId); if(elExistente) elExistente.remove();
@@ -2244,7 +2253,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.7</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2620,7 +2629,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.10.7</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5617,9 +5626,56 @@ const LA_I18N = { 'pt-BR': {'notif.tipo_credito_avulso':"Crédito avulso no seu 
   'resultado.faixa_n_trevo_sing':"+ {n} quadrifoglio",
   'resultado.faixa_n_trevo_pl':"+ {n} quadrifogli",
 } };
+// English (UK): dicionário derivado do en-US na hora (t()), com ortografia/vocabulário britânico — sobrescritas manuais, se um dia forem necessárias, entram neste objeto.
+LA_I18N['en-GB'] = {};
+var _laCasa=(orig, novo) => orig === orig.toUpperCase() && orig.length > 1 ? novo.toUpperCase() : (orig[0] === orig[0].toUpperCase() ? novo[0].toUpperCase() + novo.slice(1) : novo);
+var _laREGRAS=[
+  [/\bpools\b/gi,"syndicates"],
+  [/\bpool\b/gi,"syndicate"],
+  [/\bdrawings\b/gi,"draws"],
+  [/\bdrawing\b/gi,"draw"],
+  [/\b(analy)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(organi)z(e|es|ed|er|ers|ing|ation|ations)\b/gi,"$1s$2"],
+  [/\b(recogni)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(prioriti)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(customi)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(personali)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(authori)z(e|es|ed|ing|ation)\b/gi,"$1s$2"],
+  [/\b(synchroni)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(summari)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(finali)z(e|es|ed|ing)\b/gi,"$1s$2"],
+  [/\b(optimi)z(e|es|ed|ing|ation)\b/gi,"$1s$2"],
+  [/\bcolor(?![:\w-])/gi,"colour"],
+  [/\bcolors(?![:\w-])/gi,"colours"],
+  [/\bcolored\b/gi,"coloured"],
+  [/\bcolorful\b/gi,"colourful"],
+  [/\bfavorites?\b/gi,(m) => m.toLowerCase().endsWith('s') ? 'favourites' : 'favourite'],
+  [/\bneighborhoods?\b/gi,(m) => m.toLowerCase().endsWith('s') ? 'neighbourhoods' : 'neighbourhood'],
+  [/\bgray\b/gi,"grey"],
+  [/\bcenter(s|ed)?\b/gi,"centre$1"],
+  [/\btrash\b/gi,"bin"],
+  [/\bcell ?phones?\b/gi,"mobile phone"],
+  [/\bcanceled\b/gi,"cancelled"],
+  [/\bcanceling\b/gi,"cancelling"],
+  [/\bprogram(s)?\b(?= (that|which) (runs|is installed))/gi,"program$1"]
+];
+function _laBritanico(txt){
+  if(typeof txt!=='string' || !txt) return txt;
+  var partes=txt.split(/(<[^>]*>)/);
+  for(var i=0;i<partes.length;i++){
+    var s=partes[i]; if(!s || s.charAt(0)==='<') continue;
+    s=s.replace(/\b(prize|jackpot) pool\b/gi,'$1 \u0001');   // "prize pool" continua "prize pool" (não vira "prize syndicate")
+    for(var k=0;k<_laREGRAS.length;k++){ var re=_laREGRAS[k][0], rep=_laREGRAS[k][1];
+      s=s.replace(re, typeof rep==='function' ? function(m){ return _laCasa(m, rep(m)); } : function(m){ var g=Array.prototype.slice.call(arguments,1); return _laCasa(m, rep.replace(/\$(\d)/g,function(_,n){ return g[+n-1]||''; })); });
+    }
+    partes[i]=s.replace(/\u0001/g,'pool');
+  }
+  return partes.join('');
+}
 var LA_IDIOMAS_DISPONIVEIS = [
   {codigo:'pt-BR', rotulo:'Português', bandeira:'🇧🇷'},
-  {codigo:'en-US', rotulo:'English', bandeira:'🇺🇸'},
+  {codigo:'en-US', rotulo:'English (US)', bandeira:'🇺🇸'},
+  {codigo:'en-GB', rotulo:'English (UK)', bandeira:'🇬🇧'},
   {codigo:'es-ES', rotulo:'Español', bandeira:'🇪🇸'},
   {codigo:'it-IT', rotulo:'Italiano', bandeira:'🇮🇹'}
 ];
@@ -5645,12 +5701,14 @@ function _trocarIdioma(codigo){
 function _registrarIdiomaNoServidor(codigo){
   try{
     var sb=_getSbClient(); if(!sb) return Promise.resolve();
-    return Promise.resolve(sb.rpc('rpc_definir_meu_idioma',{p_idioma:codigo||_idiomaAtual()})).catch(function(){});
+    return Promise.resolve(sb.rpc('rpc_definir_meu_idioma',{p_idioma:(codigo||_idiomaAtual())==='en-GB'?'en-US':(codigo||_idiomaAtual())})).catch(function(){});
   }catch(e){ return Promise.resolve(); }
 }
 function t(key, vars){
   const idiomaAtual = _idiomaAtual();
-  let s = (LA_I18N[idiomaAtual] && LA_I18N[idiomaAtual][key]) ?? LA_I18N['pt-BR'][key] ?? key;
+  let s = LA_I18N[idiomaAtual] && LA_I18N[idiomaAtual][key];
+  if(s==null && idiomaAtual==='en-GB' && LA_I18N['en-US'] && typeof LA_I18N['en-US'][key]==='string'){ s = LA_I18N['en-GB'][key] = _laBritanico(LA_I18N['en-US'][key]); }
+  s = s ?? LA_I18N['pt-BR'][key] ?? key;
   if(vars) for(const k in vars) s = s.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]);
   return s;
 }
@@ -5884,7 +5942,7 @@ function _aplicarI18nDOM(root){
 function _bandeiraSvg(codigo, tamanho){
   tamanho = tamanho || 16;
   const w = tamanho, h = Math.round(tamanho*0.7);
-  const svgEs = '<svg viewBox="0 0 30 21" width="'+w+'" height="'+h+'" aria-hidden="true"><rect width="30" height="21" fill="#AA151B"/><rect y="5.25" width="30" height="10.5" fill="#F1BF00"/></svg>'; const svgIt = '<svg viewBox="0 0 30 21" width="'+w+'" height="'+h+'" aria-hidden="true"><rect width="10" height="21" fill="#009246"/><rect x="10" width="10" height="21" fill="#FFFFFF"/><rect x="20" width="10" height="21" fill="#CE2B37"/></svg>'; const svg = codigo==='it-IT' ? svgIt : codigo==='es-ES' ? svgEs : codigo==='en-US'
+  const svgEs = '<svg viewBox="0 0 30 21" width="'+w+'" height="'+h+'" aria-hidden="true"><rect width="30" height="21" fill="#AA151B"/><rect y="5.25" width="30" height="10.5" fill="#F1BF00"/></svg>'; const svgIt = '<svg viewBox="0 0 30 21" width="'+w+'" height="'+h+'" aria-hidden="true"><rect width="10" height="21" fill="#009246"/><rect x="10" width="10" height="21" fill="#FFFFFF"/><rect x="20" width="10" height="21" fill="#CE2B37"/></svg>'; const svgGb = '<svg viewBox="0 0 60 30" preserveAspectRatio="none" width="'+w+'" height="'+h+'" aria-hidden="true"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="2.4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>'; const svg = codigo==='en-GB' ? svgGb : codigo==='it-IT' ? svgIt : codigo==='es-ES' ? svgEs : codigo==='en-US'
     ? '<svg viewBox="0 0 30 21" width="'+w+'" height="'+h+'" aria-hidden="true">'+
         '<rect width="30" height="21" fill="#B22234"/>'+
         '<g fill="#fff">'+
@@ -8927,7 +8985,7 @@ function _usdTxt(v){
   if(!m||idi==='pt-BR') return v;
   const num=parseFloat(m[1].replace(/\./g,'').replace(',','.')); if(isNaN(num)) return v;
   const bi=/^bilh/i.test(m[2]);
-  const unid=({'en-US':bi?'Billion':'Million','es-ES':bi?'mil millones':'millones','it-IT':bi?'miliardi':'milioni'})[idi]||m[2];
+  const unid=({'en-US':bi?'Billion':'Million','en-GB':bi?'Billion':'Million','es-ES':bi?'mil millones':'millones','it-IT':bi?'miliardi':'milioni'})[idi]||m[2];
   return 'US$ '+num.toLocaleString(idi,{maximumFractionDigits:2})+' '+unid+m[3];
 }
 // Descrição de faixa de premiação que vem da Caixa em português ("5 acertos + 1 ou nenhum trevo", "Time do Coração", "Mês de Sorte")
@@ -13269,6 +13327,17 @@ const VOLANTE_ASSETS_BASE = 'assets/volantes/';
 // essa fração cobre bem (ver _volanteMarcacoesHtml).
 // Largura REAL (mm) dos volantes dos EUA — valor ASSUMIDO (3,25"); não há medida oficial publicada. Medir um volante de papel e ajustar aqui: a altura e todas as posições acompanham.
 const MM_VOLANTE_LARG_MM = 82.55, PB_VOLANTE_LARG_MM = 82.55;
+// Campo "Time do Coração" do volante da Timemania: 80 times em 3 colunas (grade medida na imagem do volante, em mm). Os 10 times que a Caixa não oferece mais não têm caixinha.
+var _VOL_TIME_GRADE={"cols":[6.607,32.02,57.622],"rows":[57.432,61.034,64.635,68.237,71.839,75.44,79.042,82.644,86.246,89.847,93.449,97.051,100.652,104.254,107.856,111.457,115.059,118.661,122.263,125.864,129.466,133.068,136.669,140.271,143.873,147.475,151.076],"markW":2.7,"markH":2.45,"nomes":[["ABC/RN","Águia Marabá/PA","Altos/PI","Amazonas/AM","América/MG","América/RN","Anápolis/GO","Aparecidense/GO","ASA/AL","Athletic Club/MG","Athletico/PR","Atlético/GO","Atlético/MG","Avaí/SC","Bahia/BA","Barra/SC","Botafogo/PB","Botafogo/RJ","Botafogo/SP","Bragantino/SP","Brasil/RS","Brasiliense/DF","Brusque/SC","Cascavel/PR","Caxias/RS","Ceará/CE","Chapecoense/SC"],["Confiança/SE","Corinthians/SP","Coritiba/PR","CRB/AL","Criciúma/SC","Cruzeiro/MG","CSA/AL","Cuiabá/MT","Ferroviária/SP","Ferroviário/CE","Figueirense/SC","Flamengo/RJ","Floresta/CE","Fluminense/RJ","Fortaleza/CE","Goiás/GO","Grêmio/RS","Guarani/SP","Inter Limeira/SP","Internacional/RS","Itabaiana/SE","Ituano/SP","Juventude/RS","Londrina/PR","Manaus/AM","Maranhão/MA","Maringá/PR"],["Mirassol/SP","Náutico/PE","Nova Iguaçu/RJ","Novorizontino/SP","Operário/PR","Palmeiras/SP","Paysandu/PA","Ponte Preta/SP","Porto Velho/RO","Remo/PA","Retrô/PE","Samp Corrêa/MA","Santa Cruz/PE","Santos/SP","São Bernardo/SP","São José/RS","São Paulo/SP","Sousa/PB","Sport/PE","Tocantinópolis/TO","Tombense/MG","Vasco/RJ","Vila Nova/GO","Vitória/BA","Volta Redonda/RJ","Ypiranga/RS"]]};
+var _VOL_TIME_ALIAS={"AGUIADEMARABAPA":"AGUIAMARABAPA","SAMPAIOCORREAMA":"SAMPCORREAMA","RETROBRASILPE":"RETROPE","MARINGASAFPR":"MARINGAPR","BRASILDEPELOTASRS":"BRASILRS","BARRAFCSC":"BARRASC","VASCODAGAMARJ":"VASCORJ"};
+function _volTimeNorm(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function _volanteTimeCelula(timeIdx){
+  if(timeIdx==null) return null;
+  var nome=LA_TIMEMANIA_TIMES[timeIdx]; if(!nome) return null;
+  var k=_volTimeNorm(nome); k=_VOL_TIME_ALIAS[k]||k, g=_VOL_TIME_GRADE;
+  for(var c=0;c<g.nomes.length;c++) for(var r=0;r<g.nomes[c].length;r++) if(_volTimeNorm(g.nomes[c][r])===k) return {cx:g.cols[c],cy:g.rows[r]};
+  return null;
+}
 const VOLANTE_IMG = {
   megasena: { file:'megasena.jpg', wmm:83, hmm:184.72, jogos:[
     {cols:[14.724,21.259,27.497,33.989,40.397,46.507,53.297,59.704,66.324,72.71],rows:[50.0,53.3,56.6,59.9,63.2,66.5]},
@@ -13591,6 +13660,7 @@ function _volanteMarcacoesHtml(key,jogosGrupo){
   // caso comum corretamente; se algum dia os jogos de um mesmo volante
   // tiverem quantidades diferentes, só o do primeiro fica refletido aqui.
   const jogoRef=jogos[0];
+  if(key==='timemania' && jogoRef){ const _celT=_volanteTimeCelula(jogoRef._time); if(_celT) html+=_volanteMarcaDiv(_celT.cx,_celT.cy,_VOL_TIME_GRADE.markW,_VOL_TIME_GRADE.markH,'#000',true); }
   // Margem de segurança: desenha a marca num pouco MENOR que a tinta real
   // medida em cada caixinha (nunca no tamanho exato) — garante que em
   // nenhuma hipótese a marca ultrapasse o campo, e como w/h agora vêm de
@@ -15159,7 +15229,7 @@ const US_MULTIDRAW_ESTADOS = {
 };
 // Nome do estado no idioma atual: us.estado_XX no dicionário (só os que mudam de idioma — Arizona, Texas… são iguais nos 4).
 function _nomeEstadoUS(uf){
-  const dic=LA_I18N[_idiomaAtual()];
+  const _iEst=_idiomaAtual(), dic=LA_I18N[_iEst==='en-GB'?'en-US':_iEst];
   return (dic&&dic['us.estado_'+uf])||US_MULTIDRAW_ESTADOS[uf].nome;
 }
 function _estadoMultiDrawOptionsHtml(ufSelecionada){
