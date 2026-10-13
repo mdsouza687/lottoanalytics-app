@@ -1616,6 +1616,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.4':{
+    'en-US':["Version aligned with the mobile app (5.11.4). A much more compact Participants table, so there is less scrolling: one row per person (Ref. shows the range of shares), a strip at the top with the estimated prize and the value of one share for each lottery, each person's prize in the % / share tooltip, Spend and Balance by Lottery in mini cards and a single \"Pool draws\" block instead of a card per participant. The manuals were updated with the new screens."],
+    'es-ES':["Versión alineada con la app móvil (5.11.4). Tabla de Participantes mucho más compacta, para desplazarte menos: una fila por persona (Ref. muestra el rango de cuotas), franja arriba con el premio estimado y el valor de una cuota por lotería, el premio de cada persona en la ayuda del % / cuota, Gasto y Saldo por Lotería en mini tarjetas y un único bloque \"Sorteos del grupo\" en lugar de una tarjeta por participante. Los manuales se actualizaron con las pantallas nuevas."],
+    'it-IT':["Versione allineata con l'app mobile (5.11.4). Tabella dei Partecipanti molto più compatta, per scorrere meno: una riga per persona (Rif. mostra l'intervallo di quote), fascia in alto con il premio stimato e il valore di una quota per lotteria, il premio di ciascuno nel suggerimento della % / quota, Spesa e Saldo per Lotteria in mini schede e un unico blocco \"Estrazioni del gruppo\" al posto di una scheda per partecipante. I manuali sono stati aggiornati con le schermate nuove."]
+  },
   '5.11.3':{
     'en-US':["Version aligned with the mobile app (5.11.3). Buttons follow the same pattern as the phone: a small fixed-color icon on the left and centered text, all identical, with no colored buttons. The pool bar now has three lines, the first two justified to the edge, and the generator and tools buttons are neutral. Pool control (monthly, weekly and single): Spend and Balance by Lottery, Round History and Daily Spending are now mini cards, grouped by lottery, with only what is active in view, finished ones collapsed, the link date and time in small type, and daily spending in a grid, from the most recent day to the oldest. The manuals were updated with the new screens."],
     'es-ES':["Versión alineada con la app móvil (5.11.3). Botones con el mismo patrón del móvil: icono pequeño de color fijo a la izquierda y texto centrado, todos iguales, sin botones de colores. La barra del grupo quedó en tres líneas, las dos primeras justificadas hasta el borde, y los botones del generador y de las herramientas quedaron neutros. Control del grupo (mensual, semanal y único): Gasto y Saldo por Lotería, Historial de Rondas y Gastos Diarios ahora en mini tarjetas, agrupadas por lotería, con solo lo activo a la vista, los finalizados recogidos, la fecha y hora del vínculo en letra pequeña y los gastos diarios en cuadrícula, del día más reciente al más antiguo. Los manuales se actualizaron con las pantallas nuevas."],
@@ -1868,6 +1873,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.4':[
+    "Versão alinhada com o app mobile (5.11.4). Tabela de Participantes bem mais compacta, para rolar menos: uma linha por pessoa (Refer. mostra a faixa de cotas), faixa no topo com o prêmio estimado e o valor de uma cota por loteria, prêmio de cada pessoa na dica do % / cota, Gasto e Saldo por Loteria em mini cards e um único bloco \"Concursos do bolão\" no lugar dos cards por participante. Os manuais foram atualizados com as telas novas."
+  ],
   '5.11.3':[
     "Versão alinhada com o app mobile (5.11.3). Botões no mesmo padrão do celular: ícone pequeno em cor fixa à esquerda e texto centralizado, todos iguais, sem botões coloridos. A barra do bolão ficou em três linhas, com as duas primeiras justificadas até a borda, e os botões do gerador e das ferramentas ficaram neutros. Controle do bolão (mensal, semanal e único): Gasto e Saldo por Loteria, Histórico de Rodadas e Gastos Diários agora em mini cards, agrupados por loteria, com só o ativo à vista, finalizados recolhidos, data e hora do vínculo em letra pequena e gastos diários em grade, do dia mais recente para o mais antigo. Os manuais foram atualizados com as telas novas."
   ],
@@ -2287,7 +2295,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.3</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.4</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2663,7 +2671,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.3</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.4</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -22595,7 +22603,7 @@ function _atualizarValoresDerivadosUI(){
     var pago=p.statusPag==='pago';
     var ativoPago=!inativo&&pago;
     var qtd=Math.max(1,p.cotas||1);
-    var taxaAdminRateio=ativoPago?(d.valorRateioPorPart/qtd):0;
+    var taxaAdminRateio=ativoPago?d.valorRateioPorPart:0; /* total do participante (LA_TABELA_PART_COMPACTA) */
     var meuSaldo=d.meuSaldoInfo.porIndice[(p.nome||'').trim()]!=null?d.meuSaldoInfo.porIndice[(p.nome||'').trim()]:0;
     var elSaldo=document.getElementById('np-saldo-'+i);
     if(elSaldo){ elSaldo.style.color=meuSaldo>=0?'#4ade80':'#f87171'; elSaldo.textContent=(meuSaldo>=0?'':'-')+_bMoney(Math.abs(meuSaldo)); }
@@ -22610,14 +22618,15 @@ function _atualizarValoresDerivadosUI(){
     var pctCota=ativoPago?d.pctPorCotaPaga:0;
     var elPct=document.getElementById('np-pct-'+i);
     if(elPct) elPct.textContent=pctCota.toFixed(2)+'%';
-    var elPremio=document.getElementById('np-premio-'+i);
-    if(elPremio) elPremio.innerHTML=_fmtPremioPorLoteriaHtml(_premiosVigentes,pctCota);
+    if(elPct) elPct.title=_laTituloPremio(_premiosVigentes,pctCota*qtd);
   });
   // Atualiza o resumo do rodapé (Arrecadação/Custo/Saldo geral e por
   // loteria) substituindo SÓ o innerHTML do bloco isolado #np-footer-resumo
   // — nunca o innerHTML da tabela inteira. Isso é seguro mesmo durante a
   // digitação: esse bloco fica no FINAL da tabela, fora de qualquer
   // <input> em edição, então recriá-lo não afeta o foco de nada.
+  var elFaixa=document.getElementById('np-faixa-premio');
+  if(elFaixa) elFaixa.innerHTML=_laFaixaPremioInnerHtml(_premiosVigentes,d.pctPorCotaPaga);
   var elFooter=document.getElementById('np-footer-resumo');
   if(elFooter){
     var pagantesAtivos=s.participantes.filter(function(p){return p.statusPart!=='inativo';});
@@ -22687,10 +22696,24 @@ function _premiosEstimVigentesPorLoteria(s){
 // vigentes já calculada uma vez por render (premiosVigentes).
 function _fmtPremioPorLoteriaHtml(premiosVigentes,pct){
   if(!pct||pct<=0||!premiosVigentes.length) return '<span style="color:var(--text-muted)">—</span>';
-  return premiosVigentes.map(function(pl){
+  /* LA_TABELA_PART_COMPACTA: loterias lado a lado (2 colunas) em vez de empilhadas */
+  return '<div style="display:grid;grid-template-columns:repeat(3,auto);gap:1px 10px;justify-content:end">'+premiosVigentes.map(function(pl){
     var valor=(pl.premioNum||0)*pct/100;
     return '<div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;white-space:nowrap" title="'+_esc(pl.nome)+'"><span style="display:inline-flex">'+iconLoteria(pl.cfg,10)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+_bMoney(valor)+'</span></div>';
+  }).join('')+'</div>';
+}
+/* LA_TABELA_PART_2 */
+// Faixa do topo: por loteria, o prêmio estimado e quanto cabe a UMA cota (mesma % para todos os pagos e ativos)
+function _laFaixaPremioInnerHtml(premiosVigentes,pctPorCota){
+  return '<span style="font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em">'+t('boloes.th_premio_estim')+'</span>'+premiosVigentes.map(function(pl){
+    var porCota=(pctPorCota>0&&pl.premioNum)?_bMoney(pl.premioNum*pctPorCota/100):'—';
+    return '<span title="'+_esc(pl.nome)+'" style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.03);white-space:nowrap"><span style="display:inline-flex">'+iconLoteria(pl.cfg,11)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span><span style="font-size:10px;color:var(--text-muted)">· '+t('boloes.por_cota_valor',{valor:porCota})+'</span></span>';
   }).join('');
+}
+// Dica do "% / cota": o prêmio do participante (todas as cotas) em cada loteria
+function _laTituloPremio(premiosVigentes,pct){
+  if(!pct||pct<=0||!premiosVigentes.length) return '';
+  return premiosVigentes.map(function(pl){ return pl.nome+': '+_bMoney((pl.premioNum||0)*pct/100); }).join('\n');
 }
 function renderParticipantesBoloes(){
   var box=document.getElementById('boloes-part-lista'); if(!box) return;
@@ -22768,10 +22791,10 @@ function renderParticipantesBoloes(){
   // altas/cheias de informação. Essa lista agora vira uma área própria
   // abaixo da tabela (ver renderConcursosPorParticipanteHtml), com um
   // cartão por participante em grade de 2-3 colunas.
-  var grid='24px 44px 1.1fr 110px 56px 110px 88px 84px 84px 92px 96px 92px 66px 96px 54px 24px';
+  var grid='24px 52px 1.1fr 56px 110px 88px 84px 84px 92px 96px 92px 66px 54px 24px';
   var head='<div style="display:grid;grid-template-columns:'+grid+';gap:5px;padding:6px 8px;font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--glass-border);align-items:center">'+
     '<input type="checkbox" id="bol-sel-all" onchange="toggleSelAllPart(this.checked)" title="'+t('resultado.selecionar_todos')+'" style="cursor:pointer"'+(nSel&&nSel===s.participantes.length?' checked':'')+'/>'+
-    '<span>'+t('boloes.th_refer')+'</span><span>'+t('boloes.th_nome')+'</span><span>'+t('boloes.th_premio_estim')+'</span><span>'+t('boloes.th_qtd_cotas')+'</span><span>'+t('boloes.th_contribuicao')+'</span><span title="'+t('boloes.title_meu_saldo')+'">'+t('boloes.th_meu_saldo')+'</span><span>'+t('boloes.th_taxa_admin')+'</span><span>'+t('boloes.th_valor_barra_cota')+'</span><span>'+t('boloes.th_participacao')+'</span><span>'+t('boloes.th_tipo_part')+'</span><span>'+t('boloes.th_pagamento')+'</span><span>'+t('boloes.th_pct_cota')+'</span><span>'+t('boloes.th_premio')+'</span><span title="'+t('boloes.title_app_participante')+'">📨</span><span></span></div>';
+    '<span>'+t('boloes.th_refer')+'</span><span>'+t('boloes.th_nome')+'</span><span>'+t('boloes.th_qtd_cotas')+'</span><span>'+t('boloes.th_contribuicao')+'</span><span title="'+t('boloes.title_meu_saldo')+'">'+t('boloes.th_meu_saldo')+'</span><span>'+t('boloes.th_taxa_admin')+'</span><span>'+t('boloes.th_valor_barra_cota')+'</span><span>'+t('boloes.th_participacao')+'</span><span>'+t('boloes.th_tipo_part')+'</span><span>'+t('boloes.th_pagamento')+'</span><span>'+t('boloes.th_pct_cota')+'</span><span title="'+t('boloes.title_app_participante')+'">📨</span><span></span></div>';
 
   // Linha do administrador: aparece se ele tem cotas isentas (modelo antigo)
   // OU se está no modo de orçamento fixo (modelo novo).
@@ -22782,7 +22805,6 @@ function renderParticipantesBoloes(){
     '<span style="font-size:10px;color:var(--text-dim);text-align:center">—</span>'+
     '<span style="font-size:12px;font-weight:800;color:var(--text)">'+_esc(s.admin.nome||t('boloes.administrador_parenteses'))+'</span>'+
     '<span style="font-size:10px;color:var(--text-dim);text-align:center">—</span>'+
-    '<span style="font-size:10px;color:var(--text-muted);text-align:right">'+premioTopoFmt+'</span>'+
     '<span style="font-size:11px;text-align:center;color:var(--text)">'+(tipoOrg==='fixo'?(s.admin.adminParticipaCotas?(s.admin.cotasProprias||0):'—'):cotasAdmin)+'</span>'+
     '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'&&s.admin.adminParticipaCotas?'− '+_bMoney(consumoOrcamentoAdmin):'—')+'</span>'+
     '<span style="font-size:11px;color:var(--text-muted)">—</span>'+
@@ -22791,7 +22813,6 @@ function renderParticipantesBoloes(){
     '<span style="font-size:11px;color:#f5a800;font-weight:700">'+t('boloes.administrador')+'</span>'+
     '<span style="font-size:11px;color:#f5a800;font-weight:800">'+t('boloes.isento_maiusc')+'</span>'+
     '<span style="font-size:11px;color:var(--text-muted);text-align:center">'+(tipoOrg==='fixo'?'—':(cotasPagas>0?(100/cotasPagas).toFixed(2)+'%':'—'))+'</span>'+
-    '<span style="font-size:11px;color:var(--text-muted)">'+(tipoOrg==='fixo'?'—':_fmtPremioPorLoteriaHtml(_premiosVigentes,pctAdmin))+'</span>'+
     '<span></span><span></span></div>'):'';
 
   var refSeq=0; // numeração sequencial global (conta cada cota/linha)
@@ -22806,15 +22827,15 @@ function renderParticipantesBoloes(){
     var partColor=inativo?'#dc2626':'#16a34a';
     // Valores por COTA — só têm valor se ativo E pago; senão, zero
     var pctCota=ativoPago?pctPorCotaPaga:0;
-    var taxaAdminRateio=ativoPago?(valorRateioPorPart/qtd):0;
+    var taxaAdminRateio=ativoPago?valorRateioPorPart:0; /* total do participante */
     var contribuicao=p.valorCota||0;
     var meuSaldo=meuSaldoInfo.porIndice[(p.nome||'').trim()]!=null?meuSaldoInfo.porIndice[(p.nome||'').trim()]:0;
     var corMeuSaldo=meuSaldo>=0?'#4ade80':'#f87171';
     var linhasCota='';
-    for(var c=0;c<qtd;c++){
-      refSeq++;
-      var primeira=(c===0);
-      var refLinha=refSeq;
+    var _refIni=refSeq+1; refSeq+=qtd; /* LA_TABELA_PART_COMPACTA: uma linha por participante; Refer. = faixa de cotas */
+    for(var c=0;c<1;c++){
+      var primeira=true;
+      var refLinha=(qtd>1?(_refIni+'–'+refSeq):_refIni);
       // Qtd. Cotas: input editável só na 1ª linha; cotas extras não editam
       var colQtd = primeira
         ? '<input type="number" min="1" value="'+qtd+'" onchange="_alterarCotasParticipante('+i+',this.value)" title="'+((bolaoFinalizado||bolaoAtivado)?t('boloes.title_cotas_travadas'):t('boloes.title_cotas_referencia'))+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled ':'')+'style="border:1px solid var(--glass-border);border-radius:6px;background:var(--bg2,#fff);color:var(--text);font-size:11px;width:100%;padding:3px;box-sizing:border-box;text-align:center'+((bolaoFinalizado||bolaoAtivado)?';opacity:.6;cursor:not-allowed':'')+'"/>'
@@ -22917,15 +22938,13 @@ function renderParticipantesBoloes(){
         colChk+
         '<span style="font-size:10px;color:var(--text-dim);text-align:center;font-weight:700">'+refLinha+'</span>'+
         colNome+
-        '<span style="font-size:10px;color:var(--text-muted);text-align:right">'+premioTopoFmt+'</span>'+
         colQtd+
         colContrib+
         (primeira?'<span id="np-saldo-'+i+'" style="font-size:11px;font-weight:700;color:'+corMeuSaldo+'" data-tt="'+t('boloes.tt_meu_saldo')+'">'+(meuSaldo>=0?'':'-')+_bMoney(Math.abs(meuSaldo))+'</span>':'<span></span>')+
-        '<span id="np-taxa-'+i+'" style="font-size:11px;color:'+(ativoPago&&taxaAdminRateio>0?'#16a34a':'var(--text-muted)')+';font-weight:600" title="'+t('boloes.title_rateio_taxa_org')+'">'+(ativoPago&&taxaAdminRateio>0?'+ '+_bMoney(taxaAdminRateio):_bMoney(0))+'</span>'+
+        '<span id="np-taxa-'+i+'" style="font-size:11px;color:'+(ativoPago&&taxaAdminRateio>0?'#16a34a':'var(--text-muted)')+';font-weight:600" title="'+t('boloes.title_rateio_taxa_org')+(qtd>1?' — '+_esc(t('boloes.tt_total_participante',{n:qtd})):'')+'">'+(ativoPago&&taxaAdminRateio>0?'+ '+_bMoney(taxaAdminRateio):_bMoney(0))+'</span>'+
         '<span id="np-cota-'+i+'" style="font-size:11px;color:var(--text);font-weight:600" data-tt="'+t('boloes.tt_valor_referencia_cota')+'">'+_bMoney(ativoPago?valorCota:0)+'</span>'+
         colPart+colParticipacao+colPag+
-        '<span id="np-pct-'+i+'" style="font-size:11px;color:var(--text-muted);text-align:center">'+pctCota.toFixed(2)+'%</span>'+
-        '<span id="np-premio-'+i+'" style="font-size:11px;color:var(--text-muted)">'+_fmtPremioPorLoteriaHtml(_premiosVigentes,pctCota)+'</span>'+
+        '<span id="np-pct-'+i+'" style="font-size:11px;color:var(--text-muted);text-align:center" title="'+_esc(_laTituloPremio(_premiosVigentes,pctCota*qtd))+'">'+pctCota.toFixed(2)+'%</span>'+
         colConvite+
         colRem+
       '</div>';
@@ -22941,7 +22960,10 @@ function renderParticipantesBoloes(){
       '</div>'
     : '';
   var concursosPorParticipanteHtml=_gerarConcursosPorParticipanteHtml(s,concursosLista);
-  box.innerHTML=barraSel+head+linhaAdmin+rows+'<div id="np-footer-resumo">'+resumoFooterHtml+'</div>'+concursosPorParticipanteHtml;
+  var faixaPremioEstim=_premiosVigentes.length
+    ? '<div id="np-faixa-premio" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 8px 8px;font-size:11px">'+_laFaixaPremioInnerHtml(_premiosVigentes,pctPorCotaPaga)+'</div>'
+    : '';
+  box.innerHTML=barraSel+faixaPremioEstim+head+linhaAdmin+rows+'<div id="np-footer-resumo">'+resumoFooterHtml+'</div>'+concursosPorParticipanteHtml;
 }
 // Área "Concursos por Participante" — um cartão por participante (nome em
 // cima, grade de 2-3 colunas com os chips de concurso embaixo), substituindo
@@ -23097,16 +23119,11 @@ function _gerarConcursosPorParticipanteHtml(s,concursosLista){
   var finHtml=fin.length
     ? '<details ontoggle="_cpAbrirFinalizados(this,\''+token+'\')" style="margin-top:'+(vig.length?'8':'0')+'px"><summary style="cursor:pointer;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+t('boloes.concursos_finalizados_n',{n:fin.length})+'</summary><div class="cp-fin-corpo"></div></details>'
     : '';
-  var cards=s.participantes.map(function(p){
-    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
-      '<div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px">'+_esc(p.nome||t('boloes.sem_nome'))+'</div>'+
-      vigHtml+finHtml+
-    '</div>';
-  }).join('');
+  /* LA_TABELA_PART_2: a lista de concursos é a mesma para todos — um bloco só, em vez de um card por participante */
   return '<div style="margin-top:14px">'+
-    '<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">'+t('boloes.concursos_por_participante')+'</div>'+
+    '<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">'+t('boloes.concursos_do_bolao')+'</div>'+
     _legendaStatusDesktopHtml()+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">'+cards+'</div>'+
+    '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02);max-width:720px">'+vigHtml+finHtml+'</div>'+
   '</div>';
 }
 // Gera o HTML do resumo no rodapé da tabela de participantes (pagantes,
@@ -23132,16 +23149,7 @@ function _gerarResumoFooterHtml(s,pagantesAtivos,cotasAdmin,nPagantes,valorRatei
   var fmtSaldoCota=typeof formatCusto==='function'?formatCusto(Math.abs(saldoPorCota),moedaBolao):_bMoney(Math.abs(saldoPorCota));
   var saldoPorLoteria=_calcSaldoPorLoteria(s);
   var porLoteriaHtml=saldoPorLoteria.length>1
-    ?'<div style="padding:4px 8px;border-top:1px solid var(--glass-border)">'+
-      saldoPorLoteria.map(function(g){
-        var corG=g.saldo>=0?'#4ade80':'#f87171';
-        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;padding:3px 0">'+
-          '<span style="color:'+corMarca(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
-          '<span style="color:var(--text-muted)">'+t('boloes.gasto_dois_pontos')+' <b style="color:#fb923c">'+_bMoney(g.gasto)+'</b></span>'+
-          '<span style="color:'+corG+'">'+(g.saldo>=0?t('boloes.saldo_dois_pontos'):t('boloes.deficit_dois_pontos'))+' <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
-        '</div>';
-      }).join('')+
-    '</div>'
+    ?'<div style="padding:6px 8px;border-top:1px solid var(--glass-border)">'+_laGastoSaldoSimplesHtml(saldoPorLoteria,s.concursos)+'</div>'
     :'';
   var saldoHtml=jogosVinc.length>0&&valorCota>0
     ?'<div style="border-top:1px solid var(--glass-border)">'+
@@ -27384,6 +27392,14 @@ try{
   Object.assign(LA_I18N['en-US'],{'boloes.loterias_finalizadas_n':'Finished lotteries ({n})'});
   Object.assign(LA_I18N['es-ES'],{'boloes.loterias_finalizadas_n':'Loterías finalizadas ({n})'});
   Object.assign(LA_I18N['it-IT'],{'boloes.loterias_finalizadas_n':'Lotterie concluse ({n})'});
+  Object.assign(LA_I18N['pt-BR'],{'boloes.tt_total_participante':'Total do participante ({n} cotas)'});
+  Object.assign(LA_I18N['en-US'],{'boloes.tt_total_participante':'Participant total ({n} shares)'});
+  Object.assign(LA_I18N['es-ES'],{'boloes.tt_total_participante':'Total del participante ({n} cuotas)'});
+  Object.assign(LA_I18N['it-IT'],{'boloes.tt_total_participante':'Totale del partecipante ({n} quote)'});
+  Object.assign(LA_I18N['pt-BR'],{'boloes.concursos_do_bolao':'Concursos do bolão'});
+  Object.assign(LA_I18N['en-US'],{'boloes.concursos_do_bolao':'Pool draws'});
+  Object.assign(LA_I18N['es-ES'],{'boloes.concursos_do_bolao':'Sorteos del grupo'});
+  Object.assign(LA_I18N['it-IT'],{'boloes.concursos_do_bolao':'Estrazioni del gruppo'});
   Object.assign(LA_I18N['pt-BR'],{'jogo.vinculado_em':'Vinculado em {quando}','jogo.legenda_ativo':'Ativo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Jogos da teimosinha: veja o card da teimosinha acima.','boloes.confirm_excluir_jogo_teimosinha':'Excluir este jogo dos {n} concursos da teimosinha? O valor será devolvido ao saldo.'});
   Object.assign(LA_I18N['en-US'],{'jogo.vinculado_em':'Linked on {quando}','jogo.legenda_ativo':'Active','jogo.legenda_finalizado':'Finished','jogo.legenda_premiado':'Prize won','jogo.so_teimosinha':'Multi-draw tickets: see the multi-draw card above.','boloes.confirm_excluir_jogo_teimosinha':'Delete this ticket from all {n} draws of the multi-draw run? The amount will be returned to the balance.'});
   Object.assign(LA_I18N['es-ES'],{'jogo.vinculado_em':'Vinculado el {quando}','jogo.legenda_ativo':'Activo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Juegos de la teimosinha: vea la tarjeta de la teimosinha arriba.','boloes.confirm_excluir_jogo_teimosinha':'¿Eliminar este juego de los {n} sorteos de la teimosinha? El valor volverá al saldo.'});
