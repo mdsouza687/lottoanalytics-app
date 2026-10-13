@@ -1560,9 +1560,18 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 .ag-hero-btn.ghost{background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text)}
 .ag-hero-btn.solid{background:var(--ac);border:1px solid var(--ac);color:var(--ac-bola-txt,#fff)}
   /*LA_MARCA_INI*/
-  /* ícone do botão como marca d'água (igual ao app do celular): centralizado, 90% da altura, cor de destaque, bem suave, por cima do texto */
-  .la-marca{position:relative;isolation:isolate;overflow:hidden}
-  .la-marca>svg:first-child{position:absolute!important;left:50%;top:50%;height:90%!important;width:auto!important;aspect-ratio:1/1;transform:translate(-50%,-50%);color:var(--ac,#3A9B4E);opacity:.28;z-index:1;pointer-events:none;margin:0!important}
+  /* LA_BOTOES_UNIFORME — ícone do botão como marca d'água (igual ao app do celular): pequeno, à esquerda, em COR FIXA (não acompanha a cor da loteria), suave;
+     o texto fica centralizado no botão inteiro (recuo igual dos dois lados) */
+  .la-marca{position:relative;isolation:isolate;overflow:hidden;padding-left:24px!important;padding-right:24px!important}
+  .la-marca>svg:first-child{position:absolute!important;left:6px!important;top:50%!important;height:14px!important;width:14px!important;aspect-ratio:1/1;transform:translateY(-50%)!important;color:#3A9B4E;opacity:.35;z-index:1;pointer-events:none;margin:0!important}
+  /* barras de botões do bolão: todos no mesmo padrão (contorno neutro, texto do tema), sem botões coloridos */
+  .la-barra-uniforme>button{border:1px solid color-mix(in srgb,var(--text) 55%,transparent)!important;background:transparent!important;color:var(--text)!important;border-radius:10px!important;font-weight:700}
+  .la-barra-uniforme>button:hover:not(:disabled){background:color-mix(in srgb,var(--text) 8%,transparent)!important}
+  .la-barra-uniforme>button:disabled{opacity:1;cursor:not-allowed} /* LA_BARRA_3LINHAS */
+  .la-barra-uniforme.la-just>button{flex:1 1 auto} /* LA_BARRA_JUSTIFICADA: linhas 1 e 2 esticam até o fim, como texto justificado */
+  /* botões Gerar e da barra de ferramentas: também no padrão neutro (sem a cor da loteria) */
+  .btn-gerar,.tool-btn{border:1px solid color-mix(in srgb,var(--text) 55%,transparent)!important;background:transparent!important;color:var(--text)!important}
+  .btn-gerar:hover:not(:disabled),.tool-btn:hover:not(:disabled){background:color-mix(in srgb,var(--text) 8%,transparent)!important}
   /*LA_MARCA_FIM*/
 </style>
 </head>
@@ -1607,6 +1616,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.3':{
+    'en-US':["Version aligned with the mobile app (5.11.3). Buttons follow the same pattern as the phone: a small fixed-color icon on the left and centered text, all identical, with no colored buttons. The pool bar now has three lines, the first two justified to the edge, and the generator and tools buttons are neutral. Pool control (monthly, weekly and single): Spend and Balance by Lottery, Round History and Daily Spending are now mini cards, grouped by lottery, with only what is active in view, finished ones collapsed, the link date and time in small type, and daily spending in a grid, from the most recent day to the oldest. The manuals were updated with the new screens."],
+    'es-ES':["Versión alineada con la app móvil (5.11.3). Botones con el mismo patrón del móvil: icono pequeño de color fijo a la izquierda y texto centrado, todos iguales, sin botones de colores. La barra del grupo quedó en tres líneas, las dos primeras justificadas hasta el borde, y los botones del generador y de las herramientas quedaron neutros. Control del grupo (mensual, semanal y único): Gasto y Saldo por Lotería, Historial de Rondas y Gastos Diarios ahora en mini tarjetas, agrupadas por lotería, con solo lo activo a la vista, los finalizados recogidos, la fecha y hora del vínculo en letra pequeña y los gastos diarios en cuadrícula, del día más reciente al más antiguo. Los manuales se actualizaron con las pantallas nuevas."],
+    'it-IT':["Versione allineata con l'app mobile (5.11.3). Pulsanti con lo stesso schema del telefono: icona piccola di colore fisso a sinistra e testo centrato, tutti uguali, senza pulsanti colorati. La barra del gruppo ora è su tre righe, le prime due giustificate fino al bordo, e i pulsanti del generatore e degli strumenti sono neutri. Controllo del gruppo (mensile, settimanale e singolo): Spesa e Saldo per Lotteria, Storico dei Turni e Spese Giornaliere ora in mini schede, raggruppate per lotteria, con solo l'attivo in vista, i conclusi ripiegati, data e ora del collegamento in carattere piccolo e le spese giornaliere in griglia, dal giorno più recente al più vecchio. I manuali sono stati aggiornati con le schermate nuove."]
+  },
   '5.11.2':{
     'en-US':["Version aligned with the mobile app (5.11.2), which gained the single \"Add tickets\" page and the automatic swap of repeated tickets when generating. The Desktop manuals were updated with the new screens (Pool Tickets with the repeat play in a single card and Draws per Participant with only the active ones in view)."],
     'es-ES':["Versión alineada con la app móvil (5.11.2), que incorporó la página única \"Agregar juegos\" y el cambio automático de juegos repetidos al generar. Los manuales del Desktop se actualizaron con las pantallas nuevas (Juegos del grupo con la teimosinha en una sola tarjeta y Sorteos por participante solo con los activos a la vista)."],
@@ -1854,6 +1868,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.3':[
+    "Versão alinhada com o app mobile (5.11.3). Botões no mesmo padrão do celular: ícone pequeno em cor fixa à esquerda e texto centralizado, todos iguais, sem botões coloridos. A barra do bolão ficou em três linhas, com as duas primeiras justificadas até a borda, e os botões do gerador e das ferramentas ficaram neutros. Controle do bolão (mensal, semanal e único): Gasto e Saldo por Loteria, Histórico de Rodadas e Gastos Diários agora em mini cards, agrupados por loteria, com só o ativo à vista, finalizados recolhidos, data e hora do vínculo em letra pequena e gastos diários em grade, do dia mais recente para o mais antigo. Os manuais foram atualizados com as telas novas."
+  ],
   '5.11.2':[
     "Versão alinhada com o app mobile (5.11.2), que ganhou a página única \"Adicionar jogos\" e a troca automática de jogos repetidos ao gerar. Os manuais do Desktop foram atualizados com as telas novas (Jogos do Bolão com a teimosinha em um card só e Concursos por Participante só com os ativos à vista)."
   ],
@@ -2270,7 +2287,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.2</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.3</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2646,7 +2663,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.2</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.3</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20989,21 +21006,7 @@ function renderFormBolao(){
     var gastoSaldoLoteriaHtml=Object.keys(_gastoPorLoteriaSemana).length
       ?'<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
         '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#c4b5fd;margin-bottom:10px">'+t('boloes.gasto_saldo_loteria_semanal')+'</div>'+
-        Object.values(_gastoPorLoteriaSemana).map(function(g){
-          var propM=gastoTotalTodasLoteriasM>0?(g.total/gastoTotalTodasLoteriasM):0;
-          var arrecAlocadaM=(s.arrecadacaoTotal||0)*propM;
-          var saldoM=arrecAlocadaM-g.total;
-          var corSaldoM=saldoM>=0?'#4ade80':'#f87171';
-          var detalheSemanas=g.porSemana.map(function(v,wi){ return v>0?(_ordinals[wi]+': '+_bMoney(v)):null; }).filter(Boolean).join(' · ');
-          return '<div style="padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:4px">'+
-            '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px">'+
-              '<span style="color:'+corMarca(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
-              '<span style="color:#fb923c">'+t('boloes.gasto_total')+' <b>'+_bMoney(g.total)+'</b></span>'+
-              '<span style="color:'+corSaldoM+'">'+(saldoM>=0?t('geral.saldo'):t('geral.deficit'))+': <b>'+_bMoney(Math.abs(saldoM))+'</b></span>'+
-            '</div>'+
-            (detalheSemanas?'<div style="font-size:10px;color:var(--text-dim);margin-top:3px">'+detalheSemanas+'</div>':'')+
-          '</div>';
-        }).join('')+
+        _laGastoSaldoMiniCardsHtml(_gastoPorLoteriaSemana,concComSemana,_ordinals,s.arrecadacaoTotal)+
       '</div>'
       :'';
     // Histórico de Rodadas: uma linha por vinculação, ordenado da mais
@@ -21011,20 +21014,7 @@ function renderFormBolao(){
     var historicoRodadasMensalHtml='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#c4b5fd;margin-bottom:10px">'+t('boloes.historico_rodadas_semanal')+'</div>'+
       (concComSemana.length
-        ?concComSemana.slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);}).map(function(cc){
-            var dCcM=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
-            var dataFmtM=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):'';
-            var nJogosM=(cc.jogos||[]).length;
-            return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-              '<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+_ordinals[cc._semanaIdx]+'</span>'+
-              '<span style="color:'+(dCcM?corMarca(dCcM):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+(dCcM?iconLoteria(dCcM,14):'')+_esc(dCcM?dCcM.nome:cc.loteria)+'</span></span>'+
-              '<span>'+t('conferir.n_jogos_simples',{n:nJogosM,s:nJogosM!==1?'s':''})+'</span>'+
-              '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
-              (cc.num?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.concurso_hash',{n:_esc(String(cc.num))})+'</span>':'')+
-              (function(){var _dt=_dataSorteioEstimada(cc.loteria,cc.num)||cc.data;return _dt?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.sorteio_data',{data:_esc(String(_dt))})+'</span>':'';})()+
-              '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmtM+'</span>'+
-            '</div>';
-          }).join('')
+        ?_laHistoricoMiniCardsHtml(concComSemana,_ordinals)
         :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhuma_rodada')+'</span>')+
       '</div>';
     // Gastos Diários: agrupa por data de vinculação, somando todas as
@@ -21041,14 +21031,7 @@ function renderFormBolao(){
     var gastosDiariosMensalHtml='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
       '<div style="font-family:var(--font-head);font-weight:800;font-size:13px;color:#c4b5fd;margin-bottom:10px">'+t('boloes.gastos_diarios_semanal')+'</div>'+
       (_ordemDiasMensal.length
-        ?_ordemDiasMensal.map(function(dia){
-            var info=_gastosPorDiaMensal[dia];
-            return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-              '<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+_ordinals[info.semanaIdx]+'</span>'+
-              '<span style="color:var(--text)">📅 '+dia+'</span>'+
-              '<span style="color:#fb923c;font-weight:700;margin-left:auto">'+_bMoney(info.total)+'</span>'+
-            '</div>';
-          }).join('')
+        ?_laGastosDiariosMiniCardsHtml(_ordemDiasMensal,_gastosPorDiaMensal,_ordinals)
         :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhum_gasto')+'</span>')+
       '</div>';
     _blocoMensal=
@@ -21175,34 +21158,13 @@ function renderFormBolao(){
     var porLoteriaHtml=saldoPorLot.length>1
       ?'<div style="margin-bottom:12px">'+
         '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">'+t('boloes.gasto_saldo_loteria')+'</div>'+
-        saldoPorLot.map(function(g){
-          var corG=g.saldo>=0?'#4ade80':'#f87171';
-          return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);margin-bottom:4px;font-size:11px">'+
-            '<span style="color:'+corMarca(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
-            '<span style="color:#fb923c">'+t('boloes.gasto_dois_pontos')+' <b>'+_bMoney(g.gasto)+'</b></span>'+
-            '<span style="color:'+corG+'">'+(g.saldo>=0?t('geral.saldo'):t('geral.deficit'))+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
-          '</div>';
-        }).join('')+
+        _laGastoSaldoSimplesHtml(saldoPorLot,s.concursos)+
       '</div>'
       :'';
     // Histórico de Rodadas
     var conc=(s.concursos||[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
     var rodHtml=conc.length
-      ?conc.map(function(cc){
-          var dCc=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
-          var nomeLot=dCc?dCc.nome:(cc.loteria||'');
-          var emojiLot=dCc?iconLoteria(dCc,14):'';
-          var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
-          var nJogos=(cc.jogos||[]).length;
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?corMarca(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+emojiLot+_esc(nomeLot)+'</span></span>'+
-            '<span>'+t('conferir.n_jogos_simples',{n:nJogos,s:nJogos!==1?'s':''})+'</span>'+
-            '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
-            (cc.num?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.concurso_hash',{n:_esc(String(cc.num))})+'</span>':'')+
-            (function(){var _dt=_dataSorteioEstimada(cc.loteria,cc.num)||cc.data;return _dt?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.sorteio_data',{data:_esc(String(_dt))})+'</span>':'';})()+
-            '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
-          '</div>';
-        }).join('')
+      ?_laHistoricoMiniCardsHtml(conc,null)
       :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhuma_rodada')+'</span>';
     // Gastos Diários
     var gastosPorDia={},ordemDias=[];
@@ -21215,12 +21177,7 @@ function renderFormBolao(){
     var _diaChave=function(d){ var p=d.split('/'); return p.length===3?(p[2]+p[1]+p[0]):d; };
     ordemDias.sort(function(a,b){ return _diaChave(b).localeCompare(_diaChave(a)); });
     var gastosDiariosHtml=ordemDias.length
-      ?ordemDias.map(function(dia){
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:var(--text)">📅 '+dia+'</span>'+
-            '<span style="color:#fb923c;font-weight:700;margin-left:auto">'+_bMoney(gastosPorDia[dia])+'</span>'+
-          '</div>';
-        }).join('')
+      ?_laGastosDiariosSimplesHtml(ordemDias,gastosPorDia)
       :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhum_gasto')+'</span>';
     // Gastos Semanais (dom-sáb)
     var gastosPorSem={},ordemSems=[];
@@ -21287,14 +21244,7 @@ function renderFormBolao(){
     var porLoteriaSemHtml=saldoPorLoteriaSem.length>1
       ?'<div style="margin-bottom:12px">'+
         '<div style="font-weight:700;font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">'+t('boloes.gasto_saldo_loteria')+'</div>'+
-        saldoPorLoteriaSem.map(function(g){
-          var corG=g.saldo>=0?'#4ade80':'#f87171';
-          return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);margin-bottom:4px;font-size:11px">'+
-            '<span style="color:'+corMarca(CFG[g.loteria]||g)+';font-weight:700"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+iconLoteria(CFG[g.loteria]||g,14)+_esc(g.nome)+'</span></span>'+
-            '<span style="color:#fb923c">'+t('boloes.gasto_dois_pontos')+' <b>'+_bMoney(g.gasto)+'</b></span>'+
-            '<span style="color:'+corG+'">'+(g.saldo>=0?t('geral.saldo'):t('geral.deficit'))+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span>'+
-          '</div>';
-        }).join('')+
+        _laGastoSaldoSimplesHtml(saldoPorLoteriaSem,s.concursos)+
       '</div>'
       :'';
     // Histórico de Rodadas: uma linha por vinculação de jogos feita ao
@@ -21306,21 +21256,7 @@ function renderFormBolao(){
     // populada, por isso este painel sempre aparecia vazio.
     var conc=(s.concursos||[]).slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
     var rodHtml=conc.length
-      ?conc.map(function(cc){
-          var dCc=(typeof CFG!=='undefined'&&cc.loteria)?CFG[cc.loteria]:null;
-          var nomeLot=dCc?dCc.nome:(cc.loteria||'');
-          var emojiLot=dCc?iconLoteria(dCc,14):'';
-          var dataFmt=cc.savedAt?new Date(cc.savedAt).toLocaleDateString('pt-BR'):(cc.data||'');
-          var nJogos=(cc.jogos||[]).length;
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:'+(dCc?corMarca(dCc):'var(--text-muted)')+';font-weight:700;min-width:110px"><span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">'+emojiLot+_esc(nomeLot)+'</span></span>'+
-            '<span>'+t('conferir.n_jogos_simples',{n:nJogos,s:nJogos!==1?'s':''})+'</span>'+
-            '<span style="color:#fb923c;margin-left:4px">'+_bMoney(cc.custo||0)+'</span>'+
-            (cc.num?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.concurso_hash',{n:_esc(String(cc.num))})+'</span>':'')+
-            (function(){var _dt=_dataSorteioEstimada(cc.loteria,cc.num)||cc.data;return _dt?'<span style="color:var(--text-muted)">&nbsp;'+t('boloes.sorteio_data',{data:_esc(String(_dt))})+'</span>':'';})()+
-            '<span style="color:var(--text-dim);font-size:9px;margin-left:auto">'+dataFmt+'</span>'+
-          '</div>';
-        }).join('')
+      ?_laHistoricoMiniCardsHtml(conc,null)
       :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhuma_rodada')+'</span>';
     // Gastos diários: agrupa os jogos vinculados pela data em que foram DE
     // FATO comprados/vinculados ao bolão (savedAt) — não pela data do
@@ -21344,12 +21280,7 @@ function renderFormBolao(){
     var _diaChave=function(d){ var p=d.split('/'); return p.length===3?(p[2]+p[1]+p[0]):d; };
     ordemDias.sort(function(a,b){ return _diaChave(b).localeCompare(_diaChave(a)); });
     var gastosDiariosHtml=ordemDias.length
-      ?ordemDias.map(function(dia){
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px;font-size:11px">'+
-            '<span style="color:var(--text)">📅 '+dia+'</span>'+
-            '<span style="color:#fb923c;font-weight:700;margin-left:auto">'+_bMoney(gastosPorDia[dia])+'</span>'+
-          '</div>';
-        }).join('')
+      ?_laGastosDiariosSimplesHtml(ordemDias,gastosPorDia)
       :'<span style="font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.nenhum_gasto')+'</span>';
     return '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
@@ -21528,7 +21459,7 @@ function renderFormBolao(){
       // em âmbar). "Salvar Bolão" (antigo "Salvar Lista", salvarBolao())
       // deixou de ser o único botão sólido da barra por esse motivo.
       '<div style="display:flex;flex-direction:column;gap:8px">'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        '<div class="la-barra-uniforme la-just" style="display:flex;gap:6px;flex-wrap:wrap">'+
           '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':"document.getElementById(\'bol-file\').click()")+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_importar'))+'"':'title="'+t('boloes.title_colunas_importar')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">'+_ic('entrada',13)+' '+t('boloes.importar_lista')+'</button>'+
           '<button onclick="salvarListaParticipantesModelo()" title="'+t('boloes.title_salvar_lista')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('salvar',13)+' '+t('boloes.salvar_lista')+'</button>'+
           '<button onclick="'+((bolaoFinalizado||bolaoAtivado)?'':'carregarListaParticipantesModelo()')+'" '+((bolaoFinalizado||bolaoAtivado)?'disabled title="'+(bolaoAtivado?t('boloes.title_ativado_fechado'):t('boloes.title_finalizado_sem_adicionar'))+'"':'title="'+t('boloes.title_carregar_lista')+'"')+' style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:'+((bolaoFinalizado||bolaoAtivado)?'not-allowed':'pointer')+'">'+_ic('pasta',13)+' '+t('boloes.carregar_lista_salva')+'</button>'+
@@ -21538,15 +21469,17 @@ function renderFormBolao(){
           '<button onclick="verJogosVinculados()" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('dado',13)+' '+t('boloes.jogos_do_bolao')+((_boloesState.jogosVinculados&&_boloesState.jogosVinculados.length)?' ('+_boloesState.jogosVinculados.length+')':'')+'</button>'+
           '<button onclick="salvarBolao()" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('salvar',13)+' '+t('boloes.salvar_bolao')+'</button>'+
           (s.editId?'<button onclick="abrirModalPremioSaldo()" title="'+t('boloes.title_premio_saldo')+'" style="border:1px solid #16a34a;border-radius:10px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">'+_ic('trofeu',13)+' '+t('boloes.premio_seta_saldo')+'</button>':'')+
+        '</div>'+
+        '<div class="la-barra-uniforme la-just" style="display:flex;gap:6px;flex-wrap:wrap">'+
           (s.editId?'<button onclick="abrirModalTransferirSaldo()" title="'+t('boloes.ts_titulo')+'" style="border:1px solid #16a34a;border-radius:10px;padding:6px 12px;background:#16a34a18;color:#16a34a;font-weight:700;font-size:11px;cursor:pointer">'+_ic('sincronizar',13)+' '+t('boloes.ts_botao')+'</button>':'')+
           (s.editId?'<button onclick="_aplicarReservasPendentesDesktop()" title="'+t('organizador.aplicar_reservas_titulo')+'" style="border:1px solid var(--accent-2,#3a9b4e);border-radius:10px;padding:6px 12px;background:var(--accent-2,#3a9b4e)18;color:var(--accent-2,#3a9b4e);font-weight:700;font-size:11px;cursor:pointer">'+_ic('sincronizar',13)+' '+t('organizador.aplicar_reservas_titulo')+'</button>':'')+
-        '</div>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
           (_boloesState.editId ? '<button onclick="verPalpitesRecebidos()" title="'+t('palpite.recebidos_desc')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('envelope',13)+' '+t('palpite.recebidos_titulo')+'<span id="palp-badge"></span></button>' : '')+
           (_boloesState.editId ? '<button onclick="verCadastroParticipantes()" title="'+t('boloes.title_cadastro')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('grupo',13)+' '+t('boloes.cadastro')+'</button>' : '')+
           '<button onclick="imprimirTermosCondicoes()" title="'+t('boloes.title_termos_condicoes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('manual',13)+' '+t('boloes.termos_condicoes')+'</button>'+
           (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="'+t('boloes.title_termo_constituicao')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.termo_constituicao')+'</button>' : '')+
           (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="'+t('boloes.title_dossie_premio')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('pasta',13)+' '+t('boloes.dossie_premio')+'</button>' : '')+
+        '</div>'+
+        '<div class="la-barra-uniforme" style="display:flex;gap:6px;flex-wrap:wrap">'+
           (_boloesState.editId ? '<button onclick="imprimirDossiePremio(true)" title="'+t('termos.copia_mascarada_aviso')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:transparent;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('pasta',13)+' '+t('boloes.dossie_premio_mascarado')+'</button>' : '')+
           '<button onclick="window.open(URL_REGRAS_FUNCIONAMENTO,\'_blank\',\'noopener\')" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.regras_funcionamento_itcmd')+'</button>'+
           '<button onclick="window.open(URL_ISENCAO_ITCMD,\'_blank\',\'noopener\')" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.isencao_itcmd')+'</button>'+
@@ -23046,6 +22979,107 @@ function _cpAbrirFinalizados(det,token){
   }
   var alvo=det.querySelector('.cp-fin-corpo'); if(alvo){ alvo.innerHTML=ctx.html; try{ _iconizaDOM(alvo); }catch(e){} }
   det.dataset.pronto='1';
+}
+/* LA_HIST_MINICARDS — mini cards do Controle do bolão mensal (mesma ideia do "Concursos por Participante") */
+function _laQuandoVinc(ts){
+  var d=new Date(ts); if(!ts||isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function _laRealizado(cc){ try{ return !!(cc.loteria&&_concursoJaRealizado(cc.loteria,cc.num)); }catch(e){ return false; } }
+function _laCabLoteria(key,nome,dados){
+  var d=(typeof CFG!=='undefined'&&key)?CFG[key]:null;
+  return '<span style="color:'+(d?corMarca(d):'var(--text-muted)')+';font-weight:800;font-size:12px"><span style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle">'+(d?iconLoteria(d,14):'')+_esc(nome||(d&&d.nome)||key||'')+'</span></span>';
+}
+function _laLinhaRodada(cc,ordinals){
+  var nJ=(cc.jogos||[]).length;
+  var dt=''; try{ dt=_dataSorteioEstimada(cc.loteria,cc.num)||cc.data||''; }catch(e){ dt=cc.data||''; }
+  var q=_laQuandoVinc(cc.savedAt);
+  return '<div style="padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);margin-top:4px">'+
+    '<div style="display:flex;align-items:center;gap:8px;font-size:11px">'+
+      (ordinals&&cc._semanaIdx>=0?'<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+ordinals[cc._semanaIdx]+'</span>':'')+
+      (cc.num?'<span style="color:var(--text)">'+t('boloes.concurso_hash',{n:_esc(String(cc.num))})+'</span>':'')+
+      '<span style="color:var(--text-muted)">'+t('conferir.n_jogos_simples',{n:nJ,s:nJ!==1?'s':''})+'</span>'+
+      '<span style="color:#fb923c;margin-left:auto">'+_bMoney(cc.custo||0)+'</span>'+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:0 10px;margin-top:2px;font-size:9px;font-weight:400;color:var(--text-muted)">'+
+      (dt?'<span>'+t('boloes.sorteio_data',{data:_esc(String(dt))})+'</span>':'')+
+      (q?'<span>'+_esc(t('jogo.vinculado_em',{quando:q}))+'</span>':'')+
+    '</div>'+
+  '</div>';
+}
+// Histórico de Rodadas: um mini card por loteria; ativos à vista, finalizados recolhidos.
+function _laHistoricoMiniCardsHtml(lista,ordinals){
+  var grupos={}, ordem=[];
+  lista.slice().sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);}).forEach(function(cc){
+    var k=cc.loteria||'?'; if(!grupos[k]){ grupos[k]={vig:[],fin:[],custo:0,jogos:0}; ordem.push(k); }
+    (_laRealizado(cc)?grupos[k].fin:grupos[k].vig).push(cc);
+    grupos[k].custo+=cc.custo||0; grupos[k].jogos+=(cc.jogos||[]).length;
+  });
+  ordem.sort(function(a,b){ return (grupos[b].vig.length>0)-(grupos[a].vig.length>0); });
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;align-items:start">'+ordem.map(function(k){
+    var g=grupos[k], d=CFG[k];
+    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">'+_laCabLoteria(k,d&&d.nome)+
+        '<span style="font-size:10px;color:var(--text-muted)">'+t('conferir.n_jogos_simples',{n:g.jogos,s:g.jogos!==1?'s':''})+' · '+_bMoney(g.custo)+'</span></div>'+
+      g.vig.map(function(cc){return _laLinhaRodada(cc,ordinals);}).join('')+
+      (g.fin.length?'<details style="margin-top:'+(g.vig.length?'8':'2')+'px"><summary style="cursor:pointer;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+t('boloes.concursos_finalizados_n',{n:g.fin.length})+'</summary>'+g.fin.map(function(cc){return _laLinhaRodada(cc,ordinals);}).join('')+'</details>':'')+
+    '</div>';
+  }).join('')+'</div>';
+}
+// Gasto e Saldo por Loteria: grade de mini cards; loterias com algum concurso ativo à vista, as demais recolhidas.
+function _laGastoSaldoMiniCardsHtml(porLot,lista,ordinals,arrecTotal){
+  var chaves=Object.keys(porLot); if(!chaves.length) return '';
+  var totalGeral=chaves.reduce(function(a,k){return a+porLot[k].total;},0);
+  var ativa={}; lista.forEach(function(cc){ if(!_laRealizado(cc)) ativa[cc.loteria]=true; });
+  var card=function(k){
+    var g=porLot[k], prop=totalGeral>0?g.total/totalGeral:0, saldo=(arrecTotal||0)*prop-g.total, cor=saldo>=0?'#4ade80':'#f87171';
+    var det=g.porSemana.map(function(v,wi){ return v>0?(ordinals[wi]+': '+_bMoney(v)):null; }).filter(Boolean).join(' · ');
+    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
+      '<div style="margin-bottom:6px">'+_laCabLoteria(k,g.nome)+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px">'+
+        '<span style="color:#fb923c">'+t('boloes.gasto_total')+' <b>'+_bMoney(g.total)+'</b></span>'+
+        '<span style="color:'+cor+'">'+(saldo>=0?t('geral.saldo'):t('geral.deficit'))+': <b>'+_bMoney(Math.abs(saldo))+'</b></span></div>'+
+      (det?'<div style="font-size:9px;font-weight:400;color:var(--text-dim);margin-top:4px">'+det+'</div>':'')+
+    '</div>';
+  };
+  var grade=function(ks){ return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">'+ks.map(card).join('')+'</div>'; };
+  var vig=chaves.filter(function(k){return ativa[k];}), fin=chaves.filter(function(k){return !ativa[k];});
+  return (vig.length?grade(vig):'')+
+    (fin.length?'<details style="margin-top:'+(vig.length?'8':'0')+'px"><summary style="cursor:pointer;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+t('boloes.loterias_finalizadas_n',{n:fin.length})+'</summary>'+grade(fin)+'</details>':'');
+}
+// Gastos Diários: mini cards por data, do dia mais recente para o mais antigo, em grade (várias datas por linha).
+function _laGastosDiariosMiniCardsHtml(dias,porDia,ordinals){
+  var sem=['dom','seg','ter','qua','qui','sex','sáb'];
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">'+dias.map(function(dia){
+    var p=dia.split('/'), dt=new Date(+p[2],+p[1]-1,+p[0]), info=porDia[dia];
+    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.02)">'+
+      '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text)">'+
+        (ordinals&&info.semanaIdx>=0?'<span style="font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(196,181,253,.15);border-radius:4px;padding:1px 5px">'+ordinals[info.semanaIdx]+'</span>':'')+
+        '<span>'+dia+'</span><span style="font-size:9px;font-weight:400;color:var(--text-muted)">'+(isNaN(dt.getTime())?'':sem[dt.getDay()])+'</span></div>'+
+      '<div style="margin-top:4px;font-size:13px;font-weight:800;color:#fb923c">'+_bMoney(info.total)+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+/* LA_HIST_MINICARDS_2 */
+function _laGastoSaldoSimplesHtml(lista,concs){
+  var ativa={}; (concs||[]).forEach(function(cc){ if(!_laRealizado(cc)) ativa[cc.loteria]=true; });
+  var card=function(g){
+    var cor=g.saldo>=0?'#4ade80':'#f87171';
+    return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
+      '<div style="margin-bottom:6px">'+_laCabLoteria(g.loteria,g.nome)+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px">'+
+        '<span style="color:#fb923c">'+t('boloes.gasto_dois_pontos')+' <b>'+_bMoney(g.gasto)+'</b></span>'+
+        '<span style="color:'+cor+'">'+(g.saldo>=0?t('geral.saldo'):t('geral.deficit'))+': <b>'+_bMoney(Math.abs(g.saldo))+'</b></span></div>'+
+    '</div>';
+  };
+  var grade=function(ls){ return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">'+ls.map(card).join('')+'</div>'; };
+  var vig=lista.filter(function(g){return ativa[g.loteria];}), fin=lista.filter(function(g){return !ativa[g.loteria];});
+  return (vig.length?grade(vig):'')+
+    (fin.length?'<details style="margin-top:'+(vig.length?'8':'0')+'px"><summary style="cursor:pointer;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+t('boloes.loterias_finalizadas_n',{n:fin.length})+'</summary>'+grade(fin)+'</details>':'');
+}
+function _laGastosDiariosSimplesHtml(dias,porDia){
+  var m={}; dias.forEach(function(d){ m[d]={total:porDia[d],semanaIdx:-1}; });
+  return _laGastosDiariosMiniCardsHtml(dias,m,null);
 }
 function _gerarConcursosPorParticipanteHtml(s,concursosLista){
   if(!s.participantes.length||!concursosLista.length) return '';
@@ -27346,6 +27380,10 @@ async function _enviarMensagemJogosEBilhetesBolao(bolaoId){
 }
 /*LA_JOGOS_V2_DESK_INI*/
 try{
+  Object.assign(LA_I18N['pt-BR'],{'boloes.loterias_finalizadas_n':'Loterias finalizadas ({n})'});
+  Object.assign(LA_I18N['en-US'],{'boloes.loterias_finalizadas_n':'Finished lotteries ({n})'});
+  Object.assign(LA_I18N['es-ES'],{'boloes.loterias_finalizadas_n':'Loterías finalizadas ({n})'});
+  Object.assign(LA_I18N['it-IT'],{'boloes.loterias_finalizadas_n':'Lotterie concluse ({n})'});
   Object.assign(LA_I18N['pt-BR'],{'jogo.vinculado_em':'Vinculado em {quando}','jogo.legenda_ativo':'Ativo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Jogos da teimosinha: veja o card da teimosinha acima.','boloes.confirm_excluir_jogo_teimosinha':'Excluir este jogo dos {n} concursos da teimosinha? O valor será devolvido ao saldo.'});
   Object.assign(LA_I18N['en-US'],{'jogo.vinculado_em':'Linked on {quando}','jogo.legenda_ativo':'Active','jogo.legenda_finalizado':'Finished','jogo.legenda_premiado':'Prize won','jogo.so_teimosinha':'Multi-draw tickets: see the multi-draw card above.','boloes.confirm_excluir_jogo_teimosinha':'Delete this ticket from all {n} draws of the multi-draw run? The amount will be returned to the balance.'});
   Object.assign(LA_I18N['es-ES'],{'jogo.vinculado_em':'Vinculado el {quando}','jogo.legenda_ativo':'Activo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Juegos de la teimosinha: vea la tarjeta de la teimosinha arriba.','boloes.confirm_excluir_jogo_teimosinha':'¿Eliminar este juego de los {n} sorteos de la teimosinha? El valor volverá al saldo.'});
