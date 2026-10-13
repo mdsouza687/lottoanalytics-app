@@ -595,8 +595,9 @@ body.theme-colorful .fc2.he{color:#2a0a33;}
 .result-box{display:none;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-xl);overflow:hidden;width:100%;box-sizing:border-box;}
 .result-hdr{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;box-sizing:border-box;}
 .result-hdr-left{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 220px;max-width:100%;}
-.result-hdr-title{font-family:var(--font-head);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.result-hdr-sub{font-size:10px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result-hdr{color:var(--ac-hdr-text,inherit);}
+.result-hdr-title{color:inherit;font-family:var(--font-head);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result-hdr-sub{font-size:10px;color:inherit;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .result-hdr-btns{display:flex;gap:5px;flex-wrap:wrap;min-width:0;max-width:100%;}
 .result-hdr-btn{border:1px solid var(--glass-border);border-radius:var(--btn-radius-sm);padding:9px 16px;background:var(--glass-bg);color:var(--text);font-family:var(--font-head);font-weight:700;font-size:var(--btn-size-sm);cursor:pointer;transition:var(--btn-transition);white-space:nowrap;}
 .result-hdr-btn:hover{transform:translateY(-2px);background:var(--glass-hover);box-shadow:var(--btn-shadow-hover);}
@@ -1094,7 +1095,7 @@ body.theme-light .card-page-body{background:#f4f6fa!important;}
 body.theme-light .side-panel{display:none!important;}
 body.theme-light #side-right{background:#ffffff!important;border-left:1px solid #e3e8f0!important;}
 body.theme-light .result-card{background:#ffffff!important;border:1px solid #e3e8f0!important;color:#1a2233!important;}
-body.theme-light .result-hdr{color:#fff!important;} /* mantém cor da loteria */
+body.theme-light .result-hdr{color:var(--ac-hdr-text,#fff)!important;} /* mantém cor da loteria; texto legível (verde na Timemania) */
 body.theme-light .result-box{background:#ffffff!important;border-color:#e3e8f0!important;}
 body.theme-light .result-body{background:#ffffff!important;}
 body.theme-light .result-game{background:#f7f9fc!important;border:1px solid #e3e8f0!important;color:#1a2233!important;}
@@ -1606,6 +1607,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.1':{
+    'en-US':["Syndicate documents revised (version 2.0, 13/10/2026), the same as in the mobile app. Report: the financial table separates the Contribution paid from the Cost per share, with a reconciliation note. Constitution Charter: separate record of dates (acceptance, deadline, activation and issue; the issue date no longer repeats the activation date). Prize Dossier: checking cover page, consolidated table of prizes and a new copy-to-share button, with personal data masked and no images. Document and app version in the footer of every document. Terms and Conditions with a data protection (LGPD) clause. Operating Rules and the ITCMD document rewritten. The documents are informational and do not replace advice from an accountant or lawyer. New: once activated, the syndicate will not let you link tickets that cost more than the available balance (the balance never goes negative); just add credit to the syndicate and try again. A participant with a pending share shows R$ 0.00, not negative. Syndicate games and Draws per Participant: same as mobile — only what is active in view and finished draws collapsed, a multi-draw ticket in a single card, finished draws minimised, legend and link date/time on every game. Contrast: the result header text and the ball numbers are legible on every lottery (green on Timemania); the Main tag and the Mirror Bet label read well on the light theme."],
+    'es-ES':["Documentos del grupo revisados (versión 2.0, 13/10/2026), iguales a los de la app móvil. Informe: la ficha financiera separa la Contribución pagada del Costo por cuota, con una nota de conciliación. Acta de Constitución: registro de fechas por separado (adhesión, plazo, activación y emisión; la fecha de emisión ya no repite la de activación). Dosier del Premio: portada de verificación, tabla consolidada de premios y nuevo botón de copia para compartir, con datos personales enmascarados y sin imágenes. Versión del documento y de la app en el pie de todos los documentos. Términos y Condiciones con cláusula de protección de datos (LGPD). Reglas de Funcionamiento y documento del ITCMD reescritos. Los documentos son informativos y no sustituyen el consejo de un contador o abogado. Novedad: una vez activado, el grupo no deja vincular juegos que cuesten más que el saldo disponible (el saldo nunca queda negativo); basta añadir crédito al grupo e intentarlo de nuevo. Un participante con cuota pendiente aparece con saldo R$ 0,00, no negativo. Juegos del grupo y Sorteos por participante: igual que en el móvil — solo lo activo a la vista y los sorteos finalizados recogidos, teimosinha en una sola tarjeta, sorteos finalizados minimizados, leyenda y fecha/hora del vínculo en cada juego. Contraste: el texto del encabezado del resultado y los números de las bolas se leen bien en todas las loterías (verde en Timemania); la etiqueta Principal y el rótulo Apuesta Espejo se leen bien en el tema claro."],
+    'it-IT':["Documenti del gruppo rivisti (versione 2.0, 13/10/2026), uguali a quelli dell’app mobile. Rapporto: la scheda finanziaria separa il Contributo versato dal Costo per quota, con una nota di riconciliazione. Atto di Costituzione: registro delle date separate (adesione, scadenza, attivazione ed emissione; la data di emissione non ripete più quella di attivazione). Dossier del Premio: copertina di verifica, tabella consolidata dei premi e nuovo pulsante di copia da condividere, con dati personali mascherati e senza immagini. Versione del documento e dell’app nel piè di pagina di tutti i documenti. Termini e Condizioni con clausola sulla protezione dei dati (LGPD). Regole di Funzionamento e documento sull’ITCMD riscritti. I documenti sono informativi e non sostituiscono la consulenza di un commercialista o avvocato. Novità: una volta attivato, il gruppo non permette di collegare giocate che costano più del saldo disponibile (il saldo non va mai in negativo); basta aggiungere credito al gruppo e riprovare. Un partecipante con quota in sospeso appare con saldo R$ 0,00, non negativo. Giocate del gruppo ed Estrazioni per partecipante: come nell'app mobile — solo ciò che è attivo in vista e le estrazioni concluse ripiegate, teimosinha in una sola scheda, estrazioni concluse ridotte, legenda e data/ora del collegamento su ogni giocata. Contrasto: il testo dell'intestazione del risultato e i numeri delle palline sono leggibili in tutte le lotterie (verde su Timemania); l'etichetta Principale e l'etichetta Scommessa Specchio si leggono bene nel tema chiaro."]
+  },
   '5.11.0':{
     'en-US':["New language: British English (English UK), with the United Kingdom flag in the language selector (American English now appears as English US). Version aligned with the mobile app (5.11.0), where the Organiser's Generate Tickets now shows each lottery's extra ball, clovers, team and month. Printed Timemania slip: it now also marks the Heart Team."],
     'es-ES':["Nuevo idioma: inglés británico (English UK), con la bandera del Reino Unido en el selector de idiomas (el inglés estadounidense ahora aparece como English US). Versión alineada con la app móvil (5.11.0), donde Generar juegos del Organizador ahora muestra la bola extra, los tréboles, el equipo y el mes de cada lotería. Cupón impreso de la Timemania: ahora también marca el Equipo del Corazón."],
@@ -1843,6 +1849,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.1':[
+    "Documentos do bolão revisados (versão 2.0, 13/10/2026), iguais aos do app mobile. Relatório: a ficha financeira separa a Contribuição paga do Custo por cota, com nota de conciliação. Termo de Constituição: registro de datas separadas (adesão, prazo, ativação e emissão; a data de emissão deixou de repetir a de ativação). Dossiê do Prêmio: capa de conferência, tabela consolidada de prêmios e novo botão de cópia para compartilhar, com dados pessoais mascarados e sem imagens. Versão do documento e do app no rodapé de todos os documentos. Termos e Condições com cláusula de proteção de dados (LGPD). Regras de Funcionamento e documento do ITCMD reescritos. Os documentos são informativos e não substituem a orientação de contador ou advogado. Novo: depois de ativado, o bolão não deixa vincular jogos que gastem mais do que o saldo disponível (o saldo nunca fica negativo); é só adicionar crédito ao bolão e tentar de novo. Participante com cota pendente aparece com saldo R$ 0,00, não negativo. Jogos do Bolão e Concursos por Participante: igual ao mobile — só o que está ativo à vista e os concursos finalizados recolhidos, teimosinha em um card só, concursos finalizados minimizados, legenda e data/hora do vínculo em cada jogo. Contraste: o texto do cabeçalho do resultado e os números das bolinhas ficam legíveis em todas as loterias (verde na Timemania); a etiqueta Principal e o rótulo Aposta Espelho leem bem no tema claro."
+  ],
   '5.11.0':[
     "Novo idioma: inglês britânico (English UK), com a bandeira do Reino Unido no seletor de idiomas (o inglês americano agora aparece como English US). Versão alinhada com o app mobile (5.11.0), onde o Gerar Jogos do Organizador agora mostra a bola extra, os trevos, o time e o mês de cada loteria. Volante impresso da Timemania: agora marca também o Time do Coração."
   ],
@@ -2253,7 +2262,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.1</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2629,7 +2638,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.0</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.1</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -3441,7 +3450,7 @@ function _mostrarNovidadesVersao(versao){
       <div id="ia-espelho-wrap" style="display:none;margin-bottom:8px;padding:8px 12px;border:1px solid rgba(124,58,237,.3);border-radius:10px;background:rgba(124,58,237,.06)">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
           <input type="checkbox" id="ia-modal-espelho" style="cursor:pointer;width:16px;height:16px;accent-color:#7c3aed"/>
-          <span style="font-size:12px;font-weight:700;color:#fff">🪞 <span data-i18n="gerador.aposta_espelho">Aposta Espelho</span></span>
+          <span style="font-size:12px;font-weight:700;color:var(--text)">🪞 <span data-i18n="gerador.aposta_espelho">Aposta Espelho</span></span>
           <span id="ia-espelho-desc" style="font-size:10px;color:var(--text-dim);margin-left:4px"></span>
           <span style="font-size:9px;color:rgba(124,58,237,.8);margin-left:auto;font-weight:700" data-i18n="gerador.grupos_ab_score">Grupos A/B por score IA</span>
         </label>
@@ -5825,6 +5834,26 @@ Object.assign(LA_I18N['pt-BR'], {"termos.p_8":"As premiações obtidas serão di
 Object.assign(LA_I18N['en-US'], {"termos.p_8":"The prizes obtained will be distributed in proportion to the number of shares held by each participant, after deducting the administrative fee (when applicable), according to the following destination tiers: (i) Tier 1 — credited automatically to the participant's balance in this pool, cumulatively, up to {pct}% of the pool's total collection (the amount paid by the participants); once this limit is reached, the difference of each following prize is set aside for the next pool; (ii) Tier 2 — right after Tier 1 and up to R$ {faixa2} per share: the portion equal to the current share price is set aside for the same participant's next pool (transferred automatically or by the organizer, as defined for this pool), with the excess paid via PIX; (iii) Tier 3 — above R$ {faixa2} per share: paid entirely via PIX. In all cases the number of shares and the percentage each participant is entitled to are respected. The administrator may adjust these tiers at any time.","organizador.faixas_ajuda":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool — transferred automatically or by the organizer, depending on the option chosen for this pool.","organizador.faixas_exemplo_titulo_dinamico":"Examples — with this pool's tiers (Tier 1 up to {pct}% of the total collection, about R$ {faixa1} per share when nothing has been credited yet; Tier 2 up to R$ {faixa2}) and a share costing R$ {cota}:","organizador.faixas_exemplo_titulo":"Examples — with the default tiers (Tier 1 up to 25% of the total collection, Tier 2 up to R$2,428.80) and a share of this pool costing R$50.00:","organizador.faixa1_pct_label":"Up to (% of collection)","organizador.faixa1_pct_dica":"Cumulative limit: Tier 1 has already credited {creditado} out of up to {teto} ({pct}% of the collection). Once the limit is reached, the difference goes to the next pool's reserve.","organizador.faixa2_de_apos_f1":"after Tier 1","organizador.faixa_pct_invalida":"Tier 1's percentage must be between 0 and 100.","organizador.notif_faixas_alteradas_corpo":"The organizer of \"{nome}\" updated the prize distribution tiers: Tier 1 from R$ {f1de} up to {f1pct}% of the collection, cumulative (automatic credit), Tier 2 after Tier 1 up to R$ {f2ate}/share (reserve + PIX), Tier 3 R$ {f3de} to R$ {f3ate}/share (100% PIX).","boloes.ps_faixas_explicacao":"The prize is split into tiers. Tier 1 is a CUMULATIVE limit: the sum of what has already been credited to balances, across all of the pool's prizes, goes up to the percentage of the total collection that you set. Once the limit is reached, the difference goes to the next pool's reserve. Tier 2 starts where Tier 1 ends; within it, whatever exceeds this pool's share price is paid by PIX and the rest is reserved for the participant's next pool. Tier 3 is 100% PIX."});
 Object.assign(LA_I18N['es-ES'], {"termos.p_8":"Los premios obtenidos se distribuirán proporcionalmente al número de cuotas de cada participante, tras deducir la tarifa administrativa (cuando corresponda), conforme a los siguientes tramos de destino: (i) Tramo 1 — se acredita automáticamente al saldo del participante en este grupo, de forma acumulada, hasta el {pct}% de la recaudación total del grupo (lo pagado por los participantes); alcanzado ese límite, la diferencia de cada premio siguiente se reserva para el próximo grupo; (ii) Tramo 2 — justo después del Tramo 1 y hasta R$ {faixa2} por cuota: la parte equivalente al valor de la cuota vigente se reserva para el próximo grupo del mismo participante (transferida automáticamente o por el organizador, según lo definido para este grupo), y el excedente se paga por PIX; (iii) Tramo 3 — por encima de R$ {faixa2} por cuota: se paga íntegramente por PIX. En todos los casos se respeta el número de cuotas y el porcentaje que le corresponde a cada participante. El administrador podrá ajustar estos tramos en cualquier momento.","organizador.faixas_ajuda":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante — transferido automáticamente o por el organizador, según la opción elegida para este grupo.","organizador.faixas_exemplo_titulo_dinamico":"Ejemplos — con los tramos de este grupo (Tramo 1 hasta el {pct}% de la recaudación, unos R$ {faixa1} por cuota cuando aún no hubo crédito; Tramo 2 hasta R$ {faixa2}) y una cuota que cuesta R$ {cota}:","organizador.faixas_exemplo_titulo":"Ejemplos — con los tramos estándar (Tramo 1 hasta el 25% de la recaudación, Tramo 2 hasta R$2.428,80) y una cuota de este grupo que cuesta R$50,00:","organizador.faixa1_pct_label":"Hasta (% de la recaudación)","organizador.faixa1_pct_dica":"Límite acumulado: el Tramo 1 ya acreditó {creditado} de hasta {teto} ({pct}% de la recaudación). Alcanzado el límite, la diferencia va a la reserva del próximo grupo.","organizador.faixa2_de_apos_f1":"después del Tramo 1","organizador.faixa_pct_invalida":"El porcentaje del Tramo 1 debe estar entre 0 y 100.","organizador.notif_faixas_alteradas_corpo":"El organizador de \"{nome}\" actualizó los tramos de distribución de premios: Tramo 1 de R$ {f1de} hasta el {f1pct}% de la recaudación, acumulado (crédito automático), Tramo 2 después del Tramo 1 hasta R$ {f2ate}/cuota (reserva + PIX), Tramo 3 R$ {f3de} a R$ {f3ate}/cuota (100% PIX).","boloes.ps_faixas_explicacao":"El premio se divide en tramos. El Tramo 1 es un límite ACUMULADO: la suma de lo ya acreditado a los saldos, en todos los premios del grupo, llega hasta el porcentaje de la recaudación que definas. Alcanzado el límite, la diferencia va a la reserva del próximo grupo. El Tramo 2 empieza donde termina el Tramo 1; dentro de él, lo que exceda el valor de la cuota de este grupo se paga por PIX y el resto queda reservado para el próximo grupo del participante. El Tramo 3 es 100% PIX."});
 Object.assign(LA_I18N['it-IT'], {"termos.p_8":"I premi ottenuti saranno distribuiti proporzionalmente al numero di quote di ciascun partecipante, dopo la deduzione della commissione amministrativa (quando applicabile), secondo le seguenti fasce di destinazione: (i) Fascia 1 — accreditato automaticamente sul saldo del partecipante in questo gruppo, in modo cumulativo, fino al {pct}% dell'incasso totale del gruppo (quanto pagato dai partecipanti); raggiunto questo limite, la differenza di ogni premio successivo viene riservata per il prossimo gruppo; (ii) Fascia 2 — subito dopo la Fascia 1 e fino a R$ {faixa2} per quota: la parte pari al valore della quota vigente viene riservata per il prossimo gruppo dello stesso partecipante (trasferita automaticamente o dall'organizzatore, come definito per questo gruppo), mentre l'eccedenza è pagata tramite PIX; (iii) Fascia 3 — oltre R$ {faixa2} per quota: pagato interamente tramite PIX. In tutti i casi si rispettano il numero di quote e la percentuale spettante a ciascun partecipante. L'amministratore potrà modificare queste fasce in qualsiasi momento.","organizador.faixas_ajuda":"Il premio è diviso in fasce. La Fascia 1 è un limite CUMULATIVO: la somma di quanto è già stato accreditato sui saldi, in tutti i premi del gruppo, arriva fino alla percentuale dell'incasso che imposti. Raggiunto il limite, la differenza va nella riserva del prossimo gruppo. La Fascia 2 inizia dove finisce la Fascia 1; al suo interno, ciò che supera il valore della quota di questo gruppo viene pagato tramite PIX e il resto resta riservato per il prossimo gruppo del partecipante — trasferito automaticamente o dall'organizzatore, secondo l'opzione scelta per questo gruppo.","organizador.faixas_exemplo_titulo_dinamico":"Esempi — con le fasce di questo gruppo (Fascia 1 fino al {pct}% dell'incasso, circa R$ {faixa1} per quota quando non c'è ancora stato alcun accredito; Fascia 2 fino a R$ {faixa2}) e una quota che costa R$ {cota}:","organizador.faixas_exemplo_titulo":"Esempi — con le fasce standard (Fascia 1 fino al 25% dell'incasso, Fascia 2 fino a R$2.428,80) e una quota di questo gruppo che costa R$50,00:","organizador.faixa1_pct_label":"Fino a (% dell'incasso)","organizador.faixa1_pct_dica":"Limite cumulativo: la Fascia 1 ha già accreditato {creditado} su un massimo di {teto} ({pct}% dell'incasso). Raggiunto il limite, la differenza va nella riserva del prossimo gruppo.","organizador.faixa2_de_apos_f1":"dopo la Fascia 1","organizador.faixa_pct_invalida":"La percentuale della Fascia 1 deve essere compresa tra 0 e 100.","organizador.notif_faixas_alteradas_corpo":"L'organizzatore di \"{nome}\" ha aggiornato le fasce di distribuzione dei premi: Fascia 1 da R$ {f1de} fino al {f1pct}% dell'incasso, cumulativo (accredito automatico), Fascia 2 dopo la Fascia 1 fino a R$ {f2ate}/quota (riserva + PIX), Fascia 3 da R$ {f3de} a R$ {f3ate}/quota (100% PIX).","boloes.ps_faixas_explicacao":"Il premio è diviso in fasce. La Fascia 1 è un limite CUMULATIVO: la somma di quanto è già stato accreditato sui saldi, in tutti i premi del gruppo, arriva fino alla percentuale dell'incasso che imposti. Raggiunto il limite, la differenza va nella riserva del prossimo gruppo. La Fascia 2 inizia dove finisce la Fascia 1; al suo interno, ciò che supera il valore della quota di questo gruppo viene pagato tramite PIX e il resto resta riservato per il prossimo gruppo del partecipante. La Fascia 3 è 100% PIX."});
+/*LA_JURIDICO_INI*/
+// Revisão jurídico-documental 2.0 (13/10/2026): textos dos Termos e Condições / Termo de Constituição e rótulos dos relatórios (os documentos legais seguem em português nos outros idiomas).
+(function(){
+  var L=LA_I18N, P=L['pt-BR'];
+  function suf(k,s){ if(typeof P[k]==='string' && P[k].indexOf(s)===-1) P[k]+=s; }
+  var SUF={"termos.p_2_lista":"<p>O bolão é <b>privado</b>, destinado a um grupo de pessoas que se conhecem. O aplicativo LottoAnalytics é uma ferramenta de organização e registro: <b>não recebe, não guarda nem distribui o dinheiro</b> dos participantes — pagamentos e prêmios circulam diretamente entre os participantes e o administrador (PIX) — e não tem vínculo com a Caixa. O enquadramento jurídico e fiscal da atividade do administrador é de responsabilidade dele.</p>","termos.p_4_b":" O participante deve informar o seu <b>CPF antes da ativação do bolão</b>: ele identifica os coapostadores no Termo de Constituição, e informação prestada depois não tem o mesmo valor como prova de que o participante já integrava o grupo antes do sorteio.","termos.taxa_percentual":" <i>A remuneração do administrador pode ter tratamento fiscal e regulatório próprio, distinto da tributação do prêmio; compete ao administrador verificar a sua regularidade.</i>","termos.taxa_cotas":" <i>A remuneração do administrador pode ter tratamento fiscal e regulatório próprio, distinto da tributação do prêmio; compete ao administrador verificar a sua regularidade.</i>","termos.taxa_fixo":" <i>A remuneração do administrador pode ter tratamento fiscal e regulatório próprio, distinto da tributação do prêmio; compete ao administrador verificar a sua regularidade.</i>","termos.p_9":" O pagamento é feito diretamente pelo administrador, fora do aplicativo, e o administrador deve guardar o comprovante de cada PIX; o registro no aplicativo não substitui o comprovante bancário.","termos.p_14":" O administrador deve prestar contas de forma documentada, sendo capaz de demonstrar: o valor efetivamente pago pela Caixa; o comprovante de resgate; o critério de divisão previsto antes do sorteio; o cálculo da parcela de cada participante; os descontos previamente autorizados e a sua justificativa; os PIX realizados, com os comprovantes; e o saldo pendente, com o motivo e o responsável. Os relatórios do aplicativo são elementos de prova, mas não substituem os documentos bancários nem os comprovantes oficiais da aposta e do resgate.","termos.p_26":" O aceite no aplicativo registra a imagem da assinatura, a data, a hora e a conta autenticada do participante (assinatura eletrônica simples, sem certificado digital ICP-Brasil); o valor dela como prova depende do conjunto de evidências, e recomenda-se assinar antes de haver prêmio.","termos.p_responsabilidade_administrador":" O administrador deverá prestar contas de forma documentada (ver Termos e Condições, cláusula \"Prestação de Contas\").","termos.p_divisao_dos_premios":" As faixas de destinação ficam fixadas antes do início das apostas; alterações posteriores só valem para bolões e participações futuras, salvo autorização expressa de todos os participantes. Valores creditados, reservados ou a pagar são registros do aplicativo; só se considera recebido o valor efetivamente transferido e comprovado.","termos.p_divisao_dos_premios_sem_faixas":" Valores creditados no saldo são registros do aplicativo; só se considera recebido o valor efetivamente transferido e comprovado.","termos.p_declaracao_consentimento":" A data do aceite de cada participante consta no quadro de assinaturas deste documento."}, SUBST={"termos.p_13":"Os dados pessoais serão tratados conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018). O administrador identificado na cláusula 1 é o responsável (controlador) pelos dados dos participantes tratados para organizar este bolão; o aplicativo LottoAnalytics armazena e processa esses dados em nome dele e também trata os dados da conta e de uso do aplicativo, conforme o documento \"Regras de Funcionamento\" (seção Privacidade), que identifica o responsável pelo aplicativo e o canal para o exercício de direitos. São tratados: nome, CPF, contatos, chave PIX, imagem da assinatura, comprovantes de pagamento, bilhetes, cotas, valores e registros de uso, para identificar os participantes, organizar o bolão, registrar pagamentos e apostas, calcular e registrar a divisão dos prêmios, prestar contas e produzir provas, com base na execução do acordo do bolão, no cumprimento de obrigação legal, no exercício regular de direitos, no legítimo interesse (prevenção a fraudes) e, quando necessário, no consentimento. Os dados são compartilhados com o administrador e com prestadores de serviço que fazem o aplicativo funcionar (hospedagem, banco de dados e leitura automática de comprovantes) e não são vendidos. Os registros do bolão são conservados por, no mínimo, 5 anos (prazo de referência) como prova e para cumprimento de obrigações legais, e, havendo disputa ou fiscalização, são mantidos. O participante pode exercer os direitos do art. 18 da LGPD (acesso, correção, anonimização ou eliminação quando cabível, portabilidade, informação sobre compartilhamento e revogação de consentimento) pelo canal indicado nas Regras de Funcionamento.","termos.p_23":"Estes Termos poderão ser atualizados sempre que necessário, mas as alterações valem apenas para bolões e participações futuras; para cada participante vale a versão vigente na data do seu aceite, registrada no aplicativo com data e hora. Alterações das regras financeiras e de divisão de um bolão já ativado dependem da concordância de todos os participantes."}, NOVAS={"termos.doc_versao_linha":"Documento: versão {v}, revisão de {rev} · Gerado pelo aplicativo versão {app} em {quando}. Este documento é um elemento de prova gerado pelo aplicativo; não substitui os comprovantes bancários, os documentos oficiais da aposta e do resgate, nem a orientação de advogado ou contador.","termos.rd_titulo":"Registro de datas e eventos","termos.rd_aceites":"Aceite do termo pelos participantes","termos.rd_sem_aceites":"Nenhum aceite registrado","termos.rd_prazo":"Prazo final de pagamento","termos.rd_ativacao":"Ativação do bolão","termos.rd_nao_ativado":"Ainda não ativado","termos.rd_emissao":"Emissão deste documento","termos.rd_nota":"A data de adesão às regras é a do aceite de cada participante (coluna Assinatura). A data de emissão é a do momento em que este documento foi gerado: ela não substitui a data de ativação nem a de cada aceite.","termos.th_custo_por_cota":"Custo por cota","termos.th_contribuicao_paga":"Contribuição paga","termos.rel_nota_conciliacao":"<b>Como ler:</b> <b>Contribuição paga</b> é o que o participante pagou (é o valor do Termo de Constituição). <b>Custo por cota</b> é o custo efetivo das apostas dividido pelas cotas pagas, com o rateio de organização, quando houver. <b>Meu saldo</b> = contribuição paga − custo. A diferença total é o saldo do bolão.","termos.total_n_mais_admin":"TOTAL — {n} participantes (cotas isentas do administrador, se houver, em linha própria)","termos.capa_titulo":"Capa de conferência do Dossiê","termos.capa_leia":"Esta capa resume os números do dossiê. Eles devem coincidir com o Termo de Constituição (contribuições), com o Relatório (conciliação por participante) e com a Tabela de prêmios. Se houver diferença, explique-a antes de usar o dossiê como prova.","termos.capa_l_bolao":"Bolão","termos.capa_l_periodo":"Período","termos.capa_l_prazo":"Prazo final de pagamento","termos.capa_l_ativacao":"Ativação do bolão","termos.capa_l_participantes":"Participantes ativos","termos.capa_l_pagos":"Com pagamento confirmado","termos.capa_l_cotas":"Total de cotas (inclui as cotas isentas do administrador)","termos.capa_l_contribuicoes":"Contribuições pagas (Termo de Constituição)","termos.capa_l_arrecadacao":"Arrecadação total","termos.capa_l_custo":"Custo das apostas","termos.capa_l_saldo":"Saldo do bolão (arrecadação − custo)","termos.capa_l_premiados":"Jogos premiados identificados","termos.capa_l_premio":"Prêmio apurado (soma das faixas oficiais)","termos.capa_l_anexos":"Anexos incluídos","termos.tp_titulo":"Tabela consolidada de prêmios","termos.tp_nenhum":"Nenhum jogo premiado identificado até o momento.","termos.tp_col_loteria":"Loteria","termos.tp_col_concurso":"Concurso","termos.tp_col_jogo":"Jogo apostado","termos.tp_col_resultado":"Resultado oficial","termos.tp_col_acertos":"Acertos","termos.tp_col_premio":"Prêmio (faixa oficial)","termos.tp_total":"TOTAL","termos.tp_nota":"O valor de cada prêmio é o da faixa oficial divulgada pelas Loterias Caixa para o concurso (valor bruto). O valor efetivamente pago pela Caixa (líquido, já com o Imposto de Renda retido) deve ser conferido no comprovante de resgate. Cada linha deve ser relacionada ao bilhete e ao resultado oficial correspondentes, que seguem nas seções seguintes.","termos.anexos_omitidos":"Anexos omitidos nesta cópia ({n} {tipo}). Eles contêm dados pessoais e financeiros e constam apenas na versão completa, restrita ao organizador.","termos.copia_mascarada_aviso":"CÓPIA PARA COMPARTILHAR — dados pessoais mascarados e anexos omitidos. A versão completa é restrita ao organizador."};
+  Object.keys(SUF).forEach(function(k){ suf(k,SUF[k]); });
+  Object.keys(SUBST).forEach(function(k){ P[k]=SUBST[k]; });
+  Object.keys(NOVAS).forEach(function(k){ P[k]=NOVAS[k]; });
+  var P8={"pt-BR":["O administrador poderá ajustar essas faixas a qualquer momento.","As faixas acima ficam fixadas antes do início das apostas e valem para este bolão; alterações posteriores só valem para bolões e participações futuras, salvo alteração expressamente autorizada por todos os participantes. Os valores creditados no saldo, reservados ou a pagar via PIX são registros do aplicativo: um crédito interno não equivale a dinheiro depositado em conta individual nem a transferência já realizada, e o participante só considera recebido o valor efetivamente transferido via PIX, comprovado e confirmado por ele. A reserva para o próximo bolão só será aplicada em bolão do qual o participante já faça parte, mediante sua autorização prévia e expressa; se ele não aderir ao bolão seguinte, o valor reservado deverá ser devolvido via PIX, a seu pedido."],"en-US":["The administrator may adjust these tiers at any time.","The tiers above are fixed before the bets begin and apply to this pool; later changes only apply to future pools and participations, unless expressly authorized by all participants. Amounts credited to the balance, reserved or payable via PIX are records of the app: an internal credit is not equivalent to money deposited in an individual account or to a transfer already made, and the participant only regards as received the amount actually transferred via PIX, proven and confirmed by them. The reserve for the next pool will only be applied to a pool the participant already belongs to, with their prior and express authorization; if they do not join the next pool, the reserved amount must be returned via PIX on request."],"es-ES":["El administrador podrá ajustar estos tramos en cualquier momento.","Los tramos anteriores quedan fijados antes de que empiecen las apuestas y valen para este grupo; los cambios posteriores solo valen para grupos y participaciones futuros, salvo modificación expresamente autorizada por todos los participantes. Los valores acreditados en el saldo, reservados o a pagar por PIX son registros de la app: un crédito interno no equivale a dinero depositado en una cuenta individual ni a una transferencia ya realizada, y el participante solo considera recibido el valor efectivamente transferido por PIX, comprobado y confirmado por él. La reserva para el próximo grupo solo se aplicará en un grupo del que el participante ya forme parte, con su autorización previa y expresa; si no se incorpora al grupo siguiente, el valor reservado deberá devolverse por PIX, a petición suya."],"it-IT":["L'amministratore potrà modificare queste fasce in qualsiasi momento.","Le fasce sopra indicate sono fissate prima dell'inizio delle scommesse e valgono per questo gruppo; le modifiche successive valgono solo per gruppi e partecipazioni futuri, salvo modifica espressamente autorizzata da tutti i partecipanti. Gli importi accreditati sul saldo, riservati o da pagare tramite PIX sono registrazioni dell'app: un accredito interno non equivale a denaro depositato su un conto individuale né a un trasferimento già effettuato, e il partecipante considera ricevuto solo l'importo effettivamente trasferito tramite PIX, comprovato e da lui confermato. La riserva per il gruppo successivo sarà applicata solo a un gruppo di cui il partecipante faccia già parte, con la sua autorizzazione preventiva ed espressa; se non aderisce al gruppo successivo, l'importo riservato dovrà essere restituito tramite PIX, su sua richiesta."]}, SEMF={"pt-BR":" Os valores creditados no saldo são registros do aplicativo e não equivalem a dinheiro depositado em conta individual; o participante só considera recebido o valor efetivamente transferido, comprovado e por ele confirmado.","en-US":" Amounts credited to the balance are records of the app and are not equivalent to money deposited in an individual account; the participant only regards as received the amount actually transferred, proven and confirmed by them.","es-ES":" Los valores acreditados en el saldo son registros de la app y no equivalen a dinero depositado en una cuenta individual; el participante solo considera recibido el valor efectivamente transferido, comprobado y confirmado por él.","it-IT":" Gli importi accreditati sul saldo sono registrazioni dell'app e non equivalgono a denaro depositato su un conto individuale; il partecipante considera ricevuto solo l'importo effettivamente trasferito, comprovato e da lui confermato."};
+  Object.keys(P8).forEach(function(l){
+    if(!L[l]) return; var d=P8[l], k='termos.p_8';
+    if(typeof L[l][k]==='string' && L[l][k].indexOf(d[1])===-1) L[l][k]=L[l][k].replace(d[0],d[1]);
+    var ks='termos.p_8_sem_faixas';
+    if(typeof L[l][ks]==='string' && L[l][ks].indexOf(SEMF[l])===-1) L[l][ks]+=SEMF[l];
+  });
+  var MASC={"pt-BR":"Dossiê (cópia mascarada)","en-US":"Dossier (masked copy)","es-ES":"Dosier (copia enmascarada)","it-IT":"Fascicolo (copia mascherata)"}, ITC={"pt-BR":"ITCMD e rateio de prêmios","en-US":"ITCMD and prize split","es-ES":"ITCMD y reparto de premios","it-IT":"ITCMD e ripartizione dei premi"};
+  Object.keys(MASC).forEach(function(l){ if(L[l]){ L[l]['boloes.dossie_premio_mascarado']=MASC[l]; L[l]['boloes.isencao_itcmd']=ITC[l]; } });
+})();
+/*LA_JURIDICO_FIM*/
 function _ic(nome, tamanho, cor){
   tamanho = tamanho || 18;
   var svg = LA_ICONES[nome];
@@ -6120,7 +6149,7 @@ const SUPABASE_CONFIG = _SUPABASE_EH_DEV
 // Storage (bucket documentos-institucionais), não gerado por bolão.
 // Mesma URL independente de DEV/PROD (arquivo público).
 const URL_REGRAS_FUNCIONAMENTO = 'https://unrivaled-shortbread-cdc8cb.netlify.app/regras-funcionamento.html';
-const URL_ISENCAO_ITCMD = 'https://unrivaled-shortbread-cdc8cb.netlify.app/isencao-itcmd.html';
+const URL_ISENCAO_ITCMD = 'https://unrivaled-shortbread-cdc8cb.netlify.app/itcmd-rateio-de-premios.html';
 function supabaseAtivo(){ return !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.key); }
 // Limpeza pós-migração (2026-07-12): removidas daqui supabaseSalvar/
 // supabaseCarregar — mecanismo ainda mais antigo (tabela "jogos_loterias",
@@ -9076,6 +9105,7 @@ function laAccent(d){
   document.documentElement.style.setProperty('--la-a2',d.corD||d.cor);
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  document.documentElement.style.setProperty('--ac-hdr-text',_corTextoCabecalho(d));
   document.documentElement.style.setProperty('--ac-bola-txt',d.corTexto||'#fff');
   document.documentElement.style.setProperty('--ac-marca',corMarcaTema(d));
   // Variante legível de --ac pra texto direto sobre o Hero (tarja "Ferramenta
@@ -9900,6 +9930,22 @@ function mesTimeHtml(jogo, d, tamanho){
   }
   return h;
 }
+/*LA_CONTRASTE_INI*/
+function _contrasteHexDesk(a,b){ var la=_luminanciaHex(a), lb=_luminanciaHex(b); return (Math.max(la,lb)+0.05)/(Math.min(la,lb)+0.05); }
+// Texto sobre o fundo da loteria: a cor própria dela (corTexto, ex.: verde da Timemania) quando tem contraste WCAG >= 4,5; senão preto/branco pelo maior contraste.
+function _corTextoSobreLoteria(d){
+  var bg=(d&&d.cor)||'#000';
+  if(d&&d.corTexto&&/^#[0-9a-fA-F]{6}$/.test(d.corTexto)&&/^#[0-9a-fA-F]{6}$/.test(bg)&&_contrasteHexDesk(d.corTexto,bg)>=4.5) return d.corTexto;
+  return corTextoSobre(bg);
+}
+// Cabeçalho do resultado: mantém o branco de sempre onde ele já lê bem (contraste >= 3); onde não lê (amarelos, laranja), usa a cor própria da loteria ou preto.
+function _corTextoCabecalho(d){
+  var bg=(d&&d.cor)||'#000';
+  if(d&&d.corTexto&&/^#[0-9a-fA-F]{6}$/.test(d.corTexto)&&/^#[0-9a-fA-F]{6}$/.test(bg)&&_contrasteHexDesk(d.corTexto,bg)>=4.5) return d.corTexto;
+  if(/^#[0-9a-fA-F]{6}$/.test(bg)&&_contrasteHexDesk('#ffffff',bg)>=3) return '#fff';
+  return corTextoSobre(bg);
+}
+/*LA_CONTRASTE_FIM*/
 function corTextoSobre(fundoHex){
   if(!/^#[0-9a-fA-F]{3,6}$/.test(fundoHex||'')) return '#fff';
   const L=_luminanciaHex(fundoHex);
@@ -10592,6 +10638,7 @@ function setupMods(d){
   ['btn-especial-jogo'].forEach(id=>{ const el=document.getElementById(id);if(!el)return; if(d.specialLabel){ el.classList.add('visivel'); el.style.background='#fff'; el.style.color=corContrasteBranco(d.cor); el.style.borderColor=d.cor; el.innerHTML=`⭐ ${d.specialLabel}`; } else { el.classList.remove('visivel'); } });
   document.documentElement.style.setProperty('--ac',d.cor);
   document.documentElement.style.setProperty('--ac-text',corTextoSobre(d.cor));
+  document.documentElement.style.setProperty('--ac-hdr-text',_corTextoCabecalho(d));
   document.documentElement.style.setProperty('--ac-bola-txt',d.corTexto||'#fff');
   document.documentElement.style.setProperty('--ac-marca',corMarcaTema(d));
   document.documentElement.style.setProperty('--ac-legivel',_corMarcaLegivelHero(d));
@@ -12623,7 +12670,7 @@ async function gerarJogos(tipo,modo){
         balls=jogo.slice(0,numDez).map(n=>{
           const isFix=fixoSet.has(n);
           const bg=isFix?'#1d4ed8':d.cor;
-          return `<div class="result-ball${isFix?' fx':''}" style="background:${bg};color:#fff">${pad(n)}</div>`;
+          return `<div class="result-ball${isFix?' fx':''}" style="background:${bg};color:${isFix?'#fff':corBolaTexto(d)}">${pad(n)}</div>`;
         }).join('');
       }
       const extra=jogo._extra
@@ -17094,7 +17141,7 @@ async function gerarComIA(tipo){
     ).join('');
 
     const modeLabels={main:'🎯 '+t('pred.principal'),hot:'🔥 '+t('pred.quentes'),overdue:'⏳ '+t('pred.atrasados'),balanced:'⚖ '+t('pred.equilibrado'),random:'🎲 '+t('pred.aleatorio')};
-    const modeColors={main:d.cor,hot:temColorAcc('#ff6b35'),overdue:temColorAcc('#f5c030'),balanced:temColorAcc('#4A9BE0'),random:temColorAcc('#a855f7')};
+    const modeColors={main:temColorAcc(d.cor),hot:temColorAcc('#ff6b35'),overdue:temColorAcc('#f5c030'),balanced:temColorAcc('#4A9BE0'),random:temColorAcc('#a855f7')};
 
     document.getElementById('ia-modal-status').innerHTML=
       d.superSete
@@ -17129,7 +17176,7 @@ async function gerarComIA(tipo){
         // Bolas do jogo principal
         const balls=jogo._ssCols
           ?jogo._ssCols.map((c,ci)=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:7px;font-weight:800;color:${corMarca(d)}">${ci+1}</span>${c.map(dg=>{const fx=fixosSet.has(ci*10+dg);return `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:${fx?'#1d4ed8':d.cor};color:${fx?'#fff':corBolaTexto(d)};font-family:var(--font-mono);font-size:11px;font-weight:800">${dg}</span>`;}).join('')}</span>`).join('')
-          :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${d.cor};color:${corTextoSobre(d.cor)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
+          :jogo.map(n=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${d.cor};color:${_corTextoSobreLoteria(d)};font-family:var(--font-mono);font-size:12px;font-weight:800;${fixosSet.has(n)?'box-shadow:0 0 0 2px #fff,0 0 0 4px '+d.cor:''}">${pad(n)}</span>`).join('');
         const extra=jogo._extra?`<span style="font-size:9px;color:${bxcIA};font-weight:800;padding:0 2px;text-transform:uppercase">${d.bolaExtraNome||'+'}</span><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${bxcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.35)">${pad(jogo._extra)}</span>`:'';
         const trevos=jogo._trevos?`<span style="font-size:9px;color:${trcIA};font-weight:800;padding:0 2px">TREVO</span>${jogo._trevos.map(t=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${trcIA};color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:800;border:2px solid rgba(255,255,255,.4)">${pad(t)}</span>`).join('')}`:'';
         const modeTag=`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${modeColors[mode]}22;color:${modeColors[mode]};white-space:nowrap;flex-shrink:0">${modeLabels[mode]||mode}</span>`;
@@ -20610,7 +20657,8 @@ function _calcMeuSaldoPorParticipante(s){
     var contrib=p.statusPag==='pago'?(p.valorCota||0):0;
     var qtd=Math.max(1,p.cotas||1);
     var custoParticipante=valorCota*qtd;
-    resultado[(p.nome||'').trim()]=contrib-custoParticipante;
+    // Cota não paga é pendente (não entra no rateio do custo, que só divide entre as cotas pagas): o saldo dela é zero, nunca negativo.
+    resultado[(p.nome||'').trim()]=p.statusPag==='pago'?contrib-custoParticipante:0;
   });
   return {porIndice:resultado,valorCota:valorCota};
 }
@@ -21491,6 +21539,7 @@ function renderFormBolao(){
           '<button onclick="imprimirTermosCondicoes()" title="'+t('boloes.title_termos_condicoes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('manual',13)+' '+t('boloes.termos_condicoes')+'</button>'+
           (_boloesState.ativadoEm ? '<button onclick="imprimirTermoConstituicao()" title="'+t('boloes.title_termo_constituicao')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.termo_constituicao')+'</button>' : '')+
           (_boloesState.editId ? '<button onclick="imprimirDossiePremio()" title="'+t('boloes.title_dossie_premio')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('pasta',13)+' '+t('boloes.dossie_premio')+'</button>' : '')+
+          (_boloesState.editId ? '<button onclick="imprimirDossiePremio(true)" title="'+t('termos.copia_mascarada_aviso')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:transparent;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('pasta',13)+' '+t('boloes.dossie_premio_mascarado')+'</button>' : '')+
           '<button onclick="window.open(URL_REGRAS_FUNCIONAMENTO,\'_blank\',\'noopener\')" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.regras_funcionamento_itcmd')+'</button>'+
           '<button onclick="window.open(URL_ISENCAO_ITCMD,\'_blank\',\'noopener\')" title="'+t('boloes.title_regras_funcionamento')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('documento',13)+' '+t('boloes.isencao_itcmd')+'</button>'+
           (_boloesState.editId ? '<button onclick="_enviarMensagemJogosEBilhetesBolao(\''+_boloesState.editId+'\')" title="'+t('boloes.title_avisar_participantes')+'" style="border:1px solid '+cor+';border-radius:10px;padding:6px 12px;background:'+cor+'18;color:'+cor+';font-weight:700;font-size:11px;cursor:pointer">'+_ic('megafone',13)+' '+t('boloes.avisar_participantes')+'</button>' : '')+
@@ -22756,7 +22805,7 @@ function renderParticipantesBoloes(){
   var concursosLista=(_boloesState.concursos&&_boloesState.concursos.length)
     ? _boloesState.concursos.map(function(cc){
         var dC=(cc.loteria&&typeof CFG!=='undefined')?CFG[cc.loteria]:null;
-        return {num:cc.num||'—',data:cc.data||'',cor:(dC&&dC.cor)||MULTI_LOTERIA_COR,_cfg:dC,nome:(dC&&dC.nome)||''};
+        return {num:cc.num||'—',data:cc.data||'',cor:(dC&&dC.cor)||MULTI_LOTERIA_COR,_cfg:dC,nome:(dC&&dC.nome)||'',loteria:cc.loteria||null};
       })
     : (s.concurso?[{num:s.concurso,data:s.dataSorteio||'',cor:MULTI_LOTERIA_COR,_cfg:null,nome:''}]:[]);
   var concursoChipsHtml = concursosLista.length
@@ -22961,25 +23010,60 @@ function renderParticipantesBoloes(){
 // muda: em vez de repetir a lista inteira empilhada em CADA linha da
 // tabela (deixando as linhas altas e cheias), ela aparece uma vez por
 // participante numa área própria, mais fácil de ler.
+/*LA_CONC_PART_V2*/
+// Chip de um concurso (ícone da loteria + número) com a marca de status à direita: ● ativo · ✓ finalizado · 🏆 premiado (mesmos símbolos do mobile).
+function _cpChipHtml(cc,marca){
+  var corTxt=_corTextoChipLoteria(cc);
+  var iconeCc=cc._cfg?_iconeChipLoteria(cc._cfg,12,corTxt):'🌐';
+  return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:10px;background:'+_corFundoChipLoteria(cc)+';border:1px solid '+cc.cor+'55;color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+(marca||'')+'</span>';
+}
+var _CP_MARCA_ATIVO='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a"></span>';
+var _CP_MARCA_FIN='<span style="color:#dc2626;font-weight:900;display:inline-block;transform:scaleX(1.35);margin-left:2px">✓</span>';
+var _CP_MARCA_PREMIO='<span style="color:#b8860b;margin-left:2px">🏆</span>';
+// O concurso teve algum jogo premiado neste bolão? (só chamado ao abrir os finalizados, uma vez por abertura)
+function _cpConcursoPremiado(cc){
+  try{
+    var c=(_boloesState.concursos||[]).filter(function(x){ return x.loteria===cc.loteria&&String(x.num)===String(cc.num); })[0];
+    var jogos=(c&&c.jogos)||[];
+    for(var i=0;i<jogos.length;i++){ var info=_calcPremioJogo(cc.loteria,jogos[i],cc.num); if(info&&info.premiado) return true; }
+  }catch(e){}
+  return false;
+}
+// Abre/fecha o recolhimento "Concursos finalizados": monta os chips na primeira abertura e reaproveita o resultado nos outros cartões.
+function _cpAbrirFinalizados(det,token){
+  if(!det.open||det.dataset.pronto) return;
+  var ctx=window._cpFin&&window._cpFin[token]; if(!ctx) return;
+  if(ctx.html==null){
+    ctx.html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;max-width:420px;margin-top:6px">'+ctx.fin.map(function(cc){ return _cpChipHtml(cc,_cpConcursoPremiado(cc)?_CP_MARCA_PREMIO:_CP_MARCA_FIN); }).join('')+'</div>';
+  }
+  var alvo=det.querySelector('.cp-fin-corpo'); if(alvo){ alvo.innerHTML=ctx.html; try{ _iconizaDOM(alvo); }catch(e){} }
+  det.dataset.pronto='1';
+}
 function _gerarConcursosPorParticipanteHtml(s,concursosLista){
   if(!s.participantes.length||!concursosLista.length) return '';
-  var chipsGrid=function(){
-    return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;max-width:420px">'+
-      concursosLista.map(function(cc){
-        var corTxt=_corTextoChipLoteria(cc);
-        var iconeCc=cc._cfg?_iconeChipLoteria(cc._cfg,12,corTxt):'🌐';
-        return '<span title="'+_esc(cc.nome)+(cc.data?' · '+_esc(cc.data):'')+'" style="font-size:10px;padding:4px 8px;border-radius:10px;background:'+_corFundoChipLoteria(cc)+';border:1px solid '+cc.cor+'55;color:'+corTxt+';font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-content:center">'+iconeCc+' '+_esc(String(cc.num))+'</span>';
-      }).join('')+
-    '</div>';
-  };
+  // Igual ao mobile: concursos ativos (ainda não sorteados) ficam à vista; os já sorteados vão para o recolhimento "Concursos finalizados (N)".
+  var vig=[], fin=[];
+  concursosLista.forEach(function(cc){
+    var realizado=false; try{ realizado=!!(cc.loteria&&_concursoJaRealizado(cc.loteria,cc.num)); }catch(e){}
+    (realizado?fin:vig).push(cc);
+  });
+  var token='cp'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+  window._cpFin={}; window._cpFin[token]={fin:fin,html:null};
+  var vigHtml=vig.length
+    ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;max-width:420px">'+vig.map(function(cc){ return _cpChipHtml(cc,_CP_MARCA_ATIVO); }).join('')+'</div>'
+    : '';
+  var finHtml=fin.length
+    ? '<details ontoggle="_cpAbrirFinalizados(this,\''+token+'\')" style="margin-top:'+(vig.length?'8':'0')+'px"><summary style="cursor:pointer;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+t('boloes.concursos_finalizados_n',{n:fin.length})+'</summary><div class="cp-fin-corpo"></div></details>'
+    : '';
   var cards=s.participantes.map(function(p){
     return '<div style="border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)">'+
       '<div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px">'+_esc(p.nome||t('boloes.sem_nome'))+'</div>'+
-      chipsGrid()+
+      vigHtml+finHtml+
     '</div>';
   }).join('');
   return '<div style="margin-top:14px">'+
     '<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">'+t('boloes.concursos_por_participante')+'</div>'+
+    _legendaStatusDesktopHtml()+
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">'+cards+'</div>'+
   '</div>';
 }
@@ -24635,6 +24719,102 @@ async function imprimirBolao(soPremiados){
     _genProgHide();
   }
 }
+/*LA_DOC_INI*/
+// ═══ Documentos jurídicos — revisão 2.0 (13/10/2026) ═══
+// Versão do documento, registro de datas, capa de conferência do Dossiê, tabela consolidada de prêmios e cópia com dados pessoais mascarados.
+var LA_DOC_VERSAO='2.0', LA_DOC_REVISAO='13/10/2026';
+function _docEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _docAppVersao(){ try{ if(typeof APP_BUILD!=='undefined') return APP_BUILD; var el=document.querySelector('.app-versao-num'); return el?String(el.textContent||'').trim():''; }catch(e){ return ''; } }
+function _docDataHora(v){ if(!v) return '—'; var d=(v instanceof Date)?v:new Date(v); if(isNaN(d.getTime())) return '—'; return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function _docMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function _docNomeLoteria(l){ try{ if(typeof loterianome==='function') return loterianome(l); if(typeof CFG!=='undefined'&&CFG[l]) return CFG[l].nome; }catch(e){} return String(l||'—'); }
+function _docRodapeVersaoHtml(){
+  return '<div style="margin-top:14px;padding-top:6px;border-top:1px solid #ccc;font-size:9px;color:#777;line-height:1.4">'+
+    _docEsc(t('termos.doc_versao_linha',{v:LA_DOC_VERSAO,rev:LA_DOC_REVISAO,app:_docAppVersao()||'—',quando:_docDataHora(new Date())}))+'</div>';
+}
+// Registro de datas: separa data de adesão (aceites), prazo de pagamento, ativação e emissão (o Termo antes misturava ativação e emissão).
+function _docRegistroDatasHtml(o){
+  var aceites=(o.aceites||[]).filter(Boolean).map(function(x){ return new Date(x); }).filter(function(d){ return !isNaN(d.getTime()); }).sort(function(a,b){ return a-b; });
+  var txtAceites=aceites.length
+    ? _docDataHora(aceites[0])+(aceites.length>1?' → '+_docDataHora(aceites[aceites.length-1]):'')+' ('+aceites.length+(o.totalParticipantes?'/'+o.totalParticipantes:'')+')'
+    : t('termos.rd_sem_aceites');
+  var linhas=[
+    [t('termos.rd_aceites'), txtAceites],
+    [t('termos.rd_prazo'), o.prazo?_docDataHora(o.prazo):'—'],
+    [t('termos.rd_ativacao'), o.ativadoEm?_docDataHora(o.ativadoEm):t('termos.rd_nao_ativado')],
+    [t('termos.rd_emissao'), _docDataHora(new Date())]
+  ];
+  return '<h2>'+t('termos.rd_titulo')+'</h2>'+
+    '<table><tbody>'+linhas.map(function(l){ return '<tr><td style="width:46%"><b>'+l[0]+'</b></td><td>'+_docEsc(l[1])+'</td></tr>'; }).join('')+'</tbody></table>'+
+    '<div style="font-size:9.5px;color:#666;margin-top:3px">'+t('termos.rd_nota')+'</div>';
+}
+function _docNotaConciliacaoHtml(){ return '<div style="font-size:9.5px;color:#555;margin:6px 0 12px;line-height:1.45">'+t('termos.rel_nota_conciliacao')+'</div>'; }
+// Capa de conferência do Dossiê: os números que precisam bater entre Termo, Relatório e Tabela de prêmios.
+function _docCapaConferenciaHtml(r){
+  r=r||{};
+  var linhas=[
+    [t('termos.capa_l_bolao'), r.nome||'—'],
+    [t('termos.capa_l_periodo'), (r.semanaInicio&&r.semanaFim)?(r.semanaInicio+' a '+r.semanaFim):'—'],
+    [t('termos.capa_l_prazo'), r.prazo?_docDataHora(r.prazo):'—'],
+    [t('termos.capa_l_ativacao'), r.ativadoEm?_docDataHora(r.ativadoEm):t('termos.rd_nao_ativado')],
+    [t('termos.capa_l_participantes'), r.nParticipantes!=null?r.nParticipantes:'—'],
+    [t('termos.capa_l_pagos'), r.nPagos!=null?r.nPagos:'—'],
+    [t('termos.capa_l_cotas'), r.cotasTotal!=null?r.cotasTotal:'—'],
+    [t('termos.capa_l_contribuicoes'), _docMoney(r.contribuicoes)],
+    [t('termos.capa_l_arrecadacao'), _docMoney(r.arrecadacao)],
+    [t('termos.capa_l_custo'), _docMoney(r.custo)],
+    [t('termos.capa_l_saldo'), _docMoney(r.saldo)],
+    [t('termos.capa_l_premiados'), r.nPremiados!=null?r.nPremiados:'—'],
+    [t('termos.capa_l_premio'), _docMoney(r.totalPremio)],
+    [t('termos.capa_l_anexos'), (r.nComprovantes!=null?r.nComprovantes:'—')+' comprovante(s) de depósito · '+(r.nBilhetes!=null?r.nBilhetes:'—')+' bilhete(s)']
+  ];
+  return '<div style="font-family:Arial,sans-serif;color:#111">'+
+    '<h1 style="font-size:20px;margin:0 0 4px">'+t('termos.capa_titulo')+'</h1>'+
+    '<div style="color:#666;font-size:11px;margin-bottom:14px">'+_docEsc(r.nome||'')+' · '+_docDataHora(new Date())+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+linhas.map(function(l){ return '<tr><td style="padding:6px 8px;border-bottom:1px solid #ddd;width:52%"><b>'+l[0]+'</b></td><td style="padding:6px 8px;border-bottom:1px solid #ddd;text-align:right">'+_docEsc(l[1])+'</td></tr>'; }).join('')+'</table>'+
+    '<p style="font-size:11px;color:#444;margin-top:14px;line-height:1.5">'+t('termos.capa_leia')+'</p>'+
+    _docRodapeVersaoHtml()+'</div>';
+}
+// Tabela consolidada de prêmios: um jogo premiado por linha, antes dos bilhetes anexados. jogos = [{loteria,concurso,numeros,resultado,acertos,valor,data}]
+function _docTabelaPremiosHtml(jogos){
+  var lista=(jogos||[]).filter(function(j){ return j; });
+  var cab='<h1 style="font-size:18px;margin:0 0 4px">'+t('termos.tp_titulo')+'</h1>';
+  if(!lista.length) return '<div style="font-family:Arial,sans-serif;color:#111">'+cab+'<p style="color:#999">'+t('termos.tp_nenhum')+'</p></div>';
+  var total=lista.reduce(function(a,j){ return a+(Number(j.valor)||0); },0);
+  var fmtNums=function(a){ return (a||[]).map(function(n){ return String(n).padStart(2,'0'); }).join(' '); };
+  return '<div style="font-family:Arial,sans-serif;color:#111">'+cab+
+    '<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:6px"><thead><tr style="background:#f0f0f0">'+
+      ['tp_col_loteria','tp_col_concurso','tp_col_jogo','tp_col_resultado','tp_col_acertos','tp_col_premio'].map(function(k,i){ return '<th style="padding:5px 6px;text-align:'+(i>=4?'right':'left')+';border-bottom:1px solid #999">'+t('termos.'+k)+'</th>'; }).join('')+
+    '</tr></thead><tbody>'+
+    lista.map(function(j){
+      return '<tr><td style="padding:5px 6px;border-bottom:1px solid #ddd">'+_docEsc(_docNomeLoteria(j.loteria))+'</td>'+
+        '<td style="padding:5px 6px;border-bottom:1px solid #ddd">'+_docEsc(j.concurso!=null?j.concurso:'—')+(j.data?' <span style="color:#888">('+_docEsc(j.data)+')</span>':'')+'</td>'+
+        '<td style="padding:5px 6px;border-bottom:1px solid #ddd;font-family:monospace">'+_docEsc(fmtNums(j.numeros))+'</td>'+
+        '<td style="padding:5px 6px;border-bottom:1px solid #ddd;font-family:monospace">'+(j.resultado&&j.resultado.length?_docEsc(fmtNums(j.resultado)):'—')+'</td>'+
+        '<td style="padding:5px 6px;border-bottom:1px solid #ddd;text-align:right">'+(j.acertos!=null?j.acertos:'—')+'</td>'+
+        '<td style="padding:5px 6px;border-bottom:1px solid #ddd;text-align:right;font-weight:700">'+_docMoney(j.valor)+'</td></tr>';
+    }).join('')+
+    '</tbody><tfoot><tr><td colspan="5" style="padding:6px;border-top:2px solid #999;font-weight:700">'+t('termos.tp_total')+' ('+lista.length+')</td><td style="padding:6px;border-top:2px solid #999;text-align:right;font-weight:700">'+_docMoney(total)+'</td></tr></tfoot></table>'+
+    '<p style="font-size:10px;color:#555;margin-top:10px;line-height:1.5">'+t('termos.tp_nota')+'</p>'+_docRodapeVersaoHtml()+'</div>';
+}
+function _docAnexosOmitidosHtml(n,tipo){ return '<div style="font-family:Arial,sans-serif;color:#555;font-size:12px;border:1px dashed #bbb;border-radius:8px;padding:14px;margin-top:6px">'+_docEsc(t('termos.anexos_omitidos',{n:n,tipo:tipo}))+'</div>'; }
+// Cópia para compartilhar: mascara CPF/CNPJ, e-mail e telefone, remove imagens (assinaturas, comprovantes e bilhetes) e carimba o aviso.
+function _docMascararHtml(html){
+  var s=String(html);
+  s=s.replace(/<img\b[^>]*>/gi,'<span style="color:#999;font-size:9px">[imagem omitida]</span>');
+  s=s.replace(/\b(\d{3})\.(\d{3})\.(\d{3})-(\d{2})\b/g,'***.$2.***-**');
+  s=s.replace(/\b(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})-(\d{2})\b/g,'**.$2.***/****-**');
+  s=s.replace(/([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*@([A-Za-z0-9-])[A-Za-z0-9.-]*(\.[A-Za-z]{2,})/g,'$1***@$2***$3');
+  s=s.replace(/(\(\d{2}\)\s?)\d{4,5}-(\d{4})/g,'$1*****-$2');
+  var aviso='<div style="background:#fff3cd;border:1px solid #e0c36a;border-radius:6px;padding:8px 12px;margin:8px 0;font-family:Arial,sans-serif;font-size:11px;color:#664d03;font-weight:700">'+_docEsc(t('termos.copia_mascarada_aviso'))+'</div>';
+  return s.replace(/(<div id="print-spacer"[^>]*><\/div>)/,'$1'+aviso);
+}
+try{ LA_I18N['pt-BR']['termos.nota_valor_pago']='Valor pago = contribuição efetivamente paga pelo participante. Ele pode ser diferente do custo por cota das apostas, que consta no Relatório do Bolão (com a conciliação por participante).'; }catch(e){}
+
+// Específicos do Desktop: prazo de pagamento do bolão aberto e resultado sorteado de um concurso (para a tabela consolidada de prêmios).
+function _docPrazoDesktop(s){ try{ if(s.dataHoraEncerramentoOriginal) return s.dataHoraEncerramentoOriginal; if(s.dataEncerramento) return s.dataEncerramento+'T'+(s.horaEncerramento||'00:00')+':00'; }catch(e){} return null; }
+function _docResultadoDe(lot,conc){ try{ var res=(typeof resultados!=='undefined')?resultados[lot]:null; if(conc!=null&&(!res||String(parseInt(conc))!==String(parseInt(res.concurso)))){ var h=_historicoConcursoCache[lot+'|'+parseInt(conc)]; res=(h&&h.dezenas&&h.dezenas.length)?h:null; } return {dez:(res&&res.dezenas)?res.dezenas.map(function(x){ return parseInt(x); }):null, data:(res&&typeof res.data==='string')?res.data:null}; }catch(e){ return {dez:null,data:null}; } }
+/*LA_DOC_FIM*/
 async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   var s=_boloesState;
   if(!s.participantes.length){ toast(t('termos.adicione_participantes_antes_imprimir')); return; }
@@ -24877,6 +25057,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     '<td style="text-align:center">'+cotasAdmin+'</td>'+
     '<td style="text-align:right">—</td>'+
     '<td style="text-align:right">—</td>'+
+    '<td style="text-align:right">—</td>'+
     '<td style="text-align:center">—</td>'+
     '<td style="text-align:right">—</td>'+
     '<td style="text-align:center;color:#b8860b;font-weight:700">'+t('boloes.isento_maiusc')+'</td></tr>'):'';
@@ -24895,6 +25076,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
         '<td style="text-align:center;color:#888">'+refSeqP+'</td>'+
         '<td>'+(primeira?_esc(p.nome):'<span style="color:#888;font-style:italic">'+_esc(p.nome)+'</span>')+'</td>'+
         '<td style="text-align:center">'+(primeira?qtd:t('termos.cota_n',{n:c+1}))+'</td>'+
+        '<td style="text-align:right">'+(primeira?_bMoney(pago?(p.valorCota||0):0):'—')+'</td>'+
         '<td style="text-align:right">'+_bMoney(valorPagoCota)+'</td>'+
         '<td style="text-align:right;color:'+(primeira?corSaldoP:'#888')+';font-weight:700">'+(primeira?(meuSaldoP>=0?'':'-')+_bMoney(Math.abs(meuSaldoP)):'—')+'</td>'+
         '<td style="text-align:center;color:#16a34a">'+(orgRateioCota>0?'+ '+_bMoney(orgRateioCota):_bMoney(0))+'</td>'+
@@ -25002,6 +25184,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   // as loterias/concursos do bolão, e divide entre os participantes por
   // cota — a informação que faltava no relatório (antes só existia a
   // divisão por loteria isolada, sem um total consolidado do bolão).
+  var _docPremiadosL=[];
   var _totalPremioRealBolao=loteriasImp.reduce(function(a,L){return a+(L.premioRealNum||0);},0);
   var _totalJogosPremiadosBolao=loteriasImp.reduce(function(a,L){return a+(L.qtdPremiados||0);},0);
   var _algumaLoteriaConferida=loteriasImp.some(function(L){return L.algumConferido;});
@@ -25134,6 +25317,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
           // tipo de bolão, já que o filtro é aplicado por jogo individual,
           // não por concurso/loteria inteiro.
           if(soPremiados&&!(infoPremioJ&&infoPremioJ.premiado)) return ''; nJogosRend++;
+          if(infoPremioJ&&infoPremioJ.premiado){ var _rd=_docResultadoDe(L.loteria,concursoDoJogoP); _docPremiadosL.push({loteria:L.loteria, concurso:concursoDoJogoP, numeros:jogo.slice(0,ndLot||jogo.length), resultado:_rd.dez, acertos:infoPremioJ.acertos, valor:infoPremioJ.valor, data:_rd.data}); }
           var corPremiado='#b8860b'; // dourado escuro, bom contraste em fundo claro de impressão
           var nums;
           if(jogo._ssCols||L.loteria==='supersete'){
@@ -25341,13 +25525,14 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
   // individual de cada participante (contribuição − custo já consumido) —
   // podendo ficar negativo se o grupo já gastou mais do que arrecadou dos
   // pagantes.
+  var _totalContribImp=pagosImp.reduce(function(a,p){return a+(p.valorCota||0);},0);
   var _totalValorPagoImp=pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota+valorRateioPorPart;},0);
   var _totalSaldoRestanteImp=ativos.reduce(function(a,p){
     var v=meuSaldoInfoImp.porIndice[(p.nome||'').trim()];
     return a+(v!=null?v:0);
   },0);
   var _corSaldoTotalImp=_totalSaldoRestanteImp>=0?'#16a34a':'#dc2626';
-  var _tfootHtmlImp='<tfoot><tr><td style="text-align:center">'+refSeqP+'</td><td>'+t('termos.total_n_mais_admin',{n:ativos.length})+'</td><td style="text-align:center">'+totalCotasPremio+'</td><td style="text-align:right">'+_bMoney(_totalValorPagoImp)+'</td><td style="text-align:right;color:'+_corSaldoTotalImp+'">'+(_totalSaldoRestanteImp<0?'-':'')+_bMoney(Math.abs(_totalSaldoRestanteImp))+'</td><td style="text-align:center">'+_bMoney(valorRateioPorPart*pagosImp.length)+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0))+'</td><td></td></tr></tfoot>';
+  var _tfootHtmlImp='<tfoot><tr><td style="text-align:center">'+refSeqP+'</td><td>'+t('termos.total_n_mais_admin',{n:ativos.length})+'</td><td style="text-align:center">'+totalCotasPremio+'</td><td style="text-align:right">'+_bMoney(_totalContribImp)+'</td><td style="text-align:right">'+_bMoney(_totalValorPagoImp)+'</td><td style="text-align:right;color:'+_corSaldoTotalImp+'">'+(_totalSaldoRestanteImp<0?'-':'')+_bMoney(Math.abs(_totalSaldoRestanteImp))+'</td><td style="text-align:center">'+_bMoney(valorRateioPorPart*pagosImp.length)+'</td><td style="text-align:right">'+_bMoney(pagosImp.reduce(function(a,p){return a+(p.cotas||0)*valorCota;},0))+'</td><td></td></tr></tfoot>';
   var headStyle='<html><head><meta charset="utf-8"><title>'+_esc(s.nome)+'</title>'+
     '<style>@page{size:A4 landscape;margin:8mm}'+
     // Regra UNIVERSAL: sem isso, navegadores podem omitir cores de FUNDO
@@ -25411,7 +25596,7 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
       ' <span style="color:#888;font-size:9px">'+t('termos.arrecadacao_custo_jogos',{arrec:_bMoney(arrecadacaoImp),custo:_bMoney(valorTotalJogosImp)})+'</span>'+
     '</div>'+
     '<div class="admin-box"><b>'+t('termos.administrador_dois_pontos')+'</b> '+_esc(s.admin.nome)+' &nbsp;·&nbsp; <b>'+t('termos.tel_dois_pontos')+'</b> '+_esc(s.admin.telefone)+' &nbsp;·&nbsp; <b>PIX'+(s.admin.pixTipo?' ('+({cpf:'CPF',cnpj:'CNPJ',telefone:t('geral.telefone'),email:t('geral.email'),aleatoria:t('geral.aleatoria')}[s.admin.pixTipo]||'')+')':'')+':</b> '+_esc(s.admin.pix)+'</div>'+
-    '<table><thead><tr><th>'+t('boloes.th_refer')+'</th><th>'+t('geral.nome')+'</th><th>'+t('boloes.th_qtd_cotas')+'</th><th style="text-align:right">'+t('termos.th_valor_pago')+'</th><th style="text-align:right">'+t('boloes.th_meu_saldo')+'</th><th>'+t('termos.th_organizacao')+'</th><th style="text-align:right">'+t('termos.th_cota_simples')+'</th><th>'+t('boloes.th_pagamento')+'</th></tr></thead>'+
+    '<table><thead><tr><th>'+t('boloes.th_refer')+'</th><th>'+t('geral.nome')+'</th><th>'+t('boloes.th_qtd_cotas')+'</th><th style="text-align:right">'+t('termos.th_contribuicao_paga')+'</th><th style="text-align:right">'+t('termos.th_custo_por_cota')+'</th><th style="text-align:right">'+t('boloes.th_meu_saldo')+'</th><th>'+t('termos.th_organizacao')+'</th><th style="text-align:right">'+t('termos.th_cota_simples')+'</th><th>'+t('boloes.th_pagamento')+'</th></tr></thead>'+
     '<tbody>'+linhas+'</tbody>'+
     // Linha de totais — antes os valores estavam nas colunas erradas (o
     // total de "Qtd. Cotas" saía vazio e o número de cotas aparecia sob
@@ -25423,11 +25608,15 @@ async function _imprimirBolaoImpl(soPremiados, retornarHtml){
     // consumido) — podendo ficar negativo se o grupo já gastou mais do
     // que arrecadou dos pagantes.
     _tfootHtmlImp+
-    '</table>'+tabelasPorLoteriaHtml+somatorioHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml;
+    '</table>'+_docNotaConciliacaoHtml()+tabelasPorLoteriaHtml+somatorioHtml+jogosHtml+historicoRodadasHtml+gastosDiariosImpHtml;
   // retornarHtml: usado pelo Dossiê do Prêmio (imprimirDossiePremio) pra
   // embutir este relatório (só jogos premiados) como UMA seção de um
   // documento combinado, em vez de abrir sua própria janela de impressão.
-  if(retornarHtml){ return {titulo:s.nome, corpo:corpo, cor:cor}; }
+  corpo+=_docRodapeVersaoHtml();
+  if(retornarHtml){
+    var _resumoDoc={nome:s.nome, semanaInicio:s.semanaInicio, semanaFim:s.semanaFim, prazo:_docPrazoDesktop(s), ativadoEm:s.ativadoEm, nParticipantes:ativos.length, nPagos:pagosImp.length, cotasTotal:totalCotasPremio, contribuicoes:_totalContribImp, arrecadacao:arrecadacaoImp, custo:valorTotalJogosImp, saldo:saldoRestanteImp, nPremiados:_docPremiadosL.length, totalPremio:_docPremiadosL.reduce(function(a,j){ return a+(Number(j.valor)||0); },0)};
+    return {titulo:s.nome, corpo:corpo, cor:cor, resumo:_resumoDoc, premiados:_docPremiadosL};
+  }
   var html=headStyle+printBar+corpo+'</body></html>';
   // Aviso pra rodadas grandes: o contador de progresso acima (_genProgShow)
   // já cobre a montagem do HTML aqui no app, mas a etapa seguinte —
@@ -25519,7 +25708,7 @@ function imprimirTermoConstituicao(retornarHtml){
     return t('boloes.concurso_esc_loteria',{nome:(d?d.nome:cc.loteria),n:_esc(cc.num)})+(cc.data?' ('+_esc(cc.data)+')':'');
   });
 
-  var dataEmissao=s.ativadoEm?new Date(s.ativadoEm).toLocaleDateString('pt-BR'):new Date().toLocaleDateString('pt-BR');
+  var dataEmissao=new Date().toLocaleDateString('pt-BR');
 
   var headStyle='<html><head><meta charset="utf-8"><title>'+t('termos.titulo_doc_termo_constituicao',{nome:_esc(s.nome)})+'</title>'+
     '<style>@page{size:A4;margin:14mm}'+
@@ -25552,6 +25741,8 @@ function imprimirTermoConstituicao(retornarHtml){
     '<h2>'+t('boloes.participantes')+'</h2>'+
     '<table><thead><tr><th>'+t('geral.nome')+'</th><th>'+t('termos.th_cpf')+'</th><th style="text-align:center">'+t('termos.th_cotas')+'</th><th style="text-align:center">'+t('termos.th_percentual')+'</th><th style="text-align:right">'+t('termos.th_valor_pago')+'</th><th>'+t('termos.th_assinatura')+'</th></tr></thead>'+
     '<tbody>'+linhasParticipantes+'</tbody></table>'+
+    '<div style="font-size:9.5px;color:#555;margin:3px 0 8px">'+t('termos.nota_valor_pago')+'</div>'+
+    _docRegistroDatasHtml({aceites:ativos.map(function(p){ return p.termosAceitosEm; }), totalParticipantes:ativos.length, prazo:_docPrazoDesktop(s), ativadoEm:s.ativadoEm})+
     '<h2>'+t('termos.h2_objeto')+'</h2>'+
     '<p>'+t('termos.p_objeto_a')+
     (concursosVinc.length?t('termos.nos_seguintes_concursos',{lista:_esc(concursosVinc.join('; '))}):'.')+'</p>'+
@@ -25575,6 +25766,7 @@ function imprimirTermoConstituicao(retornarHtml){
       })));
     })();
 
+  corpo+=_docRodapeVersaoHtml();
   if(retornarHtml){ return {titulo:t('termos.titulo_doc_termo_constituicao',{nome:s.nome}), corpo:corpo}; }
   var html=headStyle+printBar+corpo+'</body></html>';
   var w=window.open('','_blank');
@@ -25764,7 +25956,7 @@ async function _buildHtmlComprovantesPix(bolaoId){
   var corpo='<h1>'+t('termos.comprovantes_de_deposito_titulo')+'</h1>'+
     '<div class="sub">'+t('termos.n_comprovante_anexado_bolao',{n:lista.length,s:lista.length!==1?'s':''})+'</div>'+
     (lista.length ? gradeHtml : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
-  return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo};
+  return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo, n:lista.length};
 }
 // "📑 Dossiê do Prêmio" (fase 70) — pacote de documentação recomendado pra
 // prêmios acima de R$10 mil por cota: reúne, numa impressão só, o Termo de
@@ -25779,7 +25971,7 @@ async function _buildHtmlComprovantesPix(bolaoId){
 function _dossJanelaGerando(w, msg){
   try{ w.document.open(); w.document.write('<html><head><meta charset="utf-8"><title>'+msg+'</title></head><body style="font-family:Arial,sans-serif;color:#444;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-size:18px">'+msg+'…</body></html>'); w.document.close(); }catch(e){}
 }
-async function imprimirDossiePremio(){
+async function imprimirDossiePremio(mascarado){
   var s=_boloesState;
   if(!s.editId){ toast(t('termos.salve_bolao_antes_dossie')); return; }
   toast(t('termos.gerando_dossie'));
@@ -25796,11 +25988,13 @@ async function imprimirDossiePremio(){
 
   var cor=(relatorio&&relatorio.cor)||MULTI_LOTERIA_COR;
   var secoes=[];
+  secoes.push('<div class="dossie-sec sec-capa">'+_docCapaConferenciaHtml(Object.assign({}, (relatorio&&relatorio.resumo)||{}, {nComprovantes:comprovantes.n, nBilhetes:null}))+'</div>');
   secoes.push('<div class="dossie-sec sec-termo">'+(termo?termo.corpo:'<h1>'+t('termos.termo_constituicao_h1')+'</h1><p style="color:#999">'+t('termos.indisponivel_nenhum_participante_ativo')+'</p>')+'</div>');
   secoes.push('<div class="dossie-sec sec-relatorio">'+(relatorio?relatorio.corpo:'<h1>'+t('termos.jogos_premiados_h1')+'</h1><p style="color:#999">'+t('termos.nenhum_jogo_premiado_encontrado_bolao')+'</p>')+'</div>');
-  secoes.push('<div class="dossie-sec sec-comprovantes">'+comprovantes.corpo+'</div>');
+  secoes.push('<div class="dossie-sec sec-premios">'+_docTabelaPremiosHtml(relatorio&&relatorio.premiados)+'</div>');
+  secoes.push('<div class="dossie-sec sec-comprovantes">'+(mascarado?_docAnexosOmitidosHtml(comprovantes.n||0,'comprovante(s) de depósito'):comprovantes.corpo)+'</div>');
   toast(t('termos.gerando_dossie'));
-  var bilhetesCorpo=await _dossSecaoSegura(function(){ return _dossDadosAoVivo(_getSbClient(), s.editId); }, _esc, function(m){ return Promise.resolve(confirm(m)); }, function(n,total){ _dossJanelaGerando(w, t('termos.gerando_dossie')+' — '+n+'/'+total); });
+  var bilhetesCorpo=mascarado ? _docAnexosOmitidosHtml('—','bilhete(s)') : await _dossSecaoSegura(function(){ return _dossDadosAoVivo(_getSbClient(), s.editId); }, _esc, function(m){ return Promise.resolve(confirm(m)); }, function(n,total){ _dossJanelaGerando(w, t('termos.gerando_dossie')+' — '+n+'/'+total); });
   secoes.push('<div class="dossie-sec sec-bilhetes">'+bilhetesCorpo+'</div>');
 
   var html='<html><head><meta charset="utf-8"><title>'+t('termos.titulo_dossie_premio_x',{nome:_esc(s.nome)})+'</title>'+
@@ -25848,7 +26042,7 @@ async function imprimirDossiePremio(){
     '</body></html>';
 
   if(w.closed){ return; }
-  w.document.open(); w.document.write(html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
+  w.document.open(); w.document.write(mascarado?_docMascararHtml(html):html); w.document.close(); try{ _iconizaDOM(w.document.body); }catch(e){}
   _dossEsperarImagens(w.document, 12000).then(function(){ w.print(); });
 }
 
@@ -25956,7 +26150,7 @@ function imprimirTermosCondicoes(){
     '<h2>'+t('termos.h2_27')+'</h2>'+
     '<p>'+t('termos.p_27')+'</p>'+
     '<h2>'+t('termos.h2_28')+'</h2>'+
-    '<p>'+t('termos.p_28')+'</p>'+
+    '<p>'+t('termos.p_28')+'</p>'+_docRodapeVersaoHtml()+
   '</body></html>';
 
   var w=window.open('','_blank');
@@ -26046,6 +26240,7 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // vincular só os que ainda não existiam.
     jogos=_confirmarDuplicadosOuFiltrar(g, jogos, loteriaItem);
     if(!jogos) return;
+    { var _sgS=_guardaSaldoBolaoDesktop(g, jogos, (typeof CFG!=='undefined')?CFG[loteriaItem]:null); if(_sgS){ toast(_sgS); return; } }
     // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
     // especiais como Quina de São João têm período de vendas longo), mas
     // todas precisam ser para a MESMA loteria e o MESMO concurso já fixado
@@ -27141,6 +27336,166 @@ async function _enviarMensagemJogosEBilhetesBolao(bolaoId){
     if(typeof renderFormBolao==='function') renderFormBolao(); // atualiza a barra de ferramentas
   }catch(e){ toast(t('boloes.erro_enviar_mensagem',{msg:e.message})); }
 }
+/*LA_JOGOS_V2_DESK_INI*/
+try{
+  Object.assign(LA_I18N['pt-BR'],{'jogo.vinculado_em':'Vinculado em {quando}','jogo.legenda_ativo':'Ativo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Jogos da teimosinha: veja o card da teimosinha acima.','boloes.confirm_excluir_jogo_teimosinha':'Excluir este jogo dos {n} concursos da teimosinha? O valor será devolvido ao saldo.'});
+  Object.assign(LA_I18N['en-US'],{'jogo.vinculado_em':'Linked on {quando}','jogo.legenda_ativo':'Active','jogo.legenda_finalizado':'Finished','jogo.legenda_premiado':'Prize won','jogo.so_teimosinha':'Multi-draw tickets: see the multi-draw card above.','boloes.confirm_excluir_jogo_teimosinha':'Delete this ticket from all {n} draws of the multi-draw run? The amount will be returned to the balance.'});
+  Object.assign(LA_I18N['es-ES'],{'jogo.vinculado_em':'Vinculado el {quando}','jogo.legenda_ativo':'Activo','jogo.legenda_finalizado':'Finalizado','jogo.legenda_premiado':'Premiado','jogo.so_teimosinha':'Juegos de la teimosinha: vea la tarjeta de la teimosinha arriba.','boloes.confirm_excluir_jogo_teimosinha':'¿Eliminar este juego de los {n} sorteos de la teimosinha? El valor volverá al saldo.'});
+  Object.assign(LA_I18N['it-IT'],{'jogo.vinculado_em':'Collegato il {quando}','jogo.legenda_ativo':'Attivo','jogo.legenda_finalizado':'Concluso','jogo.legenda_premiado':'Premiato','jogo.so_teimosinha':'Giocate della teimosinha: vedi la scheda della teimosinha sopra.','boloes.confirm_excluir_jogo_teimosinha':'Eliminare questa giocata da tutte le {n} estrazioni della teimosinha? L\'importo tornerà al saldo.'});
+}catch(e){}
+// Data e hora do vínculo ao bolão: letra pequena, sem negrito. Sem a informação, não mostra nada.
+function _vincEmHtmlDesktop(iso){
+  if(!iso) return '';
+  var d=new Date(iso); if(isNaN(d.getTime())) return '';
+  var q=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  return '<div style="margin-top:3px;font-size:9px;font-weight:400;color:var(--text-muted)">'+_esc(t('jogo.vinculado_em',{quando:q}))+'</div>';
+}
+// Legenda única de status (igual à do mobile): ● ativo · ✓ finalizado · 🏆 premiado.
+function _legendaStatusDesktopHtml(){
+  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:10px;font-weight:400;color:var(--text-muted);margin:0 2px 10px">'+
+    '<span style="display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a"></span>'+_esc(t('jogo.legenda_ativo'))+'</span>'+
+    '<span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#dc2626;font-weight:900;transform:scaleX(1.35);display:inline-block">✓</span>'+_esc(t('jogo.legenda_finalizado'))+'</span>'+
+    '<span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#b8860b">🏆</span>'+_esc(t('jogo.legenda_premiado'))+'</span>'+
+  '</div>';
+}
+// Data/hora do vínculo de cada jogo: último evento "link" da auditoria do bolão (o jogo reaproveitado de "Jogos Salvos" tem created_at antigo);
+// sem registro, cai na data de criação do jogo. Só informativo: qualquer falha deixa o campo como está.
+async function _aplicarVinculosJogosDesktop(s){
+  var sb=_getSbClient(); if(!sb||!s||!s.editId) return;
+  var mapa=new Map();
+  try{
+    for(var pg=0;pg<40;pg++){
+      var r=await sb.from('auditoria').select('jogo_id,created_at').eq('bolao_id',s.editId).eq('operacao','link').order('id',{ascending:true}).range(pg*1000,pg*1000+999);
+      if(!r||r.error||!r.data||!r.data.length) break;
+      r.data.forEach(function(l){ var a=mapa.get(l.jogo_id); if(!a||String(l.created_at)>a) mapa.set(l.jogo_id,String(l.created_at)); });
+      if(r.data.length<1000) break;
+    }
+  }catch(e){ console.warn('[vinculos jogos]',e&&e.message); }
+  (s.concursos||[]).forEach(function(c){ (c.jogos||[]).forEach(function(j){ if(j&&typeof j==='object'&&j._jogoId) j._vinculadoEm=mapa.get(j._jogoId)||j._criadoEm||null; }); });
+}
+// Identidade de uma aposta (loteria + números + extras), sem contar o concurso: a mesma aposta em 2+ concursos da mesma loteria é uma teimosinha.
+function _assinaturaJogoDesktop(c,j){
+  var nums=(Array.isArray(j)?j:[]).filter(function(x){return x<1000;}).slice().sort(function(a,b){return a-b;}).join(',');
+  return [c.loteria, nums, (j._trevos||[]).join(','), j._mes==null?'':j._mes, j._time==null?'':j._time, j._extra==null?'':j._extra, JSON.stringify(j._ssCols||null), j._isEspelho?'E':''].join('§');
+}
+// Bolinhas + extras (trevos, bola extra, mês, time) de um jogo. info = resultado de _calcPremioJogo para colorir os acertos; null = cores normais da loteria.
+function _bolasEExtrasDesktop(j,c,info,dConcurso,corConcurso,corTextoConcurso){
+  var corPremiado='#b8860b', ESP_COR='#7c3aed';
+  var corBase=j._isEspelho?ESP_COR:corConcurso;
+  var dezenas=(Array.isArray(j)?j:[]).filter(function(x){return x<1000;}).sort(function(a,b){return a-b;});
+  var balls;
+  if(j._ssCols||c.loteria==='supersete'){
+    balls=_ssColsResolver(j).map(function(colArr,ci){
+      var bateu=info&&info.colsAcertadas&&info.colsAcertadas.indexOf(ci)>=0;
+      var bg=bateu?corPremiado:corBase, txt=(bateu||j._isEspelho)?'#fff':corBolaTexto(dConcurso);
+      return (colArr||[]).map(function(n){ return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bg+';color:'+txt+';font-size:11px;font-weight:800;margin:1px">'+n+'</span>'; }).join('');
+    }).join('');
+  } else {
+    balls=dezenas.map(function(n){
+      var acertou=info&&info.dezenasAcertadas&&info.dezenasAcertadas.has(parseInt(n));
+      var bg=acertou?corPremiado:corBase, txt=(acertou||j._isEspelho)?'#fff':corBolaTexto(dConcurso);
+      return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+bg+';color:'+txt+';font-size:11px;font-weight:800;margin:1px">'+String(n).padStart(2,'0')+'</span>';
+    }).join('');
+  }
+  var extras='';
+  if(j&&j._trevos&&j._trevos.length){
+    var trevoCor=(dConcurso&&dConcurso.trevoCor)||'#0fae8a', trAc=info&&info.trevosAcertados;
+    extras+=' <span style="font-size:8px;color:'+trevoCor+';font-weight:800;margin-left:4px">TREVO</span>'+j._trevos.map(function(tr){
+      var b=trAc&&trAc.has(parseInt(tr));
+      return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+(b?corPremiado:trevoCor)+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(tr).padStart(2,'0')+'</span>';
+    }).join('');
+  }
+  if(j&&j._extra!=null){
+    var extraCor=(dConcurso&&dConcurso.bolaExtraCor)||'#00BCD4', extraNome=(dConcurso&&dConcurso.bolaExtraNome)||t('geral.extra_fallback');
+    extras+=' <span style="font-size:8px;color:'+extraCor+';font-weight:800;margin-left:4px">'+extraNome.toUpperCase()+'</span>'+
+      '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:'+((info&&info.bolaExtraAcertou)?corPremiado:extraCor)+';color:#fff;font-size:10px;font-weight:800;margin:1px;border:2px solid rgba(255,255,255,.35)">'+String(j._extra).padStart(2,'0')+'</span>';
+  }
+  if(j&&j._mes!=null){
+    var mN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'].map(function(m){return t('meses.'+m);});
+    var mb=info&&info.mesAcertou;
+    extras+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">'+t('geral.mes_maiusc')+'</span>'+
+      '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(mb?corPremiado:corBase)+';color:'+(mb||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+(mN[j._mes-1]||'')+'</span>';
+  }
+  if(j&&j._time!=null){
+    var tNome=(typeof LA_TIMEMANIA_TIMES!=='undefined'?LA_TIMEMANIA_TIMES[j._time]||'':''), tb=info&&info.timeAcertou;
+    extras+=' <span style="font-size:8px;color:'+corTextoConcurso+';font-weight:800;margin-left:4px">'+t('geral.time_maiusc')+'</span>'+
+      '<span style="display:inline-flex;align-items:center;padding:0 7px;height:22px;border-radius:11px;background:'+(tb?corPremiado:corBase)+';color:'+(tb||j._isEspelho?'#fff':corBolaTexto(dConcurso))+';font-size:10px;font-weight:800;margin:1px">'+tNome+'</span>';
+  }
+  return {balls:balls, extras:extras};
+}
+// Card de UMA aposta de teimosinha: o jogo uma vez + os concursos dela em grade de até 4 por linha, com o status de cada um.
+// As bolinhas ficam na cor normal da loteria; o acerto de cada concurso aparece na marca de premiado (troféu + valor) daquele concurso.
+function _renderFamTeimDesk(G){
+  var e0=G.entries[0], c0=e0.c, j0=e0.j;
+  var dConcurso=(c0.loteria&&CFG[c0.loteria])?CFG[c0.loteria]:(CFG[currentKey]||null);
+  var corConcurso=(dConcurso&&dConcurso.cor)||MULTI_LOTERIA_COR, corTexto=corMarca(dConcurso);
+  var be=_bolasEExtrasDesktop(j0,c0,null,dConcurso,corConcurso,corTexto);
+  var porNum={};
+  G.entries.forEach(function(e){ if(!porNum[e.c.num]) porNum[e.c.num]=e; });
+  var nums=Object.keys(porNum).sort(function(a,b){return (parseInt(b,10)||0)-(parseInt(a,10)||0);});
+  var temVigente=false, premiosHtml='', vincIso=null;
+  var celulas=nums.map(function(num){
+    var e=porNum[num], info=_calcPremioJogo(e.c.loteria,e.j,e.c.num), realizado=_concursoJaRealizado(e.c.loteria,e.c.num), simb;
+    if(info&&info.premiado){
+      simb='<span style="color:#b8860b">🏆</span>';
+      premiosHtml+='<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:4px"><span style="font-size:9.5px;color:var(--text-muted)">'+_esc(num)+(e.c.data?' · '+_esc(e.c.data):'')+'</span><span style="color:#b8860b;font-weight:800;font-size:11px;white-space:nowrap">🏆 '+_bMoney(info.valor)+'</span></div>';
+    } else if(realizado){
+      simb='<span style="color:#dc2626;font-weight:900;display:inline-block;transform:scaleX(1.35)">✓</span>';
+    } else { temVigente=true; simb='<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a"></span>'; }
+    return '<span style="display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;border:1px solid var(--glass-border);border-radius:8px;padding:3px 2px;font-size:10px;white-space:nowrap"><span style="font-weight:700;color:var(--text)">'+_esc(num)+'</span>'+simb+'</span>';
+  }).join('');
+  G.entries.forEach(function(e){ if(e.j._vinculadoEm&&(!vincIso||String(e.j._vinculadoEm)<vincIso)) vincIso=String(e.j._vinculadoEm); });
+  var refs=G.entries.map(function(e){ return {num:e.c.num,loteria:e.c.loteria,jogoId:e.j._jogoId}; });
+  window._famTeimRefs=window._famTeimRefs||[]; var refIdx=window._famTeimRefs.push(refs)-1;
+  var badge=(c0.loteria&&dConcurso)?('<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+(dConcurso.cor||'#888')+'22;color:'+corMarca(dConcurso)+';display:inline-flex;align-items:center;gap:3px">'+iconLoteria(dConcurso,11)+' '+(dConcurso.nome||c0.loteria)+'</span>'):'';
+  var html='<div style="border:1px solid var(--glass-border);border-radius:12px;margin-bottom:10px;padding:10px 14px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+badge+'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(58,155,78,.12);color:#3a9b4e;border:1px solid rgba(58,155,78,.3)">↻ '+_esc(t('jogo.teimosinha'))+' ('+nums.length+')</span></div>'+
+      '<button onclick="excluirJogoTeimosinhaDoBolao('+refIdx+')" title="'+_esc(t('boloes.title_excluir_jogo_devolve_saldo'))+'" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑</button>'+
+    '</div>'+
+    '<div>'+be.balls+be.extras+(j0._isEspelho?'<span style="font-size:9px;font-weight:800;color:#7c3aed;margin-left:4px">🪞 '+t('gerador.espelho_maiusc')+'</span>':'')+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:8px">'+celulas+'</div>'+
+    premiosHtml+_vincEmHtmlDesktop(vincIso)+
+  '</div>';
+  return {html:html, vigente:temVigente};
+}
+// Exclui um jogo de teimosinha de TODOS os concursos dela: mesmos passos de excluirJogoDoBolao (RPC de exclusão do jogo, remove a linha do
+// concurso quando ele fica vazio), um jogo por vez, com uma confirmação só e um único refresh no fim.
+async function excluirJogoTeimosinhaDoBolao(refIdx){
+  var s=_boloesState;
+  var refs=(window._famTeimRefs||[])[refIdx];
+  if(!refs||!refs.length) return;
+  if(!s.editId){ toast(t('boloes.salve_bolao_antes_excluir_jogos')); return; }
+  var nConc={}; refs.forEach(function(r){ nConc[r.num]=1; });
+  if(!confirm(t('boloes.confirm_excluir_jogo_teimosinha',{n:Object.keys(nConc).length}))) return;
+  try{
+    var g=await getBolao(s.editId);
+    if(!g){ toast(t('boloes.bolao_nao_encontrado_banco')); return; }
+    var sbJ=_getSbClient(), removidos=0;
+    for(var ri=0;ri<refs.length;ri++){
+      var ref=refs[ri], idxC=-1;
+      for(var i=0;i<(g.concursos||[]).length;i++){ if(g.concursos[i].num===ref.num&&g.concursos[i].loteria===ref.loteria){ idxC=i; break; } }
+      if(idxC<0) continue;
+      var c=g.concursos[idxC], idxJ=-1;
+      for(var k=0;k<(c.jogos||[]).length;k++){ if(c.jogos[k]&&c.jogos[k]._jogoId===ref.jogoId){ idxJ=k; break; } }
+      if(idxJ<0) continue;
+      await JogosCommon.excluirDual(ref.jogoId);
+      c.jogos.splice(idxJ,1); removidos++;
+      if(c.jogos.length===0){
+        if(sbJ) await sbJ.from('bolao_concursos').delete().eq('bolao_id',g._novoSchemaId).eq('concurso_ref',c.num).eq('loteria',c.loteria);
+        g.concursos.splice(idxC,1);
+      }
+    }
+    _registrarAuditoria('excluir_jogo_bolao',{bolaoId:g.id,detalhes:'teimosinha, '+removidos+' concurso(s)'});
+    s.concursos=g.concursos;
+    s.jogosVinculados=g.concursos.reduce(function(a,cc){return a.concat(cc.jogos||[]);},[]);
+    toast(t('boloes.jogo_excluido_toast'));
+    document.getElementById('modal-jogos-vinc')?.remove();
+    verJogosVinculados();
+    renderFormBolao();
+  }catch(e){ console.warn('[excluirJogoTeimosinhaDoBolao]',e.message); toast(t('boloes.erro_excluir_jogo')); }
+}
+/*LA_JOGOS_V2_DESK_FIM*/
 async function verJogosVinculados(){
   var s=_boloesState;
   var bolaoId=s.editId;
@@ -27156,6 +27511,7 @@ async function verJogosVinculados(){
   // Colunas, porque essas propriedades não sobrevivem à sincronização
   // com o Supabase (só arrays paralelos de verdade sobrevivem).
   concursos.forEach(_hidratarConcursoJogos);
+  try{ await _aplicarVinculosJogosDesktop(s); }catch(e){}
   // Pré-carrega concursos que já não são mais o mais recente conhecido de
   // cada loteria (ver _prewarmHistoricoConcursos) — mesmo motivo da
   // impressão: sem isso, um jogo premiado de um concurso já superado parava
@@ -27170,7 +27526,25 @@ async function verJogosVinculados(){
   var cor=MULTI_LOTERIA_COR;
   if(!concursos.length){ toast(t('boloes.nenhum_jogo_vinculado_bolao_ainda')); return; }
   var statusCor={'Aguardando':'#fbbf24','Conferido':'#4ade80','Finalizado':'#94a3b8'};
-  var concursosHtml=concursos.map(function(c,ci){
+  // Teimosinha: a mesma aposta em 2+ concursos da mesma loteria vira UM card (o jogo não se repete por concurso). Qualquer erro aqui desliga o recurso
+  // (volta ao desenho antigo, por concurso) em vez de quebrar o modal.
+  var _famMembroDesk={}, _famCards=[], _famOcultos=0;
+  window._famTeimRefs=[];
+  try{
+    var _grpF={}, _ordemF=[];
+    concursos.forEach(function(c,ci){ (c.jogos||[]).forEach(function(j,ji){
+      if(!j||!Array.isArray(j)||!j._jogoId) return;
+      var sg=_assinaturaJogoDesktop(c,j);
+      if(!_grpF[sg]){ _grpF[sg]={entries:[],nums:{}}; _ordemF.push(sg); }
+      _grpF[sg].entries.push({ci:ci,ji:ji,c:c,j:j}); _grpF[sg].nums[c.num]=1;
+    }); });
+    _ordemF.forEach(function(sg){
+      var G=_grpF[sg]; if(Object.keys(G.nums).length<2) return;
+      G.entries.forEach(function(e){ _famMembroDesk[e.ci+'|'+e.ji]=1; });
+      if(_famCards.length<100) _famCards.push(_renderFamTeimDesk(G)); else _famOcultos++;
+    });
+  }catch(eF){ console.warn('[teimosinha modal]',eF&&eF.message); _famMembroDesk={}; _famCards=[]; _famOcultos=0; window._famTeimRefs=[]; }
+  var _blocosDesktop=concursos.map(function(c,ci){
     var jogos=c.jogos||[];
     // CORREÇÃO (item 3/5 do documento de upgrade): a cor das bolas deve ser a
     // da loteria de ORIGEM de cada concurso (c.loteria), não uma cor fixa do
@@ -27200,7 +27574,10 @@ async function verJogosVinculados(){
     // um fundo escuro que nunca chegava a existir).
     var ESP_COR_VINC='#7c3aed';
     var temEspelhoNoConc=jogos.some(function(x){return x&&x._isEspelho;});
+    var _nVisC=0;
     var jogosRows=jogosExibidos.map(function(j,ji){
+      if(_famMembroDesk[ci+'|'+ji]) return '';
+      _nVisC++;
       var dezenas=(Array.isArray(j)?j:[]).filter(function(x){return x<1000;}).sort(function(a,b){return a-b;});
       // Calcula o prêmio deste jogo específico (mesma função usada na
       // impressão — ver _calcPremioJogo) ANTES de montar as bolinhas, para
@@ -27300,12 +27677,13 @@ async function verJogosVinculados(){
       }
       return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 0">'+
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
-        '<span style="font-size:10px;color:var(--text-muted);min-width:20px">'+(ji+1)+'.</span>'+
-        '<div>'+balls+extrasHtml+esp+statusJogoTela+'</div></div>'+
+        '<span style="font-size:10px;color:var(--text-muted);min-width:20px">'+_nVisC+'.</span>'+
+        '<div>'+balls+extrasHtml+esp+statusJogoTela+_vincEmHtmlDesktop(j._vinculadoEm)+'</div></div>'+
         '<button onclick="excluirJogoDoBolao('+ci+','+ji+')" title="'+t('boloes.title_excluir_jogo_devolve_saldo')+'" style="border:1px solid #dc262644;border-radius:6px;padding:3px 8px;background:#dc26261a;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">🗑</button>'+
         '</div>';
     }).join('')+
     (jogosOcultos>0?'<div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.mais_n_jogo_nao_exibido',{n:jogosOcultos,s:jogosOcultos!==1?'s':''})+'</div>':'');
+    if(!jogosRows&&jogos.length) jogosRows='<div style="padding:6px 0;font-size:10px;color:var(--text-muted);font-style:italic">'+t('jogo.so_teimosinha')+'</div>';
     var idSel='conc-status-'+ci+'-'+Date.now();
     // Chip de identidade da loteria: fundo E texto usam a mesma cor de MARCA
     // (dConcurso.cor), nunca corTexto — corTexto existe só pra texto que
@@ -27337,7 +27715,14 @@ async function verJogosVinculados(){
       '</div>'+
       '<div style="padding:8px 14px">'+jogosRows+'</div>'+
     '</div>';
-  }).join('');
+  });
+  // Concursos vigentes em destaque; os já sorteados ficam minimizados (igual ao mobile).
+  var _vigBlocos=[], _finBlocos=[];
+  _famCards.forEach(function(fc){ (fc.vigente?_vigBlocos:_finBlocos).push(fc.html); });
+  concursos.forEach(function(c,ci){ (_concursoJaRealizado(c.loteria,c.num)?_finBlocos:_vigBlocos).push(_blocosDesktop[ci]); });
+  var concursosHtml=_legendaStatusDesktopHtml()+_vigBlocos.join('')+
+    (_finBlocos.length?'<details style="margin-top:6px"><summary style="cursor:pointer;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 2px">'+t('boloes.concursos_finalizados_n',{n:_finBlocos.length})+'</summary>'+_finBlocos.join('')+'</details>':'')+
+    (_famOcultos>0?'<div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted);font-style:italic">'+t('boloes.mais_n_jogo_nao_exibido',{n:_famOcultos,s:_famOcultos!==1?'s':''})+'</div>':'');
   var totalJogos=concursos.reduce(function(a,c){return a+(c.jogos?c.jogos.length:0);},0);
   var totalCusto=concursos.reduce(function(a,c){return a+(c.custo||0);},0);
   // Quantos concursos ainda não foram avisados — lê s.concursos em
@@ -28194,6 +28579,7 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
       if(Array.isArray(j.extras.teimosinhaConcursos)&&j.extras.teimosinhaConcursos.length) arr._teimosinhaConcursos=j.extras.teimosinhaConcursos.slice(); }
     if(j.is_espelho) arr._isEspelho=true;
     arr._jogoId=j.id;
+    arr._criadoEm=j.created_at||null;
     porChave[chave].push(arr);
   });
   // CORREÇÃO (2026-07-12): teimosinhaTodos passava direto o valor de
@@ -28266,7 +28652,7 @@ async function getBolaoNovoSchema(novoId){
     modalidade:e.modalidade, sorteio:e.sorteio, concurso:e.concurso, cotas:e.cotas, premio:e.premio,
     participantes:e.participantes, arrecadacaoTotal:e.arrecadacaoTotal, mesReferencia:e.mesReferencia,
     semanas:e.semanas, dataSorteio:e.dataSorteio, semanaInicio:e.semanaInicio, semanaFim:e.semanaFim,
-    rodadas:e.rodadas, jogos:e.jogosVinculados, concursos:e.concursos, numDez:e.numDezBolao };
+    rodadas:e.rodadas, jogos:e.jogosVinculados, concursos:e.concursos, numDez:e.numDezBolao, ativadoEm:e.ativadoEm||null };
 }
 // Limpeza pós-migração (2026-07-12): removida daqui _abrirBolaoDoSchemaNovo
 // — porta de entrada de teste pro botão da já removida seção "🧪 Bolões
@@ -28936,6 +29322,24 @@ function _clonarJogosComExtras(jogos){
 // "Adicionar Jogo", ou uma vinculação disparada enquanto outra ainda
 // está em andamento (inclusive vinda de "Jogos Salvos"), leia o bolão
 // antes da gravação anterior terminar e apague a rodada dela.
+/*LA_GUARDA_SALDO_INI*/
+// Depois de ativado, o bolão não pode gastar mais do que arrecadou: o saldo nunca fica negativo. Devolve a mensagem de bloqueio, ou null se pode vincular.
+function _guardaSaldoBolaoDesktop(g, jogos, d){
+  try{
+    if(!g||!g.ativadoEm||!d||typeof calcCustoTotal!=='function') return null;
+    var novo=0; (jogos||[]).forEach(function(jg){ var n=(jg&&jg._teimosinhaConcursos&&jg._teimosinhaConcursos.length)||1; novo+=(calcCustoTotal([jg],d)||0)*n; });
+    var saldo=Math.round((_calcArrecadacaoPorContribuicoes(g)-_calcCustoTotalBolao(g))*100)/100;
+    if(Math.round(novo*100)/100>saldo+0.005) return t('boloes.saldo_insuficiente_vincular',{custo:_bMoney(novo),saldo:_bMoney(Math.max(0,saldo))});
+  }catch(e){ console.warn('[guarda saldo]',e&&e.message); }
+  return null;
+}
+try{
+  Object.assign(LA_I18N['pt-BR'],{'boloes.saldo_insuficiente_vincular':'Saldo insuficiente: estes jogos custam {custo} e o bolão só tem {saldo} disponível. Depois de ativado, o bolão não pode gastar mais do que arrecadou. Para continuar, adicione crédito ao bolão (depósito avulso) e tente de novo.'});
+  Object.assign(LA_I18N['en-US'],{'boloes.saldo_insuficiente_vincular':'Insufficient balance: these tickets cost {custo} and the syndicate only has {saldo} available. Once activated, a syndicate cannot spend more than it has collected. To continue, add credit to the syndicate (standalone deposit) and try again.'});
+  Object.assign(LA_I18N['es-ES'],{'boloes.saldo_insuficiente_vincular':'Saldo insuficiente: estos juegos cuestan {custo} y el grupo solo tiene {saldo} disponible. Una vez activado, el grupo no puede gastar más de lo que recaudó. Para continuar, añade crédito al grupo (depósito independiente) e inténtalo de nuevo.'});
+  Object.assign(LA_I18N['it-IT'],{'boloes.saldo_insuficiente_vincular':'Saldo insufficiente: queste giocate costano {custo} e il gruppo ha solo {saldo} disponibile. Una volta attivato, il gruppo non può spendere più di quanto ha raccolto. Per continuare, aggiungi credito al gruppo (deposito a parte) e riprova.'});
+}catch(e){}
+/*LA_GUARDA_SALDO_FIM*/
 async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
   return _enfileirarEscritaBolao(function(){ return _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride); });
 }
@@ -28971,6 +29375,7 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // vincular só os que ainda não existiam.
     jogos=_confirmarDuplicadosOuFiltrar(g, jogos, loteriaKey);
     if(!jogos) return;
+    { var _sgG=_guardaSaldoBolaoDesktop(g, jogos, d); if(_sgG){ toast(_sgG); return; } }
     // Bolão "Único" aceita múltiplas vinculações ao longo do tempo (concursos
     // especiais como Quina de São João têm período de vendas longo, então é
     // comum ir adicionando jogos aos poucos) — mas TODAS elas precisam ser
@@ -29570,7 +29975,7 @@ function ptAbrirTermosCondicoes(){
     '<h2>'+t('termos.h2_27')+'</h2>'+
     '<p>'+t('termos.p_27')+'</p>'+
     '<h2>'+t('termos.h2_28')+'</h2>'+
-    '<p>'+t('termos.p_28')+'</p>'+
+    '<p>'+t('termos.p_28')+'</p>'+_docRodapeVersaoHtml()+
   '</body></html>';
   ptAbrirDocumento(html);
 }
@@ -29645,6 +30050,7 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
     '<h2>'+t('boloes.participantes')+'</h2>'+
     '<table><thead><tr><th>'+t('geral.nome')+'</th><th>'+t('termos.th_cpf')+'</th><th style="text-align:center">'+t('termos.th_cotas')+'</th><th style="text-align:center">'+t('termos.th_percentual')+'</th><th style="text-align:right">'+t('termos.th_valor_pago')+'</th><th>'+t('termos.th_assinatura')+'</th></tr></thead>'+
     '<tbody>'+linhasParticipantes+'</tbody></table>'+
+    '<div style="font-size:9.5px;color:#555;margin:3px 0 8px">'+t('termos.nota_valor_pago')+'</div>'+
     '<h2>'+t('termos.h2_objeto')+'</h2>'+
     '<p>'+t('termos.p_objeto_a')+
     (concursosVinc.length?t('termos.nos_seguintes_concursos',{lista:_esc(concursosVinc.join('; '))}):'.')+'</p>'+
@@ -29667,6 +30073,7 @@ async function ptAbrirTermoConstituicao(bolaoId,retornarHtml){
         return {nome:p.nome,png:p.termos_assinatura_png||null,data:p.termos_aceitos_em?ptFmtData(p.termos_aceitos_em):null};
       })));
     })();
+  corpo+=_docRodapeVersaoHtml();
   if(retornarHtml){ return {titulo:t('termos.titulo_doc_termo_constituicao',{nome:info.bolao_nome||t('boloes.bolao_fallback')}), corpo:corpo}; }
   var html=headStyle+printBar+corpo+'</body></html>';
   ptAbrirDocumento(html);
@@ -29859,7 +30266,7 @@ async function _ptBuildHtmlComprovantes(bolaoId){
   var corpo='<h1>'+t('termos.comprovantes_de_deposito_titulo')+'</h1>'+
     '<div class="sub">'+t('termos.n_comprovante_anexado_bolao',{n:lista.length,s:lista.length!==1?'s':''})+'</div>'+
     (lista.length ? gradeHtml : '<p style="color:#999">'+t('termos.nenhum_comprovante_deposito_anexado')+'</p>');
-  return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo};
+  return {titulo:t('termos.comprovantes_de_deposito_titulo'), corpo:corpo, n:lista.length};
 }
 // "Dossiê do Prêmio" no app do participante — mesma ideia do botão já
 // existente no Desktop (fase 70): reúne, numa impressão só, o Termo de
