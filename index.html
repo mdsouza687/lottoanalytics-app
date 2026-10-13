@@ -1607,6 +1607,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.2':{
+    'en-US':["Version aligned with the mobile app (5.11.2), which gained the single \"Add tickets\" page and the automatic swap of repeated tickets when generating. The Desktop manuals were updated with the new screens (Pool Tickets with the repeat play in a single card and Draws per Participant with only the active ones in view)."],
+    'es-ES':["Versión alineada con la app móvil (5.11.2), que incorporó la página única \"Agregar juegos\" y el cambio automático de juegos repetidos al generar. Los manuales del Desktop se actualizaron con las pantallas nuevas (Juegos del grupo con la teimosinha en una sola tarjeta y Sorteos por participante solo con los activos a la vista)."],
+    'it-IT':["Versione allineata con l’app mobile (5.11.2), che ha ottenuto la pagina unica \"Aggiungi giocate\" e la sostituzione automatica delle giocate ripetute durante la generazione. I manuali del Desktop sono stati aggiornati con le schermate nuove (Giocate del gruppo con la teimosinha in una sola scheda ed Estrazioni per partecipante con solo quelle attive in vista)."]
+  },
   '5.11.1':{
     'en-US':["Syndicate documents revised (version 2.0, 13/10/2026), the same as in the mobile app. Report: the financial table separates the Contribution paid from the Cost per share, with a reconciliation note. Constitution Charter: separate record of dates (acceptance, deadline, activation and issue; the issue date no longer repeats the activation date). Prize Dossier: checking cover page, consolidated table of prizes and a new copy-to-share button, with personal data masked and no images. Document and app version in the footer of every document. Terms and Conditions with a data protection (LGPD) clause. Operating Rules and the ITCMD document rewritten. The documents are informational and do not replace advice from an accountant or lawyer. New: once activated, the syndicate will not let you link tickets that cost more than the available balance (the balance never goes negative); just add credit to the syndicate and try again. A participant with a pending share shows R$ 0.00, not negative. Syndicate games and Draws per Participant: same as mobile — only what is active in view and finished draws collapsed, a multi-draw ticket in a single card, finished draws minimised, legend and link date/time on every game. Contrast: the result header text and the ball numbers are legible on every lottery (green on Timemania); the Main tag and the Mirror Bet label read well on the light theme."],
     'es-ES':["Documentos del grupo revisados (versión 2.0, 13/10/2026), iguales a los de la app móvil. Informe: la ficha financiera separa la Contribución pagada del Costo por cuota, con una nota de conciliación. Acta de Constitución: registro de fechas por separado (adhesión, plazo, activación y emisión; la fecha de emisión ya no repite la de activación). Dosier del Premio: portada de verificación, tabla consolidada de premios y nuevo botón de copia para compartir, con datos personales enmascarados y sin imágenes. Versión del documento y de la app en el pie de todos los documentos. Términos y Condiciones con cláusula de protección de datos (LGPD). Reglas de Funcionamiento y documento del ITCMD reescritos. Los documentos son informativos y no sustituyen el consejo de un contador o abogado. Novedad: una vez activado, el grupo no deja vincular juegos que cuesten más que el saldo disponible (el saldo nunca queda negativo); basta añadir crédito al grupo e intentarlo de nuevo. Un participante con cuota pendiente aparece con saldo R$ 0,00, no negativo. Juegos del grupo y Sorteos por participante: igual que en el móvil — solo lo activo a la vista y los sorteos finalizados recogidos, teimosinha en una sola tarjeta, sorteos finalizados minimizados, leyenda y fecha/hora del vínculo en cada juego. Contraste: el texto del encabezado del resultado y los números de las bolas se leen bien en todas las loterías (verde en Timemania); la etiqueta Principal y el rótulo Apuesta Espejo se leen bien en el tema claro."],
@@ -1849,6 +1854,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.2':[
+    "Versão alinhada com o app mobile (5.11.2), que ganhou a página única \"Adicionar jogos\" e a troca automática de jogos repetidos ao gerar. Os manuais do Desktop foram atualizados com as telas novas (Jogos do Bolão com a teimosinha em um card só e Concursos por Participante só com os ativos à vista)."
+  ],
   '5.11.1':[
     "Documentos do bolão revisados (versão 2.0, 13/10/2026), iguais aos do app mobile. Relatório: a ficha financeira separa a Contribuição paga do Custo por cota, com nota de conciliação. Termo de Constituição: registro de datas separadas (adesão, prazo, ativação e emissão; a data de emissão deixou de repetir a de ativação). Dossiê do Prêmio: capa de conferência, tabela consolidada de prêmios e novo botão de cópia para compartilhar, com dados pessoais mascarados e sem imagens. Versão do documento e do app no rodapé de todos os documentos. Termos e Condições com cláusula de proteção de dados (LGPD). Regras de Funcionamento e documento do ITCMD reescritos. Os documentos são informativos e não substituem a orientação de contador ou advogado. Novo: depois de ativado, o bolão não deixa vincular jogos que gastem mais do que o saldo disponível (o saldo nunca fica negativo); é só adicionar crédito ao bolão e tentar de novo. Participante com cota pendente aparece com saldo R$ 0,00, não negativo. Jogos do Bolão e Concursos por Participante: igual ao mobile — só o que está ativo à vista e os concursos finalizados recolhidos, teimosinha em um card só, concursos finalizados minimizados, legenda e data/hora do vínculo em cada jogo. Contraste: o texto do cabeçalho do resultado e os números das bolinhas ficam legíveis em todas as loterias (verde na Timemania); a etiqueta Principal e o rótulo Aposta Espelho leem bem no tema claro."
   ],
@@ -2262,7 +2270,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.1</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.2</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2638,7 +2646,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.1</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.2</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
