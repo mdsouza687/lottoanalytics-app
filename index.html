@@ -1564,6 +1564,8 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
      o texto fica centralizado no botão inteiro (recuo igual dos dois lados) */
   .la-marca{position:relative;isolation:isolate;overflow:hidden;padding-left:24px!important;padding-right:24px!important}
   .la-marca>svg:first-child{position:absolute!important;left:6px!important;top:50%!important;height:14px!important;width:14px!important;aspect-ratio:1/1;transform:translateY(-50%)!important;color:#3A9B4E;opacity:.35;z-index:1;pointer-events:none;margin:0!important}
+  /* LA_ICONE_BOTAO_ESCURO */
+  body:not(.theme-light):not(.theme-colorful) .la-marca>svg:first-child{color:#bdd630;opacity:.5}
   /* barras de botões do bolão: todos no mesmo padrão (contorno neutro, texto do tema), sem botões coloridos */
   .la-barra-uniforme>button{border:1px solid color-mix(in srgb,var(--text) 55%,transparent)!important;background:transparent!important;color:var(--text)!important;border-radius:10px!important;font-weight:700}
   .la-barra-uniforme>button:hover:not(:disabled){background:color-mix(in srgb,var(--text) 8%,transparent)!important}
@@ -1616,6 +1618,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.0':{
+    'en-US':["Version 6.0.0, aligned with the mobile app. In the dark theme, the icon inside the buttons now has a lime green at 50% transparency, much easier to see on the dark background. The light and colorful themes stay the same."],
+    'es-ES':["Versión 6.0.0, alineada con la app móvil. En el tema oscuro, el icono dentro de los botones ahora tiene un verde lima con un 50 % de transparencia, mucho más visible sobre el fondo oscuro. Los temas claro y colorido siguen igual."],
+    'it-IT':["Versione 6.0.0, allineata con l'app mobile. Nel tema scuro, l'icona dentro i pulsanti ora ha un verde lime con il 50% di trasparenza, molto più visibile sullo sfondo scuro. I temi chiaro e colorato restano uguali."]
+  },
   '5.11.7':{
     'en-US':["Version aligned with the mobile app (5.11.7). The collapsible blocks on the pool screen (Pool draws, Finished draws, Round History and Spend and Balance by Lottery) no longer close by themselves when the screen refreshes. In the dark and colorful themes, the names and icons of Quina, +Milionária, Lotofácil and Dupla Sena on the pool cards and in the estimated prize strip now use a light tone and are easy to read."],
     'es-ES':["Versión alineada con la app móvil (5.11.7). Los bloques recogibles de la pantalla del grupo (Sorteos del grupo, Sorteos finalizados, Historial de Rondas y Gasto y Saldo por Lotería) ya no se cierran solos cuando la pantalla se actualiza. En los temas oscuro y colorido, los nombres e iconos de Quina, +Milionária, Lotofácil y Dupla Sena en las tarjetas del grupo y en la franja del premio estimado ahora tienen un tono claro y se leen bien."],
@@ -1888,6 +1895,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.0':[
+    "Versão 6.0.0, alinhada com o app mobile. No tema escuro, o ícone que fica dentro dos botões ganhou um verde-limão com 50% de transparência, bem mais visível sobre o fundo escuro. Os temas claro e colorido continuam iguais."
+  ],
   '5.11.7':[
     "Versão alinhada com o app mobile (5.11.7). Os blocos recolhíveis da tela do bolão (Concursos do bolão, Concursos finalizados, Histórico de Rodadas e Gasto e Saldo por Loteria) não fecham mais sozinhos quando a tela se atualiza. Nos temas escuro e colorido, os nomes e ícones de Quina, +Milionária, Lotofácil e Dupla Sena nos cards do bolão e na faixa do prêmio estimado agora têm um tom claro e ficam legíveis."
   ],
@@ -2319,7 +2329,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.7</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2695,7 +2705,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.7</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
