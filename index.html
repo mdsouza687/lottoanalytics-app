@@ -1616,6 +1616,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '5.11.7':{
+    'en-US':["Version aligned with the mobile app (5.11.7). The collapsible blocks on the pool screen (Pool draws, Finished draws, Round History and Spend and Balance by Lottery) no longer close by themselves when the screen refreshes. In the dark and colorful themes, the names and icons of Quina, +Milionária, Lotofácil and Dupla Sena on the pool cards and in the estimated prize strip now use a light tone and are easy to read."],
+    'es-ES':["Versión alineada con la app móvil (5.11.7). Los bloques recogibles de la pantalla del grupo (Sorteos del grupo, Sorteos finalizados, Historial de Rondas y Gasto y Saldo por Lotería) ya no se cierran solos cuando la pantalla se actualiza. En los temas oscuro y colorido, los nombres e iconos de Quina, +Milionária, Lotofácil y Dupla Sena en las tarjetas del grupo y en la franja del premio estimado ahora tienen un tono claro y se leen bien."],
+    'it-IT':["Versione allineata con l'app mobile (5.11.7). I blocchi ripiegabili della schermata del gruppo (Estrazioni del gruppo, Estrazioni concluse, Storico dei Turni e Spesa e Saldo per Lotteria) non si chiudono più da soli quando la schermata si aggiorna. Nei temi scuro e colorato, i nomi e le icone di Quina, +Milionária, Lotofácil e Dupla Sena nelle schede del gruppo e nella fascia del premio stimato ora hanno un tono chiaro e si leggono bene."]
+  },
   '5.11.6':{
     'en-US':["Version aligned with the mobile app (5.11.6). Pool invitations now arrive as pending for people the organizer already knows: the person sees the invitation on the phone app's Home page and only joins the pool after accepting (shown as Pending in the Participants table until then). If they decline, they leave the pool and receive no more notices; to bring them back, add them again. Fixed the \"new pool\" notice arriving twice. The manuals were updated."],
     'es-ES':["Versión alineada con la app móvil (5.11.6). Las invitaciones a un grupo ahora llegan como pendientes para quien ya es conocido del organizador: la persona ve la invitación en la Página de inicio de la app del móvil y solo entra en el grupo después de aceptar (aparece como Pendiente en la tabla de Participantes hasta entonces). Si rechaza, sale del grupo y no recibe más avisos; para que vuelva, agrégala de nuevo. Corregido el aviso de \"nuevo grupo\" duplicado. Los manuales se actualizaron."],
@@ -1883,6 +1888,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '5.11.7':[
+    "Versão alinhada com o app mobile (5.11.7). Os blocos recolhíveis da tela do bolão (Concursos do bolão, Concursos finalizados, Histórico de Rodadas e Gasto e Saldo por Loteria) não fecham mais sozinhos quando a tela se atualiza. Nos temas escuro e colorido, os nomes e ícones de Quina, +Milionária, Lotofácil e Dupla Sena nos cards do bolão e na faixa do prêmio estimado agora têm um tom claro e ficam legíveis."
+  ],
   '5.11.6':[
     "Versão alinhada com o app mobile (5.11.6). Convites de bolão agora chegam como pendentes para quem já é conhecido do organizador: a pessoa vê o convite na Página Inicial do app do celular e só entra no bolão depois de aceitar (aparece como Pendente na tabela de Participantes até lá). Se ela recusar, sai do bolão e não recebe mais avisos; para voltar, adicione-a de novo. Corrigido o aviso \"novo bolão\" em duplicidade. Os manuais foram atualizados."
   ],
@@ -2311,7 +2319,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.6</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.7</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2687,7 +2695,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.6</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">5.11.7</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -22723,7 +22731,7 @@ function _fmtPremioPorLoteriaHtml(premiosVigentes,pct){
 function _laFaixaPremioInnerHtml(premiosVigentes,pctPorCota){
   return '<span style="font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.02em">'+t('boloes.th_premio_estim')+'</span>'+premiosVigentes.map(function(pl){
     var porCota=(pctPorCota>0&&pl.premioNum)?_bMoney(pl.premioNum*pctPorCota/100):'—';
-    return '<span title="'+_esc(pl.nome)+'" style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.03);white-space:nowrap"><span style="display:inline-flex">'+iconLoteria(pl.cfg,11)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span><span style="font-size:10px;color:var(--text-muted)">· '+t('boloes.por_cota_valor',{valor:porCota})+'</span></span>';
+    return '<span title="'+_esc(pl.nome)+'" style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.03);white-space:nowrap"><span style="display:inline-flex">'+iconLoteriaTema(pl.cfg,11)+'</span><span style="color:'+_corMarcaLegivelHero(pl.cfg)+';font-weight:700">'+(pl.premio==='—'?'—':pl.premio)+'</span><span style="font-size:10px;color:var(--text-muted)">· '+t('boloes.por_cota_valor',{valor:porCota})+'</span></span>';
   }).join('');
 }
 // Dica do "% / cota": o prêmio do participante (todas as cotas) em cada loteria
@@ -23024,9 +23032,18 @@ function _laQuandoVinc(ts){
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 function _laRealizado(cc){ try{ return !!(cc.loteria&&_concursoJaRealizado(cc.loteria,cc.num)); }catch(e){ return false; } }
+/* LA_CONTRASTE_LOTERIAS */
+function iconLoteriaTema(d,tamanho){
+  try{
+    if(d&&!d.americano&&d.apiKey&&LA_CLARA_ESCURO[d.apiKey]&&document.body&&!document.body.classList.contains('theme-light')){
+      var c=LA_CLARA_ESCURO[d.apiKey]; return iconeTrevoSVG(tamanho||14,c,_mixBranco(c,0.3));
+    }
+  }catch(e){}
+  return iconLoteria(d,tamanho);
+}
 function _laCabLoteria(key,nome,dados){
   var d=(typeof CFG!=='undefined'&&key)?CFG[key]:null;
-  return '<span style="color:'+(d?corMarca(d):'var(--text-muted)')+';font-weight:800;font-size:12px"><span style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle">'+(d?iconLoteria(d,14):'')+_esc(nome||(d&&d.nome)||key||'')+'</span></span>';
+  return '<span style="color:'+(d?corMarcaTema(d):'var(--text-muted)')+';font-weight:800;font-size:12px"><span style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle">'+(d?iconLoteriaTema(d,14):'')+_esc(nome||(d&&d.nome)||key||'')+'</span></span>';
 }
 function _laLinhaRodada(cc,ordinals){
   var nJ=(cc.jogos||[]).length;
@@ -23119,6 +23136,24 @@ function _laGastosDiariosSimplesHtml(dias,porDia){
   var m={}; dias.forEach(function(d){ m[d]={total:porDia[d],semanaIdx:-1}; });
   return _laGastosDiariosMiniCardsHtml(dias,m,null);
 }
+/* LA_DETAILS_ABERTOS */
+function _laGuardarDetails(raiz){ var r=[]; if(!raiz) return r; raiz.querySelectorAll('details').forEach(function(d,i){ if(d.open) r.push(i); }); return r; }
+function _laRestaurarDetails(raiz,abertos){
+  if(!raiz||!abertos||!abertos.length) return;
+  var ds=raiz.querySelectorAll('details');
+  abertos.forEach(function(i){ var d=ds[i]; if(d&&!d.open){ d.open=true; try{ d.dispatchEvent(new Event('toggle')); }catch(e){} } });
+}
+(function(){
+  [['renderFormBolao','boloes-conteudo'],['renderParticipantesBoloes','boloes-part-lista']].forEach(function(par){
+    var orig=window[par[0]]; if(typeof orig!=='function') return;
+    window[par[0]]=function(){
+      var ab=_laGuardarDetails(document.getElementById(par[1]));
+      var r=orig.apply(this,arguments);
+      _laRestaurarDetails(document.getElementById(par[1]),ab);
+      return r;
+    };
+  });
+})();
 function _gerarConcursosPorParticipanteHtml(s,concursosLista){
   if(!s.participantes.length||!concursosLista.length) return '';
   // Igual ao mobile: concursos ativos (ainda não sorteados) ficam à vista; os já sorteados vão para o recolhimento "Concursos finalizados (N)".
