@@ -20823,6 +20823,7 @@ function encerrarBolao(){
 function renderFormBolao(){
   var c = document.getElementById('boloes-conteudo');
   if(!c) return;
+  window._boloesModoLista=false; /* LA_BOLOES_MODO_LISTA */
   // Item 2 do documento de correções: todo bolão agora é Multi-Loteria, então
   // todos os botões/identidade visual deste formulário usam a cor exclusiva
   // do Multi-Loteria (não mais a cor da loteria ativa no topo do app).
@@ -20849,7 +20850,7 @@ function renderFormBolao(){
   // para exibir o valor convertido corretamente. Busca em segundo plano,
   // sem travar a renderização atual — quando chegar, re-renderiza.
   if(_tipoOrg(s)==='fixo' && s.admin.moedaValorFixo && s.admin.moedaValorFixo!=='BRL' && !_cambioRatesCache){
-    _obterCotacaoCambio().then(function(rates){ if(rates){ _cambioRatesCache=rates; renderFormBolao(); } });
+    _obterCotacaoCambio().then(function(rates){ if(rates){ _cambioRatesCache=rates; if(!window._boloesModoLista) renderFormBolao(); } });
   }
   var cardStyle = 'background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;margin-bottom:14px';
   var lbl = 'display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em';
@@ -20990,7 +20991,7 @@ function renderFormBolao(){
     });
     if(_paresPendentes.length){
       _prewarmHistoricoConcursos(_paresPendentes).then(function(){
-        if(_boloesState===s&&typeof renderFormBolao==='function') renderFormBolao();
+        if(_boloesState===s&&typeof renderFormBolao==='function'&&!window._boloesModoLista) renderFormBolao();
       });
     }
     var _premioPorSemanaReal=_sems.map(function(){return 0;});
@@ -24253,6 +24254,7 @@ async function listarBoloesSalvos(){
   }
   var cardStyle='background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 18px;margin-bottom:14px';
   if(!todos.length){
+    window._boloesModoLista=true;
     c.innerHTML='<div style="'+cardStyle+';text-align:center;color:var(--text-muted)">'+t('boloes.nenhum_bolao_salvo')+'</div>';
     return;
   }
@@ -24296,6 +24298,7 @@ async function listarBoloesSalvos(){
         '</div></div>');
     }catch(e){ linhas.push('<div style="padding:8px;color:#f87171;font-size:11px">'+t('boloes.erro_ler_bolao',{nome:_esc(b.nome||'?')})+'</div>'); }
   }
+  window._boloesModoLista=true;
   c.innerHTML='<div style="'+cardStyle+'">'+
     '<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:'+MULTI_LOTERIA_COR+';margin-bottom:10px">📂 '+t('boloes.boloes_salvos')+'</div>'+
     linhas.join('')+
@@ -24399,7 +24402,7 @@ async function _recarregarFinanceiroDoBanco(bolaoId){
     if(!emEdicao) _boloesState.arrecadacaoTotal=est.arrecadacaoTotal||0;
     _assinaturaFinanceiro=await _assinaturaFinanceiroDoBanco(bolaoId);
     var _bp=document.getElementById('boloes-panel');   // só redesenha com o painel do bolão visível (o timer segue vivo em outras abas)
-    if(_boloesState.editId===bolaoId&&_bp&&_bp.style.display!=='none'&&typeof renderFormBolao==='function') renderFormBolao();
+    if(_boloesState.editId===bolaoId&&_bp&&_bp.style.display!=='none'&&typeof renderFormBolao==='function'&&!window._boloesModoLista) renderFormBolao();
     return true;
   }catch(e){ console.warn('[_recarregarFinanceiroDoBanco]',e.message); return false; }
 }
