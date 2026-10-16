@@ -1640,6 +1640,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.1':{
+    'en-US':["Version 6.0.1, aligned with the mobile app. In the Admin Panel, each user appears as a collapsed card, with the access status on the right. All choice fields open in a menu in the program's own style. The Saved Pools list no longer closes by itself. New videos and updated manuals, in 5 languages."],
+    'es-ES':["Versión 6.0.1, alineada con la app móvil. En el Panel de administración, cada usuario aparece en una tarjeta recogida, con el estado del acceso a la derecha. Todos los campos de elección se abren en un menú con el estilo del programa. La lista Grupos guardados ya no se cierra sola. Vídeos nuevos y manuales actualizados, en 5 idiomas."],
+    'it-IT':["Versione 6.0.1, allineata con l'app mobile. Nel Pannello di amministrazione, ogni utente appare in una scheda ripiegata, con lo stato dell'accesso a destra. Tutti i campi di scelta si aprono in un menu nello stile del programma. L'elenco Gruppi salvati non si chiude più da solo. Video nuovi e manuali aggiornati, in 5 lingue."]
+  },
   '6.0.0':{
     'en-US':["Version 6.0.0, aligned with the mobile app. In the dark theme, the icon inside the buttons now has a lime green at 50% transparency, much easier to see on the dark background. The light and colorful themes stay the same."],
     'es-ES':["Versión 6.0.0, alineada con la app móvil. En el tema oscuro, el icono dentro de los botones ahora tiene un verde lima con un 50 % de transparencia, mucho más visible sobre el fondo oscuro. Los temas claro y colorido siguen igual."],
@@ -1917,6 +1922,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.1':[
+    "Versão 6.0.1, alinhada com o app mobile. No Painel de Administração, cada usuário aparece em um cartão recolhido, com a situação do acesso à direita. Todos os campos de escolha abrem num menu no estilo do programa. A lista Bolões Salvos não fecha mais sozinha. Vídeos novos e manuais atualizados, em 5 idiomas."
+  ],
   '6.0.0':[
     "Versão 6.0.0, alinhada com o app mobile. No tema escuro, o ícone que fica dentro dos botões ganhou um verde-limão com 50% de transparência, bem mais visível sobre o fundo escuro. Os temas claro e colorido continuam iguais."
   ],
@@ -2351,7 +2359,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.1</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2727,7 +2735,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.0</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.1</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
