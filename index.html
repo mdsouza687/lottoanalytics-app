@@ -1640,6 +1640,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.3':{
+    'en-US':["Admin panel › New Password Requests: a Delete button on each request; requests older than 7 days leave the list (with a Delete expired button). The password-change link now opens the right WhatsApp for people living in the U.S."],
+    'es-ES':["Panel de administración › Solicitudes de Nueva Contraseña: botón Eliminar en cada solicitud; las de más de 7 días salen de la lista (con el botón Eliminar vencidas). El enlace de cambio de contraseña ahora abre el WhatsApp correcto de quien vive en EE. UU."],
+    'it-IT':["Pannello di amministrazione › Richieste di Nuova Password: pulsante Elimina su ogni richiesta; le richieste con più di 7 giorni escono dall’elenco (con il pulsante Elimina scadute). Il link per cambiare la password ora apre il WhatsApp giusto di chi vive negli USA."]
+  },
   '6.0.2':{
     'en-US':["Version 6.0.2, aligned with the mobile app. The Desktop Participant videos were redone with the current screens, and the manual now points to them."],
     'es-ES':["Versión 6.0.2, alineada con la app móvil. Los vídeos del Desktop Participante se rehicieron con las pantallas actuales, y el manual ya apunta a ellos."],
@@ -1927,6 +1932,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.3':[
+    "Painel de administração › Solicitações de Nova Senha: botão Excluir em cada pedido; pedidos com mais de 7 dias saem da lista (com o botão Excluir vencidas). O link de troca de senha agora abre o WhatsApp certo de quem mora nos EUA."
+  ],
   '6.0.2':[
     "Versão 6.0.2, alinhada com o app mobile. Os vídeos do Desktop Participante foram refeitos com as telas atuais, e o manual já aponta para eles."
   ],
@@ -2367,7 +2375,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.2</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.3</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2743,7 +2751,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.2</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.3</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -5921,6 +5929,10 @@ Object.assign(LA_I18N['pt-BR'], {"boloes.cadastro_geral_sub":"Todas as pessoas j
 Object.assign(LA_I18N['en-US'], {"boloes.cadastro_geral_sub":"Everyone already registered ({n})","boloes.cadastro_buscar":"Search by name, email or WhatsApp","boloes.cadastro_participou":"Pools","boloes.cadastro_neste_bolao":"In this pool"});
 Object.assign(LA_I18N['es-ES'], {"boloes.cadastro_geral_sub":"Todas las personas ya registradas ({n})","boloes.cadastro_buscar":"Buscar por nombre, e-mail o WhatsApp","boloes.cadastro_participou":"Grupos","boloes.cadastro_neste_bolao":"En este grupo"});
 Object.assign(LA_I18N['it-IT'], {"boloes.cadastro_geral_sub":"Tutte le persone già registrate ({n})","boloes.cadastro_buscar":"Cerca per nome, e-mail o WhatsApp","boloes.cadastro_participou":"Gruppi","boloes.cadastro_neste_bolao":"In questo gruppo"});
+Object.assign(LA_I18N["pt-BR"], {"admin.excluir_solicitacao":"Excluir","admin.confirmar_excluir_solicitacao":"Excluir esta solicitação de nova senha?","admin.solicitacao_excluida":"Solicitação excluída.","admin.solic_vencidas":"{n} solicitação(ões) vencida(s) (mais de 7 dias; não aparecem na lista).","admin.excluir_vencidas":"Excluir vencidas ({n})","admin.confirmar_excluir_vencidas":"Excluir {n} solicitação(ões) vencida(s) (mais de 7 dias)?","admin.vencidas_excluidas":"{n} solicitação(ões) vencida(s) excluída(s).","admin.erro_excluir_solicitacao":"Erro ao excluir: {msg}"});
+Object.assign(LA_I18N["en-US"], {"admin.excluir_solicitacao":"Delete","admin.confirmar_excluir_solicitacao":"Delete this new-password request?","admin.solicitacao_excluida":"Request deleted.","admin.solic_vencidas":"{n} expired request(s) (older than 7 days; not shown in the list).","admin.excluir_vencidas":"Delete expired ({n})","admin.confirmar_excluir_vencidas":"Delete {n} expired request(s) (older than 7 days)?","admin.vencidas_excluidas":"{n} expired request(s) deleted.","admin.erro_excluir_solicitacao":"Could not delete: {msg}"});
+Object.assign(LA_I18N["es-ES"], {"admin.excluir_solicitacao":"Eliminar","admin.confirmar_excluir_solicitacao":"¿Eliminar esta solicitud de nueva contraseña?","admin.solicitacao_excluida":"Solicitud eliminada.","admin.solic_vencidas":"{n} solicitud(es) vencida(s) (más de 7 días; no aparecen en la lista).","admin.excluir_vencidas":"Eliminar vencidas ({n})","admin.confirmar_excluir_vencidas":"¿Eliminar {n} solicitud(es) vencida(s) (más de 7 días)?","admin.vencidas_excluidas":"{n} solicitud(es) vencida(s) eliminada(s).","admin.erro_excluir_solicitacao":"Error al eliminar: {msg}"});
+Object.assign(LA_I18N["it-IT"], {"admin.excluir_solicitacao":"Elimina","admin.confirmar_excluir_solicitacao":"Eliminare questa richiesta di nuova password?","admin.solicitacao_excluida":"Richiesta eliminata.","admin.solic_vencidas":"{n} richiesta/e scaduta/e (oltre 7 giorni; non compaiono nell’elenco).","admin.excluir_vencidas":"Elimina scadute ({n})","admin.confirmar_excluir_vencidas":"Eliminare {n} richiesta/e scaduta/e (oltre 7 giorni)?","admin.vencidas_excluidas":"{n} richiesta/e scaduta/e eliminata/e.","admin.erro_excluir_solicitacao":"Impossibile eliminare: {msg}"});
 Object.assign(LA_I18N['pt-BR'], {"listas.titulo":"Listas de participantes","listas.desc":"Monte listas com nome (Família, Amigos do trabalho…) e use em qualquer bolão novo. A mesma pessoa pode estar em várias listas.","listas.nova":"Nova lista","listas.nova_titulo":"Nova lista","listas.editar_titulo":"Editar lista","listas.nenhuma":"Você ainda não tem listas. Clique em “Nova lista” para criar a primeira.","listas.nenhuma_carregar":"Você ainda não tem listas salvas. Salve os participantes de um bolão como lista, ou crie uma em “Minhas listas”.","listas.uma_pessoa":"1 pessoa","listas.n_pessoas":"{n} pessoas","listas.nome":"Nome da lista","listas.nome_ph":"Ex.: Família","listas.pessoas":"Pessoas da lista","listas.buscar":"Buscar pelo nome…","listas.marcar_todos":"Marcar todos","listas.limpar":"Limpar","listas.cotas":"Cotas","listas.salvar":"Salvar lista","listas.excluir":"Excluir lista","listas.excluir_confirma":"Excluir a lista “{nome}”? As pessoas continuam no cadastro geral.","listas.salva_ok":"Lista salva.","listas.excluida_ok":"Lista excluída.","listas.sem_cadastro":"O cadastro geral ainda está vazio. Cadastre pessoas primeiro.","listas.nome_obrigatorio":"Dê um nome à lista.","listas.marque_alguem":"Marque pelo menos uma pessoa.","listas.erro":"Não foi possível concluir: {msg}","listas.btn_importar":"Importar lista","listas.btn_salvar":"Salvar lista","listas.btn_carregar":"Carregar lista","listas.btn_gerenciar":"Minhas listas","listas.carregar_titulo":"Carregar lista no bolão","listas.carregar_resumo":"{novos} pessoa(s) nova(s) entram no bolão; {ja} já estão nele.","listas.carregar_confirma":"Adicionar {n}","listas.carregar_ok":"{n} pessoa(s) adicionada(s) ao bolão.","listas.carregar_nada":"Todas as pessoas desta lista já estão no bolão.","listas.bolao_ativado":"Este bolão já foi ativado: a lista de participantes está fechada.","listas.salvar_titulo":"Salvar participantes como lista","listas.salvar_desc":"Guarda os {n} participantes deste bolão numa lista com nome, para usar em outros bolões.","listas.salvar_existe":"Já existe uma lista com esse nome. O que fazer?","listas.salvar_substituir":"Substituir as pessoas da lista","listas.salvar_acrescentar":"Só acrescentar à lista","listas.salvar_sem_participantes":"Este bolão ainda não tem participantes para salvar.","listas.importar_titulo":"Importar lista de um arquivo","listas.importar_desc":"Escolha uma planilha (.xlsx ou .csv) com as colunas Nome, E-mail, WhatsApp e Cotas.","listas.importar_escolher":"Escolher arquivo","listas.importar_lendo":"Lendo o arquivo…","listas.importar_nada":"Não encontrei pessoas neste arquivo. Confira se há uma linha de cabeçalho com “Nome” e “E-mail”.","listas.importar_resumo":"{n} pessoa(s) pronta(s) para importar; {sem} sem e-mail ou WhatsApp válidos (não entram).","listas.importar_rejeitados":"Ficam de fora:","listas.importar_tambem":"Também salvar como lista (opcional):","listas.importar_confirma":"Importar {n}","listas.importar_erro_arquivo":"Não consegui ler este arquivo.","listas.d_lista_antiga":"Lista salva antiga","listas.d_antiga":"antiga","listas.d_migrar_antiga":"Trazer minha lista salva antiga ({n})","listas.d_migrada_ok":"Lista antiga trazida como “{nome}”.","boloes.title_salvar_lista":"Salva os participantes deste bolão como uma lista com nome, para usar em qualquer bolão novo","boloes.title_carregar_lista":"Carrega uma das suas listas salvas neste bolão — evita redigitar participantes recorrentes"});
 Object.assign(LA_I18N['en-US'], {"listas.titulo":"Participant lists","listas.desc":"Build named lists (Family, Work friends…) and use them in any new pool. The same person can be in several lists.","listas.nova":"New list","listas.nova_titulo":"New list","listas.editar_titulo":"Edit list","listas.nenhuma":"You have no lists yet. Click “New list” to create the first one.","listas.nenhuma_carregar":"You have no saved lists yet. Save a pool’s participants as a list, or create one in “My lists”.","listas.uma_pessoa":"1 person","listas.n_pessoas":"{n} people","listas.nome":"List name","listas.nome_ph":"E.g.: Family","listas.pessoas":"People in the list","listas.buscar":"Search by name…","listas.marcar_todos":"Select all","listas.limpar":"Clear","listas.cotas":"Shares","listas.salvar":"Save list","listas.excluir":"Delete list","listas.excluir_confirma":"Delete the list “{nome}”? The people stay in the general registry.","listas.salva_ok":"List saved.","listas.excluida_ok":"List deleted.","listas.sem_cadastro":"The general registry is still empty. Register people first.","listas.nome_obrigatorio":"Give the list a name.","listas.marque_alguem":"Select at least one person.","listas.erro":"Could not complete: {msg}","listas.btn_importar":"Import list","listas.btn_salvar":"Save list","listas.btn_carregar":"Load list","listas.btn_gerenciar":"My lists","listas.carregar_titulo":"Load list into the pool","listas.carregar_resumo":"{novos} new person(s) join the pool; {ja} already in it.","listas.carregar_confirma":"Add {n}","listas.carregar_ok":"{n} person(s) added to the pool.","listas.carregar_nada":"Everyone in this list is already in the pool.","listas.bolao_ativado":"This pool has already been activated: the participant list is closed.","listas.salvar_titulo":"Save participants as a list","listas.salvar_desc":"Keeps this pool’s {n} participants in a named list, to use in other pools.","listas.salvar_existe":"A list with this name already exists. What to do?","listas.salvar_substituir":"Replace the people in the list","listas.salvar_acrescentar":"Only add to the list","listas.salvar_sem_participantes":"This pool has no participants to save yet.","listas.importar_titulo":"Import a list from a file","listas.importar_desc":"Choose a spreadsheet (.xlsx or .csv) with the columns Name, E-mail, WhatsApp and Shares.","listas.importar_escolher":"Choose file","listas.importar_lendo":"Reading the file…","listas.importar_nada":"No people found in this file. Check that there is a header row with “Name” and “E-mail”.","listas.importar_resumo":"{n} person(s) ready to import; {sem} without a valid e-mail or WhatsApp (not imported).","listas.importar_rejeitados":"Left out:","listas.importar_tambem":"Also save as a list (optional):","listas.importar_confirma":"Import {n}","listas.importar_erro_arquivo":"I could not read this file.","listas.d_lista_antiga":"Old saved list","listas.d_antiga":"old","listas.d_migrar_antiga":"Bring my old saved list ({n})","listas.d_migrada_ok":"Old list brought in as “{nome}”.","boloes.title_salvar_lista":"Saves this pool’s participants as a named list to use in any new pool","boloes.title_carregar_lista":"Loads one of your saved lists into this pool — no retyping recurring participants"});
 Object.assign(LA_I18N['es-ES'], {"listas.titulo":"Listas de participantes","listas.desc":"Arma listas con nombre (Familia, Amigos del trabajo…) y úsalas en cualquier grupo nuevo. La misma persona puede estar en varias listas.","listas.nova":"Nueva lista","listas.nova_titulo":"Nueva lista","listas.editar_titulo":"Editar lista","listas.nenhuma":"Aún no tienes listas. Haz clic en “Nueva lista” para crear la primera.","listas.nenhuma_carregar":"Aún no tienes listas guardadas. Guarda los participantes de un grupo como lista, o crea una en “Mis listas”.","listas.uma_pessoa":"1 persona","listas.n_pessoas":"{n} personas","listas.nome":"Nombre de la lista","listas.nome_ph":"Ej.: Familia","listas.pessoas":"Personas de la lista","listas.buscar":"Buscar por nombre…","listas.marcar_todos":"Marcar todos","listas.limpar":"Limpiar","listas.cotas":"Cuotas","listas.salvar":"Guardar lista","listas.excluir":"Eliminar lista","listas.excluir_confirma":"¿Eliminar la lista “{nome}”? Las personas siguen en el registro general.","listas.salva_ok":"Lista guardada.","listas.excluida_ok":"Lista eliminada.","listas.sem_cadastro":"El registro general aún está vacío. Registra personas primero.","listas.nome_obrigatorio":"Ponle un nombre a la lista.","listas.marque_alguem":"Marca al menos una persona.","listas.erro":"No se pudo completar: {msg}","listas.btn_importar":"Importar lista","listas.btn_salvar":"Guardar lista","listas.btn_carregar":"Cargar lista","listas.btn_gerenciar":"Mis listas","listas.carregar_titulo":"Cargar lista en el grupo","listas.carregar_resumo":"{novos} persona(s) nueva(s) entran en el grupo; {ja} ya están en él.","listas.carregar_confirma":"Añadir {n}","listas.carregar_ok":"{n} persona(s) añadida(s) al grupo.","listas.carregar_nada":"Todas las personas de esta lista ya están en el grupo.","listas.bolao_ativado":"Este grupo ya fue activado: la lista de participantes está cerrada.","listas.salvar_titulo":"Guardar participantes como lista","listas.salvar_desc":"Guarda los {n} participantes de este grupo en una lista con nombre, para usar en otros grupos.","listas.salvar_existe":"Ya existe una lista con ese nombre. ¿Qué hacer?","listas.salvar_substituir":"Reemplazar las personas de la lista","listas.salvar_acrescentar":"Solo añadir a la lista","listas.salvar_sem_participantes":"Este grupo aún no tiene participantes para guardar.","listas.importar_titulo":"Importar lista desde un archivo","listas.importar_desc":"Elige una hoja de cálculo (.xlsx o .csv) con las columnas Nombre, Correo, WhatsApp y Cuotas.","listas.importar_escolher":"Elegir archivo","listas.importar_lendo":"Leyendo el archivo…","listas.importar_nada":"No encontré personas en este archivo. Revisa que haya una fila de encabezado con “Nombre” y “Correo”.","listas.importar_resumo":"{n} persona(s) lista(s) para importar; {sem} sin correo o WhatsApp válidos (no entran).","listas.importar_rejeitados":"Quedan fuera:","listas.importar_tambem":"Guardar también como lista (opcional):","listas.importar_confirma":"Importar {n}","listas.importar_erro_arquivo":"No pude leer este archivo.","listas.d_lista_antiga":"Lista guardada anterior","listas.d_antiga":"anterior","listas.d_migrar_antiga":"Traer mi lista guardada anterior ({n})","listas.d_migrada_ok":"Lista anterior traída como “{nome}”.","boloes.title_salvar_lista":"Guarda los participantes de este grupo como una lista con nombre para usar en cualquier grupo nuevo","boloes.title_carregar_lista":"Carga una de tus listas guardadas en este grupo — evita volver a escribir participantes recurrentes"});
@@ -6668,11 +6680,14 @@ async function renderPainelAdmin(msg,msgTipo){
   // repassa manualmente por WhatsApp — faz o papel do e-mail de
   // confirmação até dar pra configurar SMTP de verdade.
   const {data:solicitacoes}=await sb.from('reset_senha_solicitacoes').select('id,email,whatsapp,criado_em').is('atendido_em',null).order('criado_em',{ascending:true});
-  const linhasSolic=(solicitacoes||[]).map(s=>`<tr style="border-bottom:1px solid var(--glass-border)">
+  /*LA_SOLIC_SENHA_DESKTOP*/ const _limVencSolic=Date.now()-7*86400000;
+  const solicRecentes=(solicitacoes||[]).filter(x=>new Date(x.criado_em).getTime()>=_limVencSolic);
+  const solicVencidas=(solicitacoes||[]).length-solicRecentes.length;
+  const linhasSolic=solicRecentes.map(s=>`<tr style="border-bottom:1px solid var(--glass-border)">
       <td style="padding:8px 10px;font-size:12px">${_esc(s.email)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--text-muted)">${_esc(s.whatsapp||'—')}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--text-muted)">${new Date(s.criado_em).toLocaleString('pt-BR')}</td>
-      <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}','${(s.whatsapp||'').replace(/\D/g,'')}')">${t('admin.gerar_link_troca')}</button></td>
+      <td style="padding:8px 10px;text-align:right"><button class="btn-sm" onclick="adminResetarSenha('${s.id}','${_esc(s.email).replace(/'/g,"\\'")}','${(s.whatsapp||'').replace(/\D/g,'')}')">${t('admin.gerar_link_troca')}</button> <button type="button" class="btn-sm perigo" onclick="adminExcluirSolicitacao('${s.id}')">${_ic('lixeira',13)} ${t('admin.excluir_solicitacao')}</button></td>
     </tr>`).join('');
   const linhas=(perfis||[]).map(p=>{
     const souEu=!!(window._usuarioAtual&&window._usuarioAtual.id===p.id);
@@ -6754,14 +6769,14 @@ async function renderPainelAdmin(msg,msgTipo){
       </div>
     </div>`:''}
     <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
-      <div style="font-weight:800;font-size:13px;margin-bottom:10px">${_ic('cadeadoAberto',16)} ${t('admin.solicitacoes_nova_senha',{n:(solicitacoes||[]).length})}</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px">${_ic('cadeadoAberto',16)} ${t('admin.solicitacoes_nova_senha',{n:solicRecentes.length})}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">${t('admin.smtp_bloqueado_desc')}</div>
-      ${(solicitacoes||[]).length ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      ${solicRecentes.length ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
         <thead><tr style="border-bottom:2px solid var(--glass-border);text-align:left">
           <th style="padding:8px 10px;font-size:11px">${t('geral.email')}</th><th style="padding:8px 10px;font-size:11px">WhatsApp</th><th style="padding:8px 10px;font-size:11px">${t('admin.pedido_em')}</th><th></th>
         </tr></thead>
         <tbody>${linhasSolic}</tbody>
-      </table></div>` : `<div style="font-size:12px;color:var(--text-muted)">${t('admin.nenhuma_solicitacao_pendente')}</div>`}
+      </table></div>` : `<div style="font-size:12px;color:var(--text-muted)">${t('admin.nenhuma_solicitacao_pendente')}</div>`}${solicVencidas?`<div style="padding-top:10px;margin-top:10px;border-top:1px solid var(--glass-border);font-size:11px;color:var(--text-muted)">${t('admin.solic_vencidas',{n:solicVencidas})}<div style="margin-top:6px"><button type="button" class="btn-sm perigo" onclick="adminLimparVencidas(${solicVencidas})">${_ic('lixeira',13)} ${t('admin.excluir_vencidas',{n:solicVencidas})}</button></div></div>`:''}
     </div>
     ${souSuperAdmin?`<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px">➕ ${t('admin.criar_usuario_teste_desc')}</div>
@@ -6786,6 +6801,27 @@ async function renderPainelAdmin(msg,msgTipo){
 // (wa.me) com a mensagem pronta pro número da solicitação — só falta
 // clicar em enviar. Quem escolhe e digita a senha nova é a própria
 // pessoa, do outro lado do link.
+// Número para o wa.me: brasileiro (10/11 dígitos com DDD, celular começa em 9) ganha o 55; número dos EUA (1 + 10 dígitos) ou com "+" fica como está.
+function _waNumeroAdmin(raw){
+  const s=String(raw||'').trim(), d=s.replace(/\D/g,'');
+  if(s.charAt(0)==='+') return d;
+  if(d.length===11 && d.charAt(0)==='1' && d.charAt(2)!=='9') return d;   // EUA/Canadá: 1 + DDD de 3 dígitos + 7
+  return d.length<=11 ? '55'+d : d;
+}
+async function adminExcluirSolicitacao(id){
+  if(!confirm(t('admin.confirmar_excluir_solicitacao'))) return;
+  const sb=_getSbClient();
+  const {error}=await sb.rpc('rpc_admin_excluir_solicitacao_senha',{p_id:id});
+  if(error){ await renderPainelAdmin(t('admin.erro_excluir_solicitacao',{msg:error.message}),'err'); return; }
+  await renderPainelAdmin(t('admin.solicitacao_excluida'),'ok');
+}
+async function adminLimparVencidas(n){
+  if(!confirm(t('admin.confirmar_excluir_vencidas',{n:n}))) return;
+  const sb=_getSbClient();
+  const {data,error}=await sb.rpc('rpc_admin_limpar_solicitacoes_vencidas',{p_dias:7});
+  if(error){ await renderPainelAdmin(t('admin.erro_excluir_solicitacao',{msg:error.message}),'err'); return; }
+  await renderPainelAdmin(t('admin.vencidas_excluidas',{n:data||0}),'ok');
+}
 async function adminResetarSenha(solicitacaoId,email,whatsapp){
   const sb=_getSbClient();
   try{
@@ -6801,7 +6837,7 @@ async function adminResetarSenha(solicitacaoId,email,whatsapp){
     const link=`${PARTICIPANTE_APP_URL}/?trocarSenha=${out.token}`;
     const texto=t('admin.whatsapp_texto_link',{link:link});
     if(whatsapp){
-      window.open(`https://wa.me/55${whatsapp}?text=${encodeURIComponent(texto)}`,'_blank');
+      window.open(`https://wa.me/${_waNumeroAdmin(whatsapp)}?text=${encodeURIComponent(texto)}`,'_blank');
     } else {
       await _promptModal(t('admin.whatsapp_nao_cadastrado',{email:email}), link);
     }
