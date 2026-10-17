@@ -39,6 +39,7 @@
   --glass-bg:rgba(17,21,29,.6);--glass-border:#1b2230;--glass-hover:#223049;
   --text:#e6eefc;--text-muted:#7d8da1;--text-dim:#8d9cb2;
   --green:#00c97a;--red:#ff4d6d;--gold:#f5c842;
+  /*LA_CORES_VIBRANTES*/
   --radius-xl:20px;--radius-lg:14px;--radius-md:10px;--radius-sm:7px;
   --blur:blur(20px);--blur-light:blur(10px);--shadow:0 8px 40px rgba(0,0,0,.55);--ac:#3A9B4E;
   --font-head:'Exo 2',sans-serif;--font-body:'Manrope',sans-serif;--font-mono:'JetBrains Mono',monospace;
@@ -60,6 +61,8 @@
    Ver script no fim do arquivo (delegação global em [title]). */
 .la-tooltip{position:fixed;z-index:99999;pointer-events:none;background:var(--bg2);color:var(--text);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:7px 11px;font-family:var(--font-body);font-size:11px;line-height:1.45;max-width:260px;white-space:pre-line;box-shadow:var(--shadow);opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease;}
 .la-tooltip.show{opacity:1;transform:translateY(0);}
+body:not(.theme-light):not(.theme-colorful){--green:#39FF14;}   /* escuro: verde vibrante nos itens ok */
+body.theme-colorful{--green:#00FFD4;}   /* colorido: turquesa vibrante */
 /* LA_SELECT_APP: menu dos <select> no padrão do app */
 .la-sel-menu{position:fixed;overflow-y:auto;overscroll-behavior:contain;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-md);box-shadow:var(--shadow);padding:5px;z-index:100001;box-sizing:border-box}
 .la-sel-item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:none;border-radius:8px;background:transparent;color:var(--text);font-family:var(--font-body);font-size:12.5px;text-align:left;cursor:pointer}
@@ -1158,52 +1161,52 @@ body.theme-light #boloes-panel{color:#1a2233!important;}
    usos translúcidos (ex. abas ativas) continuam com texto claro. */
 body.theme-colorful{
   --bg:#1c2b4a; --bg2:#24365c; --bg3:#2d4270;
-  --glass-bg:rgba(30,58,95,.5); --glass-border:rgba(94,234,212,.35); --glass-hover:rgba(45,75,120,.65);
+  --glass-bg:rgba(30,58,95,.5); --glass-border:rgba(0,255,212,.35); --glass-hover:rgba(45,75,120,.65);
   --text:#f0fdfa; --text-muted:#a5d8f0; --text-dim:rgba(165,216,240,.9);
-  --shadow:0 8px 32px rgba(45,212,191,.25);
-  background:radial-gradient(1200px 700px at 10% -10%,rgba(45,212,191,.32),transparent 55%),radial-gradient(1000px 650px at 95% 100%,rgba(232,121,249,.28),transparent 55%),#1c2b4a!important;
+  --shadow:0 8px 32px rgba(0,255,212,.25);
+  background:radial-gradient(1200px 700px at 10% -10%,rgba(0,255,212,.32),transparent 55%),radial-gradient(1000px 650px at 95% 100%,rgba(232,121,249,.28),transparent 55%),#1c2b4a!important;
   color:#f0fdfa!important;
 }
 /* Brilho do orb mais intenso */
 body.theme-colorful .page-orb{opacity:.9!important;filter:saturate(1.35)!important;}
 /* Navbar translúcida vibrante */
-body.theme-colorful .page-topbar{background:rgba(30,58,95,.72)!important;border-bottom:1px solid rgba(94,234,212,.32)!important;backdrop-filter:blur(14px)!important;}
-body.theme-colorful .topbar-divider{background:rgba(94,234,212,.35)!important;}
+body.theme-colorful .page-topbar{background:rgba(30,58,95,.72)!important;border-bottom:1px solid rgba(0,255,212,.32)!important;backdrop-filter:blur(14px)!important;}
+body.theme-colorful .topbar-divider{background:rgba(0,255,212,.35)!important;}
 /* Abas com underline em gradiente */
 body.theme-colorful .tab-btn{color:#a5d8f0!important;}
 body.theme-colorful .tab-btn:hover{color:#f0fdfa!important;}
 body.theme-colorful .tab-btn.active{color:#fff!important;}
 /* Botões de tema */
 body.theme-colorful .theme-btn{color:#a5d8f0!important;}
-body.theme-colorful .theme-btn:hover{background:rgba(94,234,212,.2)!important;color:#fff!important;}
-body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(45,212,191,.4),rgba(232,121,249,.4))!important;color:#fff!important;}
+body.theme-colorful .theme-btn:hover{background:rgba(0,255,212,.2)!important;color:#fff!important;}
+body.theme-colorful .theme-btn.active{background:linear-gradient(135deg,rgba(0,255,212,.4),rgba(232,121,249,.4))!important;color:#fff!important;}
 /* Hero com brilho */
 /* Cards de loteria com brilho na borda */
-body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(36,54,92,.8),rgba(28,43,74,.9))!important;border:1px solid rgba(94,234,212,.35)!important;box-shadow:0 8px 32px rgba(45,212,191,.28)!important;}
+body.theme-colorful .lottery-card-new{background:linear-gradient(160deg,rgba(36,54,92,.8),rgba(28,43,74,.9))!important;border:1px solid rgba(0,255,212,.35)!important;box-shadow:0 8px 32px rgba(0,255,212,.28)!important;}
 body.theme-colorful .lottery-card-new:hover{border-color:rgba(232,121,249,.55)!important;box-shadow:0 12px 40px rgba(200,100,220,.4)!important;transform:translateY(-3px)!important;}
 body.theme-colorful .lcn-name{color:#f0fdfa!important;}
 body.theme-colorful .lcn-prize{color:#ffd166!important;}
 body.theme-colorful .lcn-concurso,body.theme-colorful .lcn-next{color:#a5d8f0!important;}
 /* Painéis e cards */
-body.theme-colorful .glass{background:rgba(36,54,92,.48)!important;border:1px solid rgba(94,234,212,.3)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(45,212,191,.2)!important;}
+body.theme-colorful .glass{background:rgba(36,54,92,.48)!important;border:1px solid rgba(0,255,212,.3)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 32px rgba(0,255,212,.2)!important;}
 body.theme-colorful .card-page-body{background:transparent!important;}
-body.theme-colorful #side-right{background:rgba(28,43,74,.55)!important;border-left:1px solid rgba(94,234,212,.28)!important;}
-body.theme-colorful .result-card{background:rgba(36,54,92,.52)!important;border:1px solid rgba(94,234,212,.32)!important;}
-body.theme-colorful .result-box{background:rgba(28,43,74,.5)!important;border-color:rgba(94,234,212,.3)!important;}
-body.theme-colorful .result-game{background:rgba(36,54,92,.48)!important;border:1px solid rgba(94,234,212,.24)!important;}
-body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(45,212,191,.26),rgba(232,121,249,.16))!important;border-color:rgba(232,121,249,.4)!important;}
+body.theme-colorful #side-right{background:rgba(28,43,74,.55)!important;border-left:1px solid rgba(0,255,212,.28)!important;}
+body.theme-colorful .result-card{background:rgba(36,54,92,.52)!important;border:1px solid rgba(0,255,212,.32)!important;}
+body.theme-colorful .result-box{background:rgba(28,43,74,.5)!important;border-color:rgba(0,255,212,.3)!important;}
+body.theme-colorful .result-game{background:rgba(36,54,92,.48)!important;border:1px solid rgba(0,255,212,.24)!important;}
+body.theme-colorful .result-game.marcado{background:linear-gradient(135deg,rgba(0,255,212,.26),rgba(232,121,249,.16))!important;border-color:rgba(232,121,249,.4)!important;}
 body.theme-colorful .result-num{color:#7fb8d9!important;}
 /* Análise */
-body.theme-colorful{--dt-head-bg:rgba(36,54,92,.72);--dt-row-bg:rgba(28,43,74,.4);--dt-row-bg-alt:rgba(36,54,92,.4);--dt-hit-main:#2dd4bf;--dt-hit-extra:#e879f9;--dt-extra-dim:#8ab4d8;--glass-border-faint:rgba(94,234,212,.16);}
-body.theme-colorful .fill-btn{border:1px solid rgba(94,234,212,.35)!important;color:#a5d8f0!important;background:rgba(36,54,92,.48)!important;}
-body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#2dd4bf,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
-body.theme-colorful .np-ball{border:1.5px solid rgba(94,234,212,.35)!important;color:#a5d8f0!important;}
-body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#2dd4bf,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
-body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(94,234,212,.3)!important;}
-body.theme-colorful .analise-chart-wrap{background:rgba(28,43,74,.48)!important;border-color:rgba(94,234,212,.3)!important;}
+body.theme-colorful{--dt-head-bg:rgba(36,54,92,.72);--dt-row-bg:rgba(28,43,74,.4);--dt-row-bg-alt:rgba(36,54,92,.4);--dt-hit-main:#00FFD4;--dt-hit-extra:#e879f9;--dt-extra-dim:#8ab4d8;--glass-border-faint:rgba(0,255,212,.16);}
+body.theme-colorful .fill-btn{border:1px solid rgba(0,255,212,.35)!important;color:#a5d8f0!important;background:rgba(36,54,92,.48)!important;}
+body.theme-colorful .fill-btn:hover,body.theme-colorful .fill-btn.is-on{background:linear-gradient(135deg,#00FFD4,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
+body.theme-colorful .np-ball{border:1.5px solid rgba(0,255,212,.35)!important;color:#a5d8f0!important;}
+body.theme-colorful .np-ball.sel{background:linear-gradient(135deg,#00FFD4,#e879f9)!important;color:#062821!important;border-color:transparent!important;}
+body.theme-colorful .tbl-wrap,body.theme-colorful .np-wrap{border-color:rgba(0,255,212,.3)!important;}
+body.theme-colorful .analise-chart-wrap{background:rgba(28,43,74,.48)!important;border-color:rgba(0,255,212,.3)!important;}
 /* Campos */
 body.theme-colorful input,body.theme-colorful select,body.theme-colorful textarea,
-body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(20,30,52,.55)!important;border:1px solid rgba(94,234,212,.35)!important;color:#f0fdfa!important;}
+body.theme-colorful .f-inp,body.theme-colorful .f-sel{background:rgba(20,30,52,.55)!important;border:1px solid rgba(0,255,212,.35)!important;color:#f0fdfa!important;}
 body.theme-colorful input::placeholder,body.theme-colorful textarea::placeholder{color:#7fa8c9!important;}
 /* Botões de ação com brilho */
 body.theme-colorful .action-btn{background:rgba(70,42,115,.5)!important;border:1px solid rgba(212,160,255,.3)!important;color:#fbf5ff!important;}
@@ -1640,6 +1643,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.5':{
+    'en-US':["More vibrant colors: in the colorful theme, the new turquoise on borders, glows and buttons; in the dark theme, the new green on confirmed items."],
+    'es-ES':["Colores más vibrantes: en el tema colorido, el nuevo turquesa en bordes, brillos y botones; en el tema oscuro, el nuevo verde en los elementos confirmados."],
+    'it-IT':["Colori più vivaci: nel tema colorato, il nuovo turchese su bordi, bagliori e pulsanti; nel tema scuro, il nuovo verde sugli elementi confermati."]
+  },
   '6.0.4':{
     'en-US':["Admin panel › New Password Requests: handled requests stay in the list for 7 days, showing their status (link generated, link expired or password changed). Admins now get a notice on their phone when someone asks for a new password."],
     'es-ES':["Panel de administración › Solicitudes de Nueva Contraseña: las solicitudes ya atendidas quedan en la lista por 7 días, con su situación (enlace generado, enlace expirado o contraseña cambiada). Quien administra recibe un aviso en el móvil cuando alguien pide una nueva contraseña."],
@@ -1937,6 +1945,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.5':[
+    "Cores mais vibrantes: no tema colorido, o turquesa novo em bordas, brilhos e botões; no tema escuro, o verde novo nos itens confirmados."
+  ],
   '6.0.4':[
     "Painel de administração › Solicitações de Nova Senha: os pedidos já atendidos ficam na lista por 7 dias, com a situação (link gerado, link expirou ou senha trocada). Quem administra passa a receber um aviso no celular quando alguém pede uma nova senha."
   ],
@@ -2383,7 +2394,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.4</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.5</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2759,7 +2770,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.4</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.5</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -23030,11 +23041,11 @@ function renderParticipantesBoloes(){
       var _instalou=p.convite_status==='aceito';
       var _cadastradoAntesAtivacao = !s.ativadoEm || !p.created_at || new Date(p.created_at) <= new Date(s.ativadoEm);
       // Fase 130 (pedido do usuário): no tema colorido, "já instalou" usa
-      // azul turquesa (#2dd4bf) em vez do azul padrão (#2563eb) — só nesse
+      // azul turquesa (#00FFD4) em vez do azul padrão (#2563eb) — só nesse
       // tema, os outros continuam iguais.
       var _temaColorful = document.body.classList.contains('theme-colorful');
-      var _convCor=_instalou?(_temaColorful?'#2dd4bf':'#2563eb'):'var(--accent,#3a9b4e)';
-      var _convBg=_instalou?(_temaColorful?'rgba(45,212,191,.12)':'rgba(37,99,235,.12)'):'rgba(58,155,78,.12)';
+      var _convCor=_instalou?(_temaColorful?'#00FFD4':'#2563eb'):'var(--accent,#3a9b4e)';
+      var _convBg=_instalou?(_temaColorful?'rgba(0,255,212,.12)':'rgba(37,99,235,.12)'):'rgba(58,155,78,.12)';
       var colConvite = !primeira ? '<span></span>'
         : !p.id ? '<span title="'+t('boloes.title_salve_para_convidar')+'" style="font-size:10px;color:var(--text-dim);text-align:center;display:block">—</span>'
         : (s.ativadoEm && !_instalou && !_cadastradoAntesAtivacao) ? '<span title="'+t('boloes.title_convite_expirado')+'" style="font-size:19px;text-align:center;display:block;opacity:.4">📨</span>'
