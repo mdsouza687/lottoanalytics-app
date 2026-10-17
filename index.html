@@ -63,6 +63,7 @@
 .la-tooltip.show{opacity:1;transform:translateY(0);}
 body:not(.theme-light):not(.theme-colorful){--green:#39FF14;}   /* escuro: verde vibrante nos itens ok */
 body.theme-colorful{--green:#00FFD4;}   /* colorido: turquesa vibrante */
+body.theme-light{--green:#8B3DFF;}   /* claro: lilás vibrante */ /*LA_LILAS*/
 /* LA_SELECT_APP: menu dos <select> no padrão do app */
 .la-sel-menu{position:fixed;overflow-y:auto;overscroll-behavior:contain;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius-md);box-shadow:var(--shadow);padding:5px;z-index:100001;box-sizing:border-box}
 .la-sel-item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:none;border-radius:8px;background:transparent;color:var(--text);font-family:var(--font-body);font-size:12.5px;text-align:left;cursor:pointer}
@@ -1643,6 +1644,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.6':{
+    'en-US':["Light theme in vibrant lilac on confirmed items, in the same tone as the phone app."],
+    'es-ES':["Tema claro en lila vibrante en los elementos confirmados, con el mismo tono que la app del móvil."],
+    'it-IT':["Tema chiaro in lilla vivace sugli elementi confermati, con lo stesso tono dell’app del telefono."]
+  },
   '6.0.5':{
     'en-US':["More vibrant colors: in the colorful theme, the new turquoise on borders, glows and buttons; in the dark theme, the new green on confirmed items."],
     'es-ES':["Colores más vibrantes: en el tema colorido, el nuevo turquesa en bordes, brillos y botones; en el tema oscuro, el nuevo verde en los elementos confirmados."],
@@ -1945,6 +1951,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.6':[
+    "Tema claro em lilás vibrante nos itens confirmados, no mesmo tom do app do celular."
+  ],
   '6.0.5':[
     "Cores mais vibrantes: no tema colorido, o turquesa novo em bordas, brilhos e botões; no tema escuro, o verde novo nos itens confirmados."
   ],
@@ -2394,7 +2403,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.5</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.6</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2770,7 +2779,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.5</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.6</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
