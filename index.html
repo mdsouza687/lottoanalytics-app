@@ -1285,8 +1285,8 @@ body.theme-light .la-home #laAurora b{opacity:.16}
 .la-hero p.la-disc{font-size:11.5px;line-height:1.5;color:var(--text-dim);margin:0 0 22px;border-left:2px solid var(--glass-border);padding-left:12px}
 .la-hero-btns{display:flex;gap:12px;flex-wrap:wrap}
 #btn-jogos-premiados-boloes.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
-#btn-jogos-premiados-boloes.tem-novidade [data-ic]{color:#e0ac1f}
-@media (prefers-reduced-motion:reduce){#btn-jogos-premiados-boloes.tem-novidade{animation:none;box-shadow:0 0 5px 2px #ffe28a,0 0 10px 3px rgba(224,172,31,.85)}}
+#btn-jogos-premiados-boloes.tem-novidade [data-ic]{color:var(--pg-i)}
+@media (prefers-reduced-motion:reduce){#btn-jogos-premiados-boloes.tem-novidade{animation:none;box-shadow:0 0 5px 2px var(--pg-c),0 0 10px 3px rgba(var(--pg-r),.85)}}
 /* Botões do Hero seguem o mesmo padrão "clean" do painel de Ferramentas
    (.tool-btn), mas em largura automática/inline, não 100% de uma lista
    vertical — por isso a classe extra sobrescreve display/width/padding. */
@@ -1449,8 +1449,11 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-nav-tabs{padding:12px 8px;margin-top:-12px;margin-bottom:-12px}
 .pt-tab.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
 .pt-tab.tem-novidade .pt-tab-ico{color:#e0ac1f}
-@keyframes ptPremioPulso{0%,100%{box-shadow:0 0 3px 1px #ffe28a,0 0 8px 2px rgba(224,172,31,.6)}50%{box-shadow:0 0 5px 2px #ffe28a,0 0 12px 4px rgba(224,172,31,.85)}}
-@media (prefers-reduced-motion:reduce){.pt-tab.tem-novidade{animation:none;box-shadow:0 0 5px 2px #ffe28a,0 0 10px 3px rgba(224,172,31,.85)}}
+/*LA_BRILHO_TEMA*/ .pt-tab.tem-novidade,#btn-jogos-premiados-boloes.tem-novidade{--pg-c:#d9ffd0;--pg-r:57,255,20;--pg-i:#39FF14} /* escuro: verde vibrante */
+body.theme-colorful .pt-tab.tem-novidade,body.theme-colorful #btn-jogos-premiados-boloes.tem-novidade{--pg-c:#baffef;--pg-r:0,255,212;--pg-i:#00FFD4} /* colorido: turquesa vibrante */
+body.theme-light .pt-tab.tem-novidade,body.theme-light #btn-jogos-premiados-boloes.tem-novidade{--pg-c:#e6d6ff;--pg-r:139,61,255;--pg-i:#8B3DFF} /* claro: lilás vibrante */
+@keyframes ptPremioPulso{0%,100%{box-shadow:0 0 3px 1px var(--pg-c),0 0 8px 2px rgba(var(--pg-r),.6)}50%{box-shadow:0 0 5px 2px var(--pg-c),0 0 12px 4px rgba(var(--pg-r),.85)}}
+@media (prefers-reduced-motion:reduce){.pt-tab.tem-novidade{animation:none;box-shadow:0 0 5px 2px var(--pg-c),0 0 10px 3px rgba(var(--pg-r),.85)}}
 .pt-tab-ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .pt-nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .pt-body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
@@ -1644,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.7':{
+    'en-US':["The Close Pool button now appears on any pool (monthly, single or weekly), with confirmation, and the organizer can finish it before the deadline. The glow on the Winning Games button uses each theme's vibrant color. Manuals with numbered items (3.1, 3.2, 3.3…)."],
+    'es-ES':["El botón Cerrar Quiniela ahora aparece en cualquier quiniela (mensual, única o semanal), con confirmación, y el organizador puede terminarla antes del plazo. El brillo del botón Juegos Premiados usa el color vibrante de cada tema. Manuales con los apartados numerados (3.1, 3.2, 3.3…)."],
+    'it-IT':["Il pulsante Chiudi Schedina di Gruppo ora compare in qualsiasi schedina (mensile, unica o settimanale), con conferma, e l’organizzatore può concluderla prima della scadenza. Il bagliore del pulsante Giochi Vincenti usa il colore vivace di ogni tema. Manuali con le voci numerate (3.1, 3.2, 3.3…)."]
+  },
   '6.0.6':{
     'en-US':["Light theme in vibrant lilac on confirmed items, in the same tone as the phone app."],
     'es-ES':["Tema claro en lila vibrante en los elementos confirmados, con el mismo tono que la app del móvil."],
@@ -1951,6 +1959,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.7':[
+    "Botão Encerrar Bolão agora aparece em qualquer bolão (mensal, único ou semanal), com confirmação, e o organizador pode finalizar antes do prazo. O brilho do botão Jogos Premiados usa a cor vibrante de cada tema. Manuais com os itens numerados (3.1, 3.2, 3.3…)."
+  ],
   '6.0.6':[
     "Tema claro em lilás vibrante nos itens confirmados, no mesmo tom do app do celular."
   ],
@@ -2403,7 +2414,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.6</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.7</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2779,7 +2790,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.6</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.7</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20946,8 +20957,10 @@ function renderFormBolao(){
   if(s.modalidade==='mensal' && s.semanaInicio){
     var _finsAtuais=_calcSemanasFixas(s.semanaInicio,4);
     var _fimEsperado=_finsAtuais[_finsAtuais.length-1].fim;
-    if(!s.semanas || !s.semanas.length || s.semanas.length!==_finsAtuais.length
-        || s.semanas[0].inicio!==_finsAtuais[0].inicio || s.semanaFim!==_fimEsperado){
+    /*LA_ENCERRADO_ANTES_PRAZO*/ var _fimD=_parseDataBR(s.semanaFim), _fimEspD=_parseDataBR(_fimEsperado), _hoje0=new Date(); _hoje0.setHours(23,59,59,999);
+    var _encerradoAntes=!!(_fimD && _fimEspD && _fimD<_fimEspD && _fimD<=_hoje0);
+    if(!_encerradoAntes && (!s.semanas || !s.semanas.length || s.semanas.length!==_finsAtuais.length
+        || s.semanas[0].inicio!==_finsAtuais[0].inicio || s.semanaFim!==_fimEsperado)){
       _sincronizarPeriodoBolao(s);
     }
   }
@@ -21376,6 +21389,9 @@ function renderFormBolao(){
       gastosSemanaisHtml+
     '</div>';
   })():'') +
+    /*LA_ENCERRAR_FORA_SEMANAL*/(s.modalidade!=='semanal'?'<div style="display:flex;justify-content:flex-end;margin-bottom:14px">'+
+      '<button onclick="encerrarBolao()" style="border:1px solid rgba(239,68,68,.4);border-radius:7px;padding:5px 12px;background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">'+t('boloes.encerrar_bolao')+'</button>'+
+    '</div>':'') +
     (s.modalidade==='semanal'?(function(){
     var dBolao=CFG[s.loteria||currentKey]||null;
     // Arrecadação Total agora é DERIVADA — soma das Contribuições dos
