@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.8':{
+    'en-US':["Fix: a pool open on the computer no longer keeps writing the total collected to the database nonstop, which made the pool screen on the phone refresh nonstop."],
+    'es-ES':["Corrección: la quiniela abierta en el ordenador ya no graba la recaudación sin parar en la base de datos, lo que hacía que la pantalla de la quiniela en el móvil se recargara sin parar."],
+    'it-IT':["Correzione: la schedina aperta sul computer non scrive più l’incasso nel database all’infinito, cosa che faceva ricaricare di continuo la schermata della schedina sul telefono."]
+  },
   '6.0.7':{
     'en-US':["The Close Pool button now appears on any pool (monthly, single or weekly), with confirmation, and the organizer can finish it before the deadline. The glow on the Winning Games button uses each theme's vibrant color. Manuals with numbered items (3.1, 3.2, 3.3…)."],
     'es-ES':["El botón Cerrar Quiniela ahora aparece en cualquier quiniela (mensual, única o semanal), con confirmación, y el organizador puede terminarla antes del plazo. El brillo del botón Juegos Premiados usa el color vibrante de cada tema. Manuales con los apartados numerados (3.1, 3.2, 3.3…)."],
@@ -1959,6 +1964,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.8':[
+    "Correção: o bolão aberto no computador não grava mais a arrecadação sem parar no banco, o que fazia a tela do bolão no celular recarregar sem parar."
+  ],
   '6.0.7':[
     "Botão Encerrar Bolão agora aparece em qualquer bolão (mensal, único ou semanal), com confirmação, e o organizador pode finalizar antes do prazo. O brilho do botão Jogos Premiados usa a cor vibrante de cada tema. Manuais com os itens numerados (3.1, 3.2, 3.3…)."
   ],
@@ -2414,7 +2422,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.7</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.8</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2790,7 +2798,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.7</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.8</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20738,13 +20746,19 @@ function _calcArrecadacaoPorContribuicoes(s){
 // campo de Contribuição. Best-effort: erro só vai pro console, igual aos
 // outros métodos "Dual" — o Salvar continua sendo a gravação autoritativa.
 var _syncArrecTimer=null;
+/*LA_ARREC_SEM_LOOP*/ var _arrecConhecida={id:null,valor:null};
+function _arrecJaConhecida(id,valor){ return _arrecConhecida.id===id && _arrecConhecida.valor!==null && Math.abs(_arrecConhecida.valor-(valor||0))<0.005; }
 function _sincronizarArrecadacaoLive(valor){
   if(!_boloesState.editId) return;
   clearTimeout(_syncArrecTimer);
+  if(_arrecJaConhecida(_boloesState.editId,valor)) return;
+  var _idSync=_boloesState.editId;
   _syncArrecTimer=setTimeout(function(){
+    if(_arrecJaConhecida(_idSync,valor)) return;
     var sb=_getSbClient(); if(!sb) return;
-    sb.from('boloes').update({arrecadacao_total:valor||0}).eq('id',_boloesState.editId)
-      .then(function(r){ if(r&&r.error) console.warn('[_sincronizarArrecadacaoLive]',r.error.message); });
+    var _ant=_arrecConhecida; _arrecConhecida={id:_idSync,valor:valor||0};
+    sb.from('boloes').update({arrecadacao_total:valor||0}).eq('id',_idSync)
+      .then(function(r){ if(r&&r.error){ console.warn('[_sincronizarArrecadacaoLive]',r.error.message); _arrecConhecida=_ant; } });
   },800);
 }
 // Atualiza, ao vivo, os campos derivados (Arrecadação Total, Valor/Cota) e
@@ -24578,6 +24592,7 @@ async function _recarregarFinanceiroDoBanco(bolaoId){
     // arrecadação: não sobrescreve enquanto o organizador está digitando num campo
     var ae=document.activeElement; var emEdicao=!!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName));
     if(!emEdicao) _boloesState.arrecadacaoTotal=est.arrecadacaoTotal||0;
+    _arrecConhecida={id:bolaoId,valor:est.arrecadacaoTotal||0};
     _assinaturaFinanceiro=await _assinaturaFinanceiroDoBanco(bolaoId);
     var _bp=document.getElementById('boloes-panel');   // só redesenha com o painel do bolão visível (o timer segue vivo em outras abas)
     if(_boloesState.editId===bolaoId&&_bp&&_bp.style.display!=='none'&&typeof renderFormBolao==='function'&&!window._boloesModoLista) renderFormBolao();
