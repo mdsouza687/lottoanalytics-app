@@ -1647,15 +1647,20 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.9':{
+    'en-US':["Desktop manuals updated: how to end a pool of any type, and how receipts adjust the shares. Spanish and Italian release notes corrected."],
+    'es-ES':["Manuales del Desktop actualizados: cómo cerrar un grupo de cualquier tipo y cómo los comprobantes ajustan las cuotas. Corregidos los textos de novedades en español e italiano."],
+    'it-IT':["Manuali del Desktop aggiornati: come chiudere un gruppo di qualsiasi tipo e come le ricevute regolano le quote. Corretti i testi delle novità in spagnolo e italiano."]
+  },
   '6.0.8':{
     'en-US':["Fix: a pool open on the computer no longer keeps writing the total collected to the database nonstop, which made the pool screen on the phone refresh nonstop."],
-    'es-ES':["Corrección: la quiniela abierta en el ordenador ya no graba la recaudación sin parar en la base de datos, lo que hacía que la pantalla de la quiniela en el móvil se recargara sin parar."],
-    'it-IT':["Correzione: la schedina aperta sul computer non scrive più l’incasso nel database all’infinito, cosa che faceva ricaricare di continuo la schermata della schedina sul telefono."]
+    'es-ES':["Corrección: el grupo abierto en el ordenador ya no graba la recaudación sin parar en la base de datos, lo que hacía que la pantalla del grupo en el móvil se recargara sin parar."],
+    'it-IT':["Correzione: il gruppo aperto sul computer non scrive più l’incasso nel database all’infinito, cosa che faceva ricaricare di continuo la schermata del gruppo sul telefono."]
   },
   '6.0.7':{
-    'en-US':["The Close Pool button now appears on any pool (monthly, single or weekly), with confirmation, and the organizer can finish it before the deadline. The glow on the Winning Games button uses each theme's vibrant color. Manuals with numbered items (3.1, 3.2, 3.3…)."],
-    'es-ES':["El botón Cerrar Quiniela ahora aparece en cualquier quiniela (mensual, única o semanal), con confirmación, y el organizador puede terminarla antes del plazo. El brillo del botón Juegos Premiados usa el color vibrante de cada tema. Manuales con los apartados numerados (3.1, 3.2, 3.3…)."],
-    'it-IT':["Il pulsante Chiudi Schedina di Gruppo ora compare in qualsiasi schedina (mensile, unica o settimanale), con conferma, e l’organizzatore può concluderla prima della scadenza. Il bagliore del pulsante Giochi Vincenti usa il colore vivace di ogni tema. Manuali con le voci numerate (3.1, 3.2, 3.3…)."]
+    'en-US':["The End Pool button now appears on any pool (monthly, single or weekly), with confirmation, and the organizer can finish it before the deadline. The glow on the Winning Games button uses each theme's vibrant color. Manuals with numbered items (3.1, 3.2, 3.3…)."],
+    'es-ES':["El botón Cerrar grupo ahora aparece en cualquier grupo (mensual, único o semanal), con confirmación, y el organizador puede terminarlo antes del plazo. El brillo del botón Juegos Premiados usa el color vibrante de cada tema. Manuales con los apartados numerados (3.1, 3.2, 3.3…)."],
+    'it-IT':["Il pulsante Chiudi gruppo ora compare in qualsiasi gruppo (mensile, unico o settimanale), con conferma, e l’organizzatore può concluderlo prima della scadenza. Il bagliore del pulsante Giochi Vincenti usa il colore vivace di ogni tema. Manuali con le voci numerate (3.1, 3.2, 3.3…)."]
   },
   '6.0.6':{
     'en-US':["Light theme in vibrant lilac on confirmed items, in the same tone as the phone app."],
@@ -1964,6 +1969,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.9':[
+    "Manuais do Desktop atualizados: como encerrar o bolão em qualquer tipo de bolão e como os comprovantes ajustam as cotas. Textos das novidades em espanhol e italiano corrigidos."
+  ],
   '6.0.8':[
     "Correção: o bolão aberto no computador não grava mais a arrecadação sem parar no banco, o que fazia a tela do bolão no celular recarregar sem parar."
   ],
@@ -2422,7 +2430,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.8</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.9</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2798,7 +2806,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.8</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.9</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
