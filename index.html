@@ -20720,7 +20720,7 @@ function _calcSaldoOrcamentoAdmin(s){
   if(tipoOrg!=='fixo') return 0;
   var orcamento=s.admin.valorFixoOrganizacao||0;
   if(!s.admin.adminParticipaCotas) return orcamento;
-  var valorCota=_calcValorCotaAuto();
+  var valorCota=_calcValorCotaAuto(s);
   var consumo=valorCota*(s.admin.cotasProprias||0);
   return Math.max(0,orcamento-consumo);
 }
@@ -20730,7 +20730,7 @@ function _calcConsumoOrcamentoAdmin(s){
   s=s||_boloesState;
   var tipoOrg=_tipoOrg(s);
   if(tipoOrg!=='fixo'||!s.admin.adminParticipaCotas) return 0;
-  var valorCota=_calcValorCotaAuto();
+  var valorCota=_calcValorCotaAuto(s);
   return valorCota*(s.admin.cotasProprias||0);
 }
 // Arrecadação Total — DERIVADA, não mais digitada manualmente. É a soma
@@ -29664,7 +29664,10 @@ function _guardaSaldoBolaoDesktop(g, jogos, d){
   try{
     if(!g||!g.ativadoEm||!d||typeof calcCustoTotal!=='function') return null;
     var novo=0; (jogos||[]).forEach(function(jg){ var n=(jg&&jg._teimosinhaConcursos&&jg._teimosinhaConcursos.length)||1; novo+=(calcCustoTotal([jg],d)||0)*n; });
-    var saldo=Math.round((_calcArrecadacaoPorContribuicoes(g)-_calcCustoTotalBolao(g))*100)/100;
+    // Se este bolão está aberto na tela, a Arrecadação vem do estado ao vivo (o mesmo que o Saldo Disponível mostra):
+    // a Contribuição só é gravada no banco ao sair do campo, então ler o banco aqui podia dar um saldo menor que o exibido.
+    var _vivo=(typeof _boloesState!=='undefined'&&_boloesState&&_boloesState.editId&&String(_boloesState.editId)===String(g.id))?_boloesState:null;
+    var saldo=Math.round((_calcArrecadacaoPorContribuicoes(_vivo||g)-_calcCustoTotalBolao(g))*100)/100;
     if(Math.round(novo*100)/100>saldo+0.005) return t('boloes.saldo_insuficiente_vincular',{custo:_bMoney(novo),saldo:_bMoney(Math.max(0,saldo))});
   }catch(e){ console.warn('[guarda saldo]',e&&e.message); }
   return null;
