@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.10':{
+    'en-US':["The available balance of a monthly pool is now the same across the whole screen, calculated from the games that exist. When you delete a game, the round's stored cost also goes down."],
+    'es-ES':["El saldo disponible del grupo mensual ahora es el mismo en toda la pantalla, calculado con los juegos que existen. Al eliminar un juego, el costo guardado del sorteo también baja."],
+    'it-IT':["Il saldo disponibile del gruppo mensile ora è lo stesso in tutta la schermata, calcolato con le giocate esistenti. Quando elimini una giocata, scende anche il costo salvato dell’estrazione."]
+  },
   '6.0.9':{
     'en-US':["Desktop manuals updated: how to end a pool of any type, and how receipts adjust the shares. Spanish and Italian release notes corrected."],
     'es-ES':["Manuales del Desktop actualizados: cómo cerrar un grupo de cualquier tipo y cómo los comprobantes ajustan las cuotas. Corregidos los textos de novedades en español e italiano."],
@@ -1969,6 +1974,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.10':[
+    "O saldo disponível do bolão mensal agora é o mesmo em toda a tela, calculado pelos jogos que existem. Ao excluir um jogo, o custo gravado do concurso também diminui."
+  ],
   '6.0.9':[
     "Manuais do Desktop atualizados: como encerrar o bolão em qualquer tipo de bolão e como os comprovantes ajustam as cotas. Textos das novidades em espanhol e italiano corrigidos."
   ],
@@ -2430,7 +2438,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.9</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.10</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2806,7 +2814,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.9</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.10</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -20798,6 +20806,28 @@ function _atualizarCotaUI(){
 // loteria presente em s.concursos[], na ordem em que aparecem. Esta é a
 // base para mostrar "Gasto em Lotofácil: R$120,00" / "Gasto em
 // Lotomania: R$48,00" separadamente, em vez de só o total agregado.
+/*LA_CUSTO_GRAVADO*/
+/*LA_CUSTO_PELOS_JOGOS*/
+// Custo de um concurso do bolão = o dos JOGOS que existem (mesma conta da tela Financeiro do celular e do servidor, rpc_participante_status_pagamento); sem jogos, usa o valor gravado.
+function _custoConcursoBolao(cc,d){
+  if(d&&cc&&cc.jogos&&cc.jogos.length&&typeof calcCustoTotal==='function'){ var c=calcCustoTotal(cc.jogos,d); if(c) return c; }
+  var salvo=Number(cc&&cc.custo);
+  return isFinite(salvo)&&salvo>0?salvo:0;
+}
+// Depois de excluir UM jogo de um concurso: abate o custo gravado (e persiste) para o saldo não voltar a depender dos jogos restantes.
+async function _abaterCustoConcursoBolao(g,c,jogo){
+  try{
+    var d=CFG[(c&&c.loteria)||g.loteria||currentKey]||null;
+    if(!d||typeof calcCustoJogo!=='function'||!(Number(c.custo)>0)) return;
+    var v=calcCustoJogo(jogo,d); if(v==null) return;
+    var novo=Math.max(0,Math.round(((Number(c.custo)||0)-v)*100)/100);
+    c.custo=novo;
+    if(c.jogos&&c.jogos.length){
+      var sb=_getSbClient();
+      if(sb) await sb.from('bolao_concursos').update({custo:novo,updated_at:new Date().toISOString()}).eq('bolao_id',g._novoSchemaId).eq('concurso_ref',c.num).eq('loteria',c.loteria);
+    }
+  }catch(e){ console.warn('[_abaterCustoConcursoBolao]',e&&e.message); }
+}
 function _calcGastoPorLoteria(s){
   s=s||_boloesState;
   var porLoteria=[];
@@ -20807,7 +20837,7 @@ function _calcGastoPorLoteria(s){
     var key=cc.loteria||s.loteria||currentKey;
     var d=CFG[key]||null;
     if(!d||!cc.jogos||!cc.jogos.length||typeof calcCustoTotal!=='function') return;
-    var gasto=calcCustoTotal(cc.jogos,d)||0;
+    var gasto=_custoConcursoBolao(cc,d);
     if(!(key in idx)){
       idx[key]=porLoteria.length;
       porLoteria.push({loteria:key,nome:d.nome,emoji:d.emoji||'🎲',cor:d.cor||MULTI_LOTERIA_COR,gasto:0});
@@ -21865,9 +21895,7 @@ function _calcCustoTotalBolao(s){
   if(concursos.length){
     concursos.forEach(function(cc){
       var dConcurso=(cc.loteria&&CFG[cc.loteria])?CFG[cc.loteria]:dFallback;
-      if(dConcurso&&cc.jogos&&cc.jogos.length&&typeof calcCustoTotal==='function'){
-        total+=calcCustoTotal(cc.jogos,dConcurso)||0;
-      }
+      total+=_custoConcursoBolao(cc,dConcurso);
     });
   }else if(dFallback&&s.jogosVinculados&&s.jogosVinculados.length&&typeof calcCustoTotal==='function'){
     // Compatibilidade com dados antigos sem concursos[] (1 loteria só)
@@ -27061,6 +27089,7 @@ async function excluirJogoDoBolao(concursoIdxExibido, jogoIdx){
     // mais essa duplicação; o jogo em si É a fonte de verdade).
     if(jogoRemovido&&jogoRemovido._jogoId){ await JogosCommon.excluirDual(jogoRemovido._jogoId); }
     c.jogos.splice(jogoIdx,1);
+    await _abaterCustoConcursoBolao(g,c,jogoRemovido);
     var concursoFicouVazio=(c.jogos.length===0);
     if(concursoFicouVazio){
       var sbJ=_getSbClient();
@@ -27816,7 +27845,9 @@ async function excluirJogoTeimosinhaDoBolao(refIdx){
       for(var k=0;k<(c.jogos||[]).length;k++){ if(c.jogos[k]&&c.jogos[k]._jogoId===ref.jogoId){ idxJ=k; break; } }
       if(idxJ<0) continue;
       await JogosCommon.excluirDual(ref.jogoId);
+      var _jogoRem=c.jogos[idxJ];
       c.jogos.splice(idxJ,1); removidos++;
+      await _abaterCustoConcursoBolao(g,c,_jogoRem);
       if(c.jogos.length===0){
         if(sbJ) await sbJ.from('bolao_concursos').delete().eq('bolao_id',g._novoSchemaId).eq('concurso_ref',c.num).eq('loteria',c.loteria);
         g.concursos.splice(idxC,1);
@@ -28937,7 +28968,9 @@ async function _carregarBolaoNovoSchemaPorUuid(novoId){
     var chave=c.concurso_ref+'|'+c.loteria;
     var chaveT=c.teimosinha_origem!=null?(c.teimosinha_origem+'|'+c.loteria):null;
     var todos=(chaveT&&gruposTeim[chaveT]&&gruposTeim[chaveT].length>1)?gruposTeim[chaveT].slice().sort(function(a,b){return a-b;}):null;
-    return { id:c.id, num:String(c.concurso_ref), data:c.data||'', jogos:porChave[chave]||[], custo:parseFloat(c.custo||0),
+    var _jogosC=porChave[chave]||[], _custoGravado=parseFloat(c.custo||0);
+    var _custoJogosC=(typeof CFG!=='undefined'&&CFG[c.loteria]&&_jogosC.length&&typeof calcCustoTotal==='function')?(calcCustoTotal(_jogosC,CFG[c.loteria])||0):0;
+    return { id:c.id, num:String(c.concurso_ref), data:c.data||'', jogos:_jogosC, custo:(_custoJogosC>0?_custoJogosC:_custoGravado),
       status:c.status, semana:c.semana||'', loteria:c.loteria, savedAt:new Date(c.created_at).getTime(),
       vinculoId:c.vinculo_id||null, teimosinhaOrigem:c.teimosinha_origem||null, teimosinhaTodos:todos,
       fotoBilheteUrl:c.foto_bilhete_url||null, jogosAvisadosEm:c.jogos_avisados_em||null };
