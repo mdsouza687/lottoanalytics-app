@@ -21516,7 +21516,7 @@ function renderFormBolao(){
       if(!cc.custo) return;
       var ts=cc.savedAt||null;
       if(!ts) return;
-      var dia=new Date(ts).toLocaleDateString('pt-BR');
+      var dia=_dataContabilVinculo(ts,s.semanaInicio,s.semanaFim).toLocaleDateString('pt-BR');
       if(!(dia in gastosPorDia)){ gastosPorDia[dia]=0; ordemDias.push(dia); }
       gastosPorDia[dia]+=cc.custo;
     });
