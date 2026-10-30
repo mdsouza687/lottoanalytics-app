@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.14':{
+    'en-US':["Fixed: when linking games to a Single Multi-Lottery pool that already holds several lotteries (like a personal wallet), the Desktop refused the game with a brief notice, and nothing was linked or deducted from the balance. Now the game is linked normally, in each lottery's current draw. A Single pool with just one lottery still accepts only that one."],
+    'es-ES':["Corregido: al vincular juegos a un grupo Multi-lotería único que ya tiene varias loterías (como una cartera personal), el Desktop rechazaba el juego con un aviso breve y no se vinculaba ni se descontaba nada del saldo. Ahora el juego se vincula con normalidad, en el sorteo vigente de cada lotería. Un grupo Único con una sola lotería sigue aceptando solo esa."],
+    'it-IT':["Corretto: collegando giocate a un gruppo Multi-lotteria singola che ha già più lotterie (come un portafoglio personale), il Desktop rifiutava la giocata con un breve avviso e non veniva collegato né scalato nulla dal saldo. Ora la giocata viene collegata normalmente, nell’estrazione corrente di ciascuna lotteria. Un gruppo singolo con una sola lotteria continua ad accettare solo quella."]
+  },
   '6.0.13':{
     'en-US':["Version aligned with the mobile app, which got faster and now reopens the same screen when you refresh the page. On the Desktop, the “Daily Spending” of weekly pools now follows the same rule as the others: what is linked on Sunday counts on Monday."],
     'es-ES':["Versión alineada con la app móvil, que se volvió más rápida y ahora reabre la misma pantalla al actualizar la página. En el Desktop, los “Gastos diarios” del grupo semanal ahora siguen la misma regla que los demás: lo vinculado el domingo cuenta el lunes."],
@@ -1989,6 +1994,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.14':[
+    "Corrigido: ao vincular jogos a um bolão Multi-Loteria Único que já tem várias loterias (como uma carteira pessoal), o Desktop recusava o jogo com um aviso rápido e nada era vinculado nem descontado do saldo. Agora o jogo é vinculado normalmente, no concurso vigente de cada loteria. Um bolão Único com uma só loteria continua aceitando apenas ela."
+  ],
   '6.0.13':[
     "Versão alinhada com o app do celular, que ficou mais rápido e passou a reabrir a mesma tela ao atualizar a página. No Desktop, o “Gastos Diários” do bolão semanal agora segue a mesma regra dos outros: o que é vinculado no domingo conta na segunda-feira."
   ],
@@ -2462,7 +2470,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.13</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.14</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2838,7 +2846,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.13</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.14</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -26623,8 +26631,9 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // todas precisam ser para a MESMA loteria e o MESMO concurso já fixado
     // na primeira vinculação — sem essa checagem, "Único" perderia seu
     // significado de representar um concurso específico.
-    if(g.modalidade==='unico' && g.concursos.length){
-      var _loteriaJaFixadaS=g.concursos[0].loteria;
+    var _fixaUnicoS=_unicoRodadaFixa(g);
+    if(_fixaUnicoS){
+      var _loteriaJaFixadaS=_fixaUnicoS.loteria;
       if(_loteriaJaFixadaS && _loteriaJaFixadaS!==loteriaItem){
         var _dItemS=CFG[loteriaItem], _dFixadaS=CFG[_loteriaJaFixadaS];
         toast(t('boloes.bolao_ja_vinculado_loteria',{loteria:(_dFixadaS?_dFixadaS.nome:_loteriaJaFixadaS),concurso:g.concursos[0].num,loteriaAtual:(_dItemS?_dItemS.nome:loteriaItem)}));
@@ -26662,7 +26671,7 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // Bolão "Único" com concurso já fixado: mantém o MESMO número de
     // concurso da primeira vinculação, em vez do "concurso vigente" atual
     // (que pode já ter avançado se essa vinculação ocorrer dias depois).
-    if(g.modalidade==='unico' && g.concursos.length){ _novoNumS=g.concursos[0].num; }
+    if(_fixaUnicoS){ _novoNumS=_fixaUnicoS.num; }
     var _dataConhecidaEspS=_especialFixoS?(CONCURSOS_ESPECIAIS_DATA[loteriaItem]||{})[_especialFixoS]:null;
     var _dataSorteioS=_dataConhecidaEspS||(_calcS.concursoData&&_calcS.concursoData!=='—'?_calcS.concursoData:(_resS?(_resS.proximoConcurso||_resS.data||''):''));
     var _semLabelS=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
@@ -29734,6 +29743,14 @@ try{
   Object.assign(LA_I18N['it-IT'],{'boloes.saldo_insuficiente_vincular':'Saldo insufficiente: queste giocate costano {custo} e il gruppo ha solo {saldo} disponibile. Una volta attivato, il gruppo non può spendere più di quanto ha raccolto. Per continuare, aggiungi credito al gruppo (deposito a parte) e riprova.'});
 }catch(e){}
 /*LA_GUARDA_SALDO_FIM*/
+// Bolão "Único" guarda UMA loteria/concurso (ex.: Quina de São João). Mas um "Único" que já tem VÁRIAS loterias (o "Mario Pessoal", usado como carteira pessoal)
+// não pode ser travado: g.concursos[0] vem do banco sem ordem definida e bloqueava qualquer loteria diferente da que calhava em primeiro — o jogo ficava só em
+// "Jogos Salvos", nada era vinculado e o saldo não mudava. Devolve a rodada que fixa a regra, ou null quando a regra não se aplica.
+function _unicoRodadaFixa(g){
+  if(!g || g.modalidade!=='unico' || !g.concursos || !g.concursos.length) return null;
+  var ls={}; g.concursos.forEach(function(c){ if(c && c.loteria) ls[c.loteria]=1; });
+  return Object.keys(ls).length>1 ? null : g.concursos[0];
+}
 async function vincularJogosAoBolao(bolaoId, jogos, wrapId, loteriaOverride){
   return _enfileirarEscritaBolao(function(){ return _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride); });
 }
@@ -29776,9 +29793,10 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // para a MESMA loteria e o MESMO concurso já fixado na primeira
     // vinculação. Sem essa checagem, "Único" perderia seu significado (vira
     // indistinguível de Semanal/Mensal, que aceitam qualquer loteria/concurso).
-    if(g.modalidade==='unico' && g.concursos.length){
-      var _loteriaJaFixada=g.concursos[0].loteria;
-      var _concursoJaFixado=g.concursos[0].num;
+    var _fixaUnico=_unicoRodadaFixa(g);
+    if(_fixaUnico){
+      var _loteriaJaFixada=_fixaUnico.loteria;
+      var _concursoJaFixado=_fixaUnico.num;
       if(_loteriaJaFixada && _loteriaJaFixada!==loteriaKey){
         var _dAtual=CFG[loteriaKey], _dFixada=CFG[_loteriaJaFixada];
         toast(t('boloes.bolao_ja_vinculado_loteria',{loteria:(_dFixada?_dFixada.nome:_loteriaJaFixada),concurso:_concursoJaFixado,loteriaAtual:(_dAtual?_dAtual.nome:loteriaKey)}));
@@ -29816,7 +29834,7 @@ async function _vincularJogosAoBolaoImpl(bolaoId, jogos, wrapId, loteriaOverride
     // — isso evita que uma segunda vinculação dias depois (quando o concurso
     // vigente já avançou) seja erroneamente atribuída a um concurso diferente
     // do que o bolão foi originalmente criado para representar.
-    if(g.modalidade==='unico' && g.concursos.length){ _novoNum=g.concursos[0].num; }
+    if(_fixaUnico){ _novoNum=_fixaUnico.num; }
     var _dataConhecidaEsp=_especialFixo?(CONCURSOS_ESPECIAIS_DATA[loteriaKey]||{})[_especialFixo]:null;
     var _dataSorteio=_dataConhecidaEsp||(_calc.concursoData&&_calc.concursoData!=='—'?_calc.concursoData:(res?(res.proximoConcurso||res.data||''):''));
     var _semLabel=(g.semanaInicio&&g.semanaFim)?g.semanaInicio+' a '+g.semanaFim:'';
