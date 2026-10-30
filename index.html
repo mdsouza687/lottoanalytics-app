@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.0.15':{
+    'en-US':["When inserting games manually, if a game cannot be linked to the pool, the notice now says so clearly, with the reason, instead of showing “linked”. Games already in Saved Tickets are linked to the chosen pool when you enter them again. Version aligned with the mobile app, whose My Pools screen now fits without scrolling."],
+    'es-ES':["Al insertar juegos a mano, si un juego no se puede vincular al grupo, el aviso ahora lo dice con claridad y con el motivo, en lugar de mostrar “vinculados”. Los juegos que ya estaban en Juegos guardados se vinculan al grupo elegido cuando los vuelves a insertar. Versión alineada con la app móvil, cuya pantalla Mis grupos ahora cabe sin desplazamiento."],
+    'it-IT':["Inserendo le giocate a mano, se una giocata non può essere collegata al gruppo, l’avviso ora lo dice chiaramente, con il motivo, invece di mostrare “collegate”. Le giocate già presenti in Giocate salvate vengono collegate al gruppo scelto quando le inserisci di nuovo. Versione allineata con l’app mobile, la cui schermata I miei gruppi ora sta senza scorrimento."]
+  },
   '6.0.14':{
     'en-US':["Fixed: when linking games to a Single Multi-Lottery pool that already holds several lotteries (like a personal wallet), the Desktop refused the game with a brief notice, and nothing was linked or deducted from the balance. Now the game is linked normally, in each lottery's current draw. A Single pool with just one lottery still accepts only that one."],
     'es-ES':["Corregido: al vincular juegos a un grupo Multi-lotería único que ya tiene varias loterías (como una cartera personal), el Desktop rechazaba el juego con un aviso breve y no se vinculaba ni se descontaba nada del saldo. Ahora el juego se vincula con normalidad, en el sorteo vigente de cada lotería. Un grupo Único con una sola lotería sigue aceptando solo esa."],
@@ -1994,6 +1999,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.0.15':[
+    "Ao inserir jogos manualmente, se algum jogo não puder ser vinculado ao bolão, o aviso agora diz isso com clareza, com o motivo, em vez de mostrar “vinculados”. Jogos que já estavam em Jogos Salvos são vinculados ao bolão escolhido quando você os insere de novo. Versão alinhada com o app do celular, cuja tela Meus Bolões agora cabe sem rolagem."
+  ],
   '6.0.14':[
     "Corrigido: ao vincular jogos a um bolão Multi-Loteria Único que já tem várias loterias (como uma carteira pessoal), o Desktop recusava o jogo com um aviso rápido e nada era vinculado nem descontado do saldo. Agora o jogo é vinculado normalmente, no concurso vigente de cada loteria. Um bolão Único com uma só loteria continua aceitando apenas ela."
   ],
@@ -2470,7 +2478,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.14</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.15</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2846,7 +2854,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.14</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.15</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -18130,6 +18138,28 @@ function renderManualLista(){
 // "jogos_salvos" (sem id definido, o banco gera um novo a cada dbPut) —
 // duplicando o mesmo conjunto de jogos manuais.
 let _salvarJogosManuaisEmAndamento=false;
+// Vincula um conjunto salvo e devolve {n, motivo}: n = jogos que entraram no bolão; motivo = último aviso mostrado (a razão, quando n=0). Existe porque o resumo
+// final de "Inserir Jogos" mostrava "salvos e vinculados ao bolão" por cima do aviso de bloqueio, mesmo sem nada vinculado (2026-10-30, Mario Pessoal).
+async function _vincularSalvoComMotivo(itemId, bolaoId, opts){
+  var motivo='', n=0, toastOrig=window.toast;
+  window.toast=function(m,d){ motivo=String(m==null?'':m); return toastOrig.apply(this,arguments); };
+  try{ n=Number(await vincularSalvoAoBolao(itemId,bolaoId,opts))||0; }
+  finally{ window.toast=toastOrig; }
+  return {n:n,motivo:motivo};
+}
+// Acha, em Jogos Salvos (sem vínculo), o conjunto que tem EXATAMENTE estes jogos — para vincular o que já existe quando guardar de novo bate em "já existia".
+async function _loteSalvoIgual(loteria, jogos){
+  try{
+    var d=CFG[loteria], ordena=!(d&&d.superSete); // Super Sete: a ordem das colunas importa
+    var sig=function(nums,trevos){ var a=(nums||[]).slice(); if(ordena) a.sort(function(x,y){return x-y;}); var tv=(trevos||[]).slice().sort(function(x,y){return x-y;}); return a.join(',')+'|'+tv.join(','); };
+    var alvo=(jogos||[]).map(function(j){ var p=JogosCommon.jogoParaPayload(j); return sig(p.numeros,p.trevos); }).sort();
+    var lista=await JogosSalvosRepo.listarDual(), porLote={};
+    (lista||[]).forEach(function(r){ if(r.loteria!==loteria||r.bolao_id) return; var k=r.lote_id||r.id; (porLote[k]=porLote[k]||[]).push(sig(r.numeros,r.trevos)); });
+    var ks=Object.keys(porLote);
+    for(var i=0;i<ks.length;i++){ var s=porLote[ks[i]].sort(); if(s.length===alvo.length && s.every(function(x,ix){ return x===alvo[ix]; })) return ks[i]; }
+  }catch(e){ console.warn('[_loteSalvoIgual]',e&&e.message); }
+  return null;
+}
 async function salvarJogosManuais(){
   if(_salvarJogosManuaisEmAndamento) return;
   _salvarJogosManuaisEmAndamento=true;
@@ -18174,7 +18204,7 @@ async function _salvarJogosManuaisImpl(){
   // do registro (o schema novo não distingue inserção manual de gerada;
   // ambas são jogos avulsos iguais, a diferença só importava pra exibição
   // no schema antigo).
-  var totalSalvo=0, totalPulado=0;
+  var totalSalvo=0, totalPulado=0, totalVinculado=0, totalNaoVinculado=0, motivosNaoVinc=[];
   try{
     for(const lk of ordemLoterias){
       const jogosDoGrupo=porLoteria[lk];
@@ -18189,7 +18219,19 @@ async function _salvarJogosManuaisImpl(){
       var _qtdSalva=(linhas||[]).length;
       totalSalvo+=_qtdSalva;
       totalPulado+=jogosDoGrupo.length-_qtdSalva;
-      if(!_qtdSalva) continue; // grupo inteiro colidiu — nada pra registrar/vincular desta loteria
+      if(!_qtdSalva){
+        // Grupo inteiro colidiu — nada novo pra registrar. Mas se um bolão foi escolhido e estes MESMOS jogos já estão em Jogos Salvos sem vínculo (ex.: uma
+        // tentativa anterior que não vinculou), vincula o conjunto que já existe; antes não fazia nada e o jogo ficava sem vínculo.
+        if(vincId && typeof vincularSalvoAoBolao==='function'){
+          var _idExiste=await _loteSalvoIgual(lk,jogosDoGrupo);
+          if(_idExiste){
+            var _rEx=await _vincularSalvoComMotivo(_idExiste,vincId,{semRefreshModalSalvar:true});
+            if(_rEx.n>0){ totalVinculado+=_rEx.n; totalPulado-=Math.min(totalPulado,_rEx.n); }
+            if(_rEx.n<jogosDoGrupo.length){ totalNaoVinculado+=jogosDoGrupo.length-_rEx.n; if(_rEx.motivo) motivosNaoVinc.push(_rEx.motivo); }
+          }
+        }
+        continue;
+      }
       _registrarAuditoria('criar_jogo_salvo',{jogoId:novoId,detalhes:`${_qtdSalva} jogo(s) manual(is) de ${d.nome}, id=${novoId}`});
       if(vincId && typeof vincularSalvoAoBolao==='function'){
         // Antes chamava vincularJogosAoBolao(), que cria um espelho NOVO e
@@ -18204,7 +18246,9 @@ async function _salvarJogosManuaisImpl(){
         // sozinho logo abaixo — não usa modal-salvar em nada, então não faz
         // sentido deixar vincularSalvoAoBolao() abrir esse popup por baixo
         // dos panos (mesma causa raiz corrigida no Resultado da Geração).
-        await vincularSalvoAoBolao(novoId, vincId, {semRefreshModalSalvar:true});
+        var _rNv=await _vincularSalvoComMotivo(novoId, vincId, {semRefreshModalSalvar:true});
+        totalVinculado+=_rNv.n;
+        if(_rNv.n<_qtdSalva){ totalNaoVinculado+=_qtdSalva-_rNv.n; if(_rNv.motivo) motivosNaoVinc.push(_rNv.motivo); }
       }
     }
   }catch(e){
@@ -18218,10 +18262,13 @@ async function _salvarJogosManuaisImpl(){
   }
 
   var _avisoPulados=totalPulado?' ('+(totalPulado!==1?t('gerador.n_ignorados_pl',{n:totalPulado}):t('gerador.n_ignorados_sing',{n:totalPulado}))+')':'';
-  if(!totalSalvo){
+  if(vincId && totalNaoVinculado>0){
+    // Nunca dizer "vinculados" quando algo não foi: mostra quantos ficaram só em Jogos Salvos e o motivo, por mais tempo que o aviso normal.
+    toast('⚠ '+t('gerador.manual_nao_vinculou',{n:totalNaoVinculado,motivo:(motivosNaoVinc.length?motivosNaoVinc[motivosNaoVinc.length-1]:'')}),14000);
+  } else if(!totalSalvo && !totalVinculado){
     toast(totalPulado===1?t('gerador.jogo_existe_nenhum_novo_salvo'):t('gerador.jogos_existiam_nenhum_novo_salvo',{n:totalPulado}));
   } else if(vincId){
-    toast('✅ '+t('gerador.jogos_salvos_vinculados_bolao',{n:totalSalvo})+_avisoPulados);
+    toast('✅ '+t('gerador.jogos_salvos_vinculados_bolao',{n:totalVinculado})+_avisoPulados);
   } else {
     toast('✅ '+(totalSalvo!==1?t('gerador.jogos_manuais_salvos_pl',{n:totalSalvo}):t('gerador.jogos_manuais_salvos_sing',{n:totalSalvo}))+_avisoPulados);
   }
@@ -26820,6 +26867,7 @@ async function _vincularSalvoAoBolaoImpl(itemId, bolaoIdOverride, opts){
     // biblioteca). Vindo do painel inline (Fase 91), pular evita reabrir
     // o popup mostrando a loteria errada por uma corrida assíncrona.
     if(!(opts&&opts.semRefreshModalSalvar)) await openModalSalvar();
+    return _totalVinculadoOk; // quantos jogos entraram no bolão (0 = nada foi vinculado; o motivo já saiu num aviso)
   }catch(e){ console.error(e); toast(t('boloes.erro_ao_vincular',{msg:e.message})); }
 }
 
@@ -29743,6 +29791,12 @@ try{
   Object.assign(LA_I18N['it-IT'],{'boloes.saldo_insuficiente_vincular':'Saldo insufficiente: queste giocate costano {custo} e il gruppo ha solo {saldo} disponibile. Una volta attivato, il gruppo non può spendere più di quanto ha raccolto. Per continuare, aggiungi credito al gruppo (deposito a parte) e riprova.'});
 }catch(e){}
 /*LA_GUARDA_SALDO_FIM*/
+try{
+  Object.assign(LA_I18N['pt-BR'],{'gerador.manual_nao_vinculou':'{n} jogo(s) ficaram só em Jogos Salvos e NÃO foram vinculados ao bolão. {motivo}'});
+  Object.assign(LA_I18N['en-US'],{'gerador.manual_nao_vinculou':'{n} ticket(s) stayed only in Saved Tickets and were NOT linked to the pool. {motivo}'});
+  Object.assign(LA_I18N['es-ES'],{'gerador.manual_nao_vinculou':'{n} juego(s) quedaron solo en Juegos guardados y NO se vincularon al grupo. {motivo}'});
+  Object.assign(LA_I18N['it-IT'],{'gerador.manual_nao_vinculou':'{n} giocata/e sono rimaste solo in Giocate salvate e NON sono state collegate al gruppo. {motivo}'});
+}catch(e){}
 // Bolão "Único" guarda UMA loteria/concurso (ex.: Quina de São João). Mas um "Único" que já tem VÁRIAS loterias (o "Mario Pessoal", usado como carteira pessoal)
 // não pode ser travado: g.concursos[0] vem do banco sem ordem definida e bloqueava qualquer loteria diferente da que calhava em primeiro — o jogo ficava só em
 // "Jogos Salvos", nada era vinculado e o saldo não mudava. Devolve a rodada que fixa a regra, ou null quando a regra não se aplica.
