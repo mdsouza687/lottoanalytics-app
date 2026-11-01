@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.1.0':{
+    'en-US':["Version aligned with the mobile app, which now receives draw results without depending on the Desktop, shows the lottery shops map in day and night colours and has new videos in the How to button."],
+    'es-ES':["Versión alineada con la app móvil, que ahora recibe los resultados de los sorteos sin depender del Desktop, muestra el mapa de casas de lotería con colores de día y de noche y tiene vídeos nuevos en el botón Cómo hacerlo."],
+    'it-IT':["Versione allineata con l’app mobile, che ora riceve i risultati delle estrazioni senza dipendere dal Desktop, mostra la mappa delle ricevitorie con i colori del giorno e della notte e ha nuovi video nel pulsante Come fare."]
+  },
   '6.0.15':{
     'en-US':["When inserting games manually, if a game cannot be linked to the pool, the notice now says so clearly, with the reason, instead of showing “linked”. Games already in Saved Tickets are linked to the chosen pool when you enter them again. Version aligned with the mobile app, whose My Pools screen now fits without scrolling."],
     'es-ES':["Al insertar juegos a mano, si un juego no se puede vincular al grupo, el aviso ahora lo dice con claridad y con el motivo, en lugar de mostrar “vinculados”. Los juegos que ya estaban en Juegos guardados se vinculan al grupo elegido cuando los vuelves a insertar. Versión alineada con la app móvil, cuya pantalla Mis grupos ahora cabe sin desplazamiento."],
@@ -1999,6 +2004,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.1.0':[
+    "Versão alinhada com o app do celular, que agora recebe os resultados dos sorteios sem depender do Desktop, mostra o mapa de lotéricas com cores de dia e noite e tem vídeos novos no botão Como fazer."
+  ],
   '6.0.15':[
     "Ao inserir jogos manualmente, se algum jogo não puder ser vinculado ao bolão, o aviso agora diz isso com clareza, com o motivo, em vez de mostrar “vinculados”. Jogos que já estavam em Jogos Salvos são vinculados ao bolão escolhido quando você os insere de novo. Versão alinhada com o app do celular, cuja tela Meus Bolões agora cabe sem rolagem."
   ],
@@ -2478,7 +2486,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.15</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.0</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2854,7 +2862,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.0.15</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.0</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
