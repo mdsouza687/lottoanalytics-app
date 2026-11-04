@@ -1284,9 +1284,9 @@ body.theme-light .la-home #laAurora b{opacity:.16}
 .la-hero p.la-sub{font-size:14px;line-height:1.55;color:var(--text-muted);margin:0 0 14px}
 .la-hero p.la-disc{font-size:11.5px;line-height:1.5;color:var(--text-dim);margin:0 0 22px;border-left:2px solid var(--glass-border);padding-left:12px}
 .la-hero-btns{display:flex;gap:12px;flex-wrap:wrap}
-#btn-jogos-premiados-boloes.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
-#btn-jogos-premiados-boloes.tem-novidade [data-ic]{color:var(--pg-i)}
-@media (prefers-reduced-motion:reduce){#btn-jogos-premiados-boloes.tem-novidade{animation:none;box-shadow:0 0 5px 2px var(--pg-c),0 0 10px 3px rgba(var(--pg-r),.85)}}
+#btn-jogos-premiados-boloes.tem-novidade,#btn-jogos-premiados-home.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
+#btn-jogos-premiados-boloes.tem-novidade [data-ic],#btn-jogos-premiados-home.tem-novidade [data-ic]{color:var(--pg-i)}
+@media (prefers-reduced-motion:reduce){#btn-jogos-premiados-boloes.tem-novidade,#btn-jogos-premiados-home.tem-novidade{animation:none;box-shadow:0 0 5px 2px var(--pg-c),0 0 10px 3px rgba(var(--pg-r),.85)}}
 /* Botões do Hero seguem o mesmo padrão "clean" do painel de Ferramentas
    (.tool-btn), mas em largura automática/inline, não 100% de uma lista
    vertical — por isso a classe extra sobrescreve display/width/padding. */
@@ -1449,9 +1449,9 @@ body.theme-light .la-hist-tr:hover td{background:rgba(15,23,42,.04)}
 .pt-nav-tabs{padding:12px 8px;margin-top:-12px;margin-bottom:-12px}
 .pt-tab.tem-novidade{animation:ptPremioPulso 1.8s ease-in-out infinite}
 .pt-tab.tem-novidade .pt-tab-ico{color:#e0ac1f}
-/*LA_BRILHO_TEMA*/ .pt-tab.tem-novidade,#btn-jogos-premiados-boloes.tem-novidade{--pg-c:#d9ffd0;--pg-r:57,255,20;--pg-i:#39FF14} /* escuro: verde vibrante */
-body.theme-colorful .pt-tab.tem-novidade,body.theme-colorful #btn-jogos-premiados-boloes.tem-novidade{--pg-c:#baffef;--pg-r:0,255,212;--pg-i:#00FFD4} /* colorido: turquesa vibrante */
-body.theme-light .pt-tab.tem-novidade,body.theme-light #btn-jogos-premiados-boloes.tem-novidade{--pg-c:#e6d6ff;--pg-r:139,61,255;--pg-i:#8B3DFF} /* claro: lilás vibrante */
+/*LA_BRILHO_TEMA*/ .pt-tab.tem-novidade,#btn-jogos-premiados-boloes.tem-novidade,#btn-jogos-premiados-home.tem-novidade{--pg-c:#d9ffd0;--pg-r:57,255,20;--pg-i:#39FF14} /* escuro: verde vibrante */
+body.theme-colorful .pt-tab.tem-novidade,body.theme-colorful #btn-jogos-premiados-boloes.tem-novidade,body.theme-colorful #btn-jogos-premiados-home.tem-novidade{--pg-c:#baffef;--pg-r:0,255,212;--pg-i:#00FFD4} /* colorido: turquesa vibrante */
+body.theme-light .pt-tab.tem-novidade,body.theme-light #btn-jogos-premiados-boloes.tem-novidade,body.theme-light #btn-jogos-premiados-home.tem-novidade{--pg-c:#e6d6ff;--pg-r:139,61,255;--pg-i:#8B3DFF} /* claro: lilás vibrante */
 @keyframes ptPremioPulso{0%,100%{box-shadow:0 0 3px 1px var(--pg-c),0 0 8px 2px rgba(var(--pg-r),.6)}50%{box-shadow:0 0 5px 2px var(--pg-c),0 0 12px 4px rgba(var(--pg-r),.85)}}
 @media (prefers-reduced-motion:reduce){.pt-tab.tem-novidade{animation:none;box-shadow:0 0 5px 2px var(--pg-c),0 0 10px 3px rgba(var(--pg-r),.85)}}
 .pt-tab-ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1647,6 +1647,11 @@ details[open] > .pt-encerrados-toggle::before{content:'▾ '}
 // de sempre — nunca quebra por falta de changelog).
 // Novidades da versão por idioma (a lista em português é o padrão; idiomas sem tradução caem nela).
 var LA_CHANGELOG_I18N={
+  '6.1.1':{
+    'en-US':["On the home page, the Winning Tickets button now takes the place of View predictions. It looks the same as the button on the Pools page, with the trophy, and glows when a new winning ticket comes out. Version aligned with the mobile app."],
+    'es-ES':["En la página de inicio, el botón Juegos premiados ocupa ahora el lugar de Ver pronósticos. Tiene el mismo aspecto que el botón de la página Grupos, con el trofeo, y brilla cuando sale un juego premiado nuevo. Versión alineada con la app móvil."],
+    'it-IT':["Nella pagina iniziale, il pulsante Giocate vincenti ora prende il posto di Vedi le previsioni. Ha lo stesso aspetto del pulsante della pagina Gruppi, con il trofeo, e si illumina quando esce una nuova giocata vincente. Versione allineata con l’app mobile."]
+  },
   '6.1.0':{
     'en-US':["Version aligned with the mobile app, which now receives draw results without depending on the Desktop, shows the lottery shops map in day and night colours and has new videos in the How to button."],
     'es-ES':["Versión alineada con la app móvil, que ahora recibe los resultados de los sorteos sin depender del Desktop, muestra el mapa de casas de lotería con colores de día y de noche y tiene vídeos nuevos en el botón Cómo hacerlo."],
@@ -2004,6 +2009,9 @@ var LA_CHANGELOG_I18N={
   }
 };
 var LA_CHANGELOG_DESKTOP={
+  '6.1.1':[
+    "Na página inicial, o botão Jogos Premiados agora ocupa o lugar de Ver previsões. Ele tem o mesmo visual do botão da página Bolões, com o troféu, e brilha quando sai um jogo premiado novo. Versão alinhada com o app do celular."
+  ],
   '6.1.0':[
     "Versão alinhada com o app do celular, que agora recebe os resultados dos sorteios sem depender do Desktop, mostra o mapa de lotéricas com cores de dia e noite e tem vídeos novos no botão Como fazer."
   ],
@@ -2486,7 +2494,7 @@ function _mostrarNovidadesVersao(versao){
          "4.9.9" abaixo só é o que aparece na versão WEB (que não tem
          Electron/contextBridge nenhum) — bumpar manualmente junto com
          "version" do package.json a cada release, só por causa desse caso. -->
-    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--text-muted);opacity:.7;margin-top:-4px;margin-bottom:8px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.1</span></div>
     <div id="ag-idioma-row" style="display:flex;justify-content:center;gap:6px;margin-bottom:10px"></div>
     <div class="ag-sub" id="ag-sub" data-i18n="ag.sub_default">Entre ou crie sua conta para continuar</div>
     <div class="ag-tabs">
@@ -2862,7 +2870,7 @@ function _mostrarNovidadesVersao(versao){
   <text x="150" y="30" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="url(#ld-white)" letter-spacing="1">ANALYTICS</text>
   <rect x="142" y="10" width="1.5" height="22" rx="0.5" fill="#d4af37" opacity="0.5"/>
 </svg>
-      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.0</span></span>
+      <span style="font-size:9px;color:var(--text-muted);opacity:.65;align-self:flex-end;margin-top:1px;margin-right:3px"><span data-i18n="geral.versao">Versão</span> <span class="app-versao-num">6.1.1</span></span>
     </div>
     <div class="la-pills" id="laPills"></div>
     <div class="theme-switcher">
@@ -2896,7 +2904,7 @@ function _mostrarNovidadesVersao(versao){
           <p class="la-disc" data-i18n="hero.disclaimer">Este programa não garante prêmios. Ele faz uma análise matemática das estatísticas históricas, revelando padrões e regularidades nos dados de cada modalidade.</p>
           <div class="la-hero-btns">
             <button class="tool-btn la-hero-tool-btn" onclick="abrirLoteriaAtual('gerador')" data-i18n="hero.gerar_jogos">Gerar Jogos</button>
-            <button class="tool-btn la-hero-tool-btn" onclick="abrirLoteriaAtual('previsao')" data-i18n="hero.ver_previsoes">Ver previsões</button>
+            <button id="btn-jogos-premiados-home" onclick="abrirJogosPremiadosDaHome()" title="Confira os bilhetes que já ganharam" data-i18n-title="pt.jp_sub" style="border:1px solid var(--glass-border);border-radius:9px;padding:9px 16px;background:var(--glass-bg);color:var(--text);font-family:var(--font-head);font-weight:700;font-size:13px;cursor:pointer">🏆 <span data-i18n="pt.jp_titulo">Jogos Premiados</span></button>
             <button class="tool-btn la-hero-tool-btn" onclick="abrirLoteriaAtual('boloes')" data-i18n="hero.boloes">Bolões</button>
           </div>
         </div>
@@ -6657,6 +6665,7 @@ async function _agAposLogin(user){
     else if(act.type==='lotteryTab' && typeof showLottery==='function'){
       showLottery(act.key, act.tab);
     }
+    else if(act.type==='premiados' && typeof abrirJogosPremiadosDoDashboard==='function') abrirJogosPremiadosDoDashboard();
   }
 }
 
@@ -9462,7 +9471,7 @@ function renderLaPred(){
   // histórico só seria buscado depois de várias outras na fila.
   laPriorizarHistorico(key);
   renderLaHeroInfo(d,key,real);
-  // Botões do Hero (Gerar Jogos / Ver previsões / Bolões) seguem a cor da
+  // Botões do Hero (Gerar Jogos / Jogos Premiados / Bolões) seguem a cor da
   // loteria selecionada no momento — setupMods() não roda na home, então a
   // cor é aplicada aqui mesmo (mesma lógica de [data-lotbtn]/.tool-btn).
   document.querySelectorAll('.la-hero-tool-btn').forEach(btn=>{
@@ -31457,9 +31466,11 @@ var _ptPremiadosTemNovidade=false,_ptPremiadosUltimaChecagem=0,_ptJpFiltro='ativ
 function _ptPremiadosChave(){ var u=window._usuarioAtual; return 'la_premiados_vistos'+(u&&u.id?'_'+u.id:''); }
 function _ptPremiadosVistosGet(){ try{ var raw=localStorage.getItem(_ptPremiadosChave()); return raw==null?null:JSON.parse(raw); }catch(e){ return null; } }
 function _ptPremiadosVistosSet(ids){ try{ localStorage.setItem(_ptPremiadosChave(),JSON.stringify(ids)); }catch(e){} }
-function ptAplicarEstadoBotaoPremiados(){ ['pt-tab-premiados','btn-jogos-premiados-boloes'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('tem-novidade',_ptPremiadosTemNovidade); }); }
+function ptAplicarEstadoBotaoPremiados(){ ['pt-tab-premiados','btn-jogos-premiados-boloes','btn-jogos-premiados-home'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.toggle('tem-novidade',_ptPremiadosTemNovidade); }); }
 // Botão da página Bolões (antes de "Criar Bolão"): abre a mesma tela da área de participante (o botão "Ver como Organizador" de lá volta para cá).
 function abrirJogosPremiadosDoDashboard(){ _ptState.tela='premiados'; showParticipanteArea(); }
+// Botão "Jogos Premiados" da página inicial (no lugar de "Ver previsões"): a home é pública, então pede login antes e retoma a ação depois.
+function abrirJogosPremiadosDaHome(){ if(typeof _agRequerLogin==='function' && _agRequerLogin({type:'premiados'})) return; abrirJogosPremiadosDoDashboard(); }
 async function _ptBuscarPremiadosPorBolao(lista){
   var eleg=(lista||[]).filter(function(b){ return b.convite_status!=='pendente'&&b.ativado_em; });
   return Promise.all(eleg.map(async function(b){
